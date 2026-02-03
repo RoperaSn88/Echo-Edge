@@ -12,4 +12,6 @@
 | ci:       | CI/CD関連の変更            | ci: GitHub Actions のワークフローを修正 |
 
 # 2. ざっくりルール
-mainで作業はあまりよろしくない。
+git: チームでよく使うやつ。ファイルを共有し、変更とかした履歴を残るもの。
+[参考リンク](https://qiita.com/a_goto/items/0fe40b17105d1ac1c40b)
+
