@@ -4,5 +4,5 @@ public interface IPhase
     /// <summary>
     /// 待機
     /// </summary>
-    public UniTask WaitPhase();
+    public UniTask<IPhase> WaitPhase();
 }
