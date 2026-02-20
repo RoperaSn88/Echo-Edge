@@ -11,15 +11,19 @@ public class BaseUnitView: MonoBehaviour
     [SerializeField]
     private int width;
 
+    [SerializeField]
+    private int MoveHeight;
+
+    [SerializeField]
+    private int MoveWidth;
+
     void Start()
     {
-        _baseUnit = new BaseUnit(height, width);
+        _baseUnit = new BaseUnit(this, height, width, MoveHeight, MoveWidth);
     }
-    
-    [Button("Move")]
-    void Move()
+
+    public void Move()
     {
-        MapManager.Instance.TryMoveUnit(_baseUnit.Height, _baseUnit.Width, _baseUnit.Height, _baseUnit.Width - 1);
         transform.position += Vector3.one;
     }
 }

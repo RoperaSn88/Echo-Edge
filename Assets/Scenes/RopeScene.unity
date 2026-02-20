@@ -26601,8 +26601,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f7b981fbed4ebea4485063ab3837915b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BaseUnitView
-  height: 0
-  width: 0
+  height: 5
+  width: 5
+  MoveHeight: 1
+  MoveWidth: 1
 --- !u!1001 &910267768
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -33444,7 +33446,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 38305fb843320bb4c83cbbd5b80abe2d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PhaseManager
-  _clickPanel: {fileID: 0}
 --- !u!1001 &1142326451
 PrefabInstance:
   m_ObjectHideFlags: 0

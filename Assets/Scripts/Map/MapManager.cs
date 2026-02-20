@@ -1,7 +1,7 @@
 using System;
-using System.Collections.Generic;
+using UnityEngine;
 
-public class MapManager
+public class MapManager: MonoBehaviour
 {
     public static MapManager Instance;
     
@@ -61,27 +61,31 @@ public class MapManager
         // 範囲チェック
         if (srcH < 0 || srcH >= MapHeight || srcW < 0 || srcW >= MapWidth)
         {
+            Debug.Log("始点がおかしい");
             return false;
         }
         if (dstH < 0 || dstH >= MapHeight || dstW < 0 || dstW >= MapWidth)
         {
+            Debug.Log("終点がおかしい");
             return false;
         }
 
         var unit = _mapGrid[srcH, srcW];
         if (unit == null)
         {
+            Debug.Log("ユニットがいない");
             return false; 
         }
         
-        var dest = _mapGrid[dstH, dstW];
+        var dest = _mapGrid[srcH - dstH, srcW - dstW];
         if (dest != null)
         {
+            Debug.Log("着地地点がおかしい");
             return false;
         }
 
         // 移動実行
-        _mapGrid[dstH, dstW] = unit;
+        _mapGrid[srcH - dstH, srcW - dstW] = unit;
         _mapGrid[srcH, srcW] = null;
 
         // ユニット側に内部処理があれば通知（位置情報をユニット側で管理するならここで更新させる）
@@ -107,5 +111,24 @@ public class MapManager
         if (_mapGrid[h, w] != null) return false;
         _mapGrid[h, w] = unit;
         return true;
+    }
+
+    /// <summary>
+    /// ユニットを行動させる
+    /// </summary>
+    public void MoveUnit()
+    {
+        for(int i = 0; i < MapHeight; i++)
+        {
+            for(int j = 0; j < MapWidth; j++)
+            {
+                var unit = _mapGrid[i,j];
+                if(unit != null)
+                {
+                    Debug.Log(TryMoveUnit(i, j, unit.GetMoveHeight(), unit.GetMoveWidth()));
+                }
+            }
+        }
+        Debug.Log("おわり");
     }
 }
