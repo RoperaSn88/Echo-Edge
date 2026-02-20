@@ -3,13 +3,17 @@ using Cysharp.Threading.Tasks;
 
 public class PhaseManager : MonoBehaviour
 {
-    void Start()
+    async void Start()
     {
-        
+        await Phasing();
     }
 
     async UniTask Phasing()
     {
-        
+        IPhase phase = new PlayerPhase();
+        while (true)
+        {
+            phase = await phase.WaitPhase();
+        }
     }
 }
