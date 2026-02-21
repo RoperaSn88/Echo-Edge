@@ -31,7 +31,7 @@ public class PlayerPhase: IPhase
     public async UniTask<IPhase> WaitPhase()
     {
         // 初期条件
-        bool _clickFlug = false;
+        _clickFlug = false;
         Debug.Log("Player Phase");
         PlayerActions playerActions = new PlayerActions();
         EnableController(playerActions);
