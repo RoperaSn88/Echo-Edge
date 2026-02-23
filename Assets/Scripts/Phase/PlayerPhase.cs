@@ -87,6 +87,4 @@ public class PlayerPhase: IPhase
     {
         _clickFlug = true;
     }
-
-    
 }
