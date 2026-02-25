@@ -45,17 +45,14 @@ public class PlayerPhase: IPhase
         switch (_clickKind)
         {
             case ClickKinds.Left:
-                Debug.Log("狙ってる");
+                CameraManager.Instance.ActMoveCameraToTopAngle();
                 await UniTask.WaitUntil(()=>_clickFlug);
-                Debug.Log("攻撃した");
-                break;
-            case ClickKinds.Right:
                 ResetController(playerActions);
-                return PlayerSkillPhase.Instance;
-
+                return PlayerAttackPhase.Instance;
         }
+        // 右クリック時
         ResetController(playerActions);
-        return EnemyPhase.Instance;
+        return PlayerSkillPhase.Instance;
     }
 
     public void EnableController(PlayerActions playerActions)

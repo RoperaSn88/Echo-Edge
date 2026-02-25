@@ -1,33 +1,70 @@
 using AndanteTribe.Utils.Unity;
 using Unity.Cinemachine;
 using UnityEngine;
-
+using System.Threading;
+using Cysharp.Threading.Tasks;
+using DG.Tweening;
+using System;
 
 public class CameraManager : MonoBehaviour
 {
+    /// <summary>
+    /// インスタンス
+    /// </summary>
+    public static CameraManager Instance;
+
     /// <summary>
     /// ステージ全体を見渡すカメラの場所
     /// </summary>
     [SerializeField]
     private Transform _defaultCameraPos;
-    
-    [SerializeField]
-    private Transform target;
 
+    /// <summary>
+    /// 対象のオブジェクト
+    /// </summary>
+    private Transform _target;
+    public Transform Target => _target;
+
+    /// <summary>
+    /// カメラのCinemachine
+    /// </summary>
     [SerializeField]
     private CinemachineCamera _cinemachineCamera;
 
     private CinemachineThirdPersonFollow _cinemachineThirdPersonFollow;
 
     /// <summary>
+    /// カメラが移動中のフラグ
+    /// </summary>
+    [SerializeField]
+    private bool _cameraMoving;
+
+    /// <summary>
+    /// キャンセルトーケンソースのフィールド
+    /// </summary>
+    private CancellationTokenSource _cts;
+
+    /// <summary>
     /// カメラの初期値
     /// </summary>
     private Vector3 _baseCameraPos;
+
+    private MousePosition _mousePosition;
 
     /// <summary>
     /// 通常状態のカメラの角度
     /// </summary>
     public const float DefaultCameraAngle = 50;
+
+    /// <summary>
+    /// 上のときのzのオフセット
+    /// </summary>
+    public const float TopCameraOffset = 0f;
+
+    /// <summary>
+    /// 通常時のzのオフセット
+    /// </summary>
+    public const float DefaultCameraOffset = 1;
 
     /// <summary>
     /// 通常状態のスプライトの角度
@@ -59,56 +96,295 @@ public class CameraManager : MonoBehaviour
     /// </summary>
     public const float ZoomCameraDistance = 5;
 
+    /// <summary>
+    /// 非同期処理の待機時間
+    /// </summary>
+    public const float TokenTime = 0.25f;
+
     void Start()
     {
+        Instance = this;
         Initialize();
+        _mousePosition = new MousePosition();
+        _mousePosition.Enable();
     }
 
+    /// <summary>
+    /// 現在のマウスの位置を取得する
+    /// </summary>
+    /// <returns>マウスの位置</returns>
+    public Vector2 GetMousePosition()
+    {
+        return _mousePosition.Mouse.MousePos.ReadValue<Vector2>();
+    }
+
+    /// <summary>
+    /// 初期化
+    /// </summary>
     public void Initialize()
     {
         _baseCameraPos = _defaultCameraPos.position;
         _cinemachineThirdPersonFollow = _cinemachineCamera.GetComponent<CinemachineThirdPersonFollow>();
-        Debug.Log(_cinemachineThirdPersonFollow.gameObject.name);
-    }
-
-    // public void SetCameraTarget(Vector3 targetVec)
-    // {
-    //     _defaultCameraPos.position = targetVec;
-    //     _cinemachineThirdPersonAim.AimDistance = 
-    // }
-
-    [Button("セット")]
-    public void SetCameraTarget()
-    {
-        _cinemachineThirdPersonFollow.CameraDistance = ZoomCameraDistance;
-        _defaultCameraPos.position = target.position;
     }
 
     /// <summary>
-    /// カメラをもとの位置に戻す
+    /// カメラを対象のゲームオブジェクトにズームさせ始める。
+    /// </summary>
+    [Button("セット")]
+    public async void ActSetCameraTarget()
+    {
+        // カメラが動いている最中ならばキャンセル
+        if (_cameraMoving)
+        {
+            Debug.Log("キャンセルだ");
+            _cts.Cancel();
+        }
+
+        // CancekkationTokenSourceを初期化
+        _cts = new CancellationTokenSource();
+
+        try
+        {
+            await SetCameraTarget(_cts.Token);
+        }
+        catch(OperationCanceledException)
+        {
+            Debug.Log("キャンセル");
+        }
+    }
+
+    /// <summary>
+    /// カメラを対象のゲームオブジェクトにズームする。
+    /// </summary>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    private async UniTask SetCameraTarget(CancellationToken ct)
+    {
+        _cameraMoving = true;
+        
+        var cameraTween = DOTween.To(()=>_cinemachineThirdPersonFollow.CameraDistance,
+            d => _cinemachineThirdPersonFollow.CameraDistance = d, 
+            ZoomCameraDistance, 
+            TokenTime)
+            .SetEase(Ease.OutQuad);
+            
+        var positionTween = DOTween.To(()=>_defaultCameraPos.position,
+            pos => _defaultCameraPos.position = pos, 
+            _target.position, 
+            TokenTime)
+            .SetEase(Ease.OutQuad);
+
+        try
+        {
+            await UniTask.WhenAll(
+                cameraTween.ToUniTask(cancellationToken: ct),
+                positionTween.ToUniTask(cancellationToken: ct)
+            );
+            _cameraMoving = false;
+        }
+        catch(Exception)
+        {
+            cameraTween.Complete();
+            positionTween.Complete();
+            _cameraMoving = false;
+        }
+    }
+
+    /// <summary>
+    /// カメラをもとの位置に戻し始める。
     /// </summary>
     [Button("リセット")]
-    public void ResetCameraTarget()
+    public async void ActResetCameraTarget()
     {
-        _cinemachineThirdPersonFollow.CameraDistance = DefaultCameraDistance;
-        _defaultCameraPos.position = _baseCameraPos;
+        // カメラが動いている最中ならばキャンセル
+        if (_cameraMoving)
+        {
+            Debug.Log("キャンセルだ");
+            _cts.Cancel();
+        }
+
+        // CancekkationTokenSourceを初期化
+        _cts = new CancellationTokenSource();
+
+        try
+        {
+            await ResetCameraTarget(_cts.Token);
+        }
+        catch(OperationCanceledException)
+        {
+            Debug.Log("キャンセル");
+        }
     }
 
     /// <summary>
-    ///  カメラを上に移動させる
+    /// カメラをもとの位置に戻す。
     /// </summary>
-    public void MoveCameraToTopAngle()
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    private async UniTask ResetCameraTarget(CancellationToken ct)
     {
-        _cinemachineThirdPersonFollow.CameraDistance = TopCameraDistance;
-        _defaultCameraPos.rotation = Quaternion.Euler(TopCameraAngle,0,0);
+        _cameraMoving = true;
+        
+        var cameraTween = DOTween.To(()=>_cinemachineThirdPersonFollow.CameraDistance,
+            d => _cinemachineThirdPersonFollow.CameraDistance = d, 
+            DefaultCameraDistance, 
+            TokenTime)
+            .SetEase(Ease.OutQuad);
+            
+        var positionTween = DOTween.To(()=>_defaultCameraPos.position,
+            pos => _defaultCameraPos.position = pos, 
+            _baseCameraPos, 
+            TokenTime)
+            .SetEase(Ease.OutQuad);
+
+        try
+        {
+            await UniTask.WhenAll(
+                cameraTween.ToUniTask(cancellationToken: ct),
+                positionTween.ToUniTask(cancellationToken: ct)
+            );
+            _cameraMoving = false;
+        }
+        catch(Exception)
+        {
+            cameraTween.Complete();
+            positionTween.Complete();
+            _cameraMoving = false;
+        }
     }
 
     /// <summary>
-    /// カメラを上から元の位置に戻す
+    ///  カメラを上に移動させ始める。
     /// </summary>
-    public void MoveCameraToDefault()
+    public async void ActMoveCameraToTopAngle()
     {
-        _cinemachineThirdPersonFollow.CameraDistance = DefaultCameraDistance;
-        _defaultCameraPos.rotation = Quaternion.Euler(DefaultCameraAngle,0,0);
+        // カメラが動いている最中ならばキャンセル
+        if (_cameraMoving)
+        {
+            Debug.Log("キャンセルだ");
+            _cts.Cancel();
+        }
+
+        // CancekkationTokenSourceを初期化
+        _cts = new CancellationTokenSource();
+
+        try
+        {
+            await MoveCameraToTopAngle(_cts.Token);
+        }
+        catch(OperationCanceledException)
+        {
+            Debug.Log("キャンセル");
+        }
+    }
+
+    /// <summary>
+    /// カメラを上に移動させる。
+    /// </summary>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    private async UniTask MoveCameraToTopAngle(CancellationToken ct)
+    {
+        _cameraMoving = true;
+        
+        var cameraTween = DOTween.To(()=>_cinemachineThirdPersonFollow.CameraDistance,
+            d => _cinemachineThirdPersonFollow.CameraDistance = d, 
+            TopCameraDistance, 
+            TokenTime)
+            .SetEase(Ease.OutQuad);
+            
+        var positionTween = DOTween.To(()=>_defaultCameraPos.rotation.eulerAngles.x,
+            pos => _defaultCameraPos.rotation = Quaternion.Euler(pos,0,0), 
+            TopCameraAngle, 
+            TokenTime)
+            .SetEase(Ease.OutQuad);
+
+        var offsetTween = DOTween.To(()=>_cinemachineThirdPersonFollow.ShoulderOffset.z,
+            pos =>_cinemachineThirdPersonFollow.ShoulderOffset = new Vector3(0,0,pos), 
+            TopCameraOffset, 
+            TokenTime)
+            .SetEase(Ease.OutQuad);
+
+        try
+        {
+            await UniTask.WhenAll(
+                cameraTween.ToUniTask(cancellationToken: ct),
+                positionTween.ToUniTask(cancellationToken: ct),
+                offsetTween.ToUniTask(cancellationToken: ct)
+            );
+            _cameraMoving = false;
+        }
+        catch(Exception)
+        {
+            cameraTween.Complete();
+            positionTween.Complete();
+            offsetTween.Complete();
+            _cameraMoving = false;
+        }
+    }
+
+    /// <summary>
+    /// カメラを上から元の位置に戻し始める
+    /// </summary>
+    public async void ActMoveCameraToDefault()
+    {
+        // カメラが動いている最中ならばキャンセル
+        if (_cameraMoving)
+        {
+            Debug.Log("キャンセルだ");
+            _cts.Cancel();
+        }
+
+        // CancekkationTokenSourceを初期化
+        _cts = new CancellationTokenSource();
+
+        try
+        {
+            await MoveCameraToDefault(_cts.Token);
+        }
+        catch(OperationCanceledException)
+        {
+            Debug.Log("キャンセル");
+        }
+    }
+
+    private async UniTask MoveCameraToDefault(CancellationToken ct)
+    {
+        _cameraMoving = true;
+        
+        var cameraTween = DOTween.To(()=>_cinemachineThirdPersonFollow.CameraDistance,
+            d => _cinemachineThirdPersonFollow.CameraDistance = d, 
+            DefaultCameraDistance, 
+            TokenTime)
+            .SetEase(Ease.OutQuad);
+            
+        var positionTween = DOTween.To(()=>_defaultCameraPos.rotation.eulerAngles.x,
+            pos => _defaultCameraPos.rotation = Quaternion.Euler(pos,0,0), 
+            DefaultCameraAngle, 
+            TokenTime)
+            .SetEase(Ease.OutQuad);
+
+        var offsetTween = DOTween.To(()=>_cinemachineThirdPersonFollow.ShoulderOffset.z,
+            pos =>_cinemachineThirdPersonFollow.ShoulderOffset = new Vector3(0,0,pos), 
+            DefaultCameraOffset, 
+            TokenTime)
+            .SetEase(Ease.OutQuad);
+        
+        try
+        {
+            await UniTask.WhenAll(
+                cameraTween.ToUniTask(cancellationToken: ct),
+                positionTween.ToUniTask(cancellationToken: ct),
+                offsetTween.ToUniTask(cancellationToken: ct)
+            );
+            _cameraMoving = false;
+        }
+        catch(Exception)
+        {
+            cameraTween.Complete();
+            positionTween.Complete();
+            offsetTween.Complete();
+            _cameraMoving = false;
+        }
     }
 }

@@ -1,8 +1,9 @@
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 public interface IUnit 
 {
-    public void Initialize(int h, int w, int mh, int mw);
+    public UniTask Initialize(int h, int w, int mh, int mw);
     /// <summary>
     /// 攻撃
     /// </summary>
@@ -14,6 +15,12 @@ public interface IUnit
     /// <param name="h">移動する縦の大きさ</param>
     /// <param name="w">移動する横の大きさ</param>
     public void Move(int h,int w);
+
+    /// <summary>
+    /// なんかの技
+    /// たぶんViewでやるべき
+    /// </summary>
+    public void Specific();
 
     public int GetMoveHeight();
 

@@ -1,16 +1,24 @@
-using System.Data;
+using System;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
+
+[System.Serializable]
 public class BaseUnit: IUnit
 {
+    [SerializeField]
     private int height;
     public int Height => height;
+
+    [SerializeField]
     private int width;
     public int Width => width;
 
+    [SerializeField]
     private int moveHeight;
     public int MoveHeight => moveHeight;
 
+    [SerializeField]
     private int moveWidth;
     public int MoveWidth => moveWidth;
 
@@ -22,12 +30,13 @@ public class BaseUnit: IUnit
         Initialize(h,w,mh,mw);
     }
 
-    public void Initialize(int h, int w, int mh, int mw)
+    public async UniTask Initialize(int h, int w, int mh, int mw)
     {
         height = h;
         width = w;
         moveHeight = mh;
         moveWidth = mw;
+        await UniTask.Delay(TimeSpan.FromMilliseconds(1000));
         MapManager.Instance.RegisterUnit(this,h,w);
     }
 
@@ -36,10 +45,16 @@ public class BaseUnit: IUnit
         
     }
 
-    public void Move(int x, int y)
+    public void Specific()
     {
-        Debug.Log("moving");
-        _view.Move();
+        
+    }
+
+    public void Move(int y, int x)
+    {
+        width += x;
+        height += y;
+        _view.Move(y, x);
     }
 
     public int GetMoveHeight()

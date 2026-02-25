@@ -1,5 +1,5 @@
 using Cysharp.Threading.Tasks;
-using UnityEngine.EventSystems;
+using System.Threading;
 using UnityEngine;
 using System;
 
@@ -25,6 +25,7 @@ public class EnemyPhase: IPhase
     {
         _clickFlug = false;
         Debug.Log("EnemyPhase");
+        MapManager.Instance.MoveUnit();
         await UniTask.Delay(TimeSpan.FromSeconds(1f));
         Debug.Log("おわり");
 

@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-public class MapManager: MonoBehaviour
+public class MapManager
 {
     public static MapManager Instance;
     
