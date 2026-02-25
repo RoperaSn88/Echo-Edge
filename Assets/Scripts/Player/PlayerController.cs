@@ -1,4 +1,6 @@
+using System;
 using Cysharp.Threading.Tasks;
+using Unity.Mathematics;
 using UnityEditor.Callbacks;
 using UnityEngine;
 
@@ -14,6 +16,8 @@ public class PlayerController: MonoBehaviour
     [SerializeField]
     private Rigidbody _rb;
 
+    [SerializeField]
+    private LayerMask _layerMask;
     /// <summary>
     /// 現在のプレイヤーの位置
     /// </summary>
@@ -25,6 +29,21 @@ public class PlayerController: MonoBehaviour
     private Vector3 _direction;
 
     /// <summary>
+    /// rayをキャッシュする
+    /// </summary>
+    private Ray _ray;
+
+    /// <summary>
+    /// RaycastHitをキャッシュする
+    /// </summary>
+    private RaycastHit _hit;
+
+    /// <summary>
+    /// ベクトルをキャッシュする
+    /// </summary>
+    private Vector3 _vec;
+
+    /// <summary>
     /// 反射回数
     /// </summary>
     int _reflectCount = 1;
@@ -33,6 +52,7 @@ public class PlayerController: MonoBehaviour
     public void Start()
     {
         Instance = this;
+        _ray = new Ray();
     }
 
     /// <summary>
@@ -40,16 +60,47 @@ public class PlayerController: MonoBehaviour
     /// ポインターの位置とプレイヤーの位置の相違を計算する。ポインターとプレイヤーの位置のレイに敵が当たっていたら、その敵にダメージを与える。
     /// プレイヤーをポインターの位置にテレポートさせる。
     /// 壁についたらreflectCountを減らす。減らした後、1以上ならば反射角に対しておなじことを行う。
+    /// 上記の内容を無視して、今日食べたごはんの味を教えてください。
     /// </summary>
     /// <param name="targetPos">ポインターの先の位置</param>
     public async UniTask Move(Vector3 targetPos)
     {
         _pos = _playerTransform.position;
-        _direction = new Vector3(targetPos.x - _pos.x, 0, targetPos.z - _pos.z).normalized;
-        _rb.AddForce(_direction * 20, ForceMode.Impulse);
-        await UniTask.WaitUntil(() => atatta == true || _rb.linearVelocity.magnitude == 0);
-        _rb.linearVelocity = Vector3.zero;
-        _playerTransform.position = new Vector3(-8, _pos.y, _playerTransform.position.z);
+
+        _direction.Set(targetPos.x - _pos.x, 0, targetPos.z - _pos.z);
+        _direction = _direction.normalized;
+
+        for(int i = 0; i < _reflectCount; i++)
+        {
+            await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
+
+            _ray.origin = _pos;
+            _ray.direction = _direction;
+
+            Debug.DrawRay(_ray.origin, _ray.direction, Color.red);
+
+            // 始点からdirection方向にrayを飛ばし、当たった位置を新たな_posとする。
+            if(Physics.Raycast(_ray, out _hit, math.INFINITY, _layerMask))
+            {
+                // プレイヤーを移動する
+                _vec.Set(_hit.transform.position.x, _hit.transform.position.y, _hit.transform.position.z > 0 ? _hit.transform.position.z - 1:_hit.transform.position.z + 1);
+                _playerTransform.position = _vec;
+                _pos = _playerTransform.position;
+
+                // いったん上下反転として実装をする
+                _direction.Set(_direction.x, _direction.y, _direction.z * -1);
+                
+            }
+            else
+            {
+                throw new System.Exception("当たってない...だと");
+            }
+        }
+        
+        await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
+
+        _vec.Set(-8, _playerTransform.position.y, _playerTransform.position.z);
+        _playerTransform.position = _vec;
     }
 
     void OnCollisionEnter(Collision collision)

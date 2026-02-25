@@ -21,10 +21,11 @@ public class PlayerAttackPhase: IPhase
         // 今のポインターの先の位置を取得
         CameraManager.Instance.ActMoveCameraToDefault();
         Ray ray = Camera.main.ScreenPointToRay(CameraManager.Instance.GetMousePosition());
+        Physics.Raycast(ray, out RaycastHit rch, math.INFINITY,LayerNumber);
+        await PlayerController.Instance.Move(rch.point);
         try
         {
-            Physics.Raycast(ray, out RaycastHit rch, math.INFINITY,LayerNumber);
-            await PlayerController.Instance.Move(rch.point);
+            
         }
         catch
         {
