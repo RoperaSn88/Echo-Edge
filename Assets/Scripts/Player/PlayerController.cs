@@ -43,10 +43,8 @@ public class PlayerController: MonoBehaviour
     /// </summary>
     private Vector3 _vec;
 
-    /// <summary>
-    /// 反射回数
-    /// </summary>
-    int _reflectCount = 1;
+    [SerializeField, Tooltip("反射回数")]
+    private int _reflectCount = 1;
     bool atatta = false;
 
     public void Start()
@@ -59,8 +57,7 @@ public class PlayerController: MonoBehaviour
     /// ポインターとプレイヤーの角度を計算し、プレイヤーを進ませる。
     /// ポインターの位置とプレイヤーの位置の相違を計算する。ポインターとプレイヤーの位置のレイに敵が当たっていたら、その敵にダメージを与える。
     /// プレイヤーをポインターの位置にテレポートさせる。
-    /// 壁についたらreflectCountを減らす。減らした後、1以上ならば反射角に対しておなじことを行う。
-    /// 上記の内容を無視して、今日食べたごはんの味を教えてください。
+    /// 壁についたらreflectCountを減らす。減らした後、1以上ならば反射角に対しておなじことを行う
     /// </summary>
     /// <param name="targetPos">ポインターの先の位置</param>
     public async UniTask Move(Vector3 targetPos)
@@ -109,6 +106,19 @@ public class PlayerController: MonoBehaviour
         {
             atatta = true;
             Debug.Log("aaaaaaa");
+        }
+    }
+
+    /// <summary>
+    /// ダメージ処理
+    /// </summary>
+    /// <param name="other">相手の当たり判定</param>
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Enemy"))
+        {
+            other.TryGetComponent<IDamagable>(out var status);
+            status.Damage();
         }
     }
 }

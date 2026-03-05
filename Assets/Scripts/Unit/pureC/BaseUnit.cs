@@ -36,7 +36,6 @@ public class BaseUnit: IUnit
         width = w;
         moveHeight = mh;
         moveWidth = mw;
-        await UniTask.Delay(TimeSpan.FromMilliseconds(1000));
         MapManager.Instance.RegisterUnit(this,h,w);
     }
 

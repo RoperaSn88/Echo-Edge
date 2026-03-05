@@ -23,6 +23,11 @@ public class BaseUnitView: MonoBehaviour
     /// </summary>
     private Vector3 _moveVec;
 
+    [SerializeField]
+    private BaseStatus baseStatus;
+
+    private BattleStatus battleStatus;
+
     void Start()
     {
         // 登録用
