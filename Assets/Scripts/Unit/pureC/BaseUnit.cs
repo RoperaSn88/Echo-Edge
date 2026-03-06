@@ -24,6 +24,11 @@ public class BaseUnit: IUnit
 
     private BaseUnitView _view;
 
+    [SerializeField]
+    private BaseStatus baseStatus;
+
+    private BattleStatus battleStatus;
+
     public BaseUnit(BaseUnitView unit, int h, int w, int mh, int mw)
     {
         _view = unit;
@@ -49,7 +54,7 @@ public class BaseUnit: IUnit
         
     }
 
-    public void Move(int y, int x)
+    public async UniTask Move(int y, int x)
     {
         width += x;
         height += y;
@@ -64,5 +69,10 @@ public class BaseUnit: IUnit
     public int GetMoveWidth()
     {
         return moveWidth;
+    }
+
+    public BattleStatus GetStatus()
+    {
+        return battleStatus;
     }
 }

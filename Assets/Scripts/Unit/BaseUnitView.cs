@@ -1,4 +1,5 @@
 using AndanteTribe.Utils.Unity;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 public class BaseUnitView: MonoBehaviour
@@ -23,11 +24,6 @@ public class BaseUnitView: MonoBehaviour
     /// </summary>
     private Vector3 _moveVec;
 
-    [SerializeField]
-    private BaseStatus baseStatus;
-
-    private BattleStatus battleStatus;
-
     void Start()
     {
         // 登録用
@@ -40,10 +36,9 @@ public class BaseUnitView: MonoBehaviour
     /// </summary>
     /// <param name="y">縦方向の移動量</param>
     /// <param name="x">横方向の移動量</param>
-    public void Move(int y, int x)
+    public async UniTask Move(int y, int x)
     {
         // 横方向はマイナス方向に進めるため、負の値にする
         _moveVec.Set(-x, 0, y);
-        transform.position += _moveVec;
     }
 }

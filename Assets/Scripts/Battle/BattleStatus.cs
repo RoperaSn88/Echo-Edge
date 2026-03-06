@@ -7,25 +7,22 @@ public class BattleStatus
     /// </summary>
     private BaseStatus baseStatus;
 
+    private int hp;
     /// <summary>
     /// 体力
     /// </summary>
-    private int hp;
-
     public int HP => hp;
 
+    private int attack;
     /// <summary>
     /// 攻撃力
     /// </summary>
-    private int attack;
-
     public int Attack => attack;
 
+    private int defend;
     /// <summary>
     /// 防御力
     /// </summary>
-    private int defend;
-
     public int Defend => defend;
 
     /// <summary>
@@ -33,10 +30,11 @@ public class BattleStatus
     /// </summary>
     private MovePattern pattern;
 
+    private int move;
     /// <summary>
     /// 1回の移動回数
     /// </summary>
-    private int move;
+    public int Move => move;
 
     public void Damage(int damage)
     {

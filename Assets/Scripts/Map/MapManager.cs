@@ -1,4 +1,5 @@
 using System;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 public class MapManager
@@ -20,6 +21,11 @@ public class MapManager
     /// </summary>
     private IUnit[,] _mapGrid = new IUnit[MapHeight, MapWidth];
 
+    /// <summary>
+    /// キャッシュ用
+    /// </summary>
+    private Vector3 vector;
+
     public MapManager()
     {
         Instance = this;
@@ -37,6 +43,9 @@ public class MapManager
     /// <summary>
     /// 指定座標のユニットを取得します。範囲外なら null を返します。
     /// </summary>
+    /// <param name="h">高さ</param>
+    /// <param name="w">横</param>
+    /// <returns></returns>
     public IUnit GetUnitAt(int h, int w)
     {
         if (h < 0 || h >= MapHeight || w < 0 || w >= MapWidth) return null;
@@ -56,46 +65,43 @@ public class MapManager
     /// src -> dst にユニットを移動します。移動先が範囲外または非 null の場合は false を返します。
     /// 成功時は内部的にグリッドを更新し、ユニットの `Move` を呼び出して内部処理を行わせます。
     /// </summary>
-    public bool TryMoveUnit(int srcH, int srcW, int dstH, int dstW)
+    public async UniTask<bool> TryMoveUnit(int count, int srcH, int srcW)
     {
-        // 範囲チェック
+        // ユニットゲット
+        var unit = _mapGrid[srcH, srcW];
+
+        // 始点チェック
         if (srcH < 0 || srcH >= MapHeight || srcW < 0 || srcW >= MapWidth)
         {
-            Debug.Log("始点がおかしい");
-            return false;
-        }
-        if (dstH < 0 || dstH >= MapHeight || dstW < 0 || dstW >= MapWidth)
-        {
-            Debug.Log("終点がおかしい");
-            return false;
+            throw new NullReferenceException("始点がおかしいです。");
         }
 
-        var unit = _mapGrid[srcH, srcW];
-        if (unit == null)
+        // count回数分、動くのを繰り返す
+        for(int i = 0; i < count; i++)
         {
-            Debug.Log("ユニットがいない");
-            return false; 
-        }
-        
-        var dest = _mapGrid[srcH - dstH, srcW - dstW];
-        if (dest != null)
-        {
-            Debug.Log("着地地点がおかしい");
-            return false;
-        }
-
-        // 移動実行
-        _mapGrid[srcH - dstH, srcW - dstW] = unit;
-        _mapGrid[srcH, srcW] = null;
-
-        // ユニット側に内部処理があれば通知（位置情報をユニット側で管理するならここで更新させる）
-        try
-        {
-            unit.Move(dstH, dstW);
-        }
-        catch (Exception)
-        {
-            // unit の Move が必須でない実装もあり得るので安全に呼び出す（例外は無視）
+            // 上下に動くか、左に進むか計算する。
+            // 現在のマスの左が空ならば進む。
+            if(GetUnitAt(srcH - 1, srcW) == null)
+            {
+                vector = MoveDirections.MoveLeft;
+                _mapGrid[srcH - 1, srcW] = unit;
+                _mapGrid[srcH, srcW] = null;
+                await unit.Move(srcH - 1, srcW);
+            }
+            else if(GetUnitAt(srcH, srcW - 1) == null)
+            {
+                vector = MoveDirections.MoveDown;
+                _mapGrid[srcH, srcW - 1] = unit;
+                _mapGrid[srcH, srcW] = null;
+                await unit.Move(srcH, srcW - 1);
+            }
+            else if(GetUnitAt(srcH, srcW + 1) == null)
+            {
+                vector = MoveDirections.MoveUp;
+                _mapGrid[srcH, srcW + 1] = unit;
+                _mapGrid[srcH, srcW] = null;
+                await unit.Move(srcH, srcW + 1);
+            }
         }
 
         return true;
@@ -125,7 +131,7 @@ public class MapManager
                 var unit = _mapGrid[i,j];
                 if(unit != null)
                 {
-                    Debug.Log(TryMoveUnit(i, j, unit.GetMoveHeight(), unit.GetMoveWidth()));
+                    Debug.Log(TryMoveUnit(unit.GetStatus().Move, unit.GetMoveHeight(), unit.GetMoveWidth()));
                 }
             }
         }

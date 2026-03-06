@@ -14,7 +14,7 @@ public interface IUnit
     /// </summary>
     /// <param name="h">移動する縦の大きさ</param>
     /// <param name="w">移動する横の大きさ</param>
-    public void Move(int h,int w);
+    public UniTask Move(int h,int w);
 
     /// <summary>
     /// なんかの技
@@ -25,4 +25,6 @@ public interface IUnit
     public int GetMoveHeight();
 
     public int GetMoveWidth();
+
+    public BattleStatus GetStatus();
 }
