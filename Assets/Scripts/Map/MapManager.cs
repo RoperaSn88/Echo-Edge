@@ -2,6 +2,7 @@ using System;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using AndanteTribe.Utils.Unity;
+using System.Collections.Generic;
 
 public class MapManager: MonoBehaviour
 {
@@ -27,10 +28,21 @@ public class MapManager: MonoBehaviour
     /// </summary>
     private Vector3 vector;
 
-    public void Start()
+    [SerializeField,Tooltip("xは縦方向, yは横方向")]
+    private Vector2Int[] buildingPoses;
+
+    public async void Start()
     {
         ResetMap();
         Instance = this;
+
+        foreach(var i in buildingPoses)
+        {
+            var buildingUnit = new building();
+            RegisterUnit(buildingUnit, i.x, i.y);
+            await UniTask.WaitUntil(() => BuildingManager.Instance);
+            BuildingManager.Instance.SetBuilding(i.x, i.y);
+        }
     }
 
     public void RegisterUnit(IUnit unit, int h, int w)
@@ -145,7 +157,10 @@ public class MapManager: MonoBehaviour
                 var unit = _mapGrid[i,j];
                 if(unit != null)
                 {
-                    Debug.Log(TryMoveUnit(unit.GetStatus().Move, unit.GetHeight(), unit.GetWidth()));
+                    if (unit.CanMove())
+                    {
+                        Debug.Log(TryMoveUnit(unit.GetStatus().Move, unit.GetHeight(), unit.GetWidth()));
+                    }
                 }
             }
         }

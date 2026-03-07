@@ -35,11 +35,12 @@ public class BaseUnit: IUnit
         Initialize(h,w);
     }
 
-    public void Initialize(int h, int w)
+    public async void Initialize(int h, int w)
     {
         Debug.Log("Unit Initialize");
         height = h;
         width = w;
+        await UniTask.WaitUntil(()=> MapManager.Instance);
         MapManager.Instance.RegisterUnit(this,h,w);
         
         battleStatus = new BattleStatus();
