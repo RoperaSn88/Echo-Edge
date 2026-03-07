@@ -1,5 +1,6 @@
 using System;
 using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using Unity.Mathematics;
 using UnityEditor.Callbacks;
 using UnityEngine;
@@ -74,19 +75,16 @@ public class PlayerController: MonoBehaviour
             _ray.origin = _pos;
             _ray.direction = _direction;
 
-            Debug.DrawRay(_ray.origin, _ray.direction, Color.red);
-
             // 始点からdirection方向にrayを飛ばし、当たった位置を新たな_posとする。
             if(Physics.Raycast(_ray, out _hit, math.INFINITY, _layerMask))
             {
+                var distance = Vector3.Distance(_ray.origin, _hit.point);
                 // プレイヤーを移動する
-                _vec.Set(_hit.transform.position.x, _hit.transform.position.y, _hit.transform.position.z > 0 ? _hit.transform.position.z - 1:_hit.transform.position.z + 1);
-                _playerTransform.position = _vec;
-                _pos = _playerTransform.position;
+                _vec.Set(_hit.point.x, _hit.point.y, _hit.point.z);
+                await transform.DOMove(_vec, distance / 10);
 
-                // いったん上下反転として実装をする
-                _direction.Set(_direction.x, _direction.y, _direction.z * -1);
-                
+                _direction = Vector3.Reflect(_direction, _hit.normal);
+                _pos = _playerTransform.position;
             }
             else
             {
@@ -117,6 +115,7 @@ public class PlayerController: MonoBehaviour
     {
         if (other.CompareTag("Enemy"))
         {
+            Debug.Log("damage");
             other.TryGetComponent<IDamagable>(out var status);
             status.Damage();
         }
