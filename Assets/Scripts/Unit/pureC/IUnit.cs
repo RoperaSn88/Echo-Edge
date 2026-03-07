@@ -1,7 +1,7 @@
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
-public interface IUnit 
+public interface IUnit : IDamagable
 {
     /// <summary>
     /// 初期位置設定用
@@ -41,4 +41,6 @@ public interface IUnit
     public int GetWidth();
 
     public BattleStatus GetStatus();
+
+    public bool Damage(int damage);
 }

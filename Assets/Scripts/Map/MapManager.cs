@@ -164,7 +164,6 @@ public class MapManager: MonoBehaviour
                 }
             }
         }
-        Debug.Log("おわり");
     }
 
     public void ResetMap()

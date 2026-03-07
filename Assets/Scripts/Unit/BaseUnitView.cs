@@ -4,7 +4,7 @@ using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
 
-public class BaseUnitView: MonoBehaviour
+public class BaseUnitView: MonoBehaviour, IDamagable
 {
     [SerializeField]
     private BaseUnit _baseUnit;
@@ -40,5 +40,13 @@ public class BaseUnitView: MonoBehaviour
         _moveVec = new Vector3(x, 0, y);
         await transform.DOLocalMove(_moveVec, MoveTime).SetEase(Ease.OutQuad);
         await UniTask.Delay(TimeSpan.FromSeconds(MoveTime * 3f));
+        height = y;
+        width = x;
+    }
+
+    public bool Damage(int damage)
+    {
+        Debug.Log(MapManager.Instance);
+        return MapManager.Instance.GetUnitAt(height, width).Damage(100);
     }
 }

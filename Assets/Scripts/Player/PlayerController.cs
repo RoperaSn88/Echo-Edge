@@ -117,7 +117,7 @@ public class PlayerController: MonoBehaviour
         {
             Debug.Log("damage");
             other.TryGetComponent<IDamagable>(out var status);
-            status.Damage();
+            status.Damage(100);
         }
     }
 }

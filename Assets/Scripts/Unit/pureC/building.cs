@@ -1,3 +1,4 @@
+using System;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -61,5 +62,10 @@ public class building : IUnit
     public BattleStatus GetStatus()
     {
         throw new System.NotImplementedException();
+    }
+
+    public bool Damage(int damage)
+    {
+        throw new NotImplementedException();
     }
 }

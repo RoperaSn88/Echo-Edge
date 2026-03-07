@@ -4,7 +4,7 @@ using UnityEngine;
 
 
 [System.Serializable]
-public class BaseUnit: IUnit
+public class BaseUnit: IUnit, IDamagable
 {
     [SerializeField]
     private int height;
@@ -94,5 +94,10 @@ public class BaseUnit: IUnit
     public BattleStatus GetStatus()
     {
         return battleStatus;
+    }
+
+    public bool Damage(int damage)
+    {
+        return battleStatus.Damage(damage);
     }
 }

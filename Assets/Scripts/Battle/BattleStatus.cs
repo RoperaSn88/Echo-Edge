@@ -44,12 +44,14 @@ public class BattleStatus
         move = m;
     }
 
-    public void Damage(int damage)
+    public bool Damage(int damage)
     {
         hp -= damage;
         if(hp <= 0)
         {
             Debug.Log("死んだぜ");
+            return true;
         }
+        return false;
     }
 }
