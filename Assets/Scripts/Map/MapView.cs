@@ -8,11 +8,5 @@ public class MapView : MonoBehaviour
     void Start()
     {
         _manager = new MapManager();
-    }
-
-    [Button("動かす")]
-    void MoveUnit()
-    {
-        _manager.MoveUnit();
-    }
+    }    
 }

@@ -1,5 +1,7 @@
+using System;
 using AndanteTribe.Utils.Unity;
 using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using UnityEngine;
 
 public class BaseUnitView: MonoBehaviour
@@ -13,22 +15,18 @@ public class BaseUnitView: MonoBehaviour
     [SerializeField]
     private int width;
 
-    [SerializeField]
-    private int MoveHeight;
-
-    [SerializeField]
-    private int MoveWidth;
-
     /// <summary>
     ///  移動に使用するベクトル
     /// </summary>
     private Vector3 _moveVec;
 
+    private const float MoveTime = 0.15f;
+
     void Start()
     {
         // 登録用
         // 後ほどcsvで読み取る方法に変更する
-        _baseUnit = new BaseUnit(this, height, width, MoveHeight, MoveWidth);
+        _baseUnit = new BaseUnit(this, height, width);
     }
 
     /// <summary>
@@ -39,6 +37,8 @@ public class BaseUnitView: MonoBehaviour
     public async UniTask Move(int y, int x)
     {
         // 横方向はマイナス方向に進めるため、負の値にする
-        _moveVec.Set(-x, 0, y);
+        _moveVec = new Vector3(x, 0, y);
+        await transform.DOLocalMove(_moveVec, MoveTime).SetEase(Ease.OutQuad);
+        await UniTask.Delay(TimeSpan.FromSeconds(MoveTime * 3f));
     }
 }

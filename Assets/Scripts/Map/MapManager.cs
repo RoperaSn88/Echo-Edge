@@ -1,8 +1,9 @@
 using System;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using AndanteTribe.Utils.Unity;
 
-public class MapManager
+public class MapManager: MonoBehaviour
 {
     public static MapManager Instance;
     
@@ -14,7 +15,7 @@ public class MapManager
     /// <summary>
     /// マップの横
     /// </summary>
-    private const int MapWidth = 14;
+    private const int MapWidth = 16;
 
     /// <summary>
     /// マップ全体
@@ -26,18 +27,19 @@ public class MapManager
     /// </summary>
     private Vector3 vector;
 
-    public MapManager()
+    public void Start()
     {
+        ResetMap();
         Instance = this;
     }
 
     public void RegisterUnit(IUnit unit, int h, int w)
     {
-        if(_mapGrid[h, w] != null)
+        if(_mapGrid[h, w] == null)
         {
-            throw new InvalidOperationException("指定したマスにはunitがいます");
+            _mapGrid[h, w] = unit;
         }
-        _mapGrid[h, w] = unit;
+        else throw new InvalidOperationException("指定したマスにはunitがいます");
     }
 
     /// <summary>
@@ -62,13 +64,17 @@ public class MapManager
     }
 
     /// <summary>
-    /// src -> dst にユニットを移動します。移動先が範囲外または非 null の場合は false を返します。
-    /// 成功時は内部的にグリッドを更新し、ユニットの `Move` を呼び出して内部処理を行わせます。
+    /// 指定した座標にいるユニットに対して移動を行う。
+    /// ユニットが
     /// </summary>
     public async UniTask<bool> TryMoveUnit(int count, int srcH, int srcW)
     {
         // ユニットゲット
         var unit = _mapGrid[srcH, srcW];
+        if(unit == null)
+        {
+            throw new NullReferenceException($"その位置にユニットはいません。h:{srcH}, w:{srcW}");
+        }
 
         // 始点チェック
         if (srcH < 0 || srcH >= MapHeight || srcW < 0 || srcW >= MapWidth)
@@ -79,28 +85,35 @@ public class MapManager
         // count回数分、動くのを繰り返す
         for(int i = 0; i < count; i++)
         {
+            Debug.Log($"移動:h:{srcH}, w:{srcW}");
             // 上下に動くか、左に進むか計算する。
             // 現在のマスの左が空ならば進む。
-            if(GetUnitAt(srcH - 1, srcW) == null)
+            if(GetUnitAt(srcH, srcW - 1) == null)
             {
+                Debug.Log("left move");
                 vector = MoveDirections.MoveLeft;
-                _mapGrid[srcH - 1, srcW] = unit;
-                _mapGrid[srcH, srcW] = null;
-                await unit.Move(srcH - 1, srcW);
-            }
-            else if(GetUnitAt(srcH, srcW - 1) == null)
-            {
-                vector = MoveDirections.MoveDown;
                 _mapGrid[srcH, srcW - 1] = unit;
                 _mapGrid[srcH, srcW] = null;
                 await unit.Move(srcH, srcW - 1);
+                srcW = srcW - 1;
             }
-            else if(GetUnitAt(srcH, srcW + 1) == null)
+            else if(GetUnitAt(srcH - 1, srcW) == null)
             {
-                vector = MoveDirections.MoveUp;
-                _mapGrid[srcH, srcW + 1] = unit;
+                Debug.Log("down move");
+                vector = MoveDirections.MoveDown;
+                _mapGrid[srcH - 1, srcW] = unit;
                 _mapGrid[srcH, srcW] = null;
-                await unit.Move(srcH, srcW + 1);
+                await unit.Move(srcH - 1, srcW);
+                srcH = srcH - 1;
+            }
+            else if(GetUnitAt(srcH + 1, srcW) == null)
+            {
+                Debug.Log("up move");
+                vector = MoveDirections.MoveUp;
+                _mapGrid[srcH + 1, srcW] = unit;
+                _mapGrid[srcH, srcW] = null;
+                await unit.Move(srcH + 1, srcW);
+                srcH = srcH + 1;
             }
         }
 
@@ -122,6 +135,7 @@ public class MapManager
     /// <summary>
     /// ユニットを行動させる
     /// </summary>
+    [Button("動かす")]
     public void MoveUnit()
     {
         for(int i = 0; i < MapHeight; i++)
@@ -131,10 +145,16 @@ public class MapManager
                 var unit = _mapGrid[i,j];
                 if(unit != null)
                 {
-                    Debug.Log(TryMoveUnit(unit.GetStatus().Move, unit.GetMoveHeight(), unit.GetMoveWidth()));
+                    Debug.Log(TryMoveUnit(unit.GetStatus().Move, unit.GetHeight(), unit.GetWidth()));
                 }
             }
         }
         Debug.Log("おわり");
     }
+
+    public void ResetMap()
+    {
+        _mapGrid = new IUnit[MapHeight, MapWidth];
+    }
+
 }

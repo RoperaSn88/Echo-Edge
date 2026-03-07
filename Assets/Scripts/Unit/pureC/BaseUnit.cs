@@ -29,19 +29,21 @@ public class BaseUnit: IUnit
 
     private BattleStatus battleStatus;
 
-    public BaseUnit(BaseUnitView unit, int h, int w, int mh, int mw)
+    public BaseUnit(BaseUnitView unit, int h, int w)
     {
         _view = unit;
-        Initialize(h,w,mh,mw);
+        Initialize(h,w);
     }
 
-    public async UniTask Initialize(int h, int w, int mh, int mw)
+    public void Initialize(int h, int w)
     {
+        Debug.Log("Unit Initialize");
         height = h;
         width = w;
-        moveHeight = mh;
-        moveWidth = mw;
         MapManager.Instance.RegisterUnit(this,h,w);
+        
+        battleStatus = new BattleStatus();
+        battleStatus.Initialize(10,2,3,3);
     }
 
     public void Attack()
@@ -54,21 +56,38 @@ public class BaseUnit: IUnit
         
     }
 
+    public bool CanMove()
+    {
+        return true;
+    }
+
     public async UniTask Move(int y, int x)
     {
-        width += x;
-        height += y;
-        _view.Move(y, x);
+        Debug.Log("動くよ");
+        height = y;
+        width = x;
+        await _view.Move(y, x);
+        Debug.Log("動いた");
     }
 
     public int GetMoveHeight()
     {
-        return moveHeight;
+        return Height;
     }
 
     public int GetMoveWidth()
     {
-        return moveWidth;
+        return Width;
+    }
+
+    public int GetHeight()
+    {
+        return Height;
+    }
+
+    public int GetWidth()
+    {
+        return Width;
     }
 
     public BattleStatus GetStatus()

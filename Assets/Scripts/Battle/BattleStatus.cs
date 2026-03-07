@@ -36,6 +36,14 @@ public class BattleStatus
     /// </summary>
     public int Move => move;
 
+    public void Initialize(int h, int a, int d, int m)
+    {
+        hp = h;
+        attack = a;
+        defend = d;
+        move = m;
+    }
+
     public void Damage(int damage)
     {
         hp -= damage;

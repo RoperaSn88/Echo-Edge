@@ -3,11 +3,23 @@ using UnityEngine;
 
 public interface IUnit 
 {
-    public UniTask Initialize(int h, int w, int mh, int mw);
+    /// <summary>
+    /// 初期位置設定用
+    /// </summary>
+    /// <param name="h">縦方向の座標</param>
+    /// <param name="w">横方向の座標</param>
+    /// <returns></returns>
+    public void Initialize(int h, int w);
+
     /// <summary>
     /// 攻撃
     /// </summary>
     public void Attack();
+
+    /// <summary>
+    /// 移動できるか
+    /// </summary>
+    public bool CanMove();
 
     /// <summary>
     /// 移動
@@ -25,6 +37,8 @@ public interface IUnit
     public int GetMoveHeight();
 
     public int GetMoveWidth();
+    public int GetHeight();
+    public int GetWidth();
 
     public BattleStatus GetStatus();
 }
