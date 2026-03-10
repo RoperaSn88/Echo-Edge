@@ -48,6 +48,8 @@ public class PlayerController: MonoBehaviour
     private int _reflectCount = 1;
     bool atatta = false;
 
+    private const float Speed = 30;
+
     public void Start()
     {
         Instance = this;
@@ -81,7 +83,7 @@ public class PlayerController: MonoBehaviour
                 var distance = Vector3.Distance(_ray.origin, _hit.point);
                 // プレイヤーを移動する
                 _vec.Set(_hit.point.x, _hit.point.y, _hit.point.z);
-                await transform.DOMove(_vec, distance / 10);
+                await transform.DOMove(_vec, distance / Speed);
 
                 _direction = Vector3.Reflect(_direction, _hit.normal);
                 _pos = _playerTransform.position;

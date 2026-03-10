@@ -46,7 +46,6 @@ public class BaseUnitView: MonoBehaviour, IDamagable
 
     public bool Damage(int damage)
     {
-        Debug.Log(MapManager.Instance);
         return MapManager.Instance.GetUnitAt(height, width).Damage(100);
     }
 }

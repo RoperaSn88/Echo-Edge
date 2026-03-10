@@ -32,7 +32,7 @@ public class PlayerAttackPhase: IPhase
             Debug.Log("Rayが正しくhitしませんでしたわ");
         }
         // 
-
+        
         return EnemyPhase.Instance;
     }
 }

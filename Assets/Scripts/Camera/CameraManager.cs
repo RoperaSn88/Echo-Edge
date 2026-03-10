@@ -22,6 +22,7 @@ public class CameraManager : MonoBehaviour
     /// <summary>
     /// 対象のオブジェクト
     /// </summary>
+    [SerializeField]
     private Transform _target;
     public Transform Target => _target;
 
@@ -54,7 +55,7 @@ public class CameraManager : MonoBehaviour
     /// <summary>
     /// 通常状態のカメラの角度
     /// </summary>
-    public const float DefaultCameraAngle = 50;
+    public const float DefaultCameraAngle = 20;
 
     /// <summary>
     /// 上のときのzのオフセット
@@ -131,7 +132,7 @@ public class CameraManager : MonoBehaviour
     /// カメラを対象のゲームオブジェクトにズームさせ始める。
     /// </summary>
     [Button("セット")]
-    public async void ActSetCameraTarget()
+    public async UniTask ActSetCameraTarget()
     {
         // カメラが動いている最中ならばキャンセル
         if (_cameraMoving)
@@ -142,6 +143,7 @@ public class CameraManager : MonoBehaviour
 
         // CancekkationTokenSourceを初期化
         _cts = new CancellationTokenSource();
+        // _target = target;
 
         try
         {
@@ -194,7 +196,7 @@ public class CameraManager : MonoBehaviour
     /// カメラをもとの位置に戻し始める。
     /// </summary>
     [Button("リセット")]
-    public async void ActResetCameraTarget()
+    public async UniTask ActResetCameraTarget()
     {
         // カメラが動いている最中ならばキャンセル
         if (_cameraMoving)
