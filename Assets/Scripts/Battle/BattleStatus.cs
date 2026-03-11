@@ -1,47 +1,43 @@
 using UnityEngine;
 
-public class BattleStatus 
+public abstract class BattleStatus 
 {
     /// <summary>
     /// 元のステータス
     /// </summary>
     private BaseStatus baseStatus;
 
-    private int hp;
+    public  int hp;
     /// <summary>
     /// 体力
     /// </summary>
-    public int HP => hp;
 
-    private int attack;
+    public int attack;
     /// <summary>
     /// 攻撃力
     /// </summary>
-    public int Attack => attack;
 
-    private int defend;
+    public int defend;
     /// <summary>
     /// 防御力
     /// </summary>
     public int Defend => defend;
 
-    /// <summary>
-    /// 特殊行動の発動順番 移動をする前か後か
-    /// </summary>
-    private MovePattern pattern;
 
-    private int move;
-    /// <summary>
-    /// 1回の移動回数
-    /// </summary>
-    public int Move => move;
-
-    public void Initialize(int h, int a, int d, int m)
+    public BattleStatus()
     {
-        hp = h;
-        attack = a;
-        defend = d;
-        move = m;
+        Initialize();
+    }
+
+    private void Initialize()
+    {
+        hp = baseStatus.HP;
+        attack = baseStatus.Attack;
+        defend = baseStatus.Defend;
+        foreach(var v in baseStatus.Buffs)
+        {
+            v.Buff(this);
+        }
     }
 
     public bool Damage(int damage)

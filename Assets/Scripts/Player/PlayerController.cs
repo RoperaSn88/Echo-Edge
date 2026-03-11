@@ -6,9 +6,18 @@ using UnityEditor.Callbacks;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(BattleStatus))]
 public class PlayerController: MonoBehaviour
 {
     public static PlayerController Instance;
+
+    private BattleStatus _status;
+
+    /// <summary>
+    /// プレイヤーステータスへのアクセス。
+    /// </summary>
+    public BattleStatus Status => _status;
+
 
     [SerializeField]
     private Transform _playerTransform;

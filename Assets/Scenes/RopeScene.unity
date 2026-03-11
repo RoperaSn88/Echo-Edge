@@ -3367,6 +3367,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: QTE
       objectReference: {fileID: 0}
+    - target: {fileID: 1446902370872422537, guid: cea0c50abd75d7d49b723a634da97bb3, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4037393082137425091, guid: cea0c50abd75d7d49b723a634da97bb3, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -3449,11 +3453,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8887320231075911534, guid: cea0c50abd75d7d49b723a634da97bb3, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8887320231075911534, guid: cea0c50abd75d7d49b723a634da97bb3, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

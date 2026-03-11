@@ -43,8 +43,8 @@ public class BaseUnit: IUnit, IDamagable
         await UniTask.WaitUntil(()=> MapManager.Instance);
         MapManager.Instance.RegisterUnit(this,h,w);
         
-        battleStatus = new BattleStatus();
-        battleStatus.Initialize(10,2,3,3);
+        // battleStatus = new BattleStatus();
+        // battleStatus.Initialize(10,2,3,3);
     }
 
     public void Attack()

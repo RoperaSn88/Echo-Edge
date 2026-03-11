@@ -159,7 +159,7 @@ public class MapManager: MonoBehaviour
                 {
                     if (unit.CanMove())
                     {
-                        Debug.Log(TryMoveUnit(unit.GetStatus().Move, unit.GetHeight(), unit.GetWidth()));
+                        // Debug.Log(TryMoveUnit(unit.GetStatus().Move, unit.GetHeight(), unit.GetWidth()));
                     }
                 }
             }
