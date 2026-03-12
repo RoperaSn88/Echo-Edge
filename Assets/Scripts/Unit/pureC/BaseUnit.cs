@@ -24,7 +24,6 @@ public class BaseUnit: IUnit, IDamagable
 
     private BaseUnitView _view;
 
-    [SerializeField]
     private BaseStatus baseStatus;
 
     private BattleStatus battleStatus;
@@ -35,16 +34,18 @@ public class BaseUnit: IUnit, IDamagable
         Initialize(h,w);
     }
 
+    public void RegistarStatus(BaseStatus status)
+    {
+        baseStatus = status;
+        battleStatus = new BattleStatus(baseStatus);
+    }
+
     public async void Initialize(int h, int w)
     {
-        Debug.Log("Unit Initialize");
         height = h;
         width = w;
         await UniTask.WaitUntil(()=> MapManager.Instance);
         MapManager.Instance.RegisterUnit(this,h,w);
-        
-        // battleStatus = new BattleStatus();
-        // battleStatus.Initialize(10,2,3,3);
     }
 
     public void Attack()

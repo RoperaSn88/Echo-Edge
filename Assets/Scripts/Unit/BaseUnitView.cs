@@ -20,6 +20,12 @@ public class BaseUnitView: MonoBehaviour, IDamagable
     /// </summary>
     private Vector3 _moveVec;
 
+    /// <summary>
+    /// 登録用。本番ではcsv読み取りへ変更し、削除
+    /// </summary>
+    [SerializeField]
+    private BaseStatus _baseStatus;
+
     private const float MoveTime = 0.15f;
 
     void Start()
@@ -27,6 +33,8 @@ public class BaseUnitView: MonoBehaviour, IDamagable
         // 登録用
         // 後ほどcsvで読み取る方法に変更する
         _baseUnit = new BaseUnit(this, height, width);
+        _baseStatus.RegistarBuff(new HPBuff());
+        _baseUnit.RegistarStatus(_baseStatus);
     }
 
     /// <summary>

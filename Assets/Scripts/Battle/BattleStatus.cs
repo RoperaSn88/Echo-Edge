@@ -1,6 +1,7 @@
+using System;
 using UnityEngine;
 
-public abstract class BattleStatus 
+public class BattleStatus : IDamagable
 {
     /// <summary>
     /// 元のステータス
@@ -24,8 +25,9 @@ public abstract class BattleStatus
     public int Defend => defend;
 
 
-    public BattleStatus()
+    public BattleStatus(BaseStatus BaseStatus)
     {
+        this.baseStatus = BaseStatus;
         Initialize();
     }
 
@@ -34,15 +36,30 @@ public abstract class BattleStatus
         hp = baseStatus.HP;
         attack = baseStatus.Attack;
         defend = baseStatus.Defend;
-        foreach(var v in baseStatus.Buffs)
+
+        // buffsがnullまたは空の場合でもエラーにならないように保護
+        if(baseStatus.Buffs == null)
         {
-            v.Buff(this);
+            throw new NullReferenceException("buffsが指定されてないです");
         }
+
+        if (baseStatus.Buffs.Count > 0)
+        {
+
+            Debug.Log("バフ中");
+            foreach (var v in baseStatus.Buffs)
+            {
+                v.Buff(this);
+            }
+        }
+
+        Debug.Log($"hp:{hp}, attack:{attack}, defend:{defend}");
     }
 
     public bool Damage(int damage)
     {
         hp -= damage;
+        Debug.Log($"ダメージをうけた 残り:{hp}");
         if(hp <= 0)
         {
             Debug.Log("死んだぜ");

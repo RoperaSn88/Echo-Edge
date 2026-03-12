@@ -1874,6 +1874,12 @@ MonoBehaviour:
     moveWidth: 0
   height: 5
   width: 5
+  _baseStatus:
+    name: 
+    hp: 100
+    attack: 20
+    defend: 20
+    move: 0
 --- !u!136 &90954404
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -22637,6 +22643,12 @@ MonoBehaviour:
     moveWidth: 0
   height: 5
   width: 5
+  _baseStatus:
+    name: 
+    hp: 0
+    attack: 0
+    defend: 0
+    move: 0
 --- !u!136 &907845582
 CapsuleCollider:
   m_ObjectHideFlags: 0
