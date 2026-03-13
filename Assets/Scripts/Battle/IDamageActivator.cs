@@ -1,4 +1,4 @@
 public interface IDamageActivator
 {
-    public bool Damage();
+    public (int damage, bool isDeath) Damage();
 }

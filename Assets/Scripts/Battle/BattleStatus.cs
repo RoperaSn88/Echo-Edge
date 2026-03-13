@@ -61,7 +61,7 @@ public class BattleStatus : IDamagable
     /// </summary>
     /// <param name="targetAttack">相手の攻撃力</param>
     /// <returns>死んだかどうか</returns>
-    public bool Damage(int targetAttack)
+    public (int damage, bool isDeath) Damage(int targetAttack)
     {
         // ダメージ計算式
         int damage = targetAttack - defend / 2;
@@ -75,8 +75,8 @@ public class BattleStatus : IDamagable
         if(hp <= 0)
         {
             Debug.Log("死んだぜ");
-            return true;
+            return (damage, true);
         }
-        return false;
+        return (damage, false);
     }
 }

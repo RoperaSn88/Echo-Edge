@@ -52,7 +52,7 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator
         width = x;
     }
 
-    public bool Damage()
+    public (int damage, bool isDeath) Damage()
     {
         BattleManager.RegistarEnemy(MapManager.Instance.GetUnitAt(height, width).GetStatus());
         return BattleManager.EnemyDamage();
