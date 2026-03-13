@@ -127,8 +127,8 @@ public class PlayerController: MonoBehaviour
         if (other.CompareTag("Enemy"))
         {
             Debug.Log("damage");
-            other.TryGetComponent<IDamagable>(out var status);
-            status.Damage(100);
+            other.TryGetComponent<IDamageActivator>(out var status);
+            status.Damage();
         }
     }
 }

@@ -22,8 +22,13 @@ public class BattleManager : MonoBehaviour
         _playerStatus = targetStatus;
     }
 
-    public static void EnemyDamage()
+    public static bool EnemyDamage()
     {
-        _enemyStatus.Damage(_playerStatus.attack);
+        return _enemyStatus.Damage(_playerStatus.attack);
+    }
+
+    public static bool PlayerDamage()
+    {
+        return _playerStatus.Damage(_enemyStatus.attack);
     }
 }

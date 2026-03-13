@@ -8,7 +8,7 @@ public class BattleStatus : IDamagable
     /// </summary>
     private BaseStatus baseStatus;
 
-    public  int hp;
+    public int hp;
     /// <summary>
     /// 体力
     /// </summary>
@@ -56,8 +56,20 @@ public class BattleStatus : IDamagable
         Debug.Log($"hp:{hp}, attack:{attack}, defend:{defend}");
     }
 
-    public bool Damage(int damage)
+    /// <summary>
+    /// ダメージを反映させる
+    /// </summary>
+    /// <param name="targetAttack">相手の攻撃力</param>
+    /// <returns>死んだかどうか</returns>
+    public bool Damage(int targetAttack)
     {
+        // ダメージ計算式
+        int damage = targetAttack - defend / 2;
+        if (damage < 0)
+        {
+            damage = 0;
+        }
+
         hp -= damage;
         Debug.Log($"ダメージをうけた 残り:{hp}");
         if(hp <= 0)

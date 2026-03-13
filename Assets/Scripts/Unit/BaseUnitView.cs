@@ -4,7 +4,7 @@ using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
 
-public class BaseUnitView: MonoBehaviour, IDamagable
+public class BaseUnitView: MonoBehaviour, IDamageActivator
 {
     [SerializeField]
     private BaseUnit _baseUnit;
@@ -52,8 +52,9 @@ public class BaseUnitView: MonoBehaviour, IDamagable
         width = x;
     }
 
-    public bool Damage(int damage)
+    public bool Damage()
     {
-        return MapManager.Instance.GetUnitAt(height, width).Damage(100);
+        BattleManager.RegistarEnemy(MapManager.Instance.GetUnitAt(height, width).GetStatus());
+        return BattleManager.EnemyDamage();
     }
 }
