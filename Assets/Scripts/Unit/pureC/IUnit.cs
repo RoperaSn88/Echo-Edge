@@ -42,5 +42,5 @@ public interface IUnit : IDamagable
 
     public BattleStatus GetStatus();
 
-    public bool Damage(int damage);
+    public (int damage, bool isDeath) Damage(int damage);
 }

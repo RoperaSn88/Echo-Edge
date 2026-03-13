@@ -97,7 +97,7 @@ public class BaseUnit: IUnit, IDamagable
         return battleStatus;
     }
 
-    public bool Damage(int damage)
+    public (int damage, bool isDeath) Damage(int damage)
     {
         return battleStatus.Damage(damage);
     }
