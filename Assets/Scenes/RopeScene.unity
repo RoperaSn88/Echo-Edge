@@ -16822,6 +16822,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TextObjectPool
   _initSize: 3
   objectToPool: {fileID: 8972498687626030758, guid: 68c29236b17b08f4e80cd17f65c58331, type: 3}
+  _canvasTransform: {fileID: 1755719591}
 --- !u!4 &646360743
 Transform:
   m_ObjectHideFlags: 0
