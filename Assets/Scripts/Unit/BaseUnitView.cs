@@ -65,5 +65,10 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator
         var tmp = (TextObject) await UIPresenter.Instance.EnemyDamageTextPool.GetPooledObject();
         tmp.SetText($"{damageValue.damage}");
         await tmp.Appearing(transform);
+
+        if (damageValue.isDeath)
+        {
+            Debug.Log("敵を消すよ");
+        }
     }
 }
