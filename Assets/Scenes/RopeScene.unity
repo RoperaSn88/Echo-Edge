@@ -1876,10 +1876,10 @@ MonoBehaviour:
   width: 5
   _baseStatus:
     name: 
-    hp: 100
+    hp: 10
     attack: 20
     defend: 20
-    move: 0
+    move: 3
 --- !u!136 &90954404
 CapsuleCollider:
   m_ObjectHideFlags: 0

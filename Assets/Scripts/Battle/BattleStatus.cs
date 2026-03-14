@@ -8,21 +8,26 @@ public class BattleStatus : IDamagable
     /// </summary>
     private BaseStatus baseStatus;
 
-    public int hp;
     /// <summary>
     /// 体力
     /// </summary>
+    public int HP;
 
-    public int attack;
     /// <summary>
     /// 攻撃力
     /// </summary>
+    public int Attack;
 
-    public int defend;
     /// <summary>
     /// 防御力
     /// </summary>
-    public int Defend => defend;
+    public int Defend;
+    
+    /// <summary>
+    /// 1ターンの移動回数
+    /// </summary>
+    public int Move;
+    
 
 
     public BattleStatus(BaseStatus BaseStatus)
@@ -33,9 +38,10 @@ public class BattleStatus : IDamagable
 
     private void Initialize()
     {
-        hp = baseStatus.HP;
-        attack = baseStatus.Attack;
-        defend = baseStatus.Defend;
+        HP = baseStatus.HP;
+        Attack = baseStatus.Attack;
+        Defend = baseStatus.Defend;
+        Move = baseStatus.Move;
 
         // buffsがnullまたは空の場合でもエラーにならないように保護
         if(baseStatus.Buffs == null)
@@ -53,7 +59,7 @@ public class BattleStatus : IDamagable
             }
         }
 
-        Debug.Log($"hp:{hp}, attack:{attack}, defend:{defend}");
+        Debug.Log($"hp:{HP}, attack:{Attack}, defend:{Defend}");
     }
 
     /// <summary>
@@ -64,15 +70,15 @@ public class BattleStatus : IDamagable
     public (int damage, bool isDeath) Damage(int targetAttack)
     {
         // ダメージ計算式
-        int damage = targetAttack - defend / 2;
+        int damage = targetAttack - Defend / 2;
         if (damage < 0)
         {
             damage = 0;
         }
 
-        hp -= damage;
-        Debug.Log($"ダメージをうけた 残り:{hp}");
-        if(hp <= 0)
+        HP -= damage;
+        Debug.Log($"ダメージをうけた 残り:{HP}");
+        if(HP <= 0)
         {
             Debug.Log("死んだぜ");
             return (damage, true);

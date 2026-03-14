@@ -6,8 +6,8 @@ public class HPBuff : IBuff
     private const float HPbuff = 1.3f;
     public void Buff(BattleStatus targetStatus)
     {
-        Debug.Log(targetStatus.hp * HPbuff);
-        targetStatus.hp = (int)(targetStatus.hp * HPbuff);
+        Debug.Log(targetStatus.HP * HPbuff);
+        targetStatus.HP = (int)(targetStatus.HP * HPbuff);
     }
 
     public BuffKinds GetBuffKinds()

@@ -28,11 +28,11 @@ public class BattleManager : MonoBehaviour
         var QTEObject = (QTEPresenter)await UIPresenter.Instance.QtePool.GetPooledObject();
         var result = QTEObject.Result;
         QTEObject.Release();
-        return _enemyStatus.Damage((int)(_playerStatus.attack * result));
+        return _enemyStatus.Damage((int)(_playerStatus.Attack * result));
     }
 
     public static (int damage, bool isDeath) PlayerDamage()
     {
-        return _playerStatus.Damage(_enemyStatus.attack);
+        return _playerStatus.Damage(_enemyStatus.Attack);
     }
 }
