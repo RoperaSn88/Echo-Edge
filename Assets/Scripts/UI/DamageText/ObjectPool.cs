@@ -1,18 +1,18 @@
 using System.Collections.Generic;
 using UnityEngine;
 using AndanteTribe.Utils.Unity;
-public class TextObjectPool : MonoBehaviour
+public class ObjectPool : MonoBehaviour
 {
     [SerializeField]
     private uint _initSize;
     
     [SerializeField]
-    private TextObject objectToPool;
+    private ObjectPooler objectToPool;
 
     [SerializeField]
     private Transform _canvasTransform;
 
-    private Stack<TextObject> stack;
+    private Stack<ObjectPooler> stack;
 
     private void Start()
     {
@@ -21,8 +21,8 @@ public class TextObjectPool : MonoBehaviour
 
     private void SetupPool()
     {
-        stack = new Stack<TextObject>();
-        TextObject instance = null;
+        stack = new Stack<ObjectPooler>();
+        ObjectPooler instance = null;
         for (int i = 0; i < _initSize; i++)
         {
             instance = Instantiate(objectToPool, _canvasTransform);
@@ -33,24 +33,24 @@ public class TextObjectPool : MonoBehaviour
     }
 
     [Button("出現")]
-    public TextObject GetPooledObject()
+    public ObjectPooler GetPooledObject()
     {
         // プールの大きさが十分でない場合は、新しい PooledObjects をインスタンス化する
         if (stack.Count == 0)
         {
-            TextObject newInstance = Instantiate(objectToPool, _canvasTransform);
+            ObjectPooler newInstance = Instantiate(objectToPool, _canvasTransform);
             newInstance.Pool = this;
             newInstance.Appear();
             return newInstance;
         }
         // それ以外の場合は、リストから次のものをグラブする
-        TextObject nextInstance = stack.Pop();
+        ObjectPooler nextInstance = stack.Pop();
         nextInstance.gameObject.SetActive(true);
         nextInstance.Appear();
         return nextInstance;
     }
 
-    public void ReturnToPool(TextObject pooledObject)
+    public void ReturnToPool(ObjectPooler pooledObject)
 	{
         stack.Push(pooledObject);
         pooledObject.gameObject.SetActive(false);

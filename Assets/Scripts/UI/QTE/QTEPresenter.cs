@@ -5,7 +5,7 @@ using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using System;
 
-public class QTEPresenter : MonoBehaviour
+public class QTEPresenter : ObjectPooler
 {
     [SerializeField]
     private Image _backGroundImage;
@@ -30,13 +30,12 @@ public class QTEPresenter : MonoBehaviour
 
     private const float DisappearTime = 0.4f;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        Initialize();
-    }
+    [SerializeField]
+    private float _result;
 
-    public async UniTask<float> Initialize()
+    public float Result => _result;
+
+    public async override UniTask Appear()
     {
         _mouseClick = new MouseClick();
         _mouseClick.Mouse.MouseClick.started += Click;
@@ -88,7 +87,7 @@ public class QTEPresenter : MonoBehaviour
                     _sliderImage.DOFade(0f, DisappearTime).ToUniTask()
                 );
                 Debug.Log("成功");
-                return 1.0f;
+                _result = 1f;
             }
             else if (endTime - timer < 0.8f && endTime - timer >= 0.6f)
             {
@@ -103,7 +102,7 @@ public class QTEPresenter : MonoBehaviour
                     _sliderImage.DOFade(0f, DisappearTime).ToUniTask()
                 );
                 Debug.Log("大成功");
-                return 1.1f;
+                _result = 1.1f;
             }
         }
 
@@ -118,7 +117,7 @@ public class QTEPresenter : MonoBehaviour
             _sliderImage.DOFade(0f, 0.2f).ToUniTask()
         );
         Debug.Log("失敗");
-        return 0.8f;
+        _result = 0.8f;
     }
 
     private void Click(InputAction.CallbackContext c)
@@ -129,11 +128,5 @@ public class QTEPresenter : MonoBehaviour
     private Color SetAlphaColor(Color baseColor, float a)
     {
         return new Color(baseColor.r, baseColor.g, baseColor.b, a);
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 }

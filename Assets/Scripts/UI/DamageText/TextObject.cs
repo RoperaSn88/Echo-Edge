@@ -4,30 +4,23 @@ using Cysharp.Threading.Tasks;
 using TMPro;
 using System;
 
-public class TextObject : MonoBehaviour
+public class TextObject : ObjectPooler
 {
     [SerializeField]
     private RectTransform _rectTransform;
 
     [SerializeField]
     private TextMeshProUGUI _tmp;
-
-    private TextObjectPool _pool;
-
+    
     private const float AppearTime = 0.4f;
     private const float DisappearTime = 0.6f;
-    public TextObjectPool Pool
-    {
-        get => _pool;
-        set => _pool = value;
-    }
 
     public void Release()
     {
         Pool.ReturnToPool(this);
     }
 
-    public async void Appear()
+    public async override UniTask Appear()
     {
         var spawnPos = _rectTransform.anchoredPosition.x;
 
