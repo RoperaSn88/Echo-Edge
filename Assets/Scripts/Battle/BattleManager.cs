@@ -1,3 +1,4 @@
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 public class BattleManager : MonoBehaviour
@@ -22,9 +23,12 @@ public class BattleManager : MonoBehaviour
         _playerStatus = targetStatus;
     }
 
-    public static (int damage, bool isDeath) EnemyDamage()
+    public async static UniTask<(int damage, bool isDeath)> EnemyDamage()
     {
-        return _enemyStatus.Damage(_playerStatus.attack);
+        var QTEObject = (QTEPresenter)await UIPresenter.Instance.QtePool.GetPooledObject();
+        var result = QTEObject.Result;
+        QTEObject.Release();
+        return _enemyStatus.Damage((int)(_playerStatus.attack * result));
     }
 
     public static (int damage, bool isDeath) PlayerDamage()

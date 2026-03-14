@@ -49,75 +49,82 @@ public class QTEPresenter : ObjectPooler
         _backGroundImage.rectTransform.localScale = Vector3.zero;
         _icon.rectTransform.localScale = Vector3.zero;
         _sliderBackGround.rectTransform.localScale = Vector3.zero;
+        _clicked = false;
 
         // 出現
         await UniTask.WhenAll(
-            _backGroundImage.DOFade(1f, InitializeTime).ToUniTask(),
-            _backGroundImage.rectTransform.DOScale(Vector3.one, InitializeTime).SetEase(Ease.OutQuad).ToUniTask(),
-            _icon.DOFade(1f,InitializeTime).ToUniTask(),
-            _icon.rectTransform.DOScale(Vector3.one, InitializeTime).SetEase(Ease.OutQuad).ToUniTask(),
-            _sliderBackGround.DOFade(1f, InitializeTime).ToUniTask(),
-            _sliderBackGround.rectTransform.DOScale(Vector3.one, InitializeTime).SetEase(Ease.OutQuad).ToUniTask()
+            _backGroundImage.DOFade(1f, InitializeTime).SetUpdate(true).ToUniTask(),
+            _backGroundImage.rectTransform.DOScale(Vector3.one, InitializeTime).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask(),
+            _icon.DOFade(1f,InitializeTime).SetUpdate(true).ToUniTask(),
+            _icon.rectTransform.DOScale(Vector3.one, InitializeTime).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask(),
+            _sliderBackGround.DOFade(1f, InitializeTime).SetUpdate(true).ToUniTask(),
+            _sliderBackGround.rectTransform.DOScale(Vector3.one, InitializeTime).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask(),
+            _sliderImage.DOFade(1f, InitializeTime).SetUpdate(true).ToUniTask()
         );
 
         // 待機
-        await UniTask.Delay(TimeSpan.FromSeconds(0.8f));
+        await UniTask.Delay(TimeSpan.FromSeconds(0.8f), ignoreTimeScale : true);
 
-        var timer = Time.time;
+        var timer = Time.unscaledTime;
         await UniTask.WhenAny(
-            _slider.DOValue(1f, 0.8f).ToUniTask(),
+            _slider.DOValue(1f, 0.8f).SetUpdate(true).ToUniTask(),
             UniTask.WaitUntil(() => _clicked)
         );
 
         if (_clicked)
         {
             // 押した時間
-            var endTime = Time.time;
+            var endTime = Time.unscaledTime;
             Debug.Log(endTime - timer);
             if(endTime - timer < 0.6f && endTime - timer > 0.3f)
             {
                 // 成功
                 await UniTask.WhenAll(
-                    _backGroundImage.DOFade(0f, DisappearTime).ToUniTask(),
-                    _backGroundImage.rectTransform.DOScale(Vector3.one * 1.2f, DisappearTime).SetEase(Ease.OutQuad).ToUniTask(),
-                    _icon.DOFade(0f, DisappearTime).ToUniTask(),
-                    _icon.rectTransform.DOScale(Vector3.one * 1.2f, DisappearTime).SetEase(Ease.OutQuad).ToUniTask(),
-                    _sliderBackGround.DOFade(0f, DisappearTime).ToUniTask(),
-                    _sliderBackGround.rectTransform.DOScale(Vector3.one * 1.2f, DisappearTime).SetEase(Ease.OutQuad).ToUniTask(),
-                    _sliderImage.DOFade(0f, DisappearTime).ToUniTask()
+                    _backGroundImage.DOFade(0f, DisappearTime).SetUpdate(true).ToUniTask(),
+                    _backGroundImage.rectTransform.DOScale(Vector3.one * 1.2f, DisappearTime).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask(),
+                    _icon.DOFade(0f, DisappearTime).SetUpdate(true).ToUniTask(),
+                    _icon.rectTransform.DOScale(Vector3.one * 1.2f, DisappearTime).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask(),
+                    _sliderBackGround.DOFade(0f, DisappearTime).SetUpdate(true).ToUniTask(),
+                    _sliderBackGround.rectTransform.DOScale(Vector3.one * 1.2f, DisappearTime).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask(),
+                    _sliderImage.DOFade(0f, DisappearTime).SetUpdate(true).ToUniTask()
                 );
                 Debug.Log("成功");
-                _result = 1f;
+                _result = 1.1f;
+                _mouseClick.Dispose();
+                return;
             }
             else if (endTime - timer < 0.8f && endTime - timer >= 0.6f)
             {
                 // 大成功
                 await UniTask.WhenAll(
-                    _backGroundImage.DOFade(0f, DisappearTime).ToUniTask(),
-                    _backGroundImage.rectTransform.DOScale(Vector3.one * 1.5f, DisappearTime).SetEase(Ease.OutQuad).ToUniTask(),
-                    _icon.DOFade(0f, DisappearTime).ToUniTask(),
-                    _icon.rectTransform.DOScale(Vector3.one * 1.5f, DisappearTime).SetEase(Ease.OutQuad).ToUniTask(),
-                    _sliderBackGround.DOFade(0f, DisappearTime).ToUniTask(),
-                    _sliderBackGround.rectTransform.DOScale(Vector3.one * 1.5f, DisappearTime).SetEase(Ease.OutQuad).ToUniTask(),
-                    _sliderImage.DOFade(0f, DisappearTime).ToUniTask()
+                    _backGroundImage.DOFade(0f, DisappearTime).SetUpdate(true).ToUniTask(),
+                    _backGroundImage.rectTransform.DOScale(Vector3.one * 1.5f, DisappearTime).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask(),
+                    _icon.DOFade(0f, DisappearTime).SetUpdate(true).ToUniTask(),
+                    _icon.rectTransform.DOScale(Vector3.one * 1.5f, DisappearTime).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask(),
+                    _sliderBackGround.DOFade(0f, DisappearTime).SetUpdate(true).ToUniTask(),
+                    _sliderBackGround.rectTransform.DOScale(Vector3.one * 1.5f, DisappearTime).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask(),
+                    _sliderImage.DOFade(0f, DisappearTime).SetUpdate(true).ToUniTask()
                 );
                 Debug.Log("大成功");
-                _result = 1.1f;
+                _result = 1.3f;
+                _mouseClick.Dispose();
+                return;
             }
         }
 
         // 失敗
         await UniTask.WhenAll(
-            _backGroundImage.DOFade(0f,0.2f).ToUniTask(),
-            _backGroundImage.rectTransform.DOScale(Vector3.zero, 0.2f).ToUniTask(),
-            _icon.DOFade(0f,0.2f).ToUniTask(),
-            _icon.rectTransform.DOScale(Vector3.zero, 0.2f).ToUniTask(),
-            _sliderBackGround.DOFade(0f,0.2f).ToUniTask(),
-            _sliderBackGround.rectTransform.DOScale(Vector3.zero, 0.2f).ToUniTask(),
-            _sliderImage.DOFade(0f, 0.2f).ToUniTask()
+            _backGroundImage.DOFade(0f,0.2f).SetUpdate(true).ToUniTask(),
+            _backGroundImage.rectTransform.DOScale(Vector3.zero, 0.2f).SetUpdate(true).ToUniTask(),
+            _icon.DOFade(0f,0.2f).SetUpdate(true).ToUniTask(),
+            _icon.rectTransform.DOScale(Vector3.zero, 0.2f).SetUpdate(true).ToUniTask(),
+            _sliderBackGround.DOFade(0f,0.2f).SetUpdate(true).ToUniTask(),
+            _sliderBackGround.rectTransform.DOScale(Vector3.zero, 0.2f).SetUpdate(true).ToUniTask(),
+            _sliderImage.DOFade(0f, 0.2f).SetUpdate(true).ToUniTask()
         );
         Debug.Log("失敗");
         _result = 0.8f;
+        _mouseClick.Dispose();
     }
 
     private void Click(InputAction.CallbackContext c)

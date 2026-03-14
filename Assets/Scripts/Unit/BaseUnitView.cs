@@ -1,6 +1,7 @@
 using System;
 using AndanteTribe.Utils.Unity;
 using Cysharp.Threading.Tasks;
+using Cysharp.Threading.Tasks.Linq;
 using DG.Tweening;
 using UnityEngine;
 
@@ -52,9 +53,17 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator
         width = x;
     }
 
-    public (int damage, bool isDeath) Damage()
+    public async UniTask Damage()
     {
+        Time.timeScale = 0.02f;
+        
         BattleManager.RegistarEnemy(MapManager.Instance.GetUnitAt(height, width).GetStatus());
-        return BattleManager.EnemyDamage();
+        var damageValue = await BattleManager.EnemyDamage();
+        
+        Time.timeScale = 1.0f;
+        
+        var tmp = (TextObject) await UIPresenter.Instance.EnemyDamageTextPool.GetPooledObject();
+        tmp.SetText($"{damageValue.damage}");
+        await tmp.Appearing(transform);
     }
 }

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
-using AndanteTribe.Utils.Unity;
+using Cysharp.Threading.Tasks;
+
 public class ObjectPool : MonoBehaviour
 {
     [SerializeField]
@@ -31,9 +32,8 @@ public class ObjectPool : MonoBehaviour
             stack.Push(instance);
         }
     }
-
-    [Button("出現")]
-    public ObjectPooler GetPooledObject()
+    
+    public async UniTask<ObjectPooler> GetPooledObject()
     {
         // プールの大きさが十分でない場合は、新しい PooledObjects をインスタンス化する
         if (stack.Count == 0)
@@ -46,7 +46,7 @@ public class ObjectPool : MonoBehaviour
         // それ以外の場合は、リストから次のものをグラブする
         ObjectPooler nextInstance = stack.Pop();
         nextInstance.gameObject.SetActive(true);
-        nextInstance.Appear();
+        await nextInstance.Appear();
         return nextInstance;
     }
 

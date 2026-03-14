@@ -16630,53 +16630,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 2768560146257392266, guid: 2fe8646777765574da855e41a92cff95, type: 3}
   m_PrefabInstance: {fileID: 637174730}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &646360741
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 646360743}
-  - component: {fileID: 646360742}
-  m_Layer: 0
-  m_Name: Pools
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &646360742
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 646360741}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8824b52d6022f464bae75639d9b22b4f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TextObjectPool
-  _initSize: 3
-  objectToPool: {fileID: 8972498687626030758, guid: 68c29236b17b08f4e80cd17f65c58331, type: 3}
-  _canvasTransform: {fileID: 1755719591}
---- !u!4 &646360743
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 646360741}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &646485824
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -44775,6 +44728,53 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 2768560146257392266, guid: 2fe8646777765574da855e41a92cff95, type: 3}
   m_PrefabInstance: {fileID: 1781626644}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1782055941
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1782055943}
+  - component: {fileID: 1782055942}
+  m_Layer: 0
+  m_Name: QTEPool
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1782055942
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1782055941}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8824b52d6022f464bae75639d9b22b4f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ObjectPool
+  _initSize: 3
+  objectToPool: {fileID: 8288088963002094642, guid: cea0c50abd75d7d49b723a634da97bb3, type: 3}
+  _canvasTransform: {fileID: 1755719591}
+--- !u!4 &1782055943
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1782055941}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1949802341}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1784462403
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -47125,6 +47125,53 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 234017323753348374, guid: 7cf8c5ce7f8c9fa4b899be72ca6eb60d, type: 3}
   m_PrefabInstance: {fileID: 1878198741}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1884124420
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1884124422}
+  - component: {fileID: 1884124421}
+  m_Layer: 0
+  m_Name: EnemyDamageTextPool
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1884124421
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1884124420}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8824b52d6022f464bae75639d9b22b4f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ObjectPool
+  _initSize: 3
+  objectToPool: {fileID: 8972498687626030758, guid: 68c29236b17b08f4e80cd17f65c58331, type: 3}
+  _canvasTransform: {fileID: 1755719591}
+--- !u!4 &1884124422
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1884124420}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1949802341}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1884814243
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -48928,6 +48975,54 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 234017323753348374, guid: 7cf8c5ce7f8c9fa4b899be72ca6eb60d, type: 3}
   m_PrefabInstance: {fileID: 1949577879}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1949802339
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1949802341}
+  - component: {fileID: 1949802340}
+  m_Layer: 0
+  m_Name: UIPresenter
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1949802340
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1949802339}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e1b7090825c92eb4abafedd91bff9df9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIPresenter
+  _qtePool: {fileID: 1782055942}
+  _enemyDamageTextPool: {fileID: 1884124421}
+--- !u!4 &1949802341
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1949802339}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1782055943}
+  - {fileID: 1884124422}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1951852264
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -54093,4 +54188,4 @@ SceneRoots:
   - {fileID: 217834830}
   - {fileID: 1755719591}
   - {fileID: 891323366}
-  - {fileID: 646360743}
+  - {fileID: 1949802341}

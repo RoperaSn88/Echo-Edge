@@ -1,4 +1,6 @@
+using Cysharp.Threading.Tasks;
+
 public interface IDamageActivator
 {
-    public (int damage, bool isDeath) Damage();
+    public UniTask Damage();
 }
