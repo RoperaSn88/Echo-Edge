@@ -11,6 +11,6 @@ public class PlayerStatusRegistar : MonoBehaviour
     void Start()
     {
         _battleStatus = new BattleStatus(_playerStatus);
-        BattleManager.RegistarPlayer(_battleStatus);
+        BattleManager.RegisterPlayer(_battleStatus);
     }
 }

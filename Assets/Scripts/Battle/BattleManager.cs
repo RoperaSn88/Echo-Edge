@@ -13,22 +13,37 @@ public class BattleManager : MonoBehaviour
     
     public BattleStatus EnemyStatus => _enemyStatus;
 
-    public static void RegistarEnemy(BattleStatus targetStatus)
+    /// <summary>
+    /// QTEを実行するためのフラグ
+    /// 1回の攻撃につき一度だけ発動する。
+    /// </summary>
+    private static bool _QTEFlug = false;
+
+    private static float _result;
+
+    public static void RegisterEnemy(BattleStatus targetStatus)
     {
         _enemyStatus = targetStatus;
     }
 
-    public static void RegistarPlayer(BattleStatus targetStatus)
+    public static void RegisterPlayer(BattleStatus targetStatus)
     {
         _playerStatus = targetStatus;
     }
 
+    public static void ResetQTE()
+    {
+        _QTEFlug = false;
+    }
+
     public async static UniTask<(int damage, bool isDeath)> EnemyDamage()
     {
-        var QTEObject = (QTEPresenter)await UIPresenter.Instance.QtePool.GetPooledObject();
-        var result = QTEObject.Result;
-        QTEObject.Release();
-        return _enemyStatus.Damage((int)(_playerStatus.Attack * result));
+        if (!_QTEFlug)
+        {
+            _result = await UIPresenter.Instance.AppearQTE();
+            _QTEFlug = true;
+        } 
+        return _enemyStatus.Damage((int)(_playerStatus.Attack * _result));
     }
 
     public static (int damage, bool isDeath) PlayerDamage()

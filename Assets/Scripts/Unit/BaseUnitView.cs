@@ -55,20 +55,23 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator
 
     public async UniTask Damage()
     {
-        Time.timeScale = 0.02f;
+        Time.timeScale = 0.001f;
+        CameraManager.Instance.ActSetCameraTarget(transform);
         
-        BattleManager.RegistarEnemy(MapManager.Instance.GetUnitAt(height, width).GetStatus());
+        BattleManager.RegisterEnemy(MapManager.Instance.GetUnitAt(height, width).GetStatus());
         var damageValue = await BattleManager.EnemyDamage();
         
         Time.timeScale = 1.0f;
-        
-        var tmp = (TextObject) await UIPresenter.Instance.EnemyDamageTextPool.GetPooledObject();
-        tmp.SetText($"{damageValue.damage}");
-        await tmp.Appearing(transform);
+
+        UIPresenter.Instance.AppearDamageText($"{damageValue.damage}", transform);
 
         if (damageValue.isDeath)
         {
             Debug.Log("敵を消すよ");
         }
+        
+        await UniTask.Delay(TimeSpan.FromSeconds(1.0f));
+
+        CameraManager.Instance.ActResetCameraTarget();
     }
 }

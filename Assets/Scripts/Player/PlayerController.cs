@@ -57,7 +57,7 @@ public class PlayerController: MonoBehaviour
     private int _reflectCount = 1;
     bool atatta = false;
 
-    private const float Speed = 30;
+    private const float Speed = 23;
 
     public void Start()
     {
@@ -74,6 +74,8 @@ public class PlayerController: MonoBehaviour
     /// <param name="targetPos">ポインターの先の位置</param>
     public async UniTask Move(Vector3 targetPos)
     {
+        UIPresenter.Instance.ResetFade();
+        
         _pos = _playerTransform.position;
 
         _direction.Set(targetPos.x - _pos.x, 0, targetPos.z - _pos.z);
@@ -106,7 +108,12 @@ public class PlayerController: MonoBehaviour
         await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
 
         _vec.Set(-8, _playerTransform.position.y, _playerTransform.position.z);
+
+        BattleManager.ResetQTE();
+        UIPresenter.Instance.FadeTexts();
+
         _playerTransform.position = _vec;
+        await UniTask.Delay(TimeSpan.FromSeconds(0.6f));
     }
 
     void OnCollisionEnter(Collision collision)

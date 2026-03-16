@@ -2,53 +2,23 @@ using System.Collections.Generic;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
 
-public class ObjectPool : MonoBehaviour
+public abstract class ObjectPool : MonoBehaviour
 {
-    [SerializeField]
-    private uint _initSize;
+    public uint _initSize;
     
-    [SerializeField]
-    private ObjectPooler objectToPool;
+    public ObjectPooler objectToPool;
 
-    [SerializeField]
-    private Transform _canvasTransform;
+    public Stack<ObjectPooler> stack;
 
-    private Stack<ObjectPooler> stack;
 
     private void Start()
     {
         SetupPool();
     }
 
-    private void SetupPool()
-    {
-        stack = new Stack<ObjectPooler>();
-        ObjectPooler instance = null;
-        for (int i = 0; i < _initSize; i++)
-        {
-            instance = Instantiate(objectToPool, _canvasTransform);
-            instance.Pool = this;
-            instance.gameObject.SetActive(false);
-            stack.Push(instance);
-        }
-    }
+    public abstract void SetupPool();
     
-    public async UniTask<ObjectPooler> GetPooledObject()
-    {
-        // プールの大きさが十分でない場合は、新しい PooledObjects をインスタンス化する
-        if (stack.Count == 0)
-        {
-            ObjectPooler newInstance = Instantiate(objectToPool, _canvasTransform);
-            newInstance.Pool = this;
-            newInstance.Appear();
-            return newInstance;
-        }
-        // それ以外の場合は、リストから次のものをグラブする
-        ObjectPooler nextInstance = stack.Pop();
-        nextInstance.gameObject.SetActive(true);
-        await nextInstance.Appear();
-        return nextInstance;
-    }
+    public abstract UniTask<ObjectPooler> GetPooledObject();
 
     public void ReturnToPool(ObjectPooler pooledObject)
 	{

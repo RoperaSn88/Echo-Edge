@@ -55,52 +55,54 @@ public class CameraManager : MonoBehaviour
     /// <summary>
     /// 通常状態のカメラの角度
     /// </summary>
-    public const float DefaultCameraAngle = 20;
+    private const float DefaultCameraAngle = 20;
 
     /// <summary>
     /// 上のときのzのオフセット
     /// </summary>
-    public const float TopCameraOffset = 0f;
+    private const float TopCameraOffset = 0f;
 
     /// <summary>
     /// 通常時のzのオフセット
     /// </summary>
-    public const float DefaultCameraOffset = 1;
+    private readonly Vector3 DefaultCameraOffset = new Vector3(0,1f,1f);
+    
+    private readonly Vector3 ZoomCameraOffset = new Vector3(0,0, 1f);
 
     /// <summary>
     /// 通常状態のスプライトの角度
     /// </summary>
-    public const float DefaultSpriteAngle = 30;
+    private const float DefaultSpriteAngle = 30;
 
     /// <summary>
     /// 真上から見たときのカメラの角度
     /// </summary>
-    public const float TopCameraAngle = 90;
+    private const float TopCameraAngle = 90;
 
     /// <summary>
     /// 真上から見たときのスプライトの角度
     /// </summary>
-    public const float TopSpriteAngle = 90;
+    private const float TopSpriteAngle = 90;
 
     /// <summary>
     /// 通常時のカメラの距離
     /// </summary>
-    public const float DefaultCameraDistance = 11;
+    private const float DefaultCameraDistance = 11;
 
     /// <summary>
     /// 上のカメラの距離
     /// </summary>
-    public const float TopCameraDistance = 9;
+    private const float TopCameraDistance = 9;
 
     /// <summary>
     /// ズーム時のカメラの距離
     /// </summary>
-    public const float ZoomCameraDistance = 5;
+    private const float ZoomCameraDistance = 5;
 
     /// <summary>
     /// 非同期処理の待機時間
     /// </summary>
-    public const float TokenTime = 0.25f;
+    private const float TokenTime = 0.25f;
 
     void Start()
     {
@@ -132,7 +134,7 @@ public class CameraManager : MonoBehaviour
     /// カメラを対象のゲームオブジェクトにズームさせ始める。
     /// </summary>
     [Button("セット")]
-    public async UniTask ActSetCameraTarget()
+    public async UniTask ActSetCameraTarget(Transform target)
     {
         // カメラが動いている最中ならばキャンセル
         if (_cameraMoving)
@@ -143,7 +145,8 @@ public class CameraManager : MonoBehaviour
 
         // CancekkationTokenSourceを初期化
         _cts = new CancellationTokenSource();
-        // _target = target;
+        _target = target;
+        // _cinemachineCamera.Target.TrackingTarget = _target;
 
         try
         {
@@ -168,18 +171,28 @@ public class CameraManager : MonoBehaviour
             d => _cinemachineThirdPersonFollow.CameraDistance = d, 
             ZoomCameraDistance, 
             TokenTime)
-            .SetEase(Ease.OutQuad);
+            .SetEase(Ease.OutQuad)
+            .SetUpdate(true);
             
         var positionTween = DOTween.To(()=>_defaultCameraPos.position,
             pos => _defaultCameraPos.position = pos, 
             _target.position, 
             TokenTime)
-            .SetEase(Ease.OutQuad);
+            .SetEase(Ease.OutQuad)
+            .SetUpdate(true);
+        
+        var offsetTween = DOTween.To(()=>_cinemachineThirdPersonFollow.ShoulderOffset,
+            pos => _cinemachineThirdPersonFollow.ShoulderOffset = pos, 
+            ZoomCameraOffset, 
+            TokenTime)
+            .SetEase(Ease.OutQuad)
+            .SetUpdate(true);
 
         try
         {
             await UniTask.WhenAll(
                 cameraTween.ToUniTask(cancellationToken: ct),
+                offsetTween.ToUniTask(cancellationToken: ct),
                 positionTween.ToUniTask(cancellationToken: ct)
             );
             _cameraMoving = false;
@@ -188,6 +201,7 @@ public class CameraManager : MonoBehaviour
         {
             cameraTween.Complete();
             positionTween.Complete();
+            offsetTween.Complete();
             _cameraMoving = false;
         }
     }
@@ -207,6 +221,8 @@ public class CameraManager : MonoBehaviour
 
         // CancekkationTokenSourceを初期化
         _cts = new CancellationTokenSource();
+        
+        // _cinemachineCamera.Target.TrackingTarget = _defaultCameraPos;
 
         try
         {
@@ -231,19 +247,29 @@ public class CameraManager : MonoBehaviour
             d => _cinemachineThirdPersonFollow.CameraDistance = d, 
             DefaultCameraDistance, 
             TokenTime)
-            .SetEase(Ease.OutQuad);
+            .SetEase(Ease.OutQuad)
+            .SetUpdate(true);
             
         var positionTween = DOTween.To(()=>_defaultCameraPos.position,
             pos => _defaultCameraPos.position = pos, 
             _baseCameraPos, 
             TokenTime)
-            .SetEase(Ease.OutQuad);
+            .SetEase(Ease.OutQuad)
+            .SetUpdate(true);
+        
+        var offsetTween = DOTween.To(()=>_cinemachineThirdPersonFollow.ShoulderOffset,
+                pos => _cinemachineThirdPersonFollow.ShoulderOffset = pos, 
+                DefaultCameraOffset, 
+                TokenTime)
+            .SetEase(Ease.OutQuad)
+            .SetUpdate(true);
 
         try
         {
             await UniTask.WhenAll(
                 cameraTween.ToUniTask(cancellationToken: ct),
-                positionTween.ToUniTask(cancellationToken: ct)
+                positionTween.ToUniTask(cancellationToken: ct),
+                offsetTween.ToUniTask(cancellationToken: ct)
             );
             _cameraMoving = false;
         }
@@ -251,6 +277,7 @@ public class CameraManager : MonoBehaviour
         {
             cameraTween.Complete();
             positionTween.Complete();
+            offsetTween.Complete();
             _cameraMoving = false;
         }
     }
@@ -367,8 +394,8 @@ public class CameraManager : MonoBehaviour
             .SetEase(Ease.OutQuad);
 
         var offsetTween = DOTween.To(()=>_cinemachineThirdPersonFollow.ShoulderOffset.z,
-            pos =>_cinemachineThirdPersonFollow.ShoulderOffset = new Vector3(0,0,pos), 
-            DefaultCameraOffset, 
+            pos => _cinemachineThirdPersonFollow.ShoulderOffset = new Vector3(0,0,pos), 
+            DefaultCameraOffset.z, 
             TokenTime)
             .SetEase(Ease.OutQuad);
         

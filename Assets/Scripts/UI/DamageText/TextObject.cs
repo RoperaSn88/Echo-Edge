@@ -33,23 +33,25 @@ public class TextObject : ObjectPooler
     /// </summary>
     public async UniTask Appearing(Transform targetTransform)
     {
-        var worldPos = Camera.main.WorldToScreenPoint(targetTransform.position);
+        var worldPos = targetTransform.position + new Vector3(1, 0, 0);
 
-        _rectTransform.position = worldPos + new Vector3(100, 0, 0);
+        _rectTransform.position = worldPos;  // + new Vector3(100, 0, 0);
         
         gameObject.SetActive(true);
         
-        var spawnPos = _rectTransform.anchoredPosition.x - 100;
+        var spawnPos = _rectTransform.anchoredPosition.x - 1f;
 
         _tmp.color = new Color(_tmp.color.r, _tmp.color.g, _tmp.color.b, 0);
         await UniTask.WhenAll(
-            _tmp.DOFade(1f, AppearTime).ToUniTask(),
-            _rectTransform.DOAnchorPosX(spawnPos, AppearTime).SetEase(Ease.OutQuad).ToUniTask()
+            _tmp.DOFade(1f, AppearTime).SetUpdate(true).ToUniTask(),
+            _rectTransform.DOAnchorPosX(spawnPos, AppearTime).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask()
         );
-        await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
+        
+        await UniTask.WaitUntil(()=>UIPresenter.Instance.CanFadeText);
+
         await UniTask.WhenAll(
-            _tmp.DOFade(0f, DisappearTime).ToUniTask(),
-            _rectTransform.DOAnchorPosX(spawnPos - 100, DisappearTime).SetEase(Ease.InQuad).ToUniTask()
+            _tmp.DOFade(0f, DisappearTime).SetUpdate(true).ToUniTask(),
+            _rectTransform.DOAnchorPosX(spawnPos - 1f, DisappearTime).SetEase(Ease.InQuad).SetUpdate(true).ToUniTask()
         );
 
         Release();
