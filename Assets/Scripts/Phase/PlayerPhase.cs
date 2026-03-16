@@ -2,6 +2,7 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Actions;
+using Unity.VisualScripting;
 
 public class PlayerPhase: IPhase
 {
@@ -49,10 +50,13 @@ public class PlayerPhase: IPhase
                 await UniTask.WaitUntil(()=>_clickFlug);
                 ResetController(playerActions);
                 return PlayerAttackPhase.Instance;
+            case ClickKinds.Right:
+                // 右クリック時
+                ResetController(playerActions);
+                return PlayerSkillPhase.Instance;
         }
-        // 右クリック時
-        ResetController(playerActions);
-        return PlayerSkillPhase.Instance;
+
+        throw new InvalidImplementationException("クリックがうまくできない謎のエラーです");
     }
 
     public void EnableController(PlayerActions playerActions)

@@ -148,7 +148,7 @@ public class MapManager: MonoBehaviour
     /// ユニットを行動させる
     /// </summary>
     [Button("動かす")]
-    public void MoveUnit()
+    public async UniTask MoveUnit()
     {
         for(int i = 0; i < MapHeight; i++)
         {

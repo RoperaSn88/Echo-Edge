@@ -22513,15 +22513,15 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 907845580}
-  - component: {fileID: 907845581}
   - component: {fileID: 907845584}
   - component: {fileID: 907845583}
   - component: {fileID: 907845582}
   - component: {fileID: 907845585}
   - component: {fileID: 907845586}
+  - component: {fileID: 907845587}
   m_Layer: 0
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -22535,38 +22535,13 @@ Transform:
   m_GameObject: {fileID: 907845578}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -8, y: 1.1, z: -1.5}
+  m_LocalPosition: {x: -8, y: 1.185, z: -1.5}
   m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 715186370}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &907845581
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 907845578}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f7b981fbed4ebea4485063ab3837915b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BaseUnitView
-  _baseUnit:
-    height: 0
-    width: 0
-    moveHeight: 0
-    moveWidth: 0
-  height: 5
-  width: 5
-  _baseStatus:
-    name: 
-    hp: 0
-    attack: 0
-    defend: 0
-    move: 0
 --- !u!136 &907845582
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -22675,6 +22650,21 @@ MonoBehaviour:
     attack: 30
     defend: 20
     move: 3
+--- !u!114 &907845587
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 907845578}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab4d67e08fcb46f4db5e33630a9caa97, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerView
+  _transform: {fileID: 907845580}
+  _animator: {fileID: 907845585}
+  _renderer: {fileID: 0}
 --- !u!1001 &910267768
 PrefabInstance:
   m_ObjectHideFlags: 0

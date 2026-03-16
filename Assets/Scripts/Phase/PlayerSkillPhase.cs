@@ -1,5 +1,6 @@
 using System;
 using Cysharp.Threading.Tasks;
+using Cysharp.Threading.Tasks.Triggers;
 using UnityEngine;
 using UnityEngine.SocialPlatforms;
 
@@ -17,8 +18,12 @@ public class PlayerSkillPhase : IPhase
     public static PlayerSkillPhase Instance => _instance ??= new PlayerSkillPhase();
     public async UniTask<IPhase> WaitPhase()
     {
-        Debug.Log("SkillPhase");
-        await UniTask.Delay(TimeSpan.FromSeconds(1f));
+        PlayerView.Instance.SkillAnim();
+        await CameraManager.Instance.ActPlayerWeaponZoom(PlayerView.Instance.Transform);
+        await UniTask.Delay(TimeSpan.FromSeconds(5f));
+        PlayerView.Instance.ResetRotateAnim();
+        await CameraManager.Instance.ActResetCameraTarget();
+        
         return PlayerPhase.Instance;
     }
 }

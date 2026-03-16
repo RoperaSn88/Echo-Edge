@@ -25,7 +25,7 @@ public class EnemyPhase: IPhase
     {
         _clickFlug = false;
         Debug.Log("EnemyPhase");
-        MapManager.Instance.MoveUnit();
+        await MapManager.Instance.MoveUnit();
         await UniTask.Delay(TimeSpan.FromSeconds(1f));
         Debug.Log("おわり");
 

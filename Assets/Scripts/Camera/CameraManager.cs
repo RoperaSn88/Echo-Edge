@@ -69,6 +69,8 @@ public class CameraManager : MonoBehaviour
     
     private readonly Vector3 ZoomCameraOffset = new Vector3(0,0, 1f);
 
+    private readonly Vector3 PlayerZoomOffset = new Vector3(0f,-0.5f, 1f);
+
     /// <summary>
     /// 通常状態のスプライトの角度
     /// </summary>
@@ -99,10 +101,14 @@ public class CameraManager : MonoBehaviour
     /// </summary>
     private const float ZoomCameraDistance = 5;
 
+    private const float PlayerWeaponCameraDistance = 2f;
+
     /// <summary>
     /// 非同期処理の待機時間
     /// </summary>
     private const float TokenTime = 0.25f;
+
+
 
     void Start()
     {
@@ -133,7 +139,6 @@ public class CameraManager : MonoBehaviour
     /// <summary>
     /// カメラを対象のゲームオブジェクトにズームさせ始める。
     /// </summary>
-    [Button("セット")]
     public async UniTask ActSetCameraTarget(Transform target)
     {
         // カメラが動いている最中ならばキャンセル
@@ -264,12 +269,20 @@ public class CameraManager : MonoBehaviour
             .SetEase(Ease.OutQuad)
             .SetUpdate(true);
 
+        var rotationTween = DOTween.To(()=>_defaultCameraPos.rotation.eulerAngles,
+            pos => _defaultCameraPos.rotation = Quaternion.Euler(pos), 
+            new Vector3(20,0,0), 
+            TokenTime)
+            .SetEase(Ease.OutQuad)
+            .SetUpdate(true);
+
         try
         {
             await UniTask.WhenAll(
                 cameraTween.ToUniTask(cancellationToken: ct),
                 positionTween.ToUniTask(cancellationToken: ct),
-                offsetTween.ToUniTask(cancellationToken: ct)
+                offsetTween.ToUniTask(cancellationToken: ct),
+                rotationTween.ToUniTask(cancellationToken: ct)
             );
             _cameraMoving = false;
         }
@@ -278,6 +291,7 @@ public class CameraManager : MonoBehaviour
             cameraTween.Complete();
             positionTween.Complete();
             offsetTween.Complete();
+            rotationTween.Complete();
             _cameraMoving = false;
         }
     }
@@ -398,13 +412,20 @@ public class CameraManager : MonoBehaviour
             DefaultCameraOffset.z, 
             TokenTime)
             .SetEase(Ease.OutQuad);
+
+        var rotationTween = DOTween.To(()=>_defaultCameraPos.rotation.eulerAngles,
+            pos => _defaultCameraPos.rotation = Quaternion.Euler(pos), 
+            new Vector3(20,0,0), 
+            TokenTime)
+            .SetEase(Ease.OutQuad);
         
         try
         {
             await UniTask.WhenAll(
                 cameraTween.ToUniTask(cancellationToken: ct),
                 positionTween.ToUniTask(cancellationToken: ct),
-                offsetTween.ToUniTask(cancellationToken: ct)
+                offsetTween.ToUniTask(cancellationToken: ct),
+                rotationTween.ToUniTask(cancellationToken: ct)
             );
             _cameraMoving = false;
         }
@@ -413,6 +434,90 @@ public class CameraManager : MonoBehaviour
             cameraTween.Complete();
             positionTween.Complete();
             offsetTween.Complete();
+            _cameraMoving = false;
+        }
+    }
+
+    /// <summary>
+    /// カメラを対象のゲームオブジェクトにズームさせ始める。
+    /// </summary>
+    public async UniTask ActPlayerWeaponZoom(Transform target)
+    {
+        // カメラが動いている最中ならばキャンセル
+        if (_cameraMoving)
+        {
+            Debug.Log("キャンセルだ");
+            _cts.Cancel();
+        }
+
+        // CancekkationTokenSourceを初期化
+        _cts = new CancellationTokenSource();
+        _target = target;
+        // _cinemachineCamera.Target.TrackingTarget = _target;
+
+        try
+        {
+            await PlayerWeaponZoom(_cts.Token);
+        }
+        catch(OperationCanceledException)
+        {
+            Debug.Log("キャンセル");
+        }
+    }
+
+    /// <summary>
+    /// カメラを対象のゲームオブジェクトにズームする。
+    /// </summary>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    private async UniTask PlayerWeaponZoom(CancellationToken ct)
+    {
+        _cameraMoving = true;
+        
+        var cameraTween = DOTween.To(()=>_cinemachineThirdPersonFollow.CameraDistance,
+            d => _cinemachineThirdPersonFollow.CameraDistance = d, 
+            PlayerWeaponCameraDistance, 
+            TokenTime)
+            .SetEase(Ease.OutQuad)
+            .SetUpdate(true);
+            
+        var positionTween = DOTween.To(()=>_defaultCameraPos.position,
+            pos => _defaultCameraPos.position = pos, 
+            _target.position + new Vector3(0.5f,0,0), 
+            TokenTime)
+            .SetEase(Ease.OutQuad)
+            .SetUpdate(true);
+        
+        var offsetTween = DOTween.To(()=>_cinemachineThirdPersonFollow.ShoulderOffset,
+            pos => _cinemachineThirdPersonFollow.ShoulderOffset = pos, 
+            PlayerZoomOffset, 
+            TokenTime)
+            .SetEase(Ease.OutQuad)
+            .SetUpdate(true);
+
+        var rotationTween = DOTween.To(()=>_defaultCameraPos.rotation.eulerAngles,
+            pos => _defaultCameraPos.rotation = Quaternion.Euler(pos), 
+            new Vector3(20,-40,0), 
+            TokenTime)
+            .SetEase(Ease.OutQuad)
+            .SetUpdate(true);
+
+        try
+        {
+            await UniTask.WhenAll(
+                cameraTween.SetEase(Ease.OutQuad).ToUniTask(cancellationToken: ct),
+                offsetTween.SetEase(Ease.OutQuad).ToUniTask(cancellationToken: ct),
+                positionTween.SetEase(Ease.OutQuad).ToUniTask(cancellationToken: ct),
+                rotationTween.SetEase(Ease.OutQuad).ToUniTask(cancellationToken: ct)
+            );
+            _cameraMoving = false;
+        }
+        catch(Exception)
+        {
+            cameraTween.Complete();
+            positionTween.Complete();
+            offsetTween.Complete();
+            rotationTween.Complete();
             _cameraMoving = false;
         }
     }
