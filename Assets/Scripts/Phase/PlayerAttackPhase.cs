@@ -23,15 +23,6 @@ public class PlayerAttackPhase: IPhase
         Ray ray = Camera.main.ScreenPointToRay(CameraManager.Instance.GetMousePosition());
         Physics.Raycast(ray, out RaycastHit rch, math.INFINITY,LayerNumber);
         await PlayerController.Instance.Move(rch.point);
-        try
-        {
-            
-        }
-        catch
-        {
-            Debug.Log("Rayが正しくhitしませんでしたわ");
-        }
-        // 
         
         return EnemyPhase.Instance;
     }

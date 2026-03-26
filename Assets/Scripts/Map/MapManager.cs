@@ -51,7 +51,7 @@ public class MapManager: MonoBehaviour
         {
             _mapGrid[h, w] = unit;
         }
-        else throw new InvalidOperationException("指定したマスにはunitがいます");
+        else throw new InvalidOperationException("指定したマスにはunitがいるか、範囲外です h:" + h + ", w:" + w);
     }
 
     /// <summary>

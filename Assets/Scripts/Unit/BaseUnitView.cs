@@ -56,14 +56,14 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator
     public async UniTask Damage()
     {
         Time.timeScale = 0.001f;
-        CameraManager.Instance.ActSetCameraTarget(transform);
+        CameraManager.Instance.ActSetCameraTarget(transform).Forget();
         
         BattleManager.RegisterEnemy(MapManager.Instance.GetUnitAt(height, width).GetStatus());
         var damageValue = await BattleManager.EnemyDamage();
         
         Time.timeScale = 1.0f;
 
-        UIPresenter.Instance.AppearDamageText($"{damageValue.damage}", transform);
+        UIPresenter.Instance.AppearDamageText($"{damageValue.damage}", transform).Forget();
 
         if (damageValue.isDeath)
         {
@@ -72,6 +72,6 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator
         
         await UniTask.Delay(TimeSpan.FromSeconds(1.0f));
 
-        CameraManager.Instance.ActResetCameraTarget();
+        CameraManager.Instance.ActResetCameraTarget().Forget();
     }
 }

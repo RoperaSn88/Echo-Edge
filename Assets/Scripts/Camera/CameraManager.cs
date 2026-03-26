@@ -107,6 +107,8 @@ public class CameraManager : MonoBehaviour
     /// 非同期処理の待機時間
     /// </summary>
     private const float TokenTime = 0.25f;
+    
+    private const float PlayerWeaponTokenTime = 0.4f;
 
 
 
@@ -151,7 +153,6 @@ public class CameraManager : MonoBehaviour
         // CancekkationTokenSourceを初期化
         _cts = new CancellationTokenSource();
         _target = target;
-        // _cinemachineCamera.Target.TrackingTarget = _target;
 
         try
         {
@@ -226,8 +227,6 @@ public class CameraManager : MonoBehaviour
 
         // CancekkationTokenSourceを初期化
         _cts = new CancellationTokenSource();
-        
-        // _cinemachineCamera.Target.TrackingTarget = _defaultCameraPos;
 
         try
         {
@@ -453,7 +452,6 @@ public class CameraManager : MonoBehaviour
         // CancekkationTokenSourceを初期化
         _cts = new CancellationTokenSource();
         _target = target;
-        // _cinemachineCamera.Target.TrackingTarget = _target;
 
         try
         {
@@ -477,38 +475,46 @@ public class CameraManager : MonoBehaviour
         var cameraTween = DOTween.To(()=>_cinemachineThirdPersonFollow.CameraDistance,
             d => _cinemachineThirdPersonFollow.CameraDistance = d, 
             PlayerWeaponCameraDistance, 
-            TokenTime)
-            .SetEase(Ease.OutQuad)
+            PlayerWeaponTokenTime)
+            // .SetEase(Ease.OutQuad)
             .SetUpdate(true);
             
         var positionTween = DOTween.To(()=>_defaultCameraPos.position,
             pos => _defaultCameraPos.position = pos, 
             _target.position + new Vector3(0.5f,0,0), 
-            TokenTime)
+            PlayerWeaponTokenTime)
             .SetEase(Ease.OutQuad)
             .SetUpdate(true);
         
         var offsetTween = DOTween.To(()=>_cinemachineThirdPersonFollow.ShoulderOffset,
             pos => _cinemachineThirdPersonFollow.ShoulderOffset = pos, 
             PlayerZoomOffset, 
-            TokenTime)
-            .SetEase(Ease.OutQuad)
+            PlayerWeaponTokenTime)
+            .SetEase(Ease.OutCubic)
             .SetUpdate(true);
-
+        
         var rotationTween = DOTween.To(()=>_defaultCameraPos.rotation.eulerAngles,
             pos => _defaultCameraPos.rotation = Quaternion.Euler(pos), 
             new Vector3(20,-40,0), 
-            TokenTime)
+            PlayerWeaponTokenTime)
             .SetEase(Ease.OutQuad)
             .SetUpdate(true);
 
         try
         {
             await UniTask.WhenAll(
-                cameraTween.SetEase(Ease.OutQuad).ToUniTask(cancellationToken: ct),
-                offsetTween.SetEase(Ease.OutQuad).ToUniTask(cancellationToken: ct),
-                positionTween.SetEase(Ease.OutQuad).ToUniTask(cancellationToken: ct),
-                rotationTween.SetEase(Ease.OutQuad).ToUniTask(cancellationToken: ct)
+                cameraTween
+                    .SetEase(Ease.OutQuad)
+                    .ToUniTask(cancellationToken: ct),
+                offsetTween
+                    .SetEase(Ease.OutQuad)
+                    .ToUniTask(cancellationToken: ct),
+                positionTween
+                    .SetEase(Ease.OutQuad)
+                    .ToUniTask(cancellationToken: ct),
+                rotationTween
+                    .SetEase(Ease.OutQuad)
+                    .ToUniTask(cancellationToken: ct)
             );
             _cameraMoving = false;
         }

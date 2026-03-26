@@ -40,7 +40,7 @@ public class UIPresenter : MonoBehaviour
 
     public async UniTask AppearDamageText(string value, Transform targetTrans)
     {
-        Instance.EnemyDamageTextPool.RegisterTarget(targetTrans);
+        // Instance.EnemyDamageTextPool.RegisterTarget(targetTrans);
         var tmp = (TextObject) await Instance.EnemyDamageTextPool.GetPooledObject();
         tmp.SetText(value);
         await tmp.Appearing(targetTrans);
@@ -55,5 +55,4 @@ public class UIPresenter : MonoBehaviour
     {
         _canFadeText = false;
     }
-    
 }

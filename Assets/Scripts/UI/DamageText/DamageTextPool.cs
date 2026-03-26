@@ -4,7 +4,8 @@ using Cysharp.Threading.Tasks;
 
 public class DamageTextPool : ObjectPool
 {
-    private Transform _targetTransform;
+    [SerializeField]
+    private Transform _canvasTransform;
 
     public override void SetupPool()
     {
@@ -12,7 +13,7 @@ public class DamageTextPool : ObjectPool
         ObjectPooler instance = null;
         for (int i = 0; i < this._initSize; i++)
         {
-            instance = Instantiate(objectToPool);
+            instance = Instantiate(objectToPool, _canvasTransform);
             instance.Pool = this;
             instance.gameObject.SetActive(false);
             stack.Push(instance);
@@ -24,7 +25,7 @@ public class DamageTextPool : ObjectPool
         // プールの大きさが十分でない場合は、新しい PooledObjects をインスタンス化する
         if (stack.Count == 0)
         {
-            ObjectPooler newInstance = Instantiate(objectToPool, _targetTransform);
+            ObjectPooler newInstance = Instantiate(objectToPool, _canvasTransform);
             newInstance.Pool = this;
             newInstance.Appear();
             return newInstance;
@@ -34,10 +35,5 @@ public class DamageTextPool : ObjectPool
         nextInstance.gameObject.SetActive(true);
         await nextInstance.Appear();
         return nextInstance;
-    }
-
-    public void RegisterTarget(Transform targetTrans)
-    {
-        _targetTransform = targetTrans;
     }
 }
