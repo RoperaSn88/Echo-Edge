@@ -1,13 +1,11 @@
 using System;
-using AndanteTribe.Utils.Unity;
 using Cysharp.Threading.Tasks;
-using Cysharp.Threading.Tasks.Linq;
 using DG.Tweening;
 using UnityEngine;
 
 public class BaseUnitView: MonoBehaviour, IDamageActivator
 {
-    [SerializeField]
+    [SerializeField, Tooltip("表示のためのクラス(いじるな)")]
     private BaseUnit _baseUnit;
 
     [SerializeField]
@@ -15,17 +13,25 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator
 
     [SerializeField]
     private int width;
+    
+    /// <summary>
+    /// 仮のステータス
+    /// </summary>
+    [SerializeField]
+    private BattleStatus _status;
+    
+    [SerializeField]
+    private Animator _animator;
 
     /// <summary>
     ///  移動に使用するベクトル
     /// </summary>
     private Vector3 _moveVec;
-
+    
     /// <summary>
-    /// 登録用。本番ではcsv読み取りへ変更し、削除
+    /// アニメ中に攻撃を行うフラグ
     /// </summary>
-    [SerializeField]
-    private BaseStatus _baseStatus;
+    private bool _attackFlug;
 
     private const float MoveTime = 0.15f;
 
@@ -34,8 +40,7 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator
         // 登録用
         // 後ほどcsvで読み取る方法に変更する
         _baseUnit = new BaseUnit(this, height, width);
-        _baseStatus.RegistarBuff(new HPBuff());
-        _baseUnit.RegistarStatus(_baseStatus);
+        _baseUnit.RegistarStatus(_status);
     }
 
     /// <summary>
@@ -47,10 +52,34 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator
     {
         // 横方向はマイナス方向に進めるため、負の値にする
         _moveVec = new Vector3(x, 0, y);
+        
+        // 移動をする
         await transform.DOLocalMove(_moveVec, MoveTime).SetEase(Ease.OutQuad);
         await UniTask.Delay(TimeSpan.FromSeconds(MoveTime * 3f));
+        
+        // 位置を更新する
         height = y;
         width = x;
+    }
+
+    public async UniTask WaitAttack()
+    {
+        await CameraManager.Instance.ActSetCameraTarget(transform);
+        
+        _animator.SetTrigger("AttackT");
+        _attackFlug = false;
+        
+        await UniTask.WaitUntil(() => _attackFlug);
+    }
+
+    public void ActiveAttack()
+    {
+        _attackFlug = true;
+    }
+
+    public async UniTask Attack()
+    {
+        
     }
 
     public async UniTask Damage()

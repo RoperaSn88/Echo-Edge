@@ -1,6 +1,7 @@
 using Unity.VisualScripting;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
+using UI.QTE;
 
 public class UIPresenter : MonoBehaviour
 {
@@ -30,9 +31,11 @@ public class UIPresenter : MonoBehaviour
         }
     }
 
-    public async UniTask<float> AppearQTE()
+    public async UniTask<float> AppearQTE(QTEKinds kind)
     {
         var QTEObject = (QTEPresenter)await Instance.QtePool.GetPooledObject();
+        QTEObject.Kind = kind;
+        await QTEObject.Appear();
         var result = QTEObject.Result;
         QTEObject.Release();
         return result;

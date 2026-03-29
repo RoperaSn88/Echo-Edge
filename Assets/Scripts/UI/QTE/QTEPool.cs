@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
+using UI.QTE;
 
 public class QTEPool : ObjectPool
 {
@@ -27,13 +28,12 @@ public class QTEPool : ObjectPool
         {
             ObjectPooler newInstance = Instantiate(objectToPool, _canvasTransform);
             newInstance.Pool = this;
-            newInstance.Appear();
+            // newInstance.Appear();
             return newInstance;
         }
         // それ以外の場合は、リストから次のものをグラブする
         ObjectPooler nextInstance = stack.Pop();
         nextInstance.gameObject.SetActive(true);
-        await nextInstance.Appear();
         return nextInstance;
     }
 }

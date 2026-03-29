@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using System;
+using UI.QTE;
 
 public class QTEPresenter : ObjectPooler
 {
@@ -16,17 +17,24 @@ public class QTEPresenter : ObjectPooler
     [SerializeField]
     private Image _sliderBackGround;
 
-    [SerializeField]
-    private Slider _slider;
-
-    [SerializeField]
-    private Image _sliderImage;
-
     private MouseClick _mouseClick;
 
     private bool _clicked;
+    
+    /// <summary>
+    /// 待つ最大の時間
+    /// </summary>
+    private const float WaitTime = 0.75f;
 
-    private const float InitializeTime = 0.3f;
+    /// <summary>
+    /// 出現してから待つ時間
+    /// </summary>
+    private const float WaitWaitTime = 0.3f;
+    
+    private const float SuccessTime = 0.45f;
+    private const float GreatSuccessTime = 0.6f;
+
+    private const float InitializeTime = 0.2f;
 
     private const float DisappearTime = 0.4f;
 
@@ -34,15 +42,19 @@ public class QTEPresenter : ObjectPooler
     private float _result;
 
     public float Result => _result;
+    
+    public QTEKinds Kind;
 
     public async override UniTask Appear()
     {
+        Debug.Log("QTE種類: " + Kind);
+        
         _mouseClick = new MouseClick();
         _mouseClick.Mouse.MouseClick.started += Click;
         _mouseClick.Enable();
 
         // 初期化
-        _slider.value = 0;
+        _sliderBackGround.fillAmount= 0;
         _backGroundImage.color = SetAlphaColor(_backGroundImage.color, 0f);
         _icon.color = SetAlphaColor(_icon.color, 0f);
         _sliderBackGround.color = SetAlphaColor(_sliderBackGround.color, 0f);
@@ -58,16 +70,15 @@ public class QTEPresenter : ObjectPooler
             _icon.DOFade(1f,InitializeTime).SetUpdate(true).ToUniTask(),
             _icon.rectTransform.DOScale(Vector3.one, InitializeTime).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask(),
             _sliderBackGround.DOFade(1f, InitializeTime).SetUpdate(true).ToUniTask(),
-            _sliderBackGround.rectTransform.DOScale(Vector3.one, InitializeTime).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask(),
-            _sliderImage.DOFade(1f, InitializeTime).SetUpdate(true).ToUniTask()
+            _sliderBackGround.rectTransform.DOScale(Vector3.one, InitializeTime).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask()
         );
 
         // 待機
-        await UniTask.Delay(TimeSpan.FromSeconds(0.8f), ignoreTimeScale : true);
+        await UniTask.Delay(TimeSpan.FromSeconds(WaitWaitTime), ignoreTimeScale : true);
 
         var timer = Time.unscaledTime;
         await UniTask.WhenAny(
-            _slider.DOValue(1f, 0.8f).SetUpdate(true).ToUniTask(),
+            _sliderBackGround.DOFillAmount(1f, WaitTime).SetUpdate(true).ToUniTask(),
             UniTask.WaitUntil(() => _clicked)
         );
 
@@ -75,8 +86,8 @@ public class QTEPresenter : ObjectPooler
         {
             // 押した時間
             var endTime = Time.unscaledTime;
-            Debug.Log(endTime - timer);
-            if(endTime - timer < 0.6f && endTime - timer > 0.3f)
+            
+            if(endTime - timer < GreatSuccessTime && endTime - timer > SuccessTime)
             {
                 // 成功
                 await UniTask.WhenAll(
@@ -85,15 +96,22 @@ public class QTEPresenter : ObjectPooler
                     _icon.DOFade(0f, DisappearTime).SetUpdate(true).ToUniTask(),
                     _icon.rectTransform.DOScale(Vector3.one * 1.2f, DisappearTime).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask(),
                     _sliderBackGround.DOFade(0f, DisappearTime).SetUpdate(true).ToUniTask(),
-                    _sliderBackGround.rectTransform.DOScale(Vector3.one * 1.2f, DisappearTime).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask(),
-                    _sliderImage.DOFade(0f, DisappearTime).SetUpdate(true).ToUniTask()
+                    _sliderBackGround.rectTransform.DOScale(Vector3.one * 1.2f, DisappearTime).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask()
                 );
                 Debug.Log("成功");
-                _result = 1.1f;
+                switch (Kind)
+                {
+                    case QTEKinds.Attack:
+                        _result = 1.1f;
+                        break;
+                    case QTEKinds.Defend:
+                        _result = 0.8f;
+                        break;
+                }
                 _mouseClick.Dispose();
                 return;
             }
-            else if (endTime - timer < 0.8f && endTime - timer >= 0.6f)
+            else if (endTime - timer < WaitTime && endTime - timer >= GreatSuccessTime)
             {
                 // 大成功
                 await UniTask.WhenAll(
@@ -102,11 +120,18 @@ public class QTEPresenter : ObjectPooler
                     _icon.DOFade(0f, DisappearTime).SetUpdate(true).ToUniTask(),
                     _icon.rectTransform.DOScale(Vector3.one * 1.5f, DisappearTime).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask(),
                     _sliderBackGround.DOFade(0f, DisappearTime).SetUpdate(true).ToUniTask(),
-                    _sliderBackGround.rectTransform.DOScale(Vector3.one * 1.5f, DisappearTime).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask(),
-                    _sliderImage.DOFade(0f, DisappearTime).SetUpdate(true).ToUniTask()
+                    _sliderBackGround.rectTransform.DOScale(Vector3.one * 1.5f, DisappearTime).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask()
                 );
                 Debug.Log("大成功");
-                _result = 1.3f;
+                switch (Kind)
+                {
+                    case QTEKinds.Attack:
+                        _result = 1.3f;
+                        break;
+                    case QTEKinds.Defend:
+                        _result = 0f;
+                        break;
+                }
                 _mouseClick.Dispose();
                 return;
             }
@@ -119,11 +144,18 @@ public class QTEPresenter : ObjectPooler
             _icon.DOFade(0f,0.2f).SetUpdate(true).ToUniTask(),
             _icon.rectTransform.DOScale(Vector3.zero, 0.2f).SetUpdate(true).ToUniTask(),
             _sliderBackGround.DOFade(0f,0.2f).SetUpdate(true).ToUniTask(),
-            _sliderBackGround.rectTransform.DOScale(Vector3.zero, 0.2f).SetUpdate(true).ToUniTask(),
-            _sliderImage.DOFade(0f, 0.2f).SetUpdate(true).ToUniTask()
+            _sliderBackGround.rectTransform.DOScale(Vector3.zero, 0.2f).SetUpdate(true).ToUniTask()
         );
         Debug.Log("失敗");
-        _result = 0.8f;
+        switch (Kind)
+        {
+            case QTEKinds.Attack:
+                _result = 0.8f;
+                break;
+            case QTEKinds.Defend:
+                _result = 1.1f;
+                break;
+        }
         _mouseClick.Dispose();
     }
 

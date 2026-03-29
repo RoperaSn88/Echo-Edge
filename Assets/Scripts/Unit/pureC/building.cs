@@ -18,8 +18,13 @@ public class building : IUnit
         width = w;
         MapManager.Instance.RegisterUnit(this,h,w);
     }
+    
+    public UniTask MoveTurn()
+    {
+        throw new System.NotImplementedException();
+    }
 
-    public void Attack()
+    public UniTask Attack()
     {
         throw new System.NotImplementedException();
     }
@@ -34,7 +39,7 @@ public class building : IUnit
         throw new System.NotImplementedException();
     }
 
-    public void Specific()
+    public async UniTask Specific()
     {
         throw new System.NotImplementedException();
     }

@@ -1,13 +1,9 @@
 using System;
 using UnityEngine;
 
+[Serializable]
 public class BattleStatus : IDamagable
 {
-    /// <summary>
-    /// 元のステータス
-    /// </summary>
-    private BaseStatus baseStatus;
-
     /// <summary>
     /// 体力
     /// </summary>
@@ -28,37 +24,13 @@ public class BattleStatus : IDamagable
     /// </summary>
     public int Move;
     
-
-
-    public BattleStatus(BaseStatus BaseStatus)
-    {
-        this.baseStatus = BaseStatus;
-        Initialize();
-    }
+    /// <summary>
+    /// 攻撃をいつやるか
+    /// </summary>
+    public MovePattern MovePattern;
 
     private void Initialize()
     {
-        HP = baseStatus.HP;
-        Attack = baseStatus.Attack;
-        Defend = baseStatus.Defend;
-        Move = baseStatus.Move;
-
-        // buffsがnullまたは空の場合でもエラーにならないように保護
-        if(baseStatus.Buffs == null)
-        {
-            throw new NullReferenceException("buffsが指定されてないです");
-        }
-
-        if (baseStatus.Buffs.Count > 0)
-        {
-
-            Debug.Log("バフ中");
-            foreach (var v in baseStatus.Buffs)
-            {
-                v.Buff(this);
-            }
-        }
-
         Debug.Log($"hp:{HP}, attack:{Attack}, defend:{Defend}");
     }
 

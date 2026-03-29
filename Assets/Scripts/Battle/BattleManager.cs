@@ -1,4 +1,5 @@
 using Cysharp.Threading.Tasks;
+using UI.QTE;
 using UnityEngine;
 
 public class BattleManager : MonoBehaviour
@@ -40,14 +41,19 @@ public class BattleManager : MonoBehaviour
     {
         if (!_QTEFlug)
         {
-            _result = await UIPresenter.Instance.AppearQTE();
+            _result = await UIPresenter.Instance.AppearQTE(QTEKinds.Attack);
             _QTEFlug = true;
         } 
         return _enemyStatus.Damage((int)(_playerStatus.Attack * _result));
     }
 
-    public static (int damage, bool isDeath) PlayerDamage()
+    public async static UniTask<(int damage, bool isDeath)> PlayerDamage()
     {
-        return _playerStatus.Damage(_enemyStatus.Attack);
+        if (!_QTEFlug)
+        {
+            _result = await UIPresenter.Instance.AppearQTE(QTEKinds.Defend);
+            _QTEFlug = true;
+        } 
+        return _playerStatus.Damage((int)(_enemyStatus.Attack * _result));
     }
 }

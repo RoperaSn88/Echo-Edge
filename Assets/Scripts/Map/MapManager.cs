@@ -62,7 +62,10 @@ public class MapManager: MonoBehaviour
     /// <returns></returns>
     public IUnit GetUnitAt(int h, int w)
     {
-        if (h < 0 || h >= MapHeight || w < 0 || w >= MapWidth) return null;
+        if (h < 0 || h >= MapHeight || w < 0 || w >= MapWidth)
+        {
+            return null;
+        }
         return _mapGrid[h, w];
     }
 
@@ -97,12 +100,17 @@ public class MapManager: MonoBehaviour
         // count回数分、動くのを繰り返す
         for(int i = 0; i < count; i++)
         {
-            Debug.Log($"移動:h:{srcH}, w:{srcW}");
             // 上下に動くか、左に進むか計算する。
             // 現在のマスの左が空ならば進む。
+            Debug.Log("現在のマス; h:" + srcH + ", w:" + srcW);
             if(GetUnitAt(srcH, srcW - 1) == null)
             {
-                Debug.Log("left move");
+                // 一番左なので行動終了
+                if (srcW == 0)
+                {
+                    break;
+                }
+                
                 vector = MoveDirections.MoveLeft;
                 _mapGrid[srcH, srcW - 1] = unit;
                 _mapGrid[srcH, srcW] = null;
@@ -111,7 +119,6 @@ public class MapManager: MonoBehaviour
             }
             else if(GetUnitAt(srcH - 1, srcW) == null)
             {
-                Debug.Log("down move");
                 vector = MoveDirections.MoveDown;
                 _mapGrid[srcH - 1, srcW] = unit;
                 _mapGrid[srcH, srcW] = null;
@@ -120,7 +127,7 @@ public class MapManager: MonoBehaviour
             }
             else if(GetUnitAt(srcH + 1, srcW) == null)
             {
-                Debug.Log("up move");
+                
                 vector = MoveDirections.MoveUp;
                 _mapGrid[srcH + 1, srcW] = unit;
                 _mapGrid[srcH, srcW] = null;
@@ -150,16 +157,16 @@ public class MapManager: MonoBehaviour
     [Button("動かす")]
     public async UniTask MoveUnit()
     {
-        for(int i = 0; i < MapHeight; i++)
+        for(int i = 0; i < MapWidth; i++)
         {
-            for(int j = 0; j < MapWidth; j++)
+            for(int j = 0; j < MapHeight; j++)
             {
-                var unit = _mapGrid[i,j];
+                var unit = _mapGrid[j,i];
                 if(unit != null)
                 {
                     if (unit.CanMove())
                     {
-                        Debug.Log(TryMoveUnit(unit.GetStatus().Move, unit.GetHeight(), unit.GetWidth()));
+                        await unit.MoveTurn();
                     }
                 }
             }
@@ -170,5 +177,4 @@ public class MapManager: MonoBehaviour
     {
         _mapGrid = new IUnit[MapHeight, MapWidth];
     }
-
 }

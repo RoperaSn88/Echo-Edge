@@ -24,8 +24,6 @@ public class BaseUnit: IUnit, IDamagable
 
     private BaseUnitView _view;
 
-    private BaseStatus baseStatus;
-
     private BattleStatus battleStatus;
 
     public BaseUnit(BaseUnitView unit, int h, int w)
@@ -34,10 +32,9 @@ public class BaseUnit: IUnit, IDamagable
         Initialize(h,w);
     }
 
-    public void RegistarStatus(BaseStatus status)
+    public void RegistarStatus(BattleStatus status)
     {
-        baseStatus = status;
-        battleStatus = new BattleStatus(baseStatus);
+        battleStatus = status;
     }
 
     public async void Initialize(int h, int w)
@@ -48,12 +45,22 @@ public class BaseUnit: IUnit, IDamagable
         MapManager.Instance.RegisterUnit(this,h,w);
     }
 
-    public void Attack()
+    public async UniTask Attack()
     {
+        BattleManager.RegisterEnemy(battleStatus);
+        await _view.WaitAttack();
+        Time.timeScale = 0.001f;
+        var damageValue = await BattleManager.PlayerDamage();
+        Time.timeScale = 1.0f;
+        UIPresenter.Instance.AppearDamageText($"{damageValue.damage}", PlayerController.Instance.transform).Forget();
         
+        await UniTask.Delay(TimeSpan.FromSeconds(1.0f));
+        
+        BattleManager.ResetQTE();
+        CameraManager.Instance.ActResetCameraTarget().Forget();
     }
 
-    public void Specific()
+    public async UniTask Specific()
     {
         
     }
@@ -63,9 +70,35 @@ public class BaseUnit: IUnit, IDamagable
         return true;
     }
 
+    public async UniTask MoveTurn()
+    {
+        if (battleStatus.MovePattern == MovePattern.Before)
+        {
+            // 行動をする
+            // いったん攻撃か
+            await Attack();
+        }
+        
+        // 移動
+        try
+        {
+            await MapManager.Instance.TryMoveUnit(battleStatus.Move, Height, Width);
+        }
+        catch
+        {
+            
+        }
+        
+        if (battleStatus.MovePattern == MovePattern.After)
+        {
+            // 行動をする
+            // いったん攻撃か
+            await Attack();
+        }
+    } 
+
     public async UniTask Move(int y, int x)
     {
-        Debug.Log("動くよ");
         height = y;
         width = x;
         await _view.Move(y, x);

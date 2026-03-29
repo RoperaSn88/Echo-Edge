@@ -14,7 +14,7 @@ public interface IUnit : IDamagable
     /// <summary>
     /// 攻撃
     /// </summary>
-    public void Attack();
+    public UniTask Attack();
 
     /// <summary>
     /// 移動できるか
@@ -32,7 +32,7 @@ public interface IUnit : IDamagable
     /// なんかの技
     /// たぶんViewでやるべき
     /// </summary>
-    public void Specific();
+    public UniTask Specific();
 
     public int GetMoveHeight();
 
@@ -41,6 +41,13 @@ public interface IUnit : IDamagable
     public int GetWidth();
 
     public BattleStatus GetStatus();
+    
+    /// <summary>
+    /// そのユニットの行動を定義する
+    /// この中で移動、攻撃を行う。
+    /// </summary>
+    /// <returns></returns>
+    public UniTask MoveTurn();
 
     public (int damage, bool isDeath) Damage(int damage);
 }
