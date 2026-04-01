@@ -11552,6 +11552,52 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 234017323753348374, guid: 7cf8c5ce7f8c9fa4b899be72ca6eb60d, type: 3}
   m_PrefabInstance: {fileID: 461137025}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &463437405
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 463437406}
+  - component: {fileID: 463437407}
+  m_Layer: 0
+  m_Name: EnergyPool
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &463437406
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 463437405}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1949802341}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &463437407
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 463437405}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2197e24a523f484abc7210a6bc3b873c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UI.Energy.EnergyPool
+  _initSize: 5
+  objectToPool: {fileID: 1198375383769138438, guid: ba704c8efa7419442bf3711e28deb23e, type: 3}
 --- !u!1001 &465944403
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -22562,6 +22608,8 @@ MonoBehaviour:
     Defend: 20
     Move: 20
     MovePattern: 0
+    _experience: 0
+    _energy: 0
 --- !u!114 &907845587
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -25560,6 +25608,10 @@ PrefabInstance:
     - target: {fileID: 5567903368927060185, guid: ecd660bcbc3235e49841b0cfe1883f44, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8963636787221006196, guid: ecd660bcbc3235e49841b0cfe1883f44, type: 3}
+      propertyPath: _status.HP
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 8963636787221006196, guid: ecd660bcbc3235e49841b0cfe1883f44, type: 3}
       propertyPath: _status.MovePattern
@@ -49158,7 +49210,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UIPresenter
   _qtePool: {fileID: 1782055944}
   _enemyDamageTextPool: {fileID: 1734685535}
-  _playerStatusPresenter: {fileID: 0}
+  _energyPool: {fileID: 463437407}
+  _playerStatusPresenter: {fileID: 1841531819}
+  _destination: {fileID: 56136324}
 --- !u!4 &1949802341
 Transform:
   m_ObjectHideFlags: 0
@@ -49174,6 +49228,7 @@ Transform:
   m_Children:
   - {fileID: 1782055943}
   - {fileID: 1734685534}
+  - {fileID: 463437406}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1951852264
