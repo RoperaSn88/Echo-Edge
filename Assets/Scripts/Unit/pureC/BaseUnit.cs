@@ -104,7 +104,6 @@ public class BaseUnit: IUnit, IDamagable
         height = y;
         width = x;
         await _view.Move(y, x);
-        Debug.Log("動いた");
     }
 
     public int GetMoveHeight()
@@ -134,6 +133,14 @@ public class BaseUnit: IUnit, IDamagable
 
     public (int damage, bool isDeath) Damage(int damage)
     {
-        return battleStatus.Damage(damage);
+        var result =  battleStatus.Damage(damage);
+
+        if (result.isDeath)
+        {
+            // 死んだら自身のいるマスを空にする
+            MapManager.Instance.RemoveUnitAt(Height, Width);
+        }
+            
+        return result;
     }
 }

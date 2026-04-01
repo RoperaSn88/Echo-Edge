@@ -34,6 +34,20 @@ public class BattleStatus : IDamagable
     /// 攻撃をいつやるか
     /// </summary>
     public MovePattern MovePattern;
+    
+    [SerializeField]
+    private int _experience;
+    /// <summary>
+    /// 経験値
+    /// </summary>
+    public int Experience => _experience;
+    
+    [SerializeField]
+    private int _energy;
+    /// <summary>
+    /// 落とすエナジーの量
+    /// </summary>
+    public int Energy => _energy;
 
     public void Initialize()
     {

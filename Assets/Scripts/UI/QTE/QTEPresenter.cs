@@ -47,8 +47,6 @@ public class QTEPresenter : ObjectPooler
 
     public async override UniTask Appear()
     {
-        Debug.Log("QTE種類: " + Kind);
-        
         _mouseClick = new MouseClick();
         _mouseClick.Mouse.MouseClick.started += Click;
         _mouseClick.Enable();

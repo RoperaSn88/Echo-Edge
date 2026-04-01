@@ -3,7 +3,7 @@ using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
 
-public class BaseUnitView: MonoBehaviour, IDamageActivator
+public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
 {
     [SerializeField, Tooltip("表示のためのクラス(いじるな)")]
     private BaseUnit _baseUnit;
@@ -32,6 +32,11 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator
     /// アニメ中に攻撃を行うフラグ
     /// </summary>
     private bool _attackFlug;
+    
+    /// <summary>
+    /// 死んだか
+    /// </summary>
+    private bool _isDeath;
 
     private const float MoveTime = 0.15f;
 
@@ -97,11 +102,35 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator
 
         if (damageValue.isDeath)
         {
-            Debug.Log("敵を消すよ");
+            _animator.SetTrigger("DeadT");
+            UIPresenter.Instance.AppearEnergy(transform.position);
+            await UniTask.WaitUntil(() => _isDeath);
+            await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
         }
-        
-        await UniTask.Delay(TimeSpan.FromSeconds(1.0f));
+        else
+        {
+            await UniTask.Delay(TimeSpan.FromSeconds(1.0f));
+        }
 
         CameraManager.Instance.ActResetCameraTarget().Forget();
+
+        if (damageValue.isDeath)
+        {
+            //Destroyするが、後でオブジェクトプールにする
+            Dispose();
+            // Destroy(gameObject);
+            gameObject.SetActive(false);
+        }
+    }
+
+    public void Dead()
+    {
+        _isDeath = true;
+    }
+
+    public void Dispose()
+    {
+        _status = null;
+        _baseUnit = null;
     }
 }

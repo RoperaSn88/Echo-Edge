@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
-using UI.QTE;
 
 public class QTEPool : ObjectPool
 {

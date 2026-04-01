@@ -2,6 +2,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
 using UI;
+using UI.Energy;
 using UI.QTE;
 
 public class UIPresenter : MonoBehaviour
@@ -17,12 +18,17 @@ public class UIPresenter : MonoBehaviour
     public DamageTextPool EnemyDamageTextPool => _enemyDamageTextPool;
     
     [SerializeField]
+    private EnergyPool _energyPool;
+    public EnergyPool EnergyPool => _energyPool;
+    
+    [SerializeField]
     private PlayerStatusPresenter _playerStatusPresenter;
     public PlayerStatusPresenter PlayerStatusPresenter => _playerStatusPresenter;
 
+    [SerializeField] private RectTransform _destination;
+
     private bool _canFadeText;
     public bool CanFadeText => _canFadeText;
-
     
     void Awake()
     {
@@ -52,6 +58,13 @@ public class UIPresenter : MonoBehaviour
         var tmp = (TextObject) await Instance.EnemyDamageTextPool.GetPooledObject();
         tmp.SetText(value);
         await tmp.Appearing(targetTrans);
+    }
+    
+    public async UniTask AppearEnergy(Vector3 targetTrans)
+    {
+        var energyObject = (EnergyPresenter) await Instance.EnergyPool.GetPooledObject();
+        energyObject.SetPosition(_destination, targetTrans);
+        await energyObject.Appear();
     }
 
     public void FadeTexts()
