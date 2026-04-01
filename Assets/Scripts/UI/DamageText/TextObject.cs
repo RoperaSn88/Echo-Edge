@@ -25,7 +25,7 @@ public class TextObject : ObjectPooler
     /// <summary>
     /// 追尾する敵の位置
     /// </summary>
-    private Transform _targetTransform;
+    private Vector3 _targetPosition;
 
     public void Release()
     {
@@ -36,7 +36,7 @@ public class TextObject : ObjectPooler
     {
         if (chaseCanvas)
         {
-            var worldPos = Camera.main.WorldToScreenPoint(_targetTransform.position);
+            var worldPos = Camera.main.WorldToScreenPoint(_targetPosition);
             _baseRectTransform.position = worldPos;
         }
     }
@@ -52,11 +52,11 @@ public class TextObject : ObjectPooler
     /// <summary>
     /// アニメーションを実行させる。
     /// </summary>
-    public async UniTask Appearing(Transform targetTransform)
+    public async UniTask Appearing(Vector3 targetTransform)
     {
-        _targetTransform = targetTransform;
+        _targetPosition = targetTransform;
         
-        var worldPos = Camera.main.WorldToScreenPoint(targetTransform.position);
+        var worldPos = Camera.main.WorldToScreenPoint(targetTransform);
         
         //位置の初期化
         _baseRectTransform.position = worldPos;

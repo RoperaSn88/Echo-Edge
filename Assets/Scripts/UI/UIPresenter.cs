@@ -1,6 +1,7 @@
 using Unity.VisualScripting;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
+using UI;
 using UI.QTE;
 
 public class UIPresenter : MonoBehaviour
@@ -14,6 +15,10 @@ public class UIPresenter : MonoBehaviour
     [SerializeField]
     private DamageTextPool _enemyDamageTextPool;
     public DamageTextPool EnemyDamageTextPool => _enemyDamageTextPool;
+    
+    [SerializeField]
+    private PlayerStatusPresenter _playerStatusPresenter;
+    public PlayerStatusPresenter PlayerStatusPresenter => _playerStatusPresenter;
 
     private bool _canFadeText;
     public bool CanFadeText => _canFadeText;
@@ -41,7 +46,7 @@ public class UIPresenter : MonoBehaviour
         return result;
     }
 
-    public async UniTask AppearDamageText(string value, Transform targetTrans)
+    public async UniTask AppearDamageText(string value, Vector3 targetTrans)
     {
         // Instance.EnemyDamageTextPool.RegisterTarget(targetTrans);
         var tmp = (TextObject) await Instance.EnemyDamageTextPool.GetPooledObject();

@@ -34,6 +34,7 @@ public class BaseUnit: IUnit, IDamagable
 
     public void RegistarStatus(BattleStatus status)
     {
+        status.Initialize();
         battleStatus = status;
     }
 
@@ -52,12 +53,13 @@ public class BaseUnit: IUnit, IDamagable
         Time.timeScale = 0.001f;
         var damageValue = await BattleManager.PlayerDamage();
         Time.timeScale = 1.0f;
-        UIPresenter.Instance.AppearDamageText($"{damageValue.damage}", PlayerController.Instance.transform).Forget();
+        
+        UIPresenter.Instance.AppearDamageText($"{damageValue.damage}", PlayerController.Instance.transform.position).Forget();
         
         await UniTask.Delay(TimeSpan.FromSeconds(1.0f));
         
         BattleManager.ResetQTE();
-        CameraManager.Instance.ActResetCameraTarget().Forget();
+        await CameraManager.Instance.ActResetCameraTarget();
     }
 
     public async UniTask Specific()

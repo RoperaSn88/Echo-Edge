@@ -1,8 +1,5 @@
 using System;
 using Cysharp.Threading.Tasks;
-using Cysharp.Threading.Tasks.Triggers;
-using UnityEngine;
-using UnityEngine.SocialPlatforms;
 
 public class PlayerSkillPhase : IPhase
 {
@@ -19,7 +16,7 @@ public class PlayerSkillPhase : IPhase
     public async UniTask<IPhase> WaitPhase()
     {
         PlayerView.Instance.SkillAnim();
-        await CameraManager.Instance.ActPlayerWeaponZoom(PlayerView.Instance.Transform);
+        await CameraManager.Instance.ActPlayerWeaponZoom(PlayerView.Instance.Transform.position);
         await UniTask.Delay(TimeSpan.FromSeconds(5f));
         PlayerView.Instance.ResetRotateAnim();
         await CameraManager.Instance.ActResetCameraTarget();

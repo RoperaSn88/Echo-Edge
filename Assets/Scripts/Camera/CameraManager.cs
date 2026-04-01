@@ -5,6 +5,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using System;
+using UnityEngine.InputSystem.Composites;
 
 public class CameraManager : MonoBehaviour
 {
@@ -23,8 +24,8 @@ public class CameraManager : MonoBehaviour
     /// 対象のオブジェクト
     /// </summary>
     [SerializeField]
-    private Transform _target;
-    public Transform Target => _target;
+    private Vector3 _target;
+    public Vector3 Target => _target;
 
     /// <summary>
     /// カメラのCinemachine
@@ -141,7 +142,7 @@ public class CameraManager : MonoBehaviour
     /// <summary>
     /// カメラを対象のゲームオブジェクトにズームさせ始める。
     /// </summary>
-    public async UniTask ActSetCameraTarget(Transform target)
+    public async UniTask ActSetCameraTarget(Vector3 target)
     {
         // カメラが動いている最中ならばキャンセル
         if (_cameraMoving)
@@ -182,7 +183,7 @@ public class CameraManager : MonoBehaviour
             
         var positionTween = DOTween.To(()=>_defaultCameraPos.position,
             pos => _defaultCameraPos.position = pos, 
-            _target.position, 
+            _target, 
             TokenTime)
             .SetEase(Ease.OutQuad)
             .SetUpdate(true);
@@ -440,7 +441,7 @@ public class CameraManager : MonoBehaviour
     /// <summary>
     /// カメラを対象のゲームオブジェクトにズームさせ始める。
     /// </summary>
-    public async UniTask ActPlayerWeaponZoom(Transform target)
+    public async UniTask ActPlayerWeaponZoom(Vector3 target)
     {
         // カメラが動いている最中ならばキャンセル
         if (_cameraMoving)
@@ -481,7 +482,7 @@ public class CameraManager : MonoBehaviour
             
         var positionTween = DOTween.To(()=>_defaultCameraPos.position,
             pos => _defaultCameraPos.position = pos, 
-            _target.position + new Vector3(0.5f,0,0), 
+            _target + new Vector3(0.5f,0,0), 
             PlayerWeaponTokenTime)
             .SetEase(Ease.OutQuad)
             .SetUpdate(true);

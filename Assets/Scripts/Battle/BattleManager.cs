@@ -1,5 +1,6 @@
 using Cysharp.Threading.Tasks;
 using UI.QTE;
+using UI;
 using UnityEngine;
 
 public class BattleManager : MonoBehaviour
@@ -54,6 +55,10 @@ public class BattleManager : MonoBehaviour
             _result = await UIPresenter.Instance.AppearQTE(QTEKinds.Defend);
             _QTEFlug = true;
         } 
-        return _playerStatus.Damage((int)(_enemyStatus.Attack * _result));
+        var result =  _playerStatus.Damage((int)(_enemyStatus.Attack * _result));
+        
+        PlayerStatusPresenter.Instance.SetPlayerHP(_playerStatus.HP, _playerStatus.MaxHP);
+        
+        return result;
     }
 }

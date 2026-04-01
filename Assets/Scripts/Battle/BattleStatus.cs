@@ -5,6 +5,12 @@ using UnityEngine;
 public class BattleStatus : IDamagable
 {
     /// <summary>
+    /// 最大HP
+    /// </summary>
+    [NonSerialized]
+    public int MaxHP;
+    
+    /// <summary>
     /// 体力
     /// </summary>
     public int HP;
@@ -29,9 +35,9 @@ public class BattleStatus : IDamagable
     /// </summary>
     public MovePattern MovePattern;
 
-    private void Initialize()
+    public void Initialize()
     {
-        Debug.Log($"hp:{HP}, attack:{Attack}, defend:{Defend}");
+        MaxHP = HP;
     }
 
     /// <summary>

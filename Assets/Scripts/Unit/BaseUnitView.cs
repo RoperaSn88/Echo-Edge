@@ -64,7 +64,8 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator
 
     public async UniTask WaitAttack()
     {
-        await CameraManager.Instance.ActSetCameraTarget(transform);
+        Vector3 targetPos = new Vector3(PlayerController.Instance.transform.position.x + transform.position.x, 0, PlayerController.Instance.transform.position.z + transform.position.z) / 2;
+        await CameraManager.Instance.ActSetCameraTarget(targetPos);
         
         _animator.SetTrigger("AttackT");
         _attackFlug = false;
@@ -85,14 +86,14 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator
     public async UniTask Damage()
     {
         Time.timeScale = 0.001f;
-        CameraManager.Instance.ActSetCameraTarget(transform).Forget();
+        CameraManager.Instance.ActSetCameraTarget(transform.position).Forget();
         
         BattleManager.RegisterEnemy(MapManager.Instance.GetUnitAt(height, width).GetStatus());
         var damageValue = await BattleManager.EnemyDamage();
         
         Time.timeScale = 1.0f;
-
-        UIPresenter.Instance.AppearDamageText($"{damageValue.damage}", transform).Forget();
+        
+        UIPresenter.Instance.AppearDamageText($"{damageValue.damage}", transform.position).Forget();
 
         if (damageValue.isDeath)
         {
