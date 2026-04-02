@@ -45,7 +45,7 @@ public class BattleStatus : IDamagable
     [SerializeField]
     private int _energy;
     /// <summary>
-    /// 落とすエナジーの量
+    /// 落とすエナジーの量, プレイヤーの所持エナジー
     /// </summary>
     public int Energy => _energy;
 

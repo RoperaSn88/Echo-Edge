@@ -60,10 +60,10 @@ public class UIPresenter : MonoBehaviour
         await tmp.Appearing(targetTrans);
     }
     
-    public async UniTask AppearEnergy(Vector3 targetTrans)
+    public async UniTask AppearEnergy(Vector3 targetTrans, int energyValue)
     {
         var energyObject = (EnergyPresenter) await Instance.EnergyPool.GetPooledObject();
-        energyObject.SetPosition(_destination, targetTrans);
+        energyObject.SetPosition(_destination, targetTrans, energyValue);
         await energyObject.Appear();
     }
 

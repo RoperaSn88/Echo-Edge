@@ -6,7 +6,10 @@ namespace UI.Energy
 {
     public class EnergyPresenter: ObjectPooler
     {
-        public int value;
+        /// <summary>
+        /// エナジーを増やす量
+        /// </summary>
+        public int _value;
         
         /// <summary>
         /// 終点となるUIのRectTransform
@@ -25,10 +28,11 @@ namespace UI.Energy
         
         private const float LightIntensity = 5f;
         
-        public void SetPosition(RectTransform rect, Vector3 trans)
+        public void SetPosition(RectTransform rect, Vector3 trans, int value)
         {
             _destinationRect = rect;
             emit = trans;
+            _value = value;
         }
 
         public async override UniTask Appear()
@@ -48,8 +52,6 @@ namespace UI.Energy
             transform.position = start;
 
             gameObject.SetActive(true);
-
-            Time.timeScale = 0.4f;
             
             // 移動し始める
             transform.DOMove(
@@ -68,7 +70,8 @@ namespace UI.Energy
             // );
             
             // エナジーの量をプレイヤーに増やす
-            
+            var energyResult = EnergyManager.AddEnergy(_value);
+            UIPresenter.Instance.PlayerStatusPresenter.SetEnergy(energyResult.gaugeValue, energyResult.energyCount);
 
             gameObject.SetActive(false);
             Release();

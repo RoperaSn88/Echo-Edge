@@ -5,6 +5,8 @@ using UnityEngine.UI;
 using ColorUtility = UnityEngine.ColorUtility;
 using DG.Tweening;
 using Cysharp.Threading.Tasks;
+using DG.Tweening.Core;
+using DG.Tweening.Plugins.Options;
 
 namespace UI
 {
@@ -97,9 +99,9 @@ namespace UI
             }
         }
         
-        public void SetEnergy(int value)
+        public void SetEnergy(float gaugeValue, int energy)
         {
-            _energy.SetEnergy(value);
+            _energy.SetEnergy(gaugeValue, energy);
         }
         
         public void ShowAttentionGradiate(AttentionKinds kind)
@@ -222,13 +224,20 @@ namespace UI
             
             public const int MaxEnergy = 10;
             
-            public void SetEnergy(int value)
+            private const float ChangeValueTime = 0.5f;
+            private TweenerCore<float, float, FloatOptions> t;
+            
+            public void SetEnergy(float gaugeValue, int energy)
             {
-                _energyImage.fillAmount = value / MaxEnergy;
-                _energyHaveText.text = value.ToString();
+                if (t != null && t.active)
+                {
+                    t.Kill();
+                }
+                
+                t = _energyImage.DOFillAmount(gaugeValue, ChangeValueTime).SetEase(Ease.OutCubic);
+                _energyHaveText.text = energy.ToString();
                 _energyMaxText.text = MaxEnergy.ToString();
             }
-            
             
             public void SetColorCode(Color color)
             {
