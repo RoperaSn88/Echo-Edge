@@ -22,6 +22,10 @@ AnimationClip:
     curve:
     - time: 0
       value: {fileID: 21300000, guid: 763417e53340b4b489bfe343e62d589b, type: 3}
+    - time: 0.25
+      value: {fileID: 21300000, guid: b93b237950f89114491c5c6deab7619c, type: 3}
+    - time: 0.5
+      value: {fileID: 21300000, guid: 6ac2bb3c19ce5cd438556138a32da66d, type: 3}
     attribute: m_Sprite
     path: GameObject
     classID: 212
@@ -45,12 +49,14 @@ AnimationClip:
       isSerializeReferenceCurve: 0
     pptrCurveMapping:
     - {fileID: 21300000, guid: 763417e53340b4b489bfe343e62d589b, type: 3}
+    - {fileID: 21300000, guid: b93b237950f89114491c5c6deab7619c, type: 3}
+    - {fileID: 21300000, guid: 6ac2bb3c19ce5cd438556138a32da66d, type: 3}
   m_AnimationClipSettings:
     serializedVersion: 2
     m_AdditiveReferencePoseClip: {fileID: 0}
     m_AdditiveReferencePoseTime: 0
     m_StartTime: 0
-    m_StopTime: 0.25
+    m_StopTime: 0.75
     m_OrientationOffsetY: 0
     m_Level: 0
     m_CycleOffset: 0
