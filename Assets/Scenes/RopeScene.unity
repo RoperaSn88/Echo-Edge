@@ -11891,6 +11891,7 @@ MonoBehaviour:
   _weaponNameText: {fileID: 1833000547}
   _weaponDescriptionText: {fileID: 804898439}
   _weaponIconImage: {fileID: 421052539}
+  _weaponIconMaskImage: {fileID: 2102029761}
   _weaponCostClass:
     WeaponCostImages:
     - {fileID: 978968224}
@@ -30693,6 +30694,7 @@ MonoBehaviour:
   _weaponNameText: {fileID: 1014229321}
   _weaponDescriptionText: {fileID: 1169474720}
   _weaponIconImage: {fileID: 331332083}
+  _weaponIconMaskImage: {fileID: 1735589264}
   _weaponCostClass:
     WeaponCostImages:
     - {fileID: 826524702}

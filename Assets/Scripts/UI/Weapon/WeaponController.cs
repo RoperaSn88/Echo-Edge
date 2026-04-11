@@ -23,16 +23,19 @@ namespace UI.Weapon
             Instance = this;
         }
 
-        public async UniTask SelectWeapon()
+        public async UniTask<WeaponActionType> SelectWeapon()
         {
+            WeaponActionType result = WeaponActionType.Invalid;
             // 起動時、0番目のPresenterを表示させる
             bool isFirst = true;
             var SelectingPresenter = _presenters[0];
 
             _cancellationTokenSource = new();
             
-            await SelectingPresenter.AppearUIs(_cancellationTokenSource.Token);
-            
+            SelectingPresenter.AppearUIs(_cancellationTokenSource.Token).Forget();
+
+            bool isSelected = false;
+            // ボタンが押された時はbreak スクロールはプレゼンターを切り替えて再度調べる
             while (true)
             {
                 WeaponActionType actionType = await GetWeaponAction();
@@ -40,9 +43,13 @@ namespace UI.Weapon
                 {
                     case WeaponActionType.Press:
                         Debug.Log("決定");
+                        isSelected = true;
+                        result = WeaponActionType.Press;
                         break;
                     case WeaponActionType.Cancel:
                         Debug.Log("キャンセル");
+                        isSelected = true;
+                        result = WeaponActionType.Cancel;
                         break;
                     case WeaponActionType.SelectUp:
                         Debug.Log("選択上");
@@ -51,10 +58,19 @@ namespace UI.Weapon
                         Debug.Log("選択下");
                         break;
                 }
+
+                if (isSelected)
+                {
+                    break;
+                }
                 
                 _cancellationTokenSource.Cancel();
                 _cancellationTokenSource = new();
             }
+
+            SelectingPresenter.DisappearUIs(_cancellationTokenSource.Token).Forget();
+
+            return result;
         }
         
         async UniTask<WeaponActionType> GetWeaponAction()
@@ -91,15 +107,6 @@ namespace UI.Weapon
             
             weaponAction.Dispose();
             return result;
-        }
-
-
-        enum WeaponActionType
-        {
-            Press,
-            Cancel,
-            SelectUp,
-            SelectDown
         }
     }
 }

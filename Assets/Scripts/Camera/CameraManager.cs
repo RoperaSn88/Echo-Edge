@@ -271,7 +271,7 @@ public class CameraManager : MonoBehaviour
 
         var rotationTween = DOTween.To(()=>_defaultCameraPos.rotation.eulerAngles,
             pos => _defaultCameraPos.rotation = Quaternion.Euler(pos), 
-            new Vector3(20,0,0), 
+            new Vector3(20,360,0), 
             TokenTime)
             .SetEase(Ease.OutQuad)
             .SetUpdate(true);
@@ -477,14 +477,14 @@ public class CameraManager : MonoBehaviour
             d => _cinemachineThirdPersonFollow.CameraDistance = d, 
             PlayerWeaponCameraDistance, 
             PlayerWeaponTokenTime)
-            // .SetEase(Ease.OutQuad)
+            .SetEase(Ease.OutCubic)
             .SetUpdate(true);
             
         var positionTween = DOTween.To(()=>_defaultCameraPos.position,
             pos => _defaultCameraPos.position = pos, 
             _target + new Vector3(0.5f,0,0), 
             PlayerWeaponTokenTime)
-            .SetEase(Ease.OutQuad)
+            .SetEase(Ease.OutQuint)
             .SetUpdate(true);
         
         var offsetTween = DOTween.To(()=>_cinemachineThirdPersonFollow.ShoulderOffset,
@@ -505,10 +505,10 @@ public class CameraManager : MonoBehaviour
         {
             await UniTask.WhenAll(
                 cameraTween
-                    .SetEase(Ease.OutQuad)
+                    .SetEase(Ease.OutCubic)
                     .ToUniTask(cancellationToken: ct),
                 offsetTween
-                    .SetEase(Ease.OutQuad)
+                    .SetEase(Ease.OutQuint)
                     .ToUniTask(cancellationToken: ct),
                 positionTween
                     .SetEase(Ease.OutQuad)

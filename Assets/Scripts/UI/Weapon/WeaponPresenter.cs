@@ -23,6 +23,9 @@ public class WeaponPresenter : MonoBehaviour
     [SerializeField, Tooltip("武器のアイコンを表示するイメージ")]
     private Image _weaponIconImage;
     
+    [SerializeField, Tooltip("武器のアイコンのマスクイメージ")]
+    private Image _weaponIconMaskImage;
+    
     [SerializeField, Tooltip("武器のコストを表示するクラス")]
     private WeaponCostClass _weaponCostClass;
     
@@ -37,14 +40,28 @@ public class WeaponPresenter : MonoBehaviour
     public async UniTask AppearUIs(CancellationToken ct)
     {
         gameObject.SetActive(true);
-        await UniTask.WhenAll(
-            _weaponPanelImage.DOFade(1, AppearTime).From(0).ToUniTask(cancellationToken:ct),
-            _weaponNameText.DOFade(1, AppearTime).From(0).ToUniTask(cancellationToken:ct),
-            _weaponDescriptionText.DOFade(1, AppearTime).From(0).ToUniTask(cancellationToken:ct),
-            _weaponIconImage.DOFade(1, AppearTime).From(0).ToUniTask(cancellationToken:ct),
-            _weaponCostText.DOFade(1, AppearTime).From(0).ToUniTask(cancellationToken:ct),
-            _weaponCostClass.AppearWeaponCost(ct)
-        );
+        try
+        {
+            await UniTask.WhenAll(
+                _weaponPanelImage.DOFade(1, AppearTime).From(0).ToUniTask(cancellationToken: ct),
+                _weaponNameText.DOFade(1, AppearTime).From(0).ToUniTask(cancellationToken: ct),
+                _weaponDescriptionText.DOFade(1, AppearTime).From(0).ToUniTask(cancellationToken: ct),
+                _weaponIconImage.DOFade(1, AppearTime).From(0).ToUniTask(cancellationToken: ct),
+                _weaponIconMaskImage.DOFade(1, AppearTime).From(0).ToUniTask(cancellationToken: ct),
+                _weaponCostText.DOFade(1, AppearTime).From(0).ToUniTask(cancellationToken: ct),
+                _weaponCostClass.AppearWeaponCost(ct)
+            );
+        }
+        catch
+        {
+            // キャンセルされたときはUIを瞬時に表示する
+            _weaponPanelImage.color = new Color(_weaponPanelImage.color.r, _weaponPanelImage.color.g, _weaponPanelImage.color.b, 1);
+            _weaponNameText.color = new Color(_weaponNameText.color.r, _weaponNameText.color.g, _weaponNameText.color.b, 1);
+            _weaponDescriptionText.color = new Color(_weaponDescriptionText.color.r, _weaponDescriptionText.color.g, _weaponDescriptionText.color.b, 1);
+            _weaponIconImage.color = new Color(_weaponIconImage.color.r, _weaponIconImage.color.g, _weaponIconImage.color.b, 1);
+            _weaponIconMaskImage.color = new Color(_weaponIconMaskImage.color.r, _weaponIconMaskImage.color.g, _weaponIconMaskImage.color.b, 1);
+            _weaponCostText.color = new Color(_weaponCostText.color.r, _weaponCostText.color.g, _weaponCostText.color.b, 1);
+        }
     }
     
     /// <summary>
@@ -52,15 +69,37 @@ public class WeaponPresenter : MonoBehaviour
     /// </summary>
     public async UniTask DisappearUIs(CancellationToken ct)
     {
-        await UniTask.WhenAll(
-            _weaponPanelImage.DOFade(0, AppearTime).From(1).ToUniTask(cancellationToken:ct),
-            _weaponNameText.DOFade(0, AppearTime).From(1).ToUniTask(cancellationToken:ct),
-            _weaponDescriptionText.DOFade(0, AppearTime).From(1).ToUniTask(cancellationToken:ct),
-            _weaponIconImage.DOFade(0, AppearTime).From(1).ToUniTask(cancellationToken:ct),
-            _weaponCostText.DOFade(0, AppearTime).From(1).ToUniTask(cancellationToken:ct),
-            _weaponCostClass.DisappearWeaponCost(ct)
-        );
-        gameObject.SetActive(false);
+        try
+        {
+            await UniTask.WhenAll(
+                _weaponPanelImage.DOFade(0, AppearTime).From(1).ToUniTask(cancellationToken: ct),
+                _weaponNameText.DOFade(0, AppearTime).From(1).ToUniTask(cancellationToken: ct),
+                _weaponDescriptionText.DOFade(0, AppearTime).From(1).ToUniTask(cancellationToken: ct),
+                _weaponIconImage.DOFade(0, AppearTime).From(1).ToUniTask(cancellationToken: ct),
+                _weaponIconMaskImage.DOFade(0, AppearTime).From(1).ToUniTask(cancellationToken: ct),
+                _weaponCostText.DOFade(0, AppearTime).From(1).ToUniTask(cancellationToken: ct),
+                _weaponCostClass.DisappearWeaponCost(ct)
+            );
+        }
+        catch
+        {
+            _weaponPanelImage.color = new Color(_weaponPanelImage.color.r, _weaponPanelImage.color.g,
+                _weaponPanelImage.color.b, 0);
+            _weaponNameText.color =
+                new Color(_weaponNameText.color.r, _weaponNameText.color.g, _weaponNameText.color.b, 0);
+            _weaponDescriptionText.color = new Color(_weaponDescriptionText.color.r, _weaponDescriptionText.color.g,
+                _weaponDescriptionText.color.b, 0);
+            _weaponIconImage.color = new Color(_weaponIconImage.color.r, _weaponIconImage.color.g,
+                _weaponIconImage.color.b, 0);
+            _weaponIconMaskImage.color = new Color(_weaponIconMaskImage.color.r, _weaponIconMaskImage.color.g,
+                _weaponIconMaskImage.color.b, 0);
+            _weaponCostText.color =
+                new Color(_weaponCostText.color.r, _weaponCostText.color.g, _weaponCostText.color.b, 0);
+        }
+        finally
+        {
+            gameObject.SetActive(false);
+        }
     }
     
     /// <summary>
@@ -72,6 +111,7 @@ public class WeaponPresenter : MonoBehaviour
         _weaponNameText.color = new Color(_weaponNameText.color.r, _weaponNameText.color.g, _weaponNameText.color.b, 0);
         _weaponDescriptionText.color = new Color(_weaponDescriptionText.color.r, _weaponDescriptionText.color.g, _weaponDescriptionText.color.b, 0);
         _weaponIconImage.color = new Color(_weaponIconImage.color.r, _weaponIconImage.color.g, _weaponIconImage.color.b, 0);
+        _weaponIconMaskImage.color = new Color(_weaponIconMaskImage.color.r, _weaponIconMaskImage.color.g, _weaponIconMaskImage.color.b, 0);
         _weaponCostText.color = new Color(_weaponCostText.color.r, _weaponCostText.color.g, _weaponCostText.color.b, 0);
         _weaponCostClass.HideWeaponCost();
         gameObject.SetActive(false);
@@ -123,17 +163,37 @@ public class WeaponPresenter : MonoBehaviour
         
         public async UniTask AppearWeaponCost(CancellationToken ct)
         {
-            foreach (var weaponCostImage in WeaponCostImages)
+            try
             {
-                weaponCostImage.DOFade(1, AppearTime).From(0).ToUniTask(cancellationToken:ct);
+                foreach (var weaponCostImage in WeaponCostImages)
+                {
+                    weaponCostImage.DOFade(1, AppearTime).From(0).ToUniTask(cancellationToken: ct);
+                }
+            }
+            catch
+            {
+                foreach (var weaponCostImage in WeaponCostImages)
+                {
+                    weaponCostImage.color = new Color(weaponCostImage.color.r, weaponCostImage.color.g, weaponCostImage.color.b, 1);
+                }
             }
         }
         
         public async UniTask DisappearWeaponCost(CancellationToken ct)
         {
-            foreach (var weaponCostImage in WeaponCostImages)
+            try
             {
-                weaponCostImage.DOFade(0, AppearTime).From(1).ToUniTask(cancellationToken:ct);
+                foreach (var weaponCostImage in WeaponCostImages)
+                {
+                    weaponCostImage.DOFade(0, AppearTime).From(1).ToUniTask(cancellationToken: ct);
+                }
+            }
+            catch
+            {
+                foreach (var VARIABLE in WeaponCostImages)
+                {
+                    VARIABLE.color = new Color(VARIABLE.color.r, VARIABLE.color.g, VARIABLE.color.b, 0);
+                }
             }
         }
         
