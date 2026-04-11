@@ -1,8 +1,8 @@
+using System;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Actions;
-using Unity.VisualScripting;
 
 public class PlayerPhase: IPhase
 {
@@ -53,10 +53,10 @@ public class PlayerPhase: IPhase
             case ClickKinds.Right:
                 // 右クリック時
                 ResetController(playerActions);
-                return PlayerSkillPhase.Instance;
+                return PlayerWeaponPhase.Instance;
         }
 
-        throw new InvalidImplementationException("クリックがうまくできない謎のエラーです");
+        throw new InvalidOperationException("クリックがうまくできない謎のエラーです");
     }
 
     public void EnableController(PlayerActions playerActions)
