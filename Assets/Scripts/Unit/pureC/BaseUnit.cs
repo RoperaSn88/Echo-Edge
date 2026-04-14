@@ -1,6 +1,7 @@
 using System;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.UI;
 
 
 [System.Serializable]
@@ -26,9 +27,14 @@ public class BaseUnit: IUnit, IDamagable
 
     private BattleStatus battleStatus;
 
-    public BaseUnit(BaseUnitView unit, int h, int w)
+    private IUnitAction _unitAction;
+
+    private Image _image;
+
+    public BaseUnit(BaseUnitView unit, int h, int w, Image image)
     {
         _view = unit;
+        _image = image;
         Initialize(h,w);
     }
 
@@ -36,6 +42,7 @@ public class BaseUnit: IUnit, IDamagable
     {
         status.Initialize();
         battleStatus = status;
+        _unitAction = new UnitAction(battleStatus, _view, _image);
     }
 
     public async void Initialize(int h, int w)
@@ -48,18 +55,7 @@ public class BaseUnit: IUnit, IDamagable
 
     public async UniTask Attack()
     {
-        BattleManager.RegisterEnemy(battleStatus);
-        await _view.WaitAttack();
-        Time.timeScale = 0.001f;
-        var damageValue = await BattleManager.PlayerDamage();
-        Time.timeScale = 1.0f;
-        
-        UIPresenter.Instance.AppearDamageText($"{damageValue.damage}", PlayerController.Instance.transform.position).Forget();
-        
-        await UniTask.Delay(TimeSpan.FromSeconds(1.0f));
-        
-        BattleManager.ResetQTE();
-        await CameraManager.Instance.ActResetCameraTarget();
+        await _unitAction.Attack();
     }
 
     public async UniTask Specific()
