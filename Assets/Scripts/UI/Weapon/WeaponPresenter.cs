@@ -32,10 +32,30 @@ public class WeaponPresenter : MonoBehaviour
     [SerializeField, Tooltip("武器のコストを表示するテキスト")]
     private TextMeshProUGUI _weaponCostText;
     
+    [SerializeField, Tooltip("移動のオフセット量（上下方向）")]
+    private float _moveOffset = 100f;
+    
+    [SerializeField, Tooltip("移動にかかる時間")]
+    private float _moveDuration = 0.5f;
+    
+    /// <summary>移動直前の位置①</summary>
+    private Vector2 _originPosition;
+    
+    [SerializeField, Tooltip("このオブジェクトのRectTransform")]
+    private RectTransform _rectTransform;
+    
     private const float AppearTime = 0.5f;
     
+    private void Awake()
+    {
+        _originPosition = _rectTransform.anchoredPosition;
+    }
+    
+    /// <summary>②のオフセット位置（①に上下オフセットを加えた位置）</summary>
+    private Vector2 OffsetPosition => _originPosition + new Vector2(0, _moveOffset);
+    
     /// <summary>
-    /// UIを表示させる
+    /// UIを表示させる（②→①の移動を含む）
     /// </summary>
     public async UniTask AppearUIs(CancellationToken ct)
     {
@@ -43,6 +63,7 @@ public class WeaponPresenter : MonoBehaviour
         try
         {
             await UniTask.WhenAll(
+                MoveFromOffset(ct),
                 _weaponPanelImage.DOFade(1, AppearTime).From(0).ToUniTask(cancellationToken: ct),
                 _weaponNameText.DOFade(1, AppearTime).From(0).ToUniTask(cancellationToken: ct),
                 _weaponDescriptionText.DOFade(1, AppearTime).From(0).ToUniTask(cancellationToken: ct),
@@ -55,6 +76,7 @@ public class WeaponPresenter : MonoBehaviour
         catch
         {
             // キャンセルされたときはUIを瞬時に表示する
+            _rectTransform.anchoredPosition = _originPosition;
             _weaponPanelImage.color = new Color(_weaponPanelImage.color.r, _weaponPanelImage.color.g, _weaponPanelImage.color.b, 1);
             _weaponNameText.color = new Color(_weaponNameText.color.r, _weaponNameText.color.g, _weaponNameText.color.b, 1);
             _weaponDescriptionText.color = new Color(_weaponDescriptionText.color.r, _weaponDescriptionText.color.g, _weaponDescriptionText.color.b, 1);
@@ -65,13 +87,14 @@ public class WeaponPresenter : MonoBehaviour
     }
     
     /// <summary>
-    /// UIを非表示させる
+    /// UIを非表示させる（①→②の移動を含む）
     /// </summary>
     public async UniTask DisappearUIs(CancellationToken ct)
     {
         try
         {
             await UniTask.WhenAll(
+                MoveToOffset(ct),
                 _weaponPanelImage.DOFade(0, AppearTime).From(1).ToUniTask(cancellationToken: ct),
                 _weaponNameText.DOFade(0, AppearTime).From(1).ToUniTask(cancellationToken: ct),
                 _weaponDescriptionText.DOFade(0, AppearTime).From(1).ToUniTask(cancellationToken: ct),
@@ -83,6 +106,7 @@ public class WeaponPresenter : MonoBehaviour
         }
         catch
         {
+            _rectTransform.anchoredPosition = _originPosition;
             _weaponPanelImage.color = new Color(_weaponPanelImage.color.r, _weaponPanelImage.color.g,
                 _weaponPanelImage.color.b, 0);
             _weaponNameText.color =
@@ -107,6 +131,7 @@ public class WeaponPresenter : MonoBehaviour
     /// </summary>
     public void HideUIs()
     {
+        _rectTransform.anchoredPosition = _originPosition;
         _weaponPanelImage.color = new Color(_weaponPanelImage.color.r, _weaponPanelImage.color.g, _weaponPanelImage.color.b, 0);
         _weaponNameText.color = new Color(_weaponNameText.color.r, _weaponNameText.color.g, _weaponNameText.color.b, 0);
         _weaponDescriptionText.color = new Color(_weaponDescriptionText.color.r, _weaponDescriptionText.color.g, _weaponDescriptionText.color.b, 0);
@@ -115,6 +140,37 @@ public class WeaponPresenter : MonoBehaviour
         _weaponCostText.color = new Color(_weaponCostText.color.r, _weaponCostText.color.g, _weaponCostText.color.b, 0);
         _weaponCostClass.HideWeaponCost();
         gameObject.SetActive(false);
+    }
+    
+    /// <summary>
+    /// ①から②へ移動する（移動直前の位置①から、終着点から距離を取ったオフセット位置②へ）
+    /// </summary>
+    public async UniTask MoveToOffset(CancellationToken ct)
+    {
+        try
+        {
+            await _rectTransform.DOAnchorPos(OffsetPosition, _moveDuration).ToUniTask(cancellationToken: ct);
+        }
+        catch
+        {
+            _rectTransform.anchoredPosition = OffsetPosition;
+        }
+    }
+    
+    /// <summary>
+    /// ②から①へ移動する（オフセット位置②から、移動直前の位置①へ）
+    /// </summary>
+    public async UniTask MoveFromOffset(CancellationToken ct)
+    {
+        _rectTransform.anchoredPosition = OffsetPosition;
+        try
+        {
+            await _rectTransform.DOAnchorPos(_originPosition, _moveDuration).ToUniTask(cancellationToken: ct);
+        }
+        catch
+        {
+            _rectTransform.anchoredPosition = _originPosition;
+        }
     }
     
     /// <summary>

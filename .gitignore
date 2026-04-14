@@ -101,6 +101,8 @@ InitTestScene*.unity*
 
 /.vscode/
 
+.nuget/
+
 GameCreateProject-2025.slnx
 Assets/TextMesh Pro/Resources.meta
 Assets/TextMesh Pro/Resources/LineBreaking Following Characters.txt
