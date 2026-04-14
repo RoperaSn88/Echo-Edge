@@ -41,13 +41,13 @@ public class WeaponPresenter : MonoBehaviour
     /// <summary>移動直前の位置①</summary>
     private Vector2 _originPosition;
     
+    [SerializeField, Tooltip("このオブジェクトのRectTransform")]
     private RectTransform _rectTransform;
     
     private const float AppearTime = 0.5f;
     
     private void Awake()
     {
-        _rectTransform = GetComponent<RectTransform>();
         _originPosition = _rectTransform.anchoredPosition;
     }
     
