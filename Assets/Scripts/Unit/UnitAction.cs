@@ -29,7 +29,7 @@ public class UnitAction : IUnitAction
         await CameraManager.Instance.ActResetCameraTarget();
     }
 
-    public void Dead()
+    public async UniTask Dead()
     {
         // 死亡時と同時に発生する処理
     }

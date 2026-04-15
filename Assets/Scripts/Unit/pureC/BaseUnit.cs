@@ -48,6 +48,13 @@ public class BaseUnit: IUnit, IDamagable
         MapManager.Instance.RegisterUnit(this,h,w);
     }
 
+    public async UniTask Dead()
+    {
+        await _unitAction.Dead();
+        // 死んだら自身のいるマスを空にする
+        MapManager.Instance.RemoveUnitAt(Height, Width);
+    }
+
     public async UniTask Attack()
     {
         await _unitAction.Attack();
@@ -128,8 +135,7 @@ public class BaseUnit: IUnit, IDamagable
 
         if (result.isDeath)
         {
-            // 死んだら自身のいるマスを空にする
-            MapManager.Instance.RemoveUnitAt(Height, Width);
+            Dead().Forget();
         }
             
         return result;

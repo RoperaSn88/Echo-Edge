@@ -10,7 +10,7 @@ public interface IUnitAction
     /// <summary>
     /// 死亡時の処理
     /// </summary>
-    public void Dead();
+    public UniTask Dead();
 
     /// <summary>
     /// 特殊行動の処理
