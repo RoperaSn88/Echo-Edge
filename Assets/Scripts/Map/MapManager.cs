@@ -50,7 +50,9 @@ public class MapManager: MonoBehaviour
         await UniTask.WaitUntil(() => UnitSpawner.Instance);
         foreach(var placement in unitPlacements)
         {
-            await UnitSpawner.Instance.SpawnUnit(placement.enemyId, placement.height, placement.width);
+            var unit = new BaseUnit(placement.height, placement.width);
+            await unit.LoadStatus(placement.enemyId);
+            UnitSpawner.Instance.SpawnView(unit);
         }
     }
 

@@ -38,18 +38,15 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
     private const float DeadFadeTime = 0.5f;
 
     /// <summary>
-    /// ユニットを指定座標・ステータスで初期化する。UnitSpawner から呼び出す。
+    /// BaseUnit を紐づけ、表示位置を初期化する。UnitSpawner から呼び出す。
     /// </summary>
-    /// <param name="h">配置する縦座標</param>
-    /// <param name="w">配置する横座標</param>
-    /// <param name="status">CSV から読み込んだステータス</param>
-    public void Setup(int h, int w, BattleStatus status)
+    /// <param name="unit">対応する BaseUnit</param>
+    public void Setup(BaseUnit unit)
     {
-        height = h;
-        width = w;
-        transform.localPosition = new Vector3(w, 0, h);
-        _baseUnit = new BaseUnit(this, height, width);
-        _baseUnit.RegistarStatus(status);
+        _baseUnit = unit;
+        height = unit.Height;
+        width = unit.Width;
+        transform.localPosition = new Vector3(unit.Width, 0, unit.Height);
     }
 
     /// <summary>
