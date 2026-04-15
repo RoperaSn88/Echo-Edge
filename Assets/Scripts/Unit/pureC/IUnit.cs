@@ -49,5 +49,5 @@ public interface IUnit : IDamagable
     /// <returns></returns>
     public UniTask MoveTurn();
 
-    public (int damage, bool isDeath) Damage(int damage);
+    public UniTask<(int damage, bool isDeath)> Damage(int damage);
 }

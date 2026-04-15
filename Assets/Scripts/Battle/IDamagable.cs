@@ -1,7 +1,9 @@
+using Cysharp.Threading.Tasks;
+
 public interface IDamagable
 {
     /// <summary>
     /// ダメージを受けるためのメソッド
     /// </summary>
-    public (int damage, bool isDeath) Damage(int damage);
+    public UniTask<(int damage, bool isDeath)> Damage(int damage);
 }

@@ -45,7 +45,7 @@ public class BattleManager : MonoBehaviour
             _result = await UIPresenter.Instance.AppearQTE(QTEKinds.Attack);
             _QTEFlug = true;
         } 
-        return _enemyStatus.Damage((int)(_playerStatus.Attack * _result));
+        return await _enemyStatus.Damage((int)(_playerStatus.Attack * _result));
     }
 
     public async static UniTask<(int damage, bool isDeath)> PlayerDamage()
@@ -55,7 +55,7 @@ public class BattleManager : MonoBehaviour
             _result = await UIPresenter.Instance.AppearQTE(QTEKinds.Defend);
             _QTEFlug = true;
         } 
-        var result =  _playerStatus.Damage((int)(_enemyStatus.Attack * _result));
+        var result = await _playerStatus.Damage((int)(_enemyStatus.Attack * _result));
         
         PlayerStatusPresenter.Instance.SetPlayerHP(_playerStatus.HP, _playerStatus.MaxHP);
         

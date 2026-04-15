@@ -129,13 +129,13 @@ public class BaseUnit: IUnit, IDamagable
         return battleStatus;
     }
 
-    public (int damage, bool isDeath) Damage(int damage)
+    public async UniTask<(int damage, bool isDeath)> Damage(int damage)
     {
-        var result =  battleStatus.Damage(damage);
+        var result = await battleStatus.Damage(damage);
 
         if (result.isDeath)
         {
-            Dead().Forget();
+            await Dead();
         }
             
         return result;
