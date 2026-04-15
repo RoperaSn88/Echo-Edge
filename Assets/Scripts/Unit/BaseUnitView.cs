@@ -15,9 +15,6 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
     [SerializeField]
     private int width;
     
-    /// <summary>
-    /// 仮のステータス
-    /// </summary>
     [SerializeField]
     private BattleStatus _status;
     
@@ -47,8 +44,6 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
 
     void Start()
     {
-        // 登録用
-        // 後ほどcsvで読み取る方法に変更する
         _baseUnit = new BaseUnit(this, height, width);
         _baseUnit.RegistarStatus(_status);
     }

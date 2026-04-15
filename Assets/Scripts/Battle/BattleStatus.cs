@@ -56,6 +56,21 @@ public class BattleStatus : IDamagable
     }
 
     /// <summary>
+    /// ステータスを更新する
+    /// </summary>
+    public void SetStatus(int hp, int attack, int defend, int move, MovePattern movePattern, int experience, int energy)
+    {
+        HP = hp;
+        MaxHP = hp;
+        Attack = attack;
+        Defend = defend;
+        Move = move;
+        MovePattern = movePattern;
+        _experience = experience;
+        _energy = energy;
+    }
+
+    /// <summary>
     /// ダメージを反映させる
     /// </summary>
     /// <param name="targetAttack">相手の攻撃力</param>
