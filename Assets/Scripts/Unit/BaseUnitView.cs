@@ -2,6 +2,7 @@ using System;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
 {
@@ -22,6 +23,9 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
     
     [SerializeField]
     private Animator _animator;
+
+    [SerializeField]
+    private Image _image;
 
     /// <summary>
     ///  移動に使用するベクトル
@@ -44,7 +48,7 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
     {
         // 登録用
         // 後ほどcsvで読み取る方法に変更する
-        _baseUnit = new BaseUnit(this, height, width);
+        _baseUnit = new BaseUnit(this, height, width, _image);
         _baseUnit.RegistarStatus(_status);
     }
 
