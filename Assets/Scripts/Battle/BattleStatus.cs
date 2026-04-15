@@ -1,4 +1,5 @@
 using System;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 [Serializable]
@@ -59,7 +60,7 @@ public class BattleStatus : IDamagable
     /// </summary>
     /// <param name="targetAttack">相手の攻撃力</param>
     /// <returns>死んだかどうか</returns>
-    public (int damage, bool isDeath) Damage(int targetAttack)
+    public async UniTask<(int damage, bool isDeath)> Damage(int targetAttack)
     {
         // ダメージ計算式
         int damage = targetAttack - Defend / 2;

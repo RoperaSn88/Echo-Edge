@@ -2,6 +2,7 @@ using System;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
 {
@@ -23,6 +24,9 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
     [SerializeField]
     private Animator _animator;
 
+    [SerializeField]
+    private Image _image;
+
     /// <summary>
     ///  移動に使用するベクトル
     /// </summary>
@@ -39,6 +43,7 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
     private bool _isDeath;
 
     private const float MoveTime = 0.15f;
+    private const float DeadFadeTime = 0.5f;
 
     void Start()
     {
@@ -126,6 +131,7 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
     public void Dead()
     {
         _isDeath = true;
+        _image.DOFade(0f, DeadFadeTime);
     }
 
     public void Dispose()
