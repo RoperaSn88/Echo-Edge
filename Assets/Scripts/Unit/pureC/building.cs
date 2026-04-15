@@ -69,7 +69,7 @@ public class building : IUnit
         throw new System.NotImplementedException();
     }
 
-    public (int damage, bool isDeath) Damage(int damage)
+    public UniTask<(int damage, bool isDeath)> Damage(int damage)
     {
         throw new NotImplementedException();
     }

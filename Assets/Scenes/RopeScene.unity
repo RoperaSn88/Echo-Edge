@@ -1472,7 +1472,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 31a19414c41e5ae4aae2af33fee712f6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Mask
-  m_ShowMaskGraphic: 1
+  m_ShowMaskGraphic: 0
 --- !u!114 &75581879
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11907,6 +11907,9 @@ MonoBehaviour:
     WeaponCostImage: {fileID: 21300000, guid: 3f7982e21107c114b8fdf63751085e11, type: 3}
     WeaponCostDisableImage: {fileID: 21300000, guid: abf05b452a6153443b1accd894292b24, type: 3}
   _weaponCostText: {fileID: 1374184206}
+  _moveOffset: 100
+  _moveDuration: 0.5
+  _rectTransform: {fileID: 438277666}
 --- !u!114 &438277668
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12566,7 +12569,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 31a19414c41e5ae4aae2af33fee712f6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Mask
-  m_ShowMaskGraphic: 1
+  m_ShowMaskGraphic: 0
 --- !u!114 &476466523
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -30710,6 +30713,9 @@ MonoBehaviour:
     WeaponCostImage: {fileID: 21300000, guid: 3f7982e21107c114b8fdf63751085e11, type: 3}
     WeaponCostDisableImage: {fileID: 21300000, guid: abf05b452a6153443b1accd894292b24, type: 3}
   _weaponCostText: {fileID: 1748454504}
+  _moveOffset: 100
+  _moveDuration: 0.5
+  _rectTransform: {fileID: 1147668983}
 --- !u!1 &1151290366
 GameObject:
   m_ObjectHideFlags: 0

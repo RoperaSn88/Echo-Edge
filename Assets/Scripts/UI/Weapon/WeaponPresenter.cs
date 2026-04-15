@@ -6,6 +6,7 @@ using UnityEngine.UI;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using TMPro;
+using Unity.VisualScripting;
 
 public class WeaponPresenter : MonoBehaviour
 {
@@ -52,18 +53,20 @@ public class WeaponPresenter : MonoBehaviour
     }
     
     /// <summary>②のオフセット位置（①に上下オフセットを加えた位置）</summary>
-    private Vector2 OffsetPosition => _originPosition + new Vector2(0, _moveOffset);
+    private Vector2 OffsetPositionPlus => _originPosition + new Vector2(0, _moveOffset);
+    
+    private Vector2 OffsetPositionMinus => _originPosition - new Vector2(0, _moveOffset);
     
     /// <summary>
     /// UIを表示させる（②→①の移動を含む）
     /// </summary>
-    public async UniTask AppearUIs(CancellationToken ct)
+    public async UniTask AppearUIs(WeaponMoveDirection weaponMoveDirection, CancellationToken ct)
     {
         gameObject.SetActive(true);
         try
         {
             await UniTask.WhenAll(
-                MoveFromOffset(ct),
+                MoveFromOffset(weaponMoveDirection, ct),
                 _weaponPanelImage.DOFade(1, AppearTime).From(0).ToUniTask(cancellationToken: ct),
                 _weaponNameText.DOFade(1, AppearTime).From(0).ToUniTask(cancellationToken: ct),
                 _weaponDescriptionText.DOFade(1, AppearTime).From(0).ToUniTask(cancellationToken: ct),
@@ -89,12 +92,12 @@ public class WeaponPresenter : MonoBehaviour
     /// <summary>
     /// UIを非表示させる（①→②の移動を含む）
     /// </summary>
-    public async UniTask DisappearUIs(CancellationToken ct)
+    public async UniTask DisappearUIs(WeaponMoveDirection weaponMoveDirection, CancellationToken ct)
     {
         try
         {
             await UniTask.WhenAll(
-                MoveToOffset(ct),
+                MoveToOffset(weaponMoveDirection, ct),
                 _weaponPanelImage.DOFade(0, AppearTime).From(1).ToUniTask(cancellationToken: ct),
                 _weaponNameText.DOFade(0, AppearTime).From(1).ToUniTask(cancellationToken: ct),
                 _weaponDescriptionText.DOFade(0, AppearTime).From(1).ToUniTask(cancellationToken: ct),
@@ -145,24 +148,41 @@ public class WeaponPresenter : MonoBehaviour
     /// <summary>
     /// ①から②へ移動する（移動直前の位置①から、終着点から距離を取ったオフセット位置②へ）
     /// </summary>
-    public async UniTask MoveToOffset(CancellationToken ct)
+    public async UniTask MoveToOffset(WeaponMoveDirection weaponMoveDirection, CancellationToken ct)
     {
         try
         {
-            await _rectTransform.DOAnchorPos(OffsetPosition, _moveDuration).ToUniTask(cancellationToken: ct);
+            switch (weaponMoveDirection)
+            {
+                case WeaponMoveDirection.DownToUp:
+                    await _rectTransform.DOAnchorPos(OffsetPositionPlus, _moveDuration).ToUniTask(cancellationToken: ct);
+                    break;
+                case WeaponMoveDirection.UpToDown:
+                    await _rectTransform.DOAnchorPos(OffsetPositionMinus, _moveDuration).ToUniTask(cancellationToken: ct);
+                    break;
+            }
         }
         catch
         {
-            _rectTransform.anchoredPosition = OffsetPosition;
+            _rectTransform.anchoredPosition = OffsetPositionPlus;
         }
     }
     
     /// <summary>
     /// ②から①へ移動する（オフセット位置②から、移動直前の位置①へ）
     /// </summary>
-    public async UniTask MoveFromOffset(CancellationToken ct)
+    public async UniTask MoveFromOffset(WeaponMoveDirection weaponMoveDirection, CancellationToken ct)
     {
-        _rectTransform.anchoredPosition = OffsetPosition;
+        switch(weaponMoveDirection)
+        {
+            case WeaponMoveDirection.DownToUp:
+                _rectTransform.anchoredPosition = OffsetPositionMinus;
+                break;
+            case WeaponMoveDirection.UpToDown:
+                _rectTransform.anchoredPosition = OffsetPositionPlus;
+                break;
+        }
+        
         try
         {
             await _rectTransform.DOAnchorPos(_originPosition, _moveDuration).ToUniTask(cancellationToken: ct);

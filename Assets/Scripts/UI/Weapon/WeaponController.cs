@@ -41,6 +41,7 @@ namespace UI.Weapon
             
             // 武器が選択されるまでループする
             bool isSelected = false;
+            WeaponMoveDirection weaponMoveDirection = WeaponMoveDirection.UpToDown;
             
             // ボタンが押された時はbreak スクロールはプレゼンターを切り替えて再度調べる
             while (true)
@@ -54,7 +55,7 @@ namespace UI.Weapon
                     // ビューにモデルを設定していく
                     SelectingPresenter.SetWeapon(targetModel);
                     
-                    SelectingPresenter.AppearUIs(_cancellationTokenSource.Token).Forget();
+                    SelectingPresenter.AppearUIs(weaponMoveDirection, _cancellationTokenSource.Token).Forget();
                     
                     WeaponActionType actionType = await GetWeaponAction();
                     
@@ -78,6 +79,8 @@ namespace UI.Weapon
                             {
                                 _selectedWeaponIndex = 0;
                             }
+
+                            weaponMoveDirection = WeaponMoveDirection.DownToUp;
                             break;
                         case WeaponActionType.SelectDown:
                             Debug.Log("選択下");
@@ -86,6 +89,7 @@ namespace UI.Weapon
                             {
                                 _selectedWeaponIndex = MaxWeaponNum - 1;
                             }
+                            weaponMoveDirection = WeaponMoveDirection.UpToDown;
                             break;
                     }
 
@@ -99,7 +103,7 @@ namespace UI.Weapon
                     _cancellationTokenSource = new();
                     
                     // プレゼンターを切り替える
-                    SelectingPresenter.DisappearUIs(_cancellationTokenSource.Token).Forget();
+                    SelectingPresenter.DisappearUIs(weaponMoveDirection, _cancellationTokenSource.Token).Forget();
 
                     if (isFirst)
                     {
@@ -118,7 +122,7 @@ namespace UI.Weapon
                 }
             }
 
-            SelectingPresenter.DisappearUIs(_cancellationTokenSource.Token).Forget();
+            SelectingPresenter.DisappearUIs(weaponMoveDirection, _cancellationTokenSource.Token).Forget();
 
             return result;
         }
