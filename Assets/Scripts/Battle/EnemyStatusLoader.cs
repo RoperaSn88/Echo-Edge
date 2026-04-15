@@ -1,24 +1,26 @@
 using System;
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 
 /// <summary>
 /// EnemyInfo.csv からエネミーのステータスを読み込むローダー
 /// </summary>
 public static class EnemyStatusLoader
 {
-    private const string CsvPath = "EnemyInfo";
+    private const string CsvPath = "Assets/Addressables/EnemyInfo.csv";
 
     // CSV を初回読み込み時にキャッシュする (ID → 各列の値)
     private static Dictionary<int, string[]> _cache;
 
-    private static Dictionary<int, string[]> GetCache()
+    private static async UniTask<Dictionary<int, string[]>> GetCacheAsync()
     {
         if (_cache != null) return _cache;
 
         _cache = new Dictionary<int, string[]>();
 
-        var csv = Resources.Load<TextAsset>(CsvPath);
+        var csv = await Addressables.LoadAssetAsync<TextAsset>(CsvPath);
         if (csv == null)
         {
             Debug.LogError("EnemyInfo.csv が見つかりません");
@@ -48,9 +50,9 @@ public static class EnemyStatusLoader
     /// <param name="id">読み取る行の ID</param>
     /// <param name="status">更新対象の BattleStatus</param>
     /// <returns>読み取りに成功した場合は true</returns>
-    public static bool TryLoad(int id, BattleStatus status)
+    public static async UniTask<bool> TryLoad(int id, BattleStatus status)
     {
-        var cache = GetCache();
+        var cache = await GetCacheAsync();
 
         if (!cache.TryGetValue(id, out var cols))
         {

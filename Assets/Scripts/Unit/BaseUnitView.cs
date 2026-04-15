@@ -14,12 +14,6 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
     [SerializeField]
     private int width;
     
-    /// <summary>
-    /// EnemyInfo.csv から読み込む際に使用するエネミー ID
-    /// </summary>
-    [SerializeField]
-    private int _enemyID;
-
     [SerializeField]
     private BattleStatus _status;
     
@@ -46,7 +40,6 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
     void Start()
     {
         _baseUnit = new BaseUnit(this, height, width);
-        EnemyStatusLoader.TryLoad(_enemyID, _status);
         _baseUnit.RegistarStatus(_status);
     }
 
