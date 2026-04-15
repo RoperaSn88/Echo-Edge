@@ -43,12 +43,13 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
     private bool _isDeath;
 
     private const float MoveTime = 0.15f;
+    private const float DeadFadeTime = 0.5f;
 
     void Start()
     {
         // 登録用
         // 後ほどcsvで読み取る方法に変更する
-        _baseUnit = new BaseUnit(this, height, width, _image);
+        _baseUnit = new BaseUnit(this, height, width);
         _baseUnit.RegistarStatus(_status);
     }
 
@@ -130,6 +131,7 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
     public void Dead()
     {
         _isDeath = true;
+        _image.DOFade(0f, DeadFadeTime);
     }
 
     public void Dispose()

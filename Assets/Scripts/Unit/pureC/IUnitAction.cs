@@ -1,6 +1,6 @@
 using Cysharp.Threading.Tasks;
 
-public interface IUnitAttackAndDead
+public interface IUnitAction
 {
     /// <summary>
     /// 攻撃の処理
@@ -11,4 +11,9 @@ public interface IUnitAttackAndDead
     /// 死亡時の処理
     /// </summary>
     public void Dead();
+
+    /// <summary>
+    /// 特殊行動の処理
+    /// </summary>
+    public UniTask Specific();
 }

@@ -1,7 +1,6 @@
 using System;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.UI;
 
 
 [System.Serializable]
@@ -24,15 +23,13 @@ public class BaseUnit: IUnit, IDamagable
     public int MoveWidth => moveWidth;
 
     private BaseUnitView _view;
-    private Image _image;
 
     private BattleStatus battleStatus;
-    private IUnitAttackAndDead _attackAndDead;
+    private IUnitAction _unitAction;
 
-    public BaseUnit(BaseUnitView unit, int h, int w, Image image)
+    public BaseUnit(BaseUnitView unit, int h, int w)
     {
         _view = unit;
-        _image = image;
         Initialize(h,w);
     }
 
@@ -40,7 +37,7 @@ public class BaseUnit: IUnit, IDamagable
     {
         status.Initialize();
         battleStatus = status;
-        _attackAndDead = new UnitAttackAndDead(battleStatus, _view, _image);
+        _unitAction = new UnitAction(battleStatus, _view);
     }
 
     public async void Initialize(int h, int w)
@@ -53,7 +50,7 @@ public class BaseUnit: IUnit, IDamagable
 
     public async UniTask Attack()
     {
-        await _attackAndDead.Attack();
+        await _unitAction.Attack();
     }
 
     public async UniTask Specific()

@@ -1,22 +1,16 @@
 using System;
 using Cysharp.Threading.Tasks;
-using DG.Tweening;
 using UnityEngine;
-using UnityEngine.UI;
 
-public class UnitAttackAndDead : IUnitAttackAndDead
+public class UnitAction : IUnitAction
 {
     private BattleStatus _battleStatus;
     private BaseUnitView _view;
-    private Image _image;
 
-    private const float DeadFadeTime = 0.5f;
-
-    public UnitAttackAndDead(BattleStatus battleStatus, BaseUnitView view, Image image)
+    public UnitAction(BattleStatus battleStatus, BaseUnitView view)
     {
         _battleStatus = battleStatus;
         _view = view;
-        _image = image;
     }
 
     public async UniTask Attack()
@@ -37,6 +31,11 @@ public class UnitAttackAndDead : IUnitAttackAndDead
 
     public void Dead()
     {
-        _image.DOFade(0f, DeadFadeTime);
+        // 死亡時と同時に発生する処理
+    }
+
+    public async UniTask Specific()
+    {
+
     }
 }
