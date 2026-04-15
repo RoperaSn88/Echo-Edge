@@ -68,7 +68,7 @@ public static class EnemyStatusLoader
             int experience  = int.Parse(cols[6].Trim());
             int energy      = int.Parse(cols[7].Trim());
 
-            status.SetStats(hp, attack, defend, move, movePattern, experience, energy);
+            status.SetStatus(hp, attack, defend, move, movePattern, experience, energy);
             return true;
         }
         catch (Exception e)
