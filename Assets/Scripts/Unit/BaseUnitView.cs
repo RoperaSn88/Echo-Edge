@@ -9,14 +9,9 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
     [SerializeField, Tooltip("表示のためのクラス(いじるな)")]
     private BaseUnit _baseUnit;
 
-    [SerializeField]
     private int height;
 
-    [SerializeField]
     private int width;
-    
-    [SerializeField]
-    private BattleStatus _status;
     
     [SerializeField]
     private Animator _animator;
@@ -42,10 +37,19 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
     private const float MoveTime = 0.15f;
     private const float DeadFadeTime = 0.5f;
 
-    void Start()
+    /// <summary>
+    /// ユニットを指定座標・ステータスで初期化する。UnitSpawner から呼び出す。
+    /// </summary>
+    /// <param name="h">配置する縦座標</param>
+    /// <param name="w">配置する横座標</param>
+    /// <param name="status">CSV から読み込んだステータス</param>
+    public void Setup(int h, int w, BattleStatus status)
     {
+        height = h;
+        width = w;
+        transform.localPosition = new Vector3(w, 0, h);
         _baseUnit = new BaseUnit(this, height, width);
-        _baseUnit.RegistarStatus(_status);
+        _baseUnit.RegistarStatus(status);
     }
 
     /// <summary>
@@ -131,7 +135,6 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
 
     public void Dispose()
     {
-        _status = null;
         _baseUnit = null;
     }
 }
