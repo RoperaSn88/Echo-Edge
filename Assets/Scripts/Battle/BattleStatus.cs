@@ -55,6 +55,20 @@ public class BattleStatus : IDamagable
     }
 
     /// <summary>
+    /// CSVから読み取ったデータでステータスを更新する
+    /// </summary>
+    public void SetStats(int hp, int attack, int defend, int move, MovePattern movePattern, int experience, int energy)
+    {
+        HP = hp;
+        Attack = attack;
+        Defend = defend;
+        Move = move;
+        MovePattern = movePattern;
+        _experience = experience;
+        _energy = energy;
+    }
+
+    /// <summary>
     /// ダメージを反映させる
     /// </summary>
     /// <param name="targetAttack">相手の攻撃力</param>
