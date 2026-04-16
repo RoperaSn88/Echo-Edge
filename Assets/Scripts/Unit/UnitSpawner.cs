@@ -34,7 +34,7 @@ public class UnitSpawner : MonoBehaviour
             return;
         }
 
-        view.Setup(unit);
+        view.Setup(unit.Height, unit.Width);
         unit.SetView(view);
     }
 }

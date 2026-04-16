@@ -6,9 +6,6 @@ using UnityEngine.UI;
 
 public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
 {
-    [SerializeField, Tooltip("表示のためのクラス(いじるな)")]
-    private BaseUnit _baseUnit;
-
     private int height;
 
     private int width;
@@ -38,15 +35,15 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
     private const float DeadFadeTime = 0.5f;
 
     /// <summary>
-    /// BaseUnit を紐づけ、表示位置を初期化する。UnitSpawner から呼び出す。
+    /// 表示位置を初期化する。UnitSpawner から呼び出す。
     /// </summary>
-    /// <param name="unit">対応する BaseUnit</param>
-    public void Setup(BaseUnit unit)
+    /// <param name="h">配置する縦座標</param>
+    /// <param name="w">配置する横座標</param>
+    public void Setup(int h, int w)
     {
-        _baseUnit = unit;
-        height = unit.Height;
-        width = unit.Width;
-        transform.localPosition = new Vector3(unit.Width, 0, unit.Height);
+        height = h;
+        width = w;
+        transform.localPosition = new Vector3(w, 0, h);
     }
 
     /// <summary>
@@ -104,7 +101,7 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
         if (damageValue.isDeath)
         {
             _animator.SetTrigger("DeadT");
-            UIPresenter.Instance.AppearEnergy(transform.position, _baseUnit.GetStatus().Energy);
+            UIPresenter.Instance.AppearEnergy(transform.position, MapManager.Instance.GetUnitAt(height, width).GetStatus().Energy);
             await UniTask.WaitUntil(() => _isDeath);
             await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
         }
@@ -132,6 +129,5 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
 
     public void Dispose()
     {
-        _baseUnit = null;
     }
 }
