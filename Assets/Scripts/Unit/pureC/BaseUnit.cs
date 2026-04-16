@@ -27,16 +27,34 @@ public class BaseUnit: IUnit, IDamagable
     private BattleStatus battleStatus;
     private IUnitAction _unitAction;
 
-    public BaseUnit(BaseUnitView unit, int h, int w)
+    public BaseUnit(int h, int w)
     {
-        _view = unit;
-        Initialize(h,w);
+        Initialize(h, w);
     }
 
-    public void RegistarStatus(BattleStatus status)
+    /// <summary>
+    /// CSV から エネミー ID に対応するステータスを読み込む
+    /// </summary>
+    /// <param name="enemyId">EnemyInfo.csv の ID</param>
+    public async UniTask LoadStatus(int enemyId)
     {
+        var status = new BattleStatus();
+        bool loaded = await EnemyStatusLoader.TryLoad(enemyId, status);
+        if (!loaded)
+        {
+            Debug.LogWarning($"enemyId {enemyId} のステータスを読み込めませんでした。デフォルトステータスで起動します。");
+        }
         status.Initialize();
         battleStatus = status;
+    }
+
+    /// <summary>
+    /// 表示用 View を紐づけ、UnitAction を生成する
+    /// </summary>
+    /// <param name="view">対応する BaseUnitView</param>
+    public void SetView(BaseUnitView view)
+    {
+        _view = view;
         _unitAction = new UnitAction(battleStatus, _view);
     }
 

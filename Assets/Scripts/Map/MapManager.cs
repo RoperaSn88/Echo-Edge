@@ -31,6 +31,9 @@ public class MapManager: MonoBehaviour
     [SerializeField,Tooltip("xは縦方向, yは横方向")]
     private Vector2Int[] buildingPoses;
 
+    [SerializeField, Tooltip("初期配置するユニットの一覧")]
+    private UnitPlacementData[] unitPlacements;
+
     public async void Start()
     {
         ResetMap();
@@ -42,6 +45,14 @@ public class MapManager: MonoBehaviour
             RegisterUnit(buildingUnit, i.x, i.y);
             await UniTask.WaitUntil(() => BuildingManager.Instance);
             BuildingManager.Instance.SetBuilding(i.x, i.y);
+        }
+
+        await UniTask.WaitUntil(() => UnitSpawner.Instance);
+        foreach(var placement in unitPlacements)
+        {
+            var unit = new BaseUnit(placement.height, placement.width);
+            await unit.LoadStatus(placement.enemyId);
+            UnitSpawner.Instance.SpawnView(unit);
         }
     }
 
