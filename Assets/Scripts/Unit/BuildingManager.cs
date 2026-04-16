@@ -5,26 +5,30 @@ public class BuildingManager : MonoBehaviour
     public static BuildingManager Instance;
 
     [SerializeField]
-    private WallObjectPool wallObjectPool;
+    private WallStack wallStack;
 
     void Start()
     {
         Instance = this;
-        if (wallObjectPool == null)
+        if (wallStack == null)
         {
-            wallObjectPool = FindObjectOfType<WallObjectPool>();
+            var wallStacks = FindObjectsByType<WallStack>(FindObjectsSortMode.None);
+            if (wallStacks.Length > 0)
+            {
+                wallStack = wallStacks[0];
+            }
         }
     }
 
     public void SetBuilding(int h, int w)
     {
-        if (wallObjectPool == null)
+        if (wallStack == null)
         {
-            Debug.LogError("WallObjectPool が見つかりません。");
+            Debug.LogError("WallStack が見つかりません。");
             return;
         }
 
-        var v = wallObjectPool.GetWall();
+        var v = wallStack.GetWall();
         if (v == null)
         {
             return;

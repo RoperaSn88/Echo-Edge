@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class WallObjectPool : MonoBehaviour
+public class WallStack : MonoBehaviour
 {
     [SerializeField]
     private BuildingView wallPrefab;
@@ -12,7 +12,7 @@ public class WallObjectPool : MonoBehaviour
     [SerializeField, Min(0)]
     private int initialPoolSize = 16;
 
-    private readonly Stack<BuildingView> _wallPool = new();
+    private readonly Stack<BuildingView> _wallStack = new();
 
     private void Awake()
     {
@@ -21,9 +21,9 @@ public class WallObjectPool : MonoBehaviour
 
     public BuildingView GetWall()
     {
-        while (_wallPool.Count > 0)
+        while (_wallStack.Count > 0)
         {
-            var pooledWall = _wallPool.Pop();
+            var pooledWall = _wallStack.Pop();
             if (pooledWall != null)
             {
                 pooledWall.gameObject.SetActive(true);
@@ -43,7 +43,7 @@ public class WallObjectPool : MonoBehaviour
     {
         if (wall == null) return;
         wall.gameObject.SetActive(false);
-        _wallPool.Push(wall);
+        _wallStack.Push(wall);
     }
 
     private void SetupPool()
@@ -53,7 +53,7 @@ public class WallObjectPool : MonoBehaviour
             var wall = CreateWall();
             if (wall != null)
             {
-                _wallPool.Push(wall);
+                _wallStack.Push(wall);
             }
         }
     }
