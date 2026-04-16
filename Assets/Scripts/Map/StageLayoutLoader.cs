@@ -32,13 +32,13 @@ public static class StageLayoutLoader
             var cols = lines[i].Split(',');
             if (cols.Length < 3)
             {
-                Debug.LogWarning($"StageLayout.csv の {i + 1} 行目の列数が不足しています");
+                Debug.LogWarning($"StageLayout.csv の {i + 1} 行目の列数が不足しています。最低3列（ObjectKind,Height,Width）が必要です。現在:{cols.Length}列");
                 continue;
             }
 
             if (!Enum.TryParse(cols[0].Trim(), true, out StageObjectKind objectKind))
             {
-                Debug.LogWarning($"StageLayout.csv の {i + 1} 行目の objectKind が不正です: {cols[0]}");
+                Debug.LogWarning($"StageLayout.csv の {i + 1} 行目の objectKind が不正です: {cols[0]}。有効値: Wall, Unit");
                 continue;
             }
 

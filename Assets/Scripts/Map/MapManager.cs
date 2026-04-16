@@ -30,7 +30,6 @@ public class MapManager: MonoBehaviour
 
     public void Start()
     {
-        ResetMap();
         Instance = this;
     }
 

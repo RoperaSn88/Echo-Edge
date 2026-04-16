@@ -4,12 +4,17 @@ using UnityEngine;
 public class StartPhase : MonoBehaviour, IPhase
 {
     private static StartPhase _instance;
+    private static bool _searchedInScene;
     public static StartPhase Instance
     {
         get
         {
             if (_instance != null) return _instance;
-            _instance = FindAnyObjectByType<StartPhase>();
+            if (!_searchedInScene)
+            {
+                _instance = FindAnyObjectByType<StartPhase>();
+                _searchedInScene = true;
+            }
             if (_instance != null) return _instance;
 
             var go = new GameObject(nameof(StartPhase));
