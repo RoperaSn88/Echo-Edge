@@ -14,7 +14,7 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
     private Animator _animator;
 
     [SerializeField]
-    private Image _image;
+    private SpriteRenderer _renderer;
 
     /// <summary>
     ///  移動に使用するベクトル
@@ -45,11 +45,11 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
         width = w;
         _isDeath = false;
         _attackFlag = false;
-        if (_image != null)
+        if (_renderer != null)
         {
-            var color = _image.color;
+            var color = _renderer.color;
             color.a = 1f;
-            _image.color = color;
+            _renderer.color = color;
         }
         transform.localPosition = new Vector3(w, 0, h);
     }
@@ -138,7 +138,7 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
     public void Dead()
     {
         _isDeath = true;
-        _image.DOFade(0f, DeadFadeTime);
+        _renderer.DOFade(0f, DeadFadeTime);
     }
 
     public void Dispose()

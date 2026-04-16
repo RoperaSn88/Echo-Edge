@@ -97,7 +97,7 @@ public class PlayerController: MonoBehaviour
                 await transform.DOMove(_vec, distance / Speed);
 
                 _direction = Vector3.Reflect(_direction, _hit.normal);
-                _pos = _playerTransform.position;
+                if(i != _reflectCount - 1) _pos = _playerTransform.position;
             }
             else
             {

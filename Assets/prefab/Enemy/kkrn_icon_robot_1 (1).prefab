@@ -118,7 +118,7 @@ Transform:
   m_GameObject: {fileID: 9216188697129997988}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 5, y: 0, z: 5}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -137,20 +137,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f7b981fbed4ebea4485063ab3837915b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BaseUnitView
-  _baseUnit:
-    height: 0
-    width: 0
-    moveHeight: 0
-    moveWidth: 0
-  height: 5
-  width: 5
-  _status:
-    HP: 100
-    Attack: 20
-    Defend: 20
-    Move: 3
-    MovePattern: 0
   _animator: {fileID: 7902903433846861611}
+  _renderer: {fileID: 5018818931996429781}
 --- !u!136 &4727443247800856468
 CapsuleCollider:
   m_ObjectHideFlags: 0
