@@ -82,11 +82,16 @@ public class UnitSpawner : MonoBehaviour
 
     private BaseUnitView CreatePooledView()
     {
+        if (unitPrefab == null || !unitPrefab.TryGetComponent<BaseUnitView>(out _))
+        {
+            Debug.LogError("unitPrefab に BaseUnitView がアタッチされていません。");
+            return null;
+        }
+
         var obj = Instantiate(unitPrefab, unitsParent);
         if (!obj.TryGetComponent<BaseUnitView>(out var view))
         {
             Debug.LogError("unitPrefab に BaseUnitView がアタッチされていません。");
-            obj.SetActive(false);
             return null;
         }
 

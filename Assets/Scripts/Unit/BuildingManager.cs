@@ -10,15 +10,14 @@ public class BuildingManager : MonoBehaviour
     void Start()
     {
         Instance = this;
-    }
-
-    public void SetBuilding(int h, int w)
-    {
         if (wallObjectPool == null)
         {
             wallObjectPool = FindObjectOfType<WallObjectPool>();
         }
+    }
 
+    public void SetBuilding(int h, int w)
+    {
         if (wallObjectPool == null)
         {
             Debug.LogError("WallObjectPool が見つかりません。");
