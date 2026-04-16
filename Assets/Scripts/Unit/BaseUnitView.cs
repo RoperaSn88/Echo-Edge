@@ -24,7 +24,7 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
     /// <summary>
     /// アニメ中に攻撃を行うフラグ
     /// </summary>
-    private bool _attackFlug;
+    private bool _attackFlag;
     
     /// <summary>
     /// 死んだか
@@ -43,6 +43,14 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
     {
         height = h;
         width = w;
+        _isDeath = false;
+        _attackFlag = false;
+        if (_image != null)
+        {
+            var color = _image.color;
+            color.a = 1f;
+            _image.color = color;
+        }
         transform.localPosition = new Vector3(w, 0, h);
     }
 
@@ -71,14 +79,14 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
         await CameraManager.Instance.ActSetCameraTarget(targetPos);
         
         _animator.SetTrigger("AttackT");
-        _attackFlug = false;
+        _attackFlag = false;
         
-        await UniTask.WaitUntil(() => _attackFlug);
+        await UniTask.WaitUntil(() => _attackFlag);
     }
 
     public void ActiveAttack()
     {
-        _attackFlug = true;
+        _attackFlag = true;
     }
 
     public async UniTask Attack()
@@ -116,8 +124,14 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
         {
             //Destroyするが、後でオブジェクトプールにする
             Dispose();
-            // Destroy(gameObject);
-            gameObject.SetActive(false);
+            if (UnitSpawner.Instance != null)
+            {
+                UnitSpawner.Instance.ReturnView(this);
+            }
+            else
+            {
+                gameObject.SetActive(false);
+            }
         }
     }
 
