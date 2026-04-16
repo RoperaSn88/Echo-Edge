@@ -11,19 +11,16 @@ public static class StageLayoutLoader
 {
     private const string CsvPath = "Assets/Addressables/StageLayout.csv";
 
-    private static List<StagePlacementData> _cache;
-
-    public static async UniTask<IReadOnlyList<StagePlacementData>> GetPlacementsAsync()
+    public static async UniTask<IReadOnlyList<StagePlacementData>> GetPlacementsAsync(int mapHeight, int mapWidth)
     {
-        if (_cache != null) return _cache;
-
-        _cache = new List<StagePlacementData>();
+        var placements = new List<StagePlacementData>();
+        var occupied = new HashSet<(int height, int width)>();
 
         var csv = await Addressables.LoadAssetAsync<TextAsset>(CsvPath);
         if (csv == null)
         {
             Debug.LogError("StageLayout.csv が見つかりません");
-            return _cache;
+            return placements;
         }
 
         var lines = csv.text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
@@ -48,6 +45,18 @@ public static class StageLayoutLoader
                 continue;
             }
 
+            if (height < 0 || height >= mapHeight || width < 0 || width >= mapWidth)
+            {
+                Debug.LogWarning($"StageLayout.csv の {i + 1} 行目が範囲外です。h:{height}, w:{width}");
+                continue;
+            }
+
+            if (!occupied.Add((height, width)))
+            {
+                Debug.LogWarning($"StageLayout.csv の {i + 1} 行目は重複座標です。h:{height}, w:{width}");
+                continue;
+            }
+
             var placement = new StagePlacementData
             {
                 objectKind = objectKind,
@@ -58,17 +67,30 @@ public static class StageLayoutLoader
 
             if (objectKind == StageObjectKind.Unit)
             {
-                if (cols.Length < 4 || !Enum.TryParse(cols[3].Trim(), true, out EnemyKinds enemyKind))
+                if (cols.Length < 4)
                 {
-                    Debug.LogWarning($"StageLayout.csv の {i + 1} 行目の enemyKind が不正です");
+                    Debug.LogWarning($"StageLayout.csv の {i + 1} 行目の enemyKind 列が不足しています");
                     continue;
                 }
+
+                if (!Enum.TryParse(cols[3].Trim(), true, out EnemyKinds enemyKind))
+                {
+                    Debug.LogWarning($"StageLayout.csv の {i + 1} 行目の enemyKind が不正です: {cols[3]}");
+                    continue;
+                }
+
+                if (enemyKind == EnemyKinds.Invalid)
+                {
+                    Debug.LogWarning($"StageLayout.csv の {i + 1} 行目の enemyKind に Invalid は使用できません");
+                    continue;
+                }
+
                 placement.enemyKind = enemyKind;
             }
 
-            _cache.Add(placement);
+            placements.Add(placement);
         }
 
-        return _cache;
+        return placements;
     }
 }

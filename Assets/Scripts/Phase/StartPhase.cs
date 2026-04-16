@@ -1,27 +1,10 @@
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
-public class StartPhase : MonoBehaviour, IPhase
+public class StartPhase : IPhase
 {
     private static StartPhase _instance;
-    private static bool _searchedInScene;
-    public static StartPhase Instance
-    {
-        get
-        {
-            if (_instance != null) return _instance;
-            if (!_searchedInScene)
-            {
-                _instance = FindAnyObjectByType<StartPhase>();
-                _searchedInScene = true;
-            }
-            if (_instance != null) return _instance;
-
-            var go = new GameObject(nameof(StartPhase));
-            _instance = go.AddComponent<StartPhase>();
-            return _instance;
-        }
-    }
+    public static StartPhase Instance => _instance ??= new StartPhase();
 
     public async UniTask<IPhase> WaitPhase()
     {

@@ -2,7 +2,6 @@ using System;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using AndanteTribe.Utils.Unity;
-using System.Collections.Generic;
 
 public class MapManager: MonoBehaviour
 {
@@ -37,25 +36,12 @@ public class MapManager: MonoBehaviour
     {
         ResetMap();
 
-        var placements = await StageLayoutLoader.GetPlacementsAsync();
+        var placements = await StageLayoutLoader.GetPlacementsAsync(MapHeight, MapWidth);
         await UniTask.WaitUntil(() => BuildingManager.Instance != null);
         await UniTask.WaitUntil(() => UnitSpawner.Instance != null);
 
-        var occupied = new HashSet<(int h, int w)>();
         foreach (var placement in placements)
         {
-            if (placement.height < 0 || placement.height >= MapHeight || placement.width < 0 || placement.width >= MapWidth)
-            {
-                Debug.LogWarning($"ステージ配置が範囲外です。h:{placement.height}, w:{placement.width}");
-                continue;
-            }
-
-            if (!occupied.Add((placement.height, placement.width)))
-            {
-                Debug.LogWarning($"ステージ配置が重複しています。h:{placement.height}, w:{placement.width}");
-                continue;
-            }
-
             if (placement.objectKind == StageObjectKind.Wall)
             {
                 var buildingUnit = new building();
@@ -66,12 +52,6 @@ public class MapManager: MonoBehaviour
 
             if (placement.objectKind == StageObjectKind.Unit)
             {
-                if (placement.enemyKind == EnemyKinds.Invalid)
-                {
-                    Debug.LogWarning($"enemyKind が無効なためユニット配置をスキップします。h:{placement.height}, w:{placement.width}");
-                    continue;
-                }
-
                 var unit = new BaseUnit(placement.height, placement.width);
                 await unit.LoadStatus((int)placement.enemyKind);
                 UnitSpawner.Instance.SpawnView(unit);
