@@ -12,7 +12,7 @@ public class WallStack : MonoBehaviour
     [SerializeField, Min(0)]
     private int initialPoolSize = 16;
 
-    private readonly Stack<BuildingView> _wallStack = new();
+    private readonly Stack<BuildingView> _availableWalls = new();
 
     private void Awake()
     {
@@ -21,9 +21,9 @@ public class WallStack : MonoBehaviour
 
     public BuildingView GetWall()
     {
-        while (_wallStack.Count > 0)
+        while (_availableWalls.Count > 0)
         {
-            var pooledWall = _wallStack.Pop();
+            var pooledWall = _availableWalls.Pop();
             if (pooledWall != null)
             {
                 pooledWall.gameObject.SetActive(true);
@@ -43,7 +43,7 @@ public class WallStack : MonoBehaviour
     {
         if (wall == null) return;
         wall.gameObject.SetActive(false);
-        _wallStack.Push(wall);
+        _availableWalls.Push(wall);
     }
 
     private void SetupPool()
@@ -53,7 +53,7 @@ public class WallStack : MonoBehaviour
             var wall = CreateWall();
             if (wall != null)
             {
-                _wallStack.Push(wall);
+                _availableWalls.Push(wall);
             }
         }
     }
