@@ -3,11 +3,9 @@ using UnityEngine;
 public class BuildingManager : MonoBehaviour
 {
     public static BuildingManager Instance;
-    [SerializeField]
-    private GameObject building;
 
     [SerializeField]
-    private Transform enemys;
+    private WallObjectPool wallObjectPool;
 
     void Start()
     {
@@ -16,8 +14,22 @@ public class BuildingManager : MonoBehaviour
 
     public void SetBuilding(int h, int w)
     {
-        GameObject b = Instantiate(building, enemys);
-        b.TryGetComponent<BuildingView>(out var v);
+        if (wallObjectPool == null)
+        {
+            wallObjectPool = FindObjectOfType<WallObjectPool>();
+        }
+
+        if (wallObjectPool == null)
+        {
+            Debug.LogError("WallObjectPool が見つかりません。");
+            return;
+        }
+
+        var v = wallObjectPool.GetWall();
+        if (v == null)
+        {
+            return;
+        }
         v.Set(h, w);
     }
 }

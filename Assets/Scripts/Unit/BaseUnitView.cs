@@ -43,6 +43,14 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
     {
         height = h;
         width = w;
+        _isDeath = false;
+        _attackFlug = false;
+        if (_image != null)
+        {
+            var color = _image.color;
+            color.a = 1f;
+            _image.color = color;
+        }
         transform.localPosition = new Vector3(w, 0, h);
     }
 
@@ -116,8 +124,14 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
         {
             //Destroyするが、後でオブジェクトプールにする
             Dispose();
-            // Destroy(gameObject);
-            gameObject.SetActive(false);
+            if (UnitSpawner.Instance != null)
+            {
+                UnitSpawner.Instance.ReturnView(this);
+            }
+            else
+            {
+                gameObject.SetActive(false);
+            }
         }
     }
 
