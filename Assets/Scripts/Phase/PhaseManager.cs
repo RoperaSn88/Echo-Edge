@@ -10,7 +10,7 @@ public class PhaseManager : MonoBehaviour
 
     async UniTask Phasing()
     {
-        IPhase phase = new PlayerPhase();
+        IPhase phase = StartPhase.Instance;
         while (true)
         {
             phase = await phase.WaitPhase();

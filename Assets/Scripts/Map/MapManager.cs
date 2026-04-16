@@ -28,31 +28,55 @@ public class MapManager: MonoBehaviour
     /// </summary>
     private Vector3 vector;
 
-    [SerializeField,Tooltip("xは縦方向, yは横方向")]
-    private Vector2Int[] buildingPoses;
-
-    [SerializeField, Tooltip("初期配置するユニットの一覧")]
-    private UnitPlacementData[] unitPlacements;
-
-    public async void Start()
+    public void Start()
     {
         ResetMap();
         Instance = this;
+    }
 
-        foreach(var i in buildingPoses)
-        {
-            var buildingUnit = new building();
-            RegisterUnit(buildingUnit, i.x, i.y);
-            await UniTask.WaitUntil(() => BuildingManager.Instance);
-            BuildingManager.Instance.SetBuilding(i.x, i.y);
-        }
+    public async UniTask BuildStageFromCsv()
+    {
+        ResetMap();
 
-        await UniTask.WaitUntil(() => UnitSpawner.Instance);
-        foreach(var placement in unitPlacements)
+        var placements = await StageLayoutLoader.GetPlacementsAsync();
+        await UniTask.WaitUntil(() => BuildingManager.Instance != null);
+        await UniTask.WaitUntil(() => UnitSpawner.Instance != null);
+
+        var occupied = new HashSet<(int h, int w)>();
+        foreach (var placement in placements)
         {
-            var unit = new BaseUnit(placement.height, placement.width);
-            await unit.LoadStatus(placement.enemyId);
-            UnitSpawner.Instance.SpawnView(unit);
+            if (placement.height < 0 || placement.height >= MapHeight || placement.width < 0 || placement.width >= MapWidth)
+            {
+                Debug.LogWarning($"ステージ配置が範囲外です。h:{placement.height}, w:{placement.width}");
+                continue;
+            }
+
+            if (!occupied.Add((placement.height, placement.width)))
+            {
+                Debug.LogWarning($"ステージ配置が重複しています。h:{placement.height}, w:{placement.width}");
+                continue;
+            }
+
+            if (placement.objectKind == StageObjectKind.Wall)
+            {
+                var buildingUnit = new building();
+                RegisterUnit(buildingUnit, placement.height, placement.width);
+                BuildingManager.Instance.SetBuilding(placement.height, placement.width);
+                continue;
+            }
+
+            if (placement.objectKind == StageObjectKind.Unit)
+            {
+                if (placement.enemyKind == EnemyKinds.Invalid)
+                {
+                    Debug.LogWarning($"enemyKind が無効なためユニット配置をスキップします。h:{placement.height}, w:{placement.width}");
+                    continue;
+                }
+
+                var unit = new BaseUnit(placement.height, placement.width);
+                await unit.LoadStatus((int)placement.enemyKind);
+                UnitSpawner.Instance.SpawnView(unit);
+            }
         }
     }
 

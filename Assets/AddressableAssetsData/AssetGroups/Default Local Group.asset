@@ -30,6 +30,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f62f6a2c4db546f882dfcfc4375f9660
+    m_Address: Assets/Addressables/StageLayout.csv
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 56be8421adbaf81499fc7d42631ef10d, type: 2}
   m_SchemaSet:
