@@ -56,7 +56,7 @@ public class CameraManager : MonoBehaviour
     /// <summary>
     /// 通常状態のカメラの角度
     /// </summary>
-    private const float DefaultCameraAngle = 20;
+    private const float DefaultCameraAngle = 10;
 
     /// <summary>
     /// 上のときのzのオフセット
@@ -71,12 +71,7 @@ public class CameraManager : MonoBehaviour
     private readonly Vector3 ZoomCameraOffset = new Vector3(0,0, 1f);
 
     private readonly Vector3 PlayerZoomOffset = new Vector3(0f,-0.5f, 1f);
-
-    /// <summary>
-    /// 通常状態のスプライトの角度
-    /// </summary>
-    private const float DefaultSpriteAngle = 30;
-
+    
     /// <summary>
     /// 真上から見たときのカメラの角度
     /// </summary>
@@ -271,7 +266,7 @@ public class CameraManager : MonoBehaviour
 
         var rotationTween = DOTween.To(()=>_defaultCameraPos.rotation.eulerAngles,
             pos => _defaultCameraPos.rotation = Quaternion.Euler(pos), 
-            new Vector3(20,360,0), 
+            new Vector3(DefaultCameraAngle,360,0), 
             TokenTime)
             .SetEase(Ease.OutQuad)
             .SetUpdate(true);
@@ -415,7 +410,7 @@ public class CameraManager : MonoBehaviour
 
         var rotationTween = DOTween.To(()=>_defaultCameraPos.rotation.eulerAngles,
             pos => _defaultCameraPos.rotation = Quaternion.Euler(pos), 
-            new Vector3(20,0,0), 
+            new Vector3(DefaultCameraAngle,0,0), 
             TokenTime)
             .SetEase(Ease.OutQuad);
         
@@ -496,7 +491,7 @@ public class CameraManager : MonoBehaviour
         
         var rotationTween = DOTween.To(()=>_defaultCameraPos.rotation.eulerAngles,
             pos => _defaultCameraPos.rotation = Quaternion.Euler(pos), 
-            new Vector3(20,-40,0), 
+            new Vector3(DefaultCameraAngle,-40,0), 
             PlayerWeaponTokenTime)
             .SetEase(Ease.OutQuad)
             .SetUpdate(true);
