@@ -2,7 +2,6 @@ using System;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using AndanteTribe.Utils.Unity;
-using System.Collections.Generic;
 
 public class MapManager: MonoBehaviour
 {
@@ -28,31 +27,35 @@ public class MapManager: MonoBehaviour
     /// </summary>
     private Vector3 vector;
 
-    [SerializeField,Tooltip("xは縦方向, yは横方向")]
-    private Vector2Int[] buildingPoses;
+    public void Start()
+    {
+        Instance = this;
+    }
 
-    [SerializeField, Tooltip("初期配置するユニットの一覧")]
-    private UnitPlacementData[] unitPlacements;
-
-    public async void Start()
+    public async UniTask BuildStageFromCsv()
     {
         ResetMap();
-        Instance = this;
 
-        foreach(var i in buildingPoses)
-        {
-            var buildingUnit = new building();
-            RegisterUnit(buildingUnit, i.x, i.y);
-            await UniTask.WaitUntil(() => BuildingManager.Instance);
-            BuildingManager.Instance.SetBuilding(i.x, i.y);
-        }
+        var placements = await StageLayoutLoader.GetPlacementsAsync(MapHeight, MapWidth);
+        await UniTask.WaitUntil(() => BuildingManager.Instance != null);
+        await UniTask.WaitUntil(() => UnitSpawner.Instance != null);
 
-        await UniTask.WaitUntil(() => UnitSpawner.Instance);
-        foreach(var placement in unitPlacements)
+        foreach (var placement in placements)
         {
-            var unit = new BaseUnit(placement.height, placement.width);
-            await unit.LoadStatus(placement.enemyId);
-            UnitSpawner.Instance.SpawnView(unit);
+            if (placement.objectKind == StageObjectKind.Wall)
+            {
+                var buildingUnit = new building();
+                RegisterUnit(buildingUnit, placement.height, placement.width);
+                BuildingManager.Instance.SetBuilding(placement.height, placement.width);
+                continue;
+            }
+
+            if (placement.objectKind == StageObjectKind.Unit)
+            {
+                var unit = new BaseUnit(placement.height, placement.width);
+                await unit.LoadStatus((int)placement.enemyKind);
+                UnitSpawner.Instance.SpawnView(unit);
+            }
         }
     }
 
