@@ -2,10 +2,13 @@ using System;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
 
 public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
 {
+    private const string EnemyAnimPath = "Assets/Addressables/Animator/";
+    
     private int height;
 
     private int width;
@@ -34,12 +37,25 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
     private const float MoveTime = 0.15f;
     private const float DeadFadeTime = 0.5f;
 
+    public async UniTask SetAnimator(EnemyKinds enemyID)
+    {
+        var data = await Addressables.LoadAssetAsync<RuntimeAnimatorController>(EnemyAnimPath + enemyID + ".controller").ToUniTask();
+        if (data != null)
+        {
+            _animator.runtimeAnimatorController = data;
+        }
+        else
+        {
+            Debug.LogWarning($"EnemyAnimPath {EnemyAnimPath + enemyID + ".controller"} のアニメーターを読み込めませんでした。");
+        }
+    }
+
     /// <summary>
     /// 表示位置を初期化する。UnitSpawner から呼び出す。
     /// </summary>
     /// <param name="h">配置する縦座標</param>
     /// <param name="w">配置する横座標</param>
-    public void Setup(int h, int w)
+    public async UniTask Setup(int h, int w, EnemyKinds enemyID)
     {
         height = h;
         width = w;
@@ -52,6 +68,7 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
             _renderer.color = color;
         }
         transform.localPosition = new Vector3(w, 0, h);
+        await SetAnimator(enemyID);
     }
 
     /// <summary>

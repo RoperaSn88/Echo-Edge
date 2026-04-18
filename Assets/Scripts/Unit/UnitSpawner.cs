@@ -29,7 +29,7 @@ public class UnitSpawner : MonoBehaviour
     /// BaseUnit の位置に BaseUnitView を持つオブジェクトを生成し、unit に紐づける
     /// </summary>
     /// <param name="unit">配置済みの BaseUnit</param>
-    public void SpawnView(BaseUnit unit)
+    public void SpawnView(BaseUnit unit, EnemyKinds enemyId)
     {
         var view = GetPooledView();
         if (view == null)
@@ -37,7 +37,7 @@ public class UnitSpawner : MonoBehaviour
             return;
         }
 
-        view.Setup(unit.Height, unit.Width);
+        view.Setup(unit.Height, unit.Width, enemyId);
         unit.SetView(view);
     }
 

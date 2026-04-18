@@ -36,13 +36,13 @@ public class BaseUnit: IUnit, IDamagable
     /// CSV から エネミー ID に対応するステータスを読み込む
     /// </summary>
     /// <param name="enemyId">EnemyInfo.csv の ID</param>
-    public async UniTask LoadStatus(int enemyId)
+    public async UniTask LoadStatus(EnemyKinds enemyId)
     {
         var status = new BattleStatus();
-        bool loaded = await EnemyStatusLoader.TryLoad(enemyId, status);
+        bool loaded = await EnemyStatusLoader.TryLoad((int)enemyId, status);
         if (!loaded)
         {
-            Debug.LogWarning($"enemyId {enemyId} のステータスを読み込めませんでした。デフォルトステータスで起動します。");
+            Debug.LogWarning($"enemyId {(int)enemyId} のステータスを読み込めませんでした。デフォルトステータスで起動します。");
         }
         status.Initialize();
         battleStatus = status;

@@ -53,8 +53,8 @@ public class MapManager: MonoBehaviour
             if (placement.objectKind == StageObjectKind.Unit)
             {
                 var unit = new BaseUnit(placement.height, placement.width);
-                await unit.LoadStatus((int)placement.enemyKind);
-                UnitSpawner.Instance.SpawnView(unit);
+                await unit.LoadStatus(placement.enemyKind);
+                UnitSpawner.Instance.SpawnView(unit, placement.enemyKind);
             }
         }
     }
