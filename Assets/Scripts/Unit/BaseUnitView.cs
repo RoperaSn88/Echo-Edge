@@ -93,8 +93,7 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
 
     public async UniTask WaitAttack()
     {
-        Vector3 targetPos = new Vector3(PlayerController.Instance.transform.position.x + transform.position.x, 0, PlayerController.Instance.transform.position.z + transform.position.z) / 2;
-        await CameraManager.Instance.ActSetCameraTarget(targetPos);
+        await CameraManager.Instance.ActSetCameraTarget(transform.position);
         
         _animator.SetTrigger("AttackT");
         _attackFlag = false;
