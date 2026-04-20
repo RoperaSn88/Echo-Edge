@@ -16,4 +16,10 @@ public interface IUnitAction
     /// 特殊行動の処理
     /// </summary>
     public UniTask Specific();
+    
+    /// <summary>
+    /// ダメージの処理
+    /// </summary>
+    /// <returns></returns>
+    public UniTask Damage();
 }

@@ -1,10 +1,11 @@
 using System;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using Unit.pureC.Unit;
 
 
 [System.Serializable]
-public class BaseUnit: IUnit, IDamagable
+public　class BaseUnit: IUnit, IDamagable
 {
     [SerializeField]
     private int height;
@@ -24,7 +25,7 @@ public class BaseUnit: IUnit, IDamagable
 
     private BaseUnitView _view;
 
-    private BattleStatus battleStatus;
+    private BattleStatus _battleStatus;
     private IUnitAction _unitAction;
 
     public BaseUnit(int h, int w)
@@ -45,7 +46,10 @@ public class BaseUnit: IUnit, IDamagable
             Debug.LogWarning($"enemyId {(int)enemyId} のステータスを読み込めませんでした。デフォルトステータスで起動します。");
         }
         status.Initialize();
-        battleStatus = status;
+        _battleStatus = status;
+        
+        // ユニット特有のアクションを行う
+        _unitAction = UnitActionSelector.SelectAction(enemyId);
     }
 
     /// <summary>
@@ -55,7 +59,6 @@ public class BaseUnit: IUnit, IDamagable
     public void SetView(BaseUnitView view)
     {
         _view = view;
-        _unitAction = new UnitAction(battleStatus, _view);
     }
 
     public async void Initialize(int h, int w)
@@ -75,6 +78,8 @@ public class BaseUnit: IUnit, IDamagable
 
     public async UniTask Attack()
     {
+        BattleManager.RegisterEnemy(_battleStatus);
+        await _view.WaitAttack();
         await _unitAction.Attack();
     }
 
@@ -90,7 +95,7 @@ public class BaseUnit: IUnit, IDamagable
 
     public async UniTask MoveTurn()
     {
-        if (battleStatus.MovePattern == MovePattern.Before)
+        if (_battleStatus.MovePattern == MovePattern.Before)
         {
             // 行動をする
             // いったん攻撃か
@@ -100,14 +105,14 @@ public class BaseUnit: IUnit, IDamagable
         // 移動
         try
         {
-            await MapManager.Instance.TryMoveUnit(battleStatus.Move, Height, Width);
+            await MapManager.Instance.TryMoveUnit(_battleStatus.Move, Height, Width);
         }
         catch
         {
             
         }
         
-        if (battleStatus.MovePattern == MovePattern.After)
+        if (_battleStatus.MovePattern == MovePattern.After)
         {
             // 行動をする
             // いったん攻撃か
@@ -144,12 +149,12 @@ public class BaseUnit: IUnit, IDamagable
 
     public BattleStatus GetStatus()
     {
-        return battleStatus;
+        return _battleStatus;
     }
 
     public async UniTask<(int damage, bool isDeath)> Damage(int damage)
     {
-        var result = await battleStatus.Damage(damage);
+        var result = await _battleStatus.Damage(damage);
 
         if (result.isDeath)
         {

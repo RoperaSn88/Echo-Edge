@@ -69,6 +69,7 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
         }
         transform.localPosition = new Vector3(w, 0, h);
         await SetAnimator(enemyID);
+        gameObject.SetActive(true);
     }
 
     /// <summary>

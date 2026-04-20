@@ -21,7 +21,7 @@ public class BattleManager : MonoBehaviour
     /// </summary>
     private static bool _QTEFlug = false;
 
-    private static float _result;
+    private static float _qteResult;
 
     public static void RegisterEnemy(BattleStatus targetStatus)
     {
@@ -42,20 +42,20 @@ public class BattleManager : MonoBehaviour
     {
         if (!_QTEFlug)
         {
-            _result = await UIPresenter.Instance.AppearQTE(QTEKinds.Attack);
+            _qteResult = await UIPresenter.Instance.AppearQTE(QTEKinds.Attack);
             _QTEFlug = true;
         } 
-        return await _enemyStatus.Damage((int)(_playerStatus.Attack * _result));
+        return await _enemyStatus.Damage((int)(_playerStatus.Attack * _qteResult));
     }
 
-    public async static UniTask<(int damage, bool isDeath)> PlayerDamage()
+    public async static UniTask<(int damage, bool isDeath)> PlayerDamage(float rate)
     {
         if (!_QTEFlug)
         {
-            _result = await UIPresenter.Instance.AppearQTE(QTEKinds.Defend);
+            _qteResult = await UIPresenter.Instance.AppearQTE(QTEKinds.Defend);
             _QTEFlug = true;
         } 
-        var result = await _playerStatus.Damage((int)(_enemyStatus.Attack * _result));
+        var result = await _playerStatus.Damage((int)(_enemyStatus.Attack * _qteResult));
         
         PlayerStatusPresenter.Instance.SetPlayerHP(_playerStatus.HP, _playerStatus.MaxHP);
         
