@@ -6,13 +6,16 @@ public class DefaultUnitAction : IUnitAction
 {
     private const float PlayerDamageRate = 1.0f;
     private const float MessageTime = 0.6f;
+    private const string EnemyAttackMessage = "敵の攻撃";
     
     /// <inheritdoc/>
     public async UniTask Attack()
     {
         if (MessageManager.Instance != null)
         {
-            await MessageManager.Instance.ShowMessage(MessageManager.EnemyAttackMessage, MessageTime);
+            await MessageManager.Instance.AppearMessage(EnemyAttackMessage);
+            await UniTask.Delay(TimeSpan.FromSeconds(MessageTime));
+            await MessageManager.Instance.DisappearMessage();
         }
 
         Time.timeScale = 0.001f;

@@ -8,13 +8,16 @@ namespace Unit.pureC.Unit
     {
         private const float PlayerDamageRate = 1.0f;
         private const float MessageTime = 0.6f;
+        private const string BuilderAttackMessage = "ビルダーの攻撃";
         
         /// <inheritdoc/>
         public async UniTask Attack()
         {
             if (MessageManager.Instance != null)
             {
-                await MessageManager.Instance.ShowMessage(MessageManager.BuilderAttackMessage, MessageTime);
+                await MessageManager.Instance.AppearMessage(BuilderAttackMessage);
+                await UniTask.Delay(TimeSpan.FromSeconds(MessageTime));
+                await MessageManager.Instance.DisappearMessage();
             }
 
             Time.timeScale = 0.001f;

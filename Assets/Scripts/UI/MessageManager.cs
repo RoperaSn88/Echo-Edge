@@ -1,4 +1,3 @@
-using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
@@ -8,8 +7,6 @@ using UnityEngine;
 public class MessageManager : MonoBehaviour
 {
     public static MessageManager Instance { get; private set; }
-    public const string EnemyAttackMessage = "敵の攻撃";
-    public const string BuilderAttackMessage = "ビルダーの攻撃";
 
     [SerializeField] private RectTransform _messageRectTransform;
     [SerializeField] private TextMeshProUGUI _messageText;
@@ -44,43 +41,43 @@ public class MessageManager : MonoBehaviour
         }
     }
 
-    public async UniTask AppearMessage(string text)
+    public async UniTask AppearMessage(string text, CancellationToken cancellationToken = default)
     {
         if (_messageText == null || _messageRectTransform == null)
         {
             return;
         }
 
-        _messageRectTransform.DOKill();
-        _messageText.text = text;
-        _messageText.gameObject.SetActive(true);
-        _messageRectTransform.anchoredPosition = HiddenPosition;
-        await _messageRectTransform.DOAnchorPos(_visiblePosition, _moveDuration).SetEase(Ease.OutQuad).SetUpdate(true)
-            .SetLink(gameObject);
-    }
-
-    public async UniTask DisappearMessage()
-    {
-        if (_messageText == null || _messageRectTransform == null)
-        {
-            return;
-        }
-
-        _messageRectTransform.DOKill();
-        await _messageRectTransform.DOAnchorPos(HiddenPosition, _moveDuration).SetEase(Ease.InQuad).SetUpdate(true)
-            .SetLink(gameObject);
-        _messageText.gameObject.SetActive(false);
-    }
-
-    public async UniTask ShowMessage(string text, float staySeconds, CancellationToken cancellationToken = default)
-    {
         try
         {
-            await AppearMessage(text);
-            using var linkedTokenSource = CancellationTokenSource
-                .CreateLinkedTokenSource(cancellationToken, this.GetCancellationTokenOnDestroy());
-            await UniTask.Delay(TimeSpan.FromSeconds(staySeconds), cancellationToken: linkedTokenSource.Token);
-            await DisappearMessage();
+            _messageRectTransform.DOKill();
+            _messageText.text = text;
+            _messageText.gameObject.SetActive(true);
+            _messageRectTransform.anchoredPosition = HiddenPosition;
+            await _messageRectTransform.DOAnchorPos(_visiblePosition, _moveDuration).SetEase(Ease.OutQuad).SetUpdate(true)
+                .SetLink(gameObject)
+                .WithCancellation(cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            // do nothing
+        }
+    }
+
+    public async UniTask DisappearMessage(CancellationToken cancellationToken = default)
+    {
+        if (_messageText == null || _messageRectTransform == null)
+        {
+            return;
+        }
+
+        try
+        {
+            _messageRectTransform.DOKill();
+            await _messageRectTransform.DOAnchorPos(HiddenPosition, _moveDuration).SetEase(Ease.InQuad).SetUpdate(true)
+                .SetLink(gameObject)
+                .WithCancellation(cancellationToken);
+            _messageText.gameObject.SetActive(false);
         }
         catch (OperationCanceledException)
         {
