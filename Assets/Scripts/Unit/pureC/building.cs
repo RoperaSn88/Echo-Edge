@@ -24,6 +24,16 @@ public class building : IUnit
         throw new System.NotImplementedException();
     }
 
+    public UniTask OnTurnStart()
+    {
+        return UniTask.CompletedTask;
+    }
+
+    public UniTask OnTurnEnd()
+    {
+        return UniTask.CompletedTask;
+    }
+
     public UniTask Attack()
     {
         throw new System.NotImplementedException();

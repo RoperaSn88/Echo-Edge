@@ -34,6 +34,18 @@ namespace Unit.pureC.Unit
         {
             throw new System.NotImplementedException();
         }
+
+        /// <inheritdoc/>
+        public UniTask OnTurnStart()
+        {
+            return UniTask.CompletedTask;
+        }
+
+        /// <inheritdoc/>
+        public UniTask OnTurnEnd()
+        {
+            return UniTask.CompletedTask;
+        }
         
         /// <inheritdoc/>
         public async UniTask Damage()

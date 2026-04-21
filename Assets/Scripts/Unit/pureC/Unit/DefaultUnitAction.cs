@@ -32,6 +32,18 @@ public class DefaultUnitAction : IUnitAction
     {
 
     }
+
+    /// <inheritdoc/>
+    public UniTask OnTurnStart()
+    {
+        return UniTask.CompletedTask;
+    }
+
+    /// <inheritdoc/>
+    public UniTask OnTurnEnd()
+    {
+        return UniTask.CompletedTask;
+    }
     
     /// <inheritdoc/>
     public async UniTask Damage()

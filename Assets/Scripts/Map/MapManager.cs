@@ -189,6 +189,36 @@ public class MapManager: MonoBehaviour
         }
     }
 
+    public async UniTask ExecuteTurnStartActions()
+    {
+        for (int i = 0; i < MapWidth; i++)
+        {
+            for (int j = 0; j < MapHeight; j++)
+            {
+                var unit = _mapGrid[j, i];
+                if (unit != null)
+                {
+                    await unit.OnTurnStart();
+                }
+            }
+        }
+    }
+
+    public async UniTask ExecuteTurnEndActions()
+    {
+        for (int i = 0; i < MapWidth; i++)
+        {
+            for (int j = 0; j < MapHeight; j++)
+            {
+                var unit = _mapGrid[j, i];
+                if (unit != null)
+                {
+                    await unit.OnTurnEnd();
+                }
+            }
+        }
+    }
+
     public void ResetMap()
     {
         _mapGrid = new IUnit[MapHeight, MapWidth];

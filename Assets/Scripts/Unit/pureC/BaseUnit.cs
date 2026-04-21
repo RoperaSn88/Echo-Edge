@@ -88,6 +88,18 @@ public　class BaseUnit: IUnit, IDamagable
         
     }
 
+    public async UniTask OnTurnStart()
+    {
+        if (_unitAction == null) return;
+        await _unitAction.OnTurnStart();
+    }
+
+    public async UniTask OnTurnEnd()
+    {
+        if (_unitAction == null) return;
+        await _unitAction.OnTurnEnd();
+    }
+
     public bool CanMove()
     {
         return true;
