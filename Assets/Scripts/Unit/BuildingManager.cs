@@ -32,7 +32,7 @@ public class BuildingManager : MonoBehaviour
             Debug.LogWarning("Builder専用WallStackが未設定のため、通常WallStack内のBuilder専用プールを使用します。");
         }
 
-        OnTurnStart += ReturnAllBuilderWalls;
+        RegisterTurnStartAction(ReturnAllBuilderWalls);
     }
 
     public void SetBuilding(int h, int w)
@@ -97,5 +97,10 @@ public class BuildingManager : MonoBehaviour
     public void ExecuteTurnStartActions()
     {
         OnTurnStart?.Invoke();
+    }
+
+    public void RegisterTurnStartAction(System.Action action)
+    {
+        OnTurnStart += action;
     }
 }
