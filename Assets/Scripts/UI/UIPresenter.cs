@@ -106,7 +106,7 @@ public class UIPresenter : MonoBehaviour
         }
 
         _phaseTextRectTransform.DOKill();
-        _phaseText.text = text ?? string.Empty;
+        _phaseText.text = text;
         _phaseText.gameObject.SetActive(true);
         _phaseTextRectTransform.anchoredPosition = HiddenPhaseTextPosition;
         await _phaseTextRectTransform.DOAnchorPos(_phaseTextVisiblePosition, _phaseTextMoveDuration).SetEase(Ease.OutQuad);
