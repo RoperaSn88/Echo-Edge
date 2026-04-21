@@ -80,6 +80,7 @@ public　class BaseUnit: IUnit, IDamagable
     {
         BattleManager.RegisterEnemy(_battleStatus);
         await _view.WaitAttack();
+        if (_unitAction == null) return;
         await _unitAction.Attack();
     }
 
