@@ -1,4 +1,6 @@
-﻿using Cysharp.Threading.Tasks;
+using Cysharp.Threading.Tasks;
+using System.Collections.Generic;
+using System.Linq;
 using System;
 using UnityEngine;
 
@@ -30,9 +32,34 @@ namespace Unit.pureC.Unit
         }
 
         /// <inheritdoc/>
-        public async UniTask Specific()
+        public async UniTask Specific(int selfHeight, int selfWidth)
         {
-            throw new System.NotImplementedException();
+            if (MapManager.Instance == null || BuildingManager.Instance == null)
+            {
+                return;
+            }
+
+            List<(IUnit unit, int h, int w)> targetUnits = MapManager.Instance.GetUnitPositionsSnapshot()
+                .Where(unitInfo => unitInfo.unit.CanMove() && (unitInfo.h != selfHeight || unitInfo.w != selfWidth))
+                .ToList();
+
+            if (targetUnits.Count == 0)
+            {
+                return;
+            }
+
+            var target = targetUnits[UnityEngine.Random.Range(0, targetUnits.Count)];
+            int wallWidth = target.w - 1;
+
+            for (int hOffset = -1; hOffset <= 1; hOffset++)
+            {
+                int wallHeight = target.h + hOffset;
+                if (MapManager.Instance.GetUnitAt(wallHeight, wallWidth) != null)
+                {
+                    continue;
+                }
+                BuildingManager.Instance.TrySetBuilderWall(wallHeight, wallWidth);
+            }
         }
 
         /// <inheritdoc/>

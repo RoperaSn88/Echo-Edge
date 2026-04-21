@@ -28,7 +28,7 @@ public class DefaultUnitAction : IUnitAction
     }
     
     /// <inheritdoc/>
-    public async UniTask Specific()
+    public async UniTask Specific(int selfHeight, int selfWidth)
     {
 
     }

@@ -1,11 +1,18 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class BuildingManager : MonoBehaviour
 {
     public static BuildingManager Instance;
+    public event System.Action OnTurnStart;
 
     [SerializeField]
     private WallStack wallStack;
+
+    [SerializeField]
+    private WallStack builderWallStack;
+
+    private readonly List<(BuildingView view, int h, int w)> _activeBuilderWalls = new();
 
     void Start()
     {
@@ -18,6 +25,14 @@ public class BuildingManager : MonoBehaviour
                 wallStack = wallStacks[0];
             }
         }
+
+        if (builderWallStack == null)
+        {
+            builderWallStack = wallStack;
+            Debug.LogWarning("Builder専用WallStackが未設定のため、通常WallStack内のBuilder専用プールを使用します。");
+        }
+
+        RegisterTurnStartAction(ReturnAllBuilderWalls);
     }
 
     public void SetBuilding(int h, int w)
@@ -34,5 +49,62 @@ public class BuildingManager : MonoBehaviour
             return;
         }
         v.Set(h, w);
+    }
+
+    public bool TrySetBuilderWall(int h, int w)
+    {
+        if (builderWallStack == null || MapManager.Instance == null)
+        {
+            return false;
+        }
+
+        var wallUnit = new building();
+        if (!MapManager.Instance.PlaceUnitAt(wallUnit, h, w))
+        {
+            return false;
+        }
+
+        var wallView = builderWallStack.GetBuilderWall();
+        if (wallView == null)
+        {
+            MapManager.Instance.RemoveUnitAt(h, w);
+            return false;
+        }
+
+        wallView.Set(h, w);
+        _activeBuilderWalls.Add((wallView, h, w));
+        return true;
+    }
+
+    public void ReturnAllBuilderWalls()
+    {
+        if (builderWallStack == null)
+        {
+            return;
+        }
+
+        foreach (var activeWall in _activeBuilderWalls)
+        {
+            if (MapManager.Instance != null)
+            {
+                MapManager.Instance.RemoveUnitAt(activeWall.h, activeWall.w);
+            }
+            builderWallStack.ReturnBuilderWall(activeWall.view);
+        }
+        _activeBuilderWalls.Clear();
+    }
+
+    public void ExecuteTurnStartActions()
+    {
+        OnTurnStart?.Invoke();
+    }
+
+    public void RegisterTurnStartAction(System.Action action)
+    {
+        if (action == null)
+        {
+            return;
+        }
+        OnTurnStart += action;
     }
 }
