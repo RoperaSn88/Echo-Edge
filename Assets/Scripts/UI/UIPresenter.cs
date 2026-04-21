@@ -4,8 +4,6 @@ using Cysharp.Threading.Tasks;
 using UI;
 using UI.Energy;
 using UI.QTE;
-using DG.Tweening;
-using TMPro;
 
 public class UIPresenter : MonoBehaviour
 {
@@ -28,12 +26,6 @@ public class UIPresenter : MonoBehaviour
     public PlayerStatusPresenter PlayerStatusPresenter => _playerStatusPresenter;
 
     [SerializeField] private RectTransform _destination;
-    [SerializeField] private RectTransform _phaseTextRectTransform;
-    [SerializeField] private TextMeshProUGUI _phaseText;
-    [SerializeField] private float _phaseTextMoveOffset = 150f;
-    [SerializeField] private float _phaseTextMoveDuration = 0.2f;
-
-    private Vector2 _phaseTextVisiblePosition;
 
     private bool _canFadeText;
     public bool CanFadeText => _canFadeText;
@@ -47,17 +39,6 @@ public class UIPresenter : MonoBehaviour
         else
         {
             Destroy(gameObject);
-        }
-
-        if (_phaseTextRectTransform != null)
-        {
-            _phaseTextVisiblePosition = _phaseTextRectTransform.anchoredPosition;
-            _phaseTextRectTransform.anchoredPosition = HiddenPhaseTextPosition;
-        }
-
-        if (_phaseText != null)
-        {
-            _phaseText.gameObject.SetActive(false);
         }
     }
 
@@ -94,33 +75,5 @@ public class UIPresenter : MonoBehaviour
     public void ResetFade()
     {
         _canFadeText = false;
-    }
-
-    private Vector2 HiddenPhaseTextPosition => _phaseTextVisiblePosition + new Vector2(0, _phaseTextMoveOffset);
-
-    public async UniTask AppearPhaseText(string text)
-    {
-        if (_phaseText == null || _phaseTextRectTransform == null)
-        {
-            return;
-        }
-
-        _phaseTextRectTransform.DOKill();
-        _phaseText.text = text;
-        _phaseText.gameObject.SetActive(true);
-        _phaseTextRectTransform.anchoredPosition = HiddenPhaseTextPosition;
-        await _phaseTextRectTransform.DOAnchorPos(_phaseTextVisiblePosition, _phaseTextMoveDuration).SetEase(Ease.OutQuad);
-    }
-
-    public async UniTask DisappearPhaseText()
-    {
-        if (_phaseText == null || _phaseTextRectTransform == null)
-        {
-            return;
-        }
-
-        _phaseTextRectTransform.DOKill();
-        await _phaseTextRectTransform.DOAnchorPos(HiddenPhaseTextPosition, _phaseTextMoveDuration).SetEase(Ease.InQuad);
-        _phaseText.gameObject.SetActive(false);
     }
 }

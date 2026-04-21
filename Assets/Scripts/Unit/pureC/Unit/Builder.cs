@@ -7,10 +7,16 @@ namespace Unit.pureC.Unit
     public class Builder: IUnitAction
     {
         private const float PlayerDamageRate = 1.0f;
+        private const float MessageTime = 0.6f;
         
         /// <inheritdoc/>
         public async UniTask Attack()
         {
+            if (MessageManager.Instance != null)
+            {
+                await MessageManager.Instance.ShowMessage(MessageManager.BuilderAttackMessage, MessageTime);
+            }
+
             Time.timeScale = 0.001f;
             var damageValue = await BattleManager.PlayerDamage(PlayerDamageRate);
             Time.timeScale = 1.0f;
