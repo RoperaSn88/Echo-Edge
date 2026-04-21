@@ -18,6 +18,16 @@ public interface IUnitAction
     public UniTask Specific();
     
     /// <summary>
+    /// ターン開始時の処理
+    /// </summary>
+    public UniTask OnTurnStart();
+
+    /// <summary>
+    /// ターン終了時の処理
+    /// </summary>
+    public UniTask OnTurnEnd();
+
+    /// <summary>
     /// ダメージの処理
     /// </summary>
     /// <returns></returns>

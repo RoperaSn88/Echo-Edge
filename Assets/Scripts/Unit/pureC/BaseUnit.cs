@@ -80,12 +80,25 @@ public　class BaseUnit: IUnit, IDamagable
     {
         BattleManager.RegisterEnemy(_battleStatus);
         await _view.WaitAttack();
+        if (_unitAction == null) return;
         await _unitAction.Attack();
     }
 
     public async UniTask Specific()
     {
         
+    }
+
+    public async UniTask OnTurnStart()
+    {
+        if (_unitAction == null) return;
+        await _unitAction.OnTurnStart();
+    }
+
+    public async UniTask OnTurnEnd()
+    {
+        if (_unitAction == null) return;
+        await _unitAction.OnTurnEnd();
     }
 
     public bool CanMove()

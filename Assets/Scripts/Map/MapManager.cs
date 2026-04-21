@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using AndanteTribe.Utils.Unity;
@@ -21,6 +23,7 @@ public class MapManager: MonoBehaviour
     /// マップ全体
     /// </summary>
     private IUnit[,] _mapGrid = new IUnit[MapHeight, MapWidth];
+    private readonly Dictionary<IUnit, (int h, int w)> _unitPositions = new();
 
     /// <summary>
     /// キャッシュ用
@@ -64,6 +67,7 @@ public class MapManager: MonoBehaviour
         if(_mapGrid[h, w] == null)
         {
             _mapGrid[h, w] = unit;
+            _unitPositions[unit] = (h, w);
         }
         else throw new InvalidOperationException("指定したマスにはunitがいるか、範囲外です h:" + h + ", w:" + w);
     }
@@ -89,6 +93,11 @@ public class MapManager: MonoBehaviour
     public void RemoveUnitAt(int h, int w)
     {
         if (h < 0 || h >= MapHeight || w < 0 || w >= MapWidth) return;
+        var unit = _mapGrid[h, w];
+        if (unit != null)
+        {
+            _unitPositions.Remove(unit);
+        }
         _mapGrid[h, w] = null;
     }
 
@@ -131,6 +140,7 @@ public class MapManager: MonoBehaviour
                 _mapGrid[srcH, srcW] = null;
                 await unit.Move(srcH, srcW - 1);
                 srcW = srcW - 1;
+                _unitPositions[unit] = (srcH, srcW);
             }
             else if(GetUnitAt(srcH - 1, srcW) == null)
             {
@@ -140,6 +150,7 @@ public class MapManager: MonoBehaviour
                 _mapGrid[srcH, srcW] = null;
                 await unit.Move(srcH - 1, srcW);
                 srcH = srcH - 1;
+                _unitPositions[unit] = (srcH, srcW);
             }
             else if(GetUnitAt(srcH + 1, srcW) == null)
             {
@@ -149,6 +160,7 @@ public class MapManager: MonoBehaviour
                 _mapGrid[srcH, srcW] = null;
                 await unit.Move(srcH + 1, srcW);
                 srcH = srcH + 1;
+                _unitPositions[unit] = (srcH, srcW);
             }
         }
 
@@ -164,7 +176,17 @@ public class MapManager: MonoBehaviour
         if (h < 0 || h >= MapHeight || w < 0 || w >= MapWidth) return false;
         if (_mapGrid[h, w] != null) return false;
         _mapGrid[h, w] = unit;
+        _unitPositions[unit] = (h, w);
         return true;
+    }
+
+    private List<IUnit> GetUnitsInMapOrderSnapshot()
+    {
+        return _unitPositions
+            .OrderBy(pair => pair.Value.w)
+            .ThenBy(pair => pair.Value.h)
+            .Select(pair => pair.Key)
+            .ToList();
     }
 
     /// <summary>
@@ -173,18 +195,33 @@ public class MapManager: MonoBehaviour
     [Button("動かす")]
     public async UniTask MoveUnit()
     {
-        for(int i = 0; i < MapWidth; i++)
+        foreach (var unit in GetUnitsInMapOrderSnapshot())
         {
-            for(int j = 0; j < MapHeight; j++)
+            if (_unitPositions.ContainsKey(unit) && unit.CanMove())
             {
-                var unit = _mapGrid[j,i];
-                if(unit != null)
-                {
-                    if (unit.CanMove())
-                    {
-                        await unit.MoveTurn();
-                    }
-                }
+                await unit.MoveTurn();
+            }
+        }
+    }
+
+    public async UniTask ExecuteTurnStartActions()
+    {
+        foreach (var unit in GetUnitsInMapOrderSnapshot())
+        {
+            if (_unitPositions.ContainsKey(unit))
+            {
+                await unit.OnTurnStart();
+            }
+        }
+    }
+
+    public async UniTask ExecuteTurnEndActions()
+    {
+        foreach (var unit in GetUnitsInMapOrderSnapshot())
+        {
+            if (_unitPositions.ContainsKey(unit))
+            {
+                await unit.OnTurnEnd();
             }
         }
     }
@@ -192,5 +229,6 @@ public class MapManager: MonoBehaviour
     public void ResetMap()
     {
         _mapGrid = new IUnit[MapHeight, MapWidth];
+        _unitPositions.Clear();
     }
 }

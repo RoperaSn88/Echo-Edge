@@ -43,6 +43,16 @@ public interface IUnit : IDamagable
     public BattleStatus GetStatus();
     
     /// <summary>
+    /// ターン開始時の行動
+    /// </summary>
+    public UniTask OnTurnStart();
+
+    /// <summary>
+    /// ターン終了時の行動
+    /// </summary>
+    public UniTask OnTurnEnd();
+
+    /// <summary>
     /// そのユニットの行動を定義する
     /// この中で移動、攻撃を行う。
     /// </summary>
