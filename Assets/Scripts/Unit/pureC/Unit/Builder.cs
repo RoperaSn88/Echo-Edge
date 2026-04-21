@@ -1,4 +1,6 @@
-﻿using Cysharp.Threading.Tasks;
+using Cysharp.Threading.Tasks;
+using System.Collections.Generic;
+using System.Linq;
 using System;
 using UnityEngine;
 
@@ -7,6 +9,12 @@ namespace Unit.pureC.Unit
     public class Builder: IUnitAction
     {
         private const float PlayerDamageRate = 1.0f;
+        private readonly IUnit _ownerUnit;
+
+        public Builder(IUnit ownerUnit)
+        {
+            _ownerUnit = ownerUnit;
+        }
         
         /// <inheritdoc/>
         public async UniTask Attack()
@@ -32,7 +40,32 @@ namespace Unit.pureC.Unit
         /// <inheritdoc/>
         public async UniTask Specific()
         {
-            throw new System.NotImplementedException();
+            if (MapManager.Instance == null || BuildingManager.Instance == null)
+            {
+                return;
+            }
+
+            List<(IUnit unit, int h, int w)> targetUnits = MapManager.Instance.GetUnitPositionsSnapshot()
+                .Where(unitInfo => unitInfo.unit != _ownerUnit && unitInfo.unit.CanMove())
+                .ToList();
+
+            if (targetUnits.Count == 0)
+            {
+                return;
+            }
+
+            var target = targetUnits[UnityEngine.Random.Range(0, targetUnits.Count)];
+            int wallWidth = target.w - 1;
+
+            for (int hOffset = -1; hOffset <= 1; hOffset++)
+            {
+                int wallHeight = target.h + hOffset;
+                if (MapManager.Instance.GetUnitAt(wallHeight, wallWidth) != null)
+                {
+                    continue;
+                }
+                BuildingManager.Instance.TrySetBuilderWall(wallHeight, wallWidth);
+            }
         }
 
         /// <inheritdoc/>

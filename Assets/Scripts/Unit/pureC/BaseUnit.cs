@@ -49,7 +49,7 @@ public　class BaseUnit: IUnit, IDamagable
         _battleStatus = status;
         
         // ユニット特有のアクションを行う
-        _unitAction = UnitActionSelector.SelectAction(enemyId);
+        _unitAction = UnitActionSelector.SelectAction(enemyId, this);
     }
 
     /// <summary>
@@ -86,7 +86,8 @@ public　class BaseUnit: IUnit, IDamagable
 
     public async UniTask Specific()
     {
-        
+        if (_unitAction == null) return;
+        await _unitAction.Specific();
     }
 
     public async UniTask OnTurnStart()

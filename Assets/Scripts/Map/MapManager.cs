@@ -189,6 +189,13 @@ public class MapManager: MonoBehaviour
             .ToList();
     }
 
+    public List<(IUnit unit, int h, int w)> GetUnitPositionsSnapshot()
+    {
+        return _unitPositions
+            .Select(pair => (pair.Key, pair.Value.h, pair.Value.w))
+            .ToList();
+    }
+
     /// <summary>
     /// ユニットを行動させる
     /// </summary>

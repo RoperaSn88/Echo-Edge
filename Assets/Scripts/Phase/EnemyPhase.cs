@@ -25,6 +25,7 @@ public class EnemyPhase: IPhase
     {
         _clickFlug = false;
         Debug.Log("EnemyPhase");
+        BuildingManager.Instance?.ReturnAllBuilderWalls();
         await MapManager.Instance.ExecuteTurnStartActions();
         await MapManager.Instance.MoveUnit();
         await MapManager.Instance.ExecuteTurnEndActions();
