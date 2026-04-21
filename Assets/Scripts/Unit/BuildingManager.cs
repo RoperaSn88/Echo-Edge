@@ -28,6 +28,7 @@ public class BuildingManager : MonoBehaviour
         if (builderWallStack == null)
         {
             builderWallStack = wallStack;
+            Debug.LogWarning("Builder専用WallStackが未設定のため、通常WallStack内のBuilder専用プールを使用します。");
         }
     }
 
