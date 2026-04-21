@@ -101,6 +101,10 @@ public class BuildingManager : MonoBehaviour
 
     public void RegisterTurnStartAction(System.Action action)
     {
+        if (action == null)
+        {
+            return;
+        }
         OnTurnStart += action;
     }
 }
