@@ -15,7 +15,7 @@ public interface IUnitAction
     /// <summary>
     /// 特殊行動の処理
     /// </summary>
-    public UniTask Specific();
+    public UniTask Specific(int selfHeight, int selfWidth);
     
     /// <summary>
     /// ターン開始時の処理

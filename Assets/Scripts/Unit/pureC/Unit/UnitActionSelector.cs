@@ -8,12 +8,12 @@
         /// <param name="enemyType"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        public static IUnitAction SelectAction(EnemyKinds enemyType, IUnit ownerUnit)
+        public static IUnitAction SelectAction(EnemyKinds enemyType)
         {
             switch (enemyType)
             {
                 case EnemyKinds.Builder:
-                    return new Builder(ownerUnit);
+                    return new Builder();
                 case EnemyKinds.Skya:
                     return new Skya();
                 case EnemyKinds.Booster:

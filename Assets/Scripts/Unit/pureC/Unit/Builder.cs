@@ -9,12 +9,6 @@ namespace Unit.pureC.Unit
     public class Builder: IUnitAction
     {
         private const float PlayerDamageRate = 1.0f;
-        private readonly IUnit _ownerUnit;
-
-        public Builder(IUnit ownerUnit)
-        {
-            _ownerUnit = ownerUnit;
-        }
         
         /// <inheritdoc/>
         public async UniTask Attack()
@@ -38,7 +32,7 @@ namespace Unit.pureC.Unit
         }
 
         /// <inheritdoc/>
-        public async UniTask Specific()
+        public async UniTask Specific(int selfHeight, int selfWidth)
         {
             if (MapManager.Instance == null || BuildingManager.Instance == null)
             {
@@ -46,7 +40,7 @@ namespace Unit.pureC.Unit
             }
 
             List<(IUnit unit, int h, int w)> targetUnits = MapManager.Instance.GetUnitPositionsSnapshot()
-                .Where(unitInfo => unitInfo.unit != _ownerUnit && unitInfo.unit.CanMove())
+                .Where(unitInfo => unitInfo.unit.CanMove() && (unitInfo.h != selfHeight || unitInfo.w != selfWidth))
                 .ToList();
 
             if (targetUnits.Count == 0)

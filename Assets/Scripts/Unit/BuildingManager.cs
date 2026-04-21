@@ -4,6 +4,7 @@ using System.Collections.Generic;
 public class BuildingManager : MonoBehaviour
 {
     public static BuildingManager Instance;
+    public event System.Action OnTurnStart;
 
     [SerializeField]
     private WallStack wallStack;
@@ -30,6 +31,8 @@ public class BuildingManager : MonoBehaviour
             builderWallStack = wallStack;
             Debug.LogWarning("Builder専用WallStackが未設定のため、通常WallStack内のBuilder専用プールを使用します。");
         }
+
+        OnTurnStart += ReturnAllBuilderWalls;
     }
 
     public void SetBuilding(int h, int w)
@@ -89,5 +92,10 @@ public class BuildingManager : MonoBehaviour
             builderWallStack.ReturnBuilderWall(activeWall.view);
         }
         _activeBuilderWalls.Clear();
+    }
+
+    public void ExecuteTurnStartActions()
+    {
+        OnTurnStart?.Invoke();
     }
 }
