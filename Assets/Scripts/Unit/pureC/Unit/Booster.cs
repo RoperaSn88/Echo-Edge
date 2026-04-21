@@ -31,6 +31,7 @@ namespace Unit.pureC.Unit
         /// <inheritdoc/>
         public async UniTask Specific(int selfHeight, int selfWidth)
         {
+            return;
             throw new System.NotImplementedException();
         }
 

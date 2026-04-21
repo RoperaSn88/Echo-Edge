@@ -112,7 +112,7 @@ public　class BaseUnit: IUnit, IDamagable
         if (_battleStatus.MovePattern == MovePattern.Before)
         {
             // 攻撃をするが、遠距離か近距離かで攻撃するか変更する
-            await Attack();
+            await Specific();
         }
         
         // 移動
@@ -129,7 +129,7 @@ public　class BaseUnit: IUnit, IDamagable
         {
             // 行動をする
             // いったん攻撃か
-            await Attack();
+            await Specific();
         }
     } 
 
