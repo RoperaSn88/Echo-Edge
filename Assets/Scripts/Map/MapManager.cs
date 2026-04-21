@@ -197,12 +197,7 @@ public class MapManager: MonoBehaviour
     {
         foreach (var unit in GetUnitsInMapOrderSnapshot())
         {
-            if (!_unitPositions.ContainsKey(unit))
-            {
-                continue;
-            }
-
-            if (unit.CanMove())
+            if (_unitPositions.ContainsKey(unit) && unit.CanMove())
             {
                 await unit.MoveTurn();
             }
