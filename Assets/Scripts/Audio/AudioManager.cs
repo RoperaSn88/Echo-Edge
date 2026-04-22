@@ -4,6 +4,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 public readonly struct BgmAudioType
 {
@@ -46,7 +47,7 @@ public class AudioManager : MonoBehaviour
     [SerializeField] private AudioSource[] _seSources = Array.Empty<AudioSource>();
     [SerializeField] private float _fadeDurationSeconds = 1.0f;
 
-    private readonly Dictionary<string, AudioClip> _audioClipCache = new();
+    private readonly Dictionary<string, AsyncOperationHandle<AudioClip>> _audioClipHandleCache = new();
 
     private CancellationTokenSource _addBgmFadeCancellation;
     private int _nextSeSourceIndex;
@@ -128,8 +129,7 @@ public class AudioManager : MonoBehaviour
             return;
         }
 
-        _additionalBgmSource.volume = 1.0f;
-        await FadeVolumeAsync(_additionalBgmSource, 1.0f, 0.0f, _fadeDurationSeconds, cancellationToken);
+        await FadeVolumeAsync(_additionalBgmSource, _additionalBgmSource.volume, 0.0f, _fadeDurationSeconds, cancellationToken);
 
         if (!cancellationToken.IsCancellationRequested)
         {
@@ -157,19 +157,36 @@ public class AudioManager : MonoBehaviour
 
     private async UniTask<AudioClip> LoadAudioClipAsync(string addressablesPath)
     {
-        if (_audioClipCache.TryGetValue(addressablesPath, out var cachedClip))
+        if (_audioClipHandleCache.TryGetValue(addressablesPath, out var cachedHandle))
         {
-            return cachedClip;
+            if (cachedHandle.IsValid() &&
+                cachedHandle.Status == AsyncOperationStatus.Succeeded &&
+                cachedHandle.Result != null)
+            {
+                return cachedHandle.Result;
+            }
+
+            if (cachedHandle.IsValid())
+            {
+                Addressables.Release(cachedHandle);
+            }
+
+            _audioClipHandleCache.Remove(addressablesPath);
         }
 
-        var clip = await Addressables.LoadAssetAsync<AudioClip>(addressablesPath);
-        if (clip == null)
+        var loadHandle = Addressables.LoadAssetAsync<AudioClip>(addressablesPath);
+        var clip = await loadHandle;
+        if (loadHandle.Status != AsyncOperationStatus.Succeeded || clip == null)
         {
             Debug.LogError($"AudioClip の読み込みに失敗しました: {addressablesPath}");
+            if (loadHandle.IsValid())
+            {
+                Addressables.Release(loadHandle);
+            }
             return null;
         }
 
-        _audioClipCache[addressablesPath] = clip;
+        _audioClipHandleCache[addressablesPath] = loadHandle;
         return clip;
     }
 
@@ -212,7 +229,7 @@ public class AudioManager : MonoBehaviour
             elapsed += Time.deltaTime;
             float progress = Mathf.Clamp01(elapsed / durationSeconds);
             source.volume = Mathf.Lerp(from, to, progress);
-            await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
+            await UniTask.Yield(PlayerLoopTiming.Update);
         }
 
         if (!cancellationToken.IsCancellationRequested)
@@ -226,5 +243,15 @@ public class AudioManager : MonoBehaviour
         _addBgmFadeCancellation?.Cancel();
         _addBgmFadeCancellation?.Dispose();
         _addBgmFadeCancellation = null;
+
+        foreach (var handle in _audioClipHandleCache.Values)
+        {
+            if (handle.IsValid())
+            {
+                Addressables.Release(handle);
+            }
+        }
+
+        _audioClipHandleCache.Clear();
     }
 }
