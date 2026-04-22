@@ -7,29 +7,37 @@ namespace Unit.pureC.Unit
     public class Builder: IUnitAction
     {
         private const float PlayerDamageRate = 1.0f;
-        private const float MessageTime = 0.6f;
         private const string BuilderAttackMessage = "ビルダーの攻撃";
         
         /// <inheritdoc/>
         public async UniTask Attack()
         {
-            if (MessageManager.Instance != null)
+            var messageManager = MessageManager.Instance;
+            if (messageManager != null)
             {
-                await MessageManager.Instance.AppearMessage(BuilderAttackMessage);
-                await UniTask.Delay(TimeSpan.FromSeconds(MessageTime));
-                await MessageManager.Instance.DisappearMessage();
+                await messageManager.AppearMessage(BuilderAttackMessage);
             }
 
-            Time.timeScale = 0.001f;
-            var damageValue = await BattleManager.PlayerDamage(PlayerDamageRate);
-            Time.timeScale = 1.0f;
+            try
+            {
+                Time.timeScale = 0.001f;
+                var damageValue = await BattleManager.PlayerDamage(PlayerDamageRate);
+                Time.timeScale = 1.0f;
 
-            UIPresenter.Instance.AppearDamageText($"{damageValue.damage}", PlayerController.Instance.transform.position).Forget();
+                UIPresenter.Instance.AppearDamageText($"{damageValue.damage}", PlayerController.Instance.transform.position).Forget();
 
-            await UniTask.Delay(TimeSpan.FromSeconds(1.0f));
+                await UniTask.Delay(TimeSpan.FromSeconds(1.0f));
 
-            BattleManager.ResetQTE();
-            await CameraManager.Instance.ActResetCameraTarget();
+                BattleManager.ResetQTE();
+                await CameraManager.Instance.ActResetCameraTarget();
+            }
+            finally
+            {
+                if (messageManager != null)
+                {
+                    await messageManager.DisappearMessage();
+                }
+            }
         }
         
         /// <inheritdoc/>

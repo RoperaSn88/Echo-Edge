@@ -60,7 +60,9 @@ public class MessageManager : MonoBehaviour
         }
         catch (OperationCanceledException)
         {
-            // do nothing
+            _messageRectTransform.DOKill();
+            _messageRectTransform.anchoredPosition = _visiblePosition;
+            _messageText.gameObject.SetActive(false);
         }
     }
 
@@ -81,7 +83,9 @@ public class MessageManager : MonoBehaviour
         }
         catch (OperationCanceledException)
         {
-            // do nothing
+            _messageRectTransform.DOKill();
+            _messageRectTransform.anchoredPosition = HiddenPosition;
+            _messageText.gameObject.SetActive(false);
         }
     }
 }
