@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
@@ -45,7 +46,7 @@ public class MessageManager : MonoBehaviour
     {
         if (_messageText == null || _messageRectTransform == null)
         {
-            return;
+            throw new InvalidOperationException("MessageManager is not initialized correctly.");
         }
 
         try
@@ -62,7 +63,6 @@ public class MessageManager : MonoBehaviour
         {
             _messageRectTransform.DOKill();
             _messageRectTransform.anchoredPosition = _visiblePosition;
-            _messageText.gameObject.SetActive(false);
         }
     }
 
@@ -70,7 +70,7 @@ public class MessageManager : MonoBehaviour
     {
         if (_messageText == null || _messageRectTransform == null)
         {
-            return;
+            throw new InvalidOperationException("MessageManager is not initialized correctly.");
         }
 
         try

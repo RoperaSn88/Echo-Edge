@@ -25,16 +25,16 @@ public class DefaultUnitAction : IUnitAction
             UIPresenter.Instance.AppearDamageText($"{damageValue.damage}", PlayerController.Instance.transform.position).Forget();
 
             await UniTask.Delay(TimeSpan.FromSeconds(1.0f));
-
-            BattleManager.ResetQTE();
-            await CameraManager.Instance.ActResetCameraTarget();
         }
         finally
         {
             if (messageManager != null)
             {
-                await messageManager.DisappearMessage();
+                messageManager.DisappearMessage().Forget();
             }
+
+            BattleManager.ResetQTE();
+            await CameraManager.Instance.ActResetCameraTarget();
         }
     }
     
