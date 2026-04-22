@@ -6,42 +6,25 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
-public readonly struct BgmAudioType
+public enum BgmAudioType
 {
-    public string Name { get; }
-    public string AddressablesPath { get; }
-
-    private BgmAudioType(string name, string addressablesPath)
-    {
-        Name = name;
-        AddressablesPath = addressablesPath;
-    }
-
-    public static readonly BgmAudioType Title = new("Title", "Assets/Addressables/Audio/BGM/Title.wav");
-    public static readonly BgmAudioType Battle = new("Battle", "Assets/Addressables/Audio/BGM/Battle.wav");
-
-    public override string ToString() => Name;
+    Title,
+    Battle,
 }
 
-public readonly struct SeAudioType
+public enum SeAudioType
 {
-    public string Name { get; }
-    public string AddressablesPath { get; }
-
-    private SeAudioType(string name, string addressablesPath)
-    {
-        Name = name;
-        AddressablesPath = addressablesPath;
-    }
-
-    public static readonly SeAudioType Click = new("Click", "Assets/Addressables/Audio/SE/Click.wav");
-    public static readonly SeAudioType Attack = new("Attack", "Assets/Addressables/Audio/SE/Attack.wav");
-
-    public override string ToString() => Name;
+    Click,
+    Attack,
 }
 
 public class AudioManager : MonoBehaviour
 {
+    private const string TitleBgmPath = "Assets/Addressables/Audio/BGM/Title.wav";
+    private const string BattleBgmPath = "Assets/Addressables/Audio/BGM/Battle.wav";
+    private const string ClickSePath = "Assets/Addressables/Audio/SE/Click.wav";
+    private const string AttackSePath = "Assets/Addressables/Audio/SE/Attack.wav";
+
     [SerializeField] private AudioSource _bgmSource;
     [SerializeField] private AudioSource _additionalBgmSource;
     [SerializeField] private AudioSource[] _seSources = Array.Empty<AudioSource>();
@@ -88,7 +71,7 @@ public class AudioManager : MonoBehaviour
             return;
         }
 
-        var clip = await LoadAudioClipAsync(bgmType.AddressablesPath);
+        var clip = await LoadAudioClipAsync(GetAddressablesPath(bgmType));
         if (clip == null)
         {
             return;
@@ -108,7 +91,7 @@ public class AudioManager : MonoBehaviour
             return;
         }
 
-        var clip = await LoadAudioClipAsync(bgmType.AddressablesPath);
+        var clip = await LoadAudioClipAsync(GetAddressablesPath(bgmType));
         if (clip == null)
         {
             return;
@@ -145,7 +128,7 @@ public class AudioManager : MonoBehaviour
             return;
         }
 
-        var clip = await LoadAudioClipAsync(seType.AddressablesPath);
+        var clip = await LoadAudioClipAsync(GetAddressablesPath(seType));
         if (clip == null)
         {
             return;
@@ -188,6 +171,26 @@ public class AudioManager : MonoBehaviour
 
         _audioClipHandleCache[addressablesPath] = loadHandle;
         return clip;
+    }
+
+    private static string GetAddressablesPath(BgmAudioType bgmType)
+    {
+        return bgmType switch
+        {
+            BgmAudioType.Title => TitleBgmPath,
+            BgmAudioType.Battle => BattleBgmPath,
+            _ => throw new ArgumentOutOfRangeException(nameof(bgmType), bgmType, null)
+        };
+    }
+
+    private static string GetAddressablesPath(SeAudioType seType)
+    {
+        return seType switch
+        {
+            SeAudioType.Click => ClickSePath,
+            SeAudioType.Attack => AttackSePath,
+            _ => throw new ArgumentOutOfRangeException(nameof(seType), seType, null)
+        };
     }
 
     private AudioSource GetNextSeAudioSource()
