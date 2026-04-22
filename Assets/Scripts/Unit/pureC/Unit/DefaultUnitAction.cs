@@ -5,20 +5,37 @@ using UnityEngine;
 public class DefaultUnitAction : IUnitAction
 {
     private const float PlayerDamageRate = 1.0f;
+    private const string EnemyAttackMessage = "敵の攻撃";
     
     /// <inheritdoc/>
     public async UniTask Attack()
     {
-        Time.timeScale = 0.001f;
-        var damageValue = await BattleManager.PlayerDamage(PlayerDamageRate);
-        Time.timeScale = 1.0f;
+        var messageManager = MessageManager.Instance;
+        if (messageManager != null)
+        {
+            await messageManager.AppearMessage(EnemyAttackMessage);
+        }
 
-        UIPresenter.Instance.AppearDamageText($"{damageValue.damage}", PlayerController.Instance.transform.position).Forget();
+        try
+        {
+            Time.timeScale = 0.001f;
+            var damageValue = await BattleManager.PlayerDamage(PlayerDamageRate);
+            Time.timeScale = 1.0f;
 
-        await UniTask.Delay(TimeSpan.FromSeconds(1.0f));
+            UIPresenter.Instance.AppearDamageText($"{damageValue.damage}", PlayerController.Instance.transform.position).Forget();
 
-        BattleManager.ResetQTE();
-        await CameraManager.Instance.ActResetCameraTarget();
+            await UniTask.Delay(TimeSpan.FromSeconds(1.0f));
+        }
+        finally
+        {
+            if (messageManager != null)
+            {
+                messageManager.DisappearMessage().Forget();
+            }
+
+            BattleManager.ResetQTE();
+            await CameraManager.Instance.ActResetCameraTarget();
+        }
     }
     
     /// <inheritdoc/>
