@@ -58,6 +58,7 @@ public class MessageManager : MonoBehaviour
             await _messageRectTransform.DOAnchorPos(_visiblePosition, _moveDuration).SetEase(Ease.OutQuad).SetUpdate(true)
                 .SetLink(gameObject)
                 .WithCancellation(cancellationToken);
+            await UniTask.Delay(TimeSpan.FromSeconds(_moveDuration * 2));
         }
         catch (OperationCanceledException)
         {

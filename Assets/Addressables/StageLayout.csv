@@ -1,6 +1,6 @@
 ObjectKind,Height,Width,EnemyKind
 Wall,3,6,
 Wall,4,6,
-Unit,2,12,Skya
+Unit,2,12,Builder
 Unit,6,13,Builder
-Unit,4,8,Booster
+Unit,4,8,Builder
