@@ -15,7 +15,7 @@
 git: チームでよく使うやつ。ファイルを共有し、変更とかした履歴を残るもの。
 [参考リンク](https://qiita.com/a_goto/items/0fe40b17105d1ac1c40b)
 
-# 3. ライブラリ検査（このプロジェクトで使っている主なもの）
+# 3. ライブラリ一覧（このプロジェクトで使っている主なもの）
 - Unity Package Manager: `Packages/manifest.json`
   - com.cysharp.unitask
   - com.unity.2d.tilemap.extras
