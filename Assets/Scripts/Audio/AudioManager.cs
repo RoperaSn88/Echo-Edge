@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -6,34 +5,28 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
-public enum BgmAudioType
-{
-    Title,
-    Battle,
-}
-
-public enum SeAudioType
-{
-    Click,
-    Attack,
-}
-
 public class AudioManager : MonoBehaviour
 {
-    private const string TitleBgmPath = "Assets/Addressables/Audio/BGM/Title.wav";
-    private const string BattleBgmPath = "Assets/Addressables/Audio/BGM/Battle.wav";
-    private const string ClickSePath = "Assets/Addressables/Audio/SE/Click.wav";
-    private const string AttackSePath = "Assets/Addressables/Audio/SE/Attack.wav";
+    private const string AudioBasePath = "Assets/Addressables/Audio/";
+    private const string BgmRelativePath = "BGM/";
+    private const string SeRelativePath = "SE/";
+    private const string AudioExtension = ".wav";
 
     [SerializeField] private AudioSource _bgmSource;
     [SerializeField] private AudioSource _additionalBgmSource;
-    [SerializeField] private AudioSource[] _seSources = Array.Empty<AudioSource>();
+    [SerializeField, Min(1)] private int _initialSeSourceCount = 2;
     [SerializeField] private float _fadeDurationSeconds = 1.0f;
 
+    private readonly List<AudioSource> _seSources = new();
     private readonly Dictionary<string, AsyncOperationHandle<AudioClip>> _audioClipHandleCache = new();
 
     private CancellationTokenSource _addBgmFadeCancellation;
     private int _nextSeSourceIndex;
+
+    private void Awake()
+    {
+        InitializeSeAudioSources();
+    }
 
     public void PlayBgm(BgmAudioType bgmType, bool isLoop)
     {
@@ -71,7 +64,7 @@ public class AudioManager : MonoBehaviour
             return;
         }
 
-        var clip = await LoadAudioClipAsync(GetAddressablesPath(bgmType));
+        var clip = await LoadAudioClipAsync(GetBgmAddressablesPath(bgmType));
         if (clip == null)
         {
             return;
@@ -91,7 +84,7 @@ public class AudioManager : MonoBehaviour
             return;
         }
 
-        var clip = await LoadAudioClipAsync(GetAddressablesPath(bgmType));
+        var clip = await LoadAudioClipAsync(GetBgmAddressablesPath(bgmType));
         if (clip == null)
         {
             return;
@@ -122,13 +115,18 @@ public class AudioManager : MonoBehaviour
 
     private async UniTaskVoid PlaySeAsync(SeAudioType seType)
     {
-        if (_seSources.Length == 0)
+        if (_seSources.Count == 0)
         {
-            Debug.LogError("SE 用 AudioSource が未設定です");
+            InitializeSeAudioSources();
+        }
+
+        if (_seSources.Count == 0)
+        {
+            Debug.LogError("SE 用 AudioSource の初期化に失敗しました");
             return;
         }
 
-        var clip = await LoadAudioClipAsync(GetAddressablesPath(seType));
+        var clip = await LoadAudioClipAsync(GetSeAddressablesPath(seType));
         if (clip == null)
         {
             return;
@@ -173,42 +171,47 @@ public class AudioManager : MonoBehaviour
         return clip;
     }
 
-    private static string GetAddressablesPath(BgmAudioType bgmType)
+    private static string GetBgmAddressablesPath(BgmAudioType bgmType)
     {
-        return bgmType switch
-        {
-            BgmAudioType.Title => TitleBgmPath,
-            BgmAudioType.Battle => BattleBgmPath,
-            _ => throw new ArgumentOutOfRangeException(nameof(bgmType), bgmType, null)
-        };
+        return $"{AudioBasePath}{BgmRelativePath}{bgmType.ToString()}{AudioExtension}";
     }
 
-    private static string GetAddressablesPath(SeAudioType seType)
+    private static string GetSeAddressablesPath(SeAudioType seType)
     {
-        return seType switch
-        {
-            SeAudioType.Click => ClickSePath,
-            SeAudioType.Attack => AttackSePath,
-            _ => throw new ArgumentOutOfRangeException(nameof(seType), seType, null)
-        };
+        return $"{AudioBasePath}{SeRelativePath}{seType.ToString()}{AudioExtension}";
     }
 
     private AudioSource GetNextSeAudioSource()
     {
-        for (int i = 0; i < _seSources.Length; i++)
+        for (int i = 0; i < _seSources.Count; i++)
         {
-            int index = (_nextSeSourceIndex + i) % _seSources.Length;
+            int index = (_nextSeSourceIndex + i) % _seSources.Count;
             var source = _seSources[index];
             if (!source.isPlaying)
             {
-                _nextSeSourceIndex = (index + 1) % _seSources.Length;
+                _nextSeSourceIndex = (index + 1) % _seSources.Count;
                 return source;
             }
         }
 
-        var fallback = _seSources[_nextSeSourceIndex];
-        _nextSeSourceIndex = (_nextSeSourceIndex + 1) % _seSources.Length;
-        return fallback;
+        var newSource = CreateSeAudioSource();
+        _seSources.Add(newSource);
+        _nextSeSourceIndex = 0;
+        return newSource;
+    }
+
+    private void InitializeSeAudioSources()
+    {
+        int sourceCount = Mathf.Max(1, _initialSeSourceCount);
+        while (_seSources.Count < sourceCount)
+        {
+            _seSources.Add(CreateSeAudioSource());
+        }
+    }
+
+    private AudioSource CreateSeAudioSource()
+    {
+        return gameObject.AddComponent<AudioSource>();
     }
 
     private static async UniTask FadeVolumeAsync(AudioSource source, float from, float to, float durationSeconds, CancellationToken cancellationToken)
