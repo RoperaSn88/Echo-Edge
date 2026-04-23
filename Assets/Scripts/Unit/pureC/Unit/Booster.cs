@@ -7,6 +7,7 @@ namespace Unit.pureC.Unit
     public class Booster: IUnitAction
     {
         private const float PlayerDamageRate = 1.0f;
+        private const float SpecificRate = 0.2f;
         /// <inheritdoc/>
         public async UniTask Attack()
         {
@@ -22,6 +23,18 @@ namespace Unit.pureC.Unit
             await CameraManager.Instance.ActResetCameraTarget();
         }
         
+        /// <inheritdoc/>
+        public async UniTask Act(int selfHeight, int selfWidth)
+        {
+            if (UnityEngine.Random.value < SpecificRate)
+            {
+                await Specific(selfHeight, selfWidth);
+                return;
+            }
+
+            await Attack();
+        }
+
         /// <inheritdoc/>
         public async UniTask Dead()
         {

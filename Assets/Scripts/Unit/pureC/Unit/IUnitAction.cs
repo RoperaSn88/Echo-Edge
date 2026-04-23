@@ -13,6 +13,11 @@ public interface IUnitAction
     public UniTask Dead();
 
     /// <summary>
+    /// 移動を含めない行動の処理
+    /// </summary>
+    public UniTask Act(int selfHeight, int selfWidth);
+
+    /// <summary>
     /// 特殊行動の処理
     /// </summary>
     public UniTask Specific(int selfHeight, int selfWidth);

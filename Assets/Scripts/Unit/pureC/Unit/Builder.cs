@@ -10,6 +10,7 @@ namespace Unit.pureC.Unit
     {
         private const float PlayerDamageRate = 1.0f;
         private const string BuilderAttackMessage = "ビルダーの攻撃";
+        private const float SpecificRate = 0.6f;
         
         /// <inheritdoc/>
         public async UniTask Attack()
@@ -42,6 +43,18 @@ namespace Unit.pureC.Unit
             }
         }
         
+        /// <inheritdoc/>
+        public async UniTask Act(int selfHeight, int selfWidth)
+        {
+            if (UnityEngine.Random.value < SpecificRate)
+            {
+                await Specific(selfHeight, selfWidth);
+                return;
+            }
+
+            await Attack();
+        }
+
         /// <inheritdoc/>
         public async UniTask Dead()
         {
