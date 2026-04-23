@@ -15,6 +15,11 @@ MonoBehaviour:
   m_GroupName: Default Local Group
   m_GUID: 66a1a5f39fa4bad43a571f3a47cc6f39
   m_SerializeEntries:
+  - m_GUID: 507be74afe7fa8e4583396c1ca50c8f7
+    m_Address: "Assets/Addressables/Audio/SE/\u6C7A\u5B9A\u30DC\u30BF\u30F3\u3092\u62BC\u305910.mp3"
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 8df917bb434b8ed47932fb901f78cc5a
     m_Address: Assets/Addressables/WeaponModels/1.asset
     m_ReadOnly: 0
