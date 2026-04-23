@@ -26,6 +26,12 @@ public static class PlayerSwordParameterHolder
 {
     public static PlayerParameter PlayerStatus { get; private set; }
     public static SwordParameter SwordStatus { get; private set; }
+    
+    static PlayerSwordParameterHolder()
+    {
+        PlayerStatus = new PlayerParameter(0, 0);
+        SwordStatus = new SwordParameter(0, 0);
+    }
 
     public static void SetPlayerStatus(int hp, int attack)
     {
