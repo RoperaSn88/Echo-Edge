@@ -33,9 +33,8 @@ public static class PlayerSwordParameterHolder
     
     static PlayerSwordParameterHolder()
     {
-        // 後でセーブ/ロード機能から読みとる
-        PlayerStatus = new PlayerParameter(0, 0, 0, 0);
-        SwordStatus = new SwordParameter(0, 0);
+        PlayerStatus = PlayerSwordParameterSaveManager.LoadPlayerStatus();
+        SwordStatus = PlayerSwordParameterSaveManager.LoadSwordStatus();
     }
 
     public static void SetPlayerStatus(BattleStatus playerStatus)
@@ -43,6 +42,7 @@ public static class PlayerSwordParameterHolder
         if (playerStatus == null)
         {
             PlayerStatus = new PlayerParameter(0, 0, 0, 0);
+            PlayerSwordParameterSaveManager.SavePlayerStatus(PlayerStatus);
             return;
         }
 
@@ -56,11 +56,13 @@ public static class PlayerSwordParameterHolder
             playerStatus.Defend,
             reflectCount
         );
+        PlayerSwordParameterSaveManager.SavePlayerStatus(PlayerStatus);
     }
 
     public static void SetSwordStatus(int hp, int attack)
     {
         SwordStatus = new SwordParameter(hp, attack);
+        PlayerSwordParameterSaveManager.SaveSwordStatus(SwordStatus);
     }
 
     public static BattleStatus GetBattleStatus()
