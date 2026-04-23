@@ -17,6 +17,7 @@ public static class PlayerSwordParameterHolder
     
     static PlayerSwordParameterHolder()
     {
+        // 後でセーブ/ロード機能から読みとる
         PlayerStatus = new BattleStatus();
         PlayerStatus.SetStatus(0, 0, 0, 0, MovePattern.Before, 0, 0);
         SwordStatus = new SwordParameter(0, 0);
