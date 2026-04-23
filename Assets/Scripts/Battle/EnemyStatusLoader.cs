@@ -65,7 +65,8 @@ public static class EnemyStatusLoader
             int hp          = int.Parse(cols[1].Trim());
             int attack      = int.Parse(cols[2].Trim());
             int defend      = int.Parse(cols[3].Trim());
-            int move        = int.Parse(cols[4].Trim());
+            int parsedMove  = int.Parse(cols[4].Trim());
+            byte move       = (byte)Mathf.Clamp(parsedMove, byte.MinValue, byte.MaxValue);
             var movePattern = (MovePattern)Enum.Parse(typeof(MovePattern), cols[5].Trim());
             int experience  = int.Parse(cols[6].Trim());
             int energy      = int.Parse(cols[7].Trim());

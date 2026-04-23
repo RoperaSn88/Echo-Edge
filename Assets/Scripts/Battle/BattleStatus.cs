@@ -29,7 +29,7 @@ public class BattleStatus : IDamagable
     /// <summary>
     /// 1ターンの移動回数
     /// </summary>
-    public int Move;
+    public byte Move;
     
     /// <summary>
     /// 攻撃をいつやるか
@@ -58,7 +58,7 @@ public class BattleStatus : IDamagable
     /// <summary>
     /// ステータスを更新する
     /// </summary>
-    public void SetStatus(int hp, int attack, int defend, int move, MovePattern movePattern, int experience, int energy)
+    public void SetStatus(int hp, int attack, int defend, byte move, MovePattern movePattern, int experience, int energy)
     {
         HP = hp;
         MaxHP = hp;
