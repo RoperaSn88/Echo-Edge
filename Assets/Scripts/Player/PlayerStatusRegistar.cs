@@ -9,7 +9,17 @@ public class PlayerStatusRegistar : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        _battleStatus.Initialize();
+        PlayerSwordParameterHolder.SetPlayerStatus(_battleStatus);
+        var battleParameter = PlayerSwordParameterHolder.GetBattleStatus();
+        _battleStatus.SetStatus(
+            battleParameter.HP,
+            battleParameter.Attack,
+            _battleStatus.Defend,
+            _battleStatus.Move,
+            _battleStatus.MovePattern,
+            _battleStatus.Experience,
+            _battleStatus.Energy
+        );
         BattleManager.RegisterPlayer(_battleStatus);
     }
 }

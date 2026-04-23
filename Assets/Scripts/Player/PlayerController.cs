@@ -54,7 +54,7 @@ public class PlayerController: MonoBehaviour
     private Vector3 _vec;
 
     [SerializeField, Tooltip("反射回数")]
-    private int _reflectCount = 1;
+    private byte _reflectCount = 1;
     bool atatta = false;
 
     private const float Speed = 23;
