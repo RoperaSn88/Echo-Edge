@@ -46,11 +46,10 @@ public static class PlayerSwordParameterHolder
             return;
         }
 
-        var reflectCount = playerStatus.Move < byte.MinValue
-            ? byte.MinValue
-            : playerStatus.Move > byte.MaxValue
-                ? byte.MaxValue
-                : (byte)playerStatus.Move;
+        var clampedReflectCount = playerStatus.Move;
+        if (clampedReflectCount < byte.MinValue) clampedReflectCount = byte.MinValue;
+        if (clampedReflectCount > byte.MaxValue) clampedReflectCount = byte.MaxValue;
+        var reflectCount = (byte)clampedReflectCount;
         PlayerStatus = new PlayerParameter(
             playerStatus.HP,
             playerStatus.Attack,
