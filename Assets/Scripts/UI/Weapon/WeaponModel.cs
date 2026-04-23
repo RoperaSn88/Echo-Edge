@@ -20,6 +20,14 @@ namespace UI.Weapon
         [SerializeField, Tooltip("武器のコスト")]
         private int _weaponCost;
         public int WeaponCost => _weaponCost;
+
+        [SerializeField, Tooltip("武器のHP")]
+        private int _hp;
+        public int HP => _hp;
+
+        [SerializeField, Tooltip("武器の攻撃力")]
+        private int _attack;
+        public int Attack => _attack;
         
         [SerializeField, Tooltip("武器のスプライト")]
         private Sprite _weaponSprite;

@@ -64,6 +64,7 @@ namespace UI.Weapon
                     {
                         case WeaponActionType.Press:
                             Debug.Log("決定");
+                            PlayerSwordParameterHolder.SetSwordStatus(targetModel.HP, targetModel.Attack);
                             isSelected = true;
                             result = WeaponActionType.Press;
                             break;
