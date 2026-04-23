@@ -33,8 +33,12 @@ public static class PlayerSwordParameterHolder
     
     static PlayerSwordParameterHolder()
     {
-        PlayerStatus = PlayerSwordParameterSaveManager.LoadPlayerStatus();
-        SwordStatus = PlayerSwordParameterSaveManager.LoadSwordStatus();
+        PlayerStatus = PlayerSwordParameterSaveManager.HasPlayerStatusData()
+            ? PlayerSwordParameterSaveManager.LoadPlayerStatus()
+            : new PlayerParameter(0, 0, 0, 0);
+        SwordStatus = PlayerSwordParameterSaveManager.HasSwordStatusData()
+            ? PlayerSwordParameterSaveManager.LoadSwordStatus()
+            : new SwordParameter(0, 0);
     }
 
     public static void SetPlayerStatus(BattleStatus playerStatus)

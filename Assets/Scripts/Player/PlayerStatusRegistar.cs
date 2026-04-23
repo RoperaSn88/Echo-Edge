@@ -14,12 +14,13 @@ public class PlayerStatusRegistar : MonoBehaviour
             PlayerSwordParameterHolder.SetPlayerStatus(_battleStatus);
         }
         var playerParameter = PlayerSwordParameterHolder.PlayerStatus;
+        var moveCount = (int)playerParameter.ReflectCount;
         var battleParameter = PlayerSwordParameterHolder.GetBattleStatus();
         _battleStatus.SetStatus(
             battleParameter.HP,
             battleParameter.Attack,
             playerParameter.Defend,
-            playerParameter.ReflectCount,
+            moveCount,
             _battleStatus.MovePattern,
             _battleStatus.Experience,
             _battleStatus.Energy
