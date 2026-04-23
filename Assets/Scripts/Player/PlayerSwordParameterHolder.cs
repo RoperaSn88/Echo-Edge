@@ -46,11 +46,12 @@ public static class PlayerSwordParameterHolder
             return;
         }
 
+        var reflectCount = playerStatus.Move;
         PlayerStatus = new PlayerParameter(
             playerStatus.HP,
             playerStatus.Attack,
             playerStatus.Defend,
-            playerStatus.Move
+            reflectCount
         );
     }
 
