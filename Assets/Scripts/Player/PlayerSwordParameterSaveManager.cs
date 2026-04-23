@@ -5,9 +5,9 @@ public static class PlayerSwordParameterSaveManager
     private const string PlayerHpKey = "PlayerStatus.HP";
     private const string PlayerAttackKey = "PlayerStatus.Attack";
     private const string PlayerDefendKey = "PlayerStatus.Defend";
-    private const string PlayerReflectCountKey = "PlayerStatus.ReflectCount";
     private const string SwordHpKey = "SwordStatus.HP";
     private const string SwordAttackKey = "SwordStatus.Attack";
+    private const string SwordReflectCountKey = "SwordStatus.ReflectCount";
 
     public static bool HasPlayerStatusData()
     {
@@ -22,10 +22,9 @@ public static class PlayerSwordParameterSaveManager
     public static PlayerParameter LoadPlayerStatus()
     {
         return new PlayerParameter(
-            PlayerPrefs.GetInt(PlayerHpKey, 0),
-            PlayerPrefs.GetInt(PlayerAttackKey, 0),
-            PlayerPrefs.GetInt(PlayerDefendKey, 0),
-            (byte)Mathf.Clamp(PlayerPrefs.GetInt(PlayerReflectCountKey, 0), byte.MinValue, byte.MaxValue)
+            PlayerPrefs.GetInt(PlayerHpKey, 100),
+            PlayerPrefs.GetInt(PlayerAttackKey, 20),
+            PlayerPrefs.GetInt(PlayerDefendKey, 0)
         );
     }
 
@@ -33,7 +32,8 @@ public static class PlayerSwordParameterSaveManager
     {
         return new SwordParameter(
             PlayerPrefs.GetInt(SwordHpKey, 0),
-            PlayerPrefs.GetInt(SwordAttackKey, 0)
+            PlayerPrefs.GetInt(SwordAttackKey, 0),
+            (byte)Mathf.Clamp(PlayerPrefs.GetInt(SwordReflectCountKey, 0), byte.MinValue, byte.MaxValue)
         );
     }
 
@@ -42,7 +42,6 @@ public static class PlayerSwordParameterSaveManager
         PlayerPrefs.SetInt(PlayerHpKey, playerStatus.HP);
         PlayerPrefs.SetInt(PlayerAttackKey, playerStatus.Attack);
         PlayerPrefs.SetInt(PlayerDefendKey, playerStatus.Defend);
-        PlayerPrefs.SetInt(PlayerReflectCountKey, playerStatus.ReflectCount);
         PlayerPrefs.Save();
     }
 
@@ -50,6 +49,7 @@ public static class PlayerSwordParameterSaveManager
     {
         PlayerPrefs.SetInt(SwordHpKey, swordStatus.HP);
         PlayerPrefs.SetInt(SwordAttackKey, swordStatus.Attack);
+        PlayerPrefs.SetInt(SwordReflectCountKey, swordStatus.ReflectCount);
         PlayerPrefs.Save();
     }
 }

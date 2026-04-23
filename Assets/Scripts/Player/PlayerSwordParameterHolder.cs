@@ -2,11 +2,13 @@ public struct SwordParameter
 {
     public int HP;
     public int Attack;
+    public byte ReflectCount;
 
-    public SwordParameter(int hp, int attack)
+    public SwordParameter(int hp, int attack, byte reflectCount)
     {
         HP = hp;
         Attack = attack;
+        ReflectCount = reflectCount;
     }
 }
 
@@ -15,14 +17,12 @@ public struct PlayerParameter
     public int HP;
     public int Attack;
     public int Defend;
-    public byte ReflectCount;
 
-    public PlayerParameter(int hp, int attack, int defend, byte reflectCount)
+    public PlayerParameter(int hp, int attack, int defend)
     {
         HP = hp;
         Attack = attack;
         Defend = defend;
-        ReflectCount = reflectCount;
     }
 }
 
@@ -35,37 +35,32 @@ public static class PlayerSwordParameterHolder
     {
         PlayerStatus = PlayerSwordParameterSaveManager.HasPlayerStatusData()
             ? PlayerSwordParameterSaveManager.LoadPlayerStatus()
-            : new PlayerParameter(0, 0, 0, 0);
+            : new PlayerParameter(100, 20, 0);
         SwordStatus = PlayerSwordParameterSaveManager.HasSwordStatusData()
             ? PlayerSwordParameterSaveManager.LoadSwordStatus()
-            : new SwordParameter(0, 0);
+            : new SwordParameter(0, 0, 0);
     }
 
     public static void SetPlayerStatus(BattleStatus playerStatus)
     {
         if (playerStatus == null)
         {
-            PlayerStatus = new PlayerParameter(0, 0, 0, 0);
+            PlayerStatus = new PlayerParameter(100, 20, 0);
             PlayerSwordParameterSaveManager.SavePlayerStatus(PlayerStatus);
             return;
         }
 
-        var clampedReflectCount = playerStatus.Move;
-        if (clampedReflectCount < byte.MinValue) clampedReflectCount = byte.MinValue;
-        if (clampedReflectCount > byte.MaxValue) clampedReflectCount = byte.MaxValue;
-        var reflectCount = (byte)clampedReflectCount;
         PlayerStatus = new PlayerParameter(
             playerStatus.HP,
             playerStatus.Attack,
-            playerStatus.Defend,
-            reflectCount
+            playerStatus.Defend
         );
         PlayerSwordParameterSaveManager.SavePlayerStatus(PlayerStatus);
     }
 
-    public static void SetSwordStatus(int hp, int attack)
+    public static void SetSwordStatus(int hp, int attack, byte reflectCount)
     {
-        SwordStatus = new SwordParameter(hp, attack);
+        SwordStatus = new SwordParameter(hp, attack, reflectCount);
         PlayerSwordParameterSaveManager.SaveSwordStatus(SwordStatus);
     }
 
