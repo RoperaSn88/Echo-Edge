@@ -7,6 +7,8 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 
 public class AudioManager : MonoBehaviour
 {
+    public static AudioManager Instance;
+    
     private const string AudioBasePath = "Assets/Addressables/Audio/";
     private const string BgmRelativePath = "BGM/";
     private const string SeRelativePath = "SE/";
@@ -29,6 +31,7 @@ public class AudioManager : MonoBehaviour
     private void Awake()
     {
         InitializeSeAudioSources();
+        Instance = this;
     }
 
     public void PlayBgm(BgmAudioType bgmType, bool isLoop)
