@@ -6,6 +6,7 @@ public class DefaultUnitAction : IUnitAction
 {
     private const float PlayerDamageRate = 1.0f;
     private const string EnemyAttackMessage = "敵の攻撃";
+    private const float SpecificRate = 0.3f;
     
     /// <inheritdoc/>
     public async UniTask Attack()
@@ -38,6 +39,18 @@ public class DefaultUnitAction : IUnitAction
         }
     }
     
+    /// <inheritdoc/>
+    public async UniTask Act(int selfHeight, int selfWidth)
+    {
+        if (UnityEngine.Random.value < SpecificRate)
+        {
+            await Specific(selfHeight, selfWidth);
+            return;
+        }
+
+        await Attack();
+    }
+
     /// <inheritdoc/>
     public async UniTask Dead()
     {
