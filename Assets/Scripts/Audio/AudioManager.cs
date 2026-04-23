@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading;
+using Cysharp.Text;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -160,7 +161,7 @@ public class AudioManager : MonoBehaviour
         var clip = await loadHandle;
         if (loadHandle.Status != AsyncOperationStatus.Succeeded || clip == null)
         {
-            Debug.LogError($"AudioClip の読み込みに失敗しました: {addressablesPath}");
+            Debug.LogError(ZString.Concat("AudioClip の読み込みに失敗しました: ", addressablesPath));
             if (loadHandle.IsValid())
             {
                 Addressables.Release(loadHandle);
@@ -228,7 +229,7 @@ public class AudioManager : MonoBehaviour
         var bgmTypes = (BgmAudioType[])System.Enum.GetValues(typeof(BgmAudioType));
         foreach (var bgmType in bgmTypes)
         {
-            cache[bgmType] = $"{AudioBasePath}{BgmRelativePath}{bgmType.ToString()}{AudioExtension}";
+            cache[bgmType] = ZString.Concat(AudioBasePath, BgmRelativePath, bgmType.ToString(), AudioExtension);
         }
 
         return cache;
@@ -240,7 +241,7 @@ public class AudioManager : MonoBehaviour
         var seTypes = (SeAudioType[])System.Enum.GetValues(typeof(SeAudioType));
         foreach (var seType in seTypes)
         {
-            cache[seType] = $"{AudioBasePath}{SeRelativePath}{seType.ToString()}{AudioExtension}";
+            cache[seType] = ZString.Concat(AudioBasePath, SeRelativePath, seType.ToString(), AudioExtension);
         }
 
         return cache;
