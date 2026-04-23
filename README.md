@@ -16,7 +16,7 @@ git: チームでよく使うやつ。ファイルを共有し、変更とかし
 [参考リンク](https://qiita.com/a_goto/items/0fe40b17105d1ac1c40b)
 
 # 3. ライブラリ検査（このプロジェクトで使っている主なもの）
-- Unity Package Manager: `/home/runner/work/GameCreateProject-2025/GameCreateProject-2025/Packages/manifest.json`
+- Unity Package Manager: `Packages/manifest.json`
   - com.cysharp.unitask
   - com.unity.2d.tilemap.extras
   - com.unity.addressables
@@ -28,5 +28,5 @@ git: チームでよく使うやつ。ファイルを共有し、変更とかし
   - com.unity.test-framework
   - jp.andantetribe.utils
 - 追加プラグイン（Assets 配下）
-  - DOTween: `/home/runner/work/GameCreateProject-2025/GameCreateProject-2025/Assets/Plugins/Demigiant/DOTween`
-  - NuGet 関連ファイル: `/home/runner/work/GameCreateProject-2025/GameCreateProject-2025/Assets/NuGet`
+  - DOTween: `Assets/Plugins/Demigiant/DOTween`
+  - NuGet 関連ファイル: `Assets/NuGet`
