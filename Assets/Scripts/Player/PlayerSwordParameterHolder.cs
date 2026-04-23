@@ -15,9 +15,9 @@ public struct PlayerParameter
     public int HP;
     public int Attack;
     public int Defend;
-    public int ReflectCount;
+    public byte ReflectCount;
 
-    public PlayerParameter(int hp, int attack, int defend, int reflectCount)
+    public PlayerParameter(int hp, int attack, int defend, byte reflectCount)
     {
         HP = hp;
         Attack = attack;
@@ -46,7 +46,11 @@ public static class PlayerSwordParameterHolder
             return;
         }
 
-        var reflectCount = playerStatus.Move;
+        var reflectCount = playerStatus.Move < byte.MinValue
+            ? byte.MinValue
+            : playerStatus.Move > byte.MaxValue
+                ? byte.MaxValue
+                : (byte)playerStatus.Move;
         PlayerStatus = new PlayerParameter(
             playerStatus.HP,
             playerStatus.Attack,
