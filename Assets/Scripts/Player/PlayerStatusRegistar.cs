@@ -11,7 +11,7 @@ public class PlayerStatusRegistar : MonoBehaviour
     {
         if (_battleStatus == null)
         {
-            return;
+            _battleStatus = new BattleStatus();
         }
 
         if (!PlayerSwordParameterSaveManager.HasPlayerStatusData())
@@ -22,14 +22,12 @@ public class PlayerStatusRegistar : MonoBehaviour
         {
             PlayerSwordParameterHolder.SetSwordStatus(0, 0, _battleStatus.Move);
         }
-        var playerParameter = PlayerSwordParameterHolder.PlayerStatus;
-        var swordParameter = PlayerSwordParameterHolder.SwordStatus;
         var battleParameter = PlayerSwordParameterHolder.GetBattleStatus();
         _battleStatus.SetStatus(
             battleParameter.HP,
             battleParameter.Attack,
-            playerParameter.Defend,
-            swordParameter.ReflectCount,
+            battleParameter.Defend,
+            battleParameter.Move,
             _battleStatus.MovePattern,
             _battleStatus.Experience,
             _battleStatus.Energy
