@@ -12,8 +12,8 @@ public class PlayerStatusRegistar : MonoBehaviour
         PlayerSwordParameterHolder.SetPlayerStatus(_battleStatus);
         var battleParameter = PlayerSwordParameterHolder.GetBattleStatus();
         _battleStatus.SetStatus(
-            battleParameter.hp,
-            battleParameter.attack,
+            battleParameter.HP,
+            battleParameter.Attack,
             _battleStatus.Defend,
             _battleStatus.Move,
             _battleStatus.MovePattern,

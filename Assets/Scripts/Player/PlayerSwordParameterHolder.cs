@@ -63,8 +63,14 @@ public static class PlayerSwordParameterHolder
         SwordStatus = new SwordParameter(hp, attack);
     }
 
-    public static (int hp, int attack) GetBattleStatus()
+    public static BattleStatus GetBattleStatus()
     {
-        return (PlayerStatus.HP + SwordStatus.HP, PlayerStatus.Attack + SwordStatus.Attack);
+        var battleStatus = new BattleStatus
+        {
+            HP = PlayerStatus.HP + SwordStatus.HP,
+            Attack = PlayerStatus.Attack + SwordStatus.Attack,
+        };
+        battleStatus.MaxHP = battleStatus.HP;
+        return battleStatus;
     }
 }
