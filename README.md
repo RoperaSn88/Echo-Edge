@@ -15,3 +15,18 @@
 git: チームでよく使うやつ。ファイルを共有し、変更とかした履歴を残るもの。
 [参考リンク](https://qiita.com/a_goto/items/0fe40b17105d1ac1c40b)
 
+# 3. ライブラリ検査（このプロジェクトで使っている主なもの）
+- Unity Package Manager: `/home/runner/work/GameCreateProject-2025/GameCreateProject-2025/Packages/manifest.json`
+  - com.cysharp.unitask
+  - com.unity.2d.tilemap.extras
+  - com.unity.addressables
+  - com.unity.ai.navigation
+  - com.unity.cinemachine
+  - com.unity.inputsystem
+  - com.unity.postprocessing
+  - com.unity.render-pipelines.universal
+  - com.unity.test-framework
+  - jp.andantetribe.utils
+- 追加プラグイン（Assets 配下）
+  - DOTween: `/home/runner/work/GameCreateProject-2025/GameCreateProject-2025/Assets/Plugins/Demigiant/DOTween`
+  - NuGet 関連ファイル: `/home/runner/work/GameCreateProject-2025/GameCreateProject-2025/Assets/NuGet`
