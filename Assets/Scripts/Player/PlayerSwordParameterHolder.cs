@@ -10,16 +10,31 @@ public struct SwordParameter
     }
 }
 
+public struct PlayerParameter
+{
+    public int HP;
+    public int Attack;
+    public int Defend;
+    public int ReflectCount;
+
+    public PlayerParameter(int hp, int attack, int defend, int reflectCount)
+    {
+        HP = hp;
+        Attack = attack;
+        Defend = defend;
+        ReflectCount = reflectCount;
+    }
+}
+
 public static class PlayerSwordParameterHolder
 {
-    public static BattleStatus PlayerStatus { get; private set; }
+    public static PlayerParameter PlayerStatus { get; private set; }
     public static SwordParameter SwordStatus { get; private set; }
     
     static PlayerSwordParameterHolder()
     {
         // 後でセーブ/ロード機能から読みとる
-        PlayerStatus = new BattleStatus();
-        PlayerStatus.SetStatus(0, 0, 0, 0, MovePattern.Before, 0, 0);
+        PlayerStatus = new PlayerParameter(0, 0, 0, 0);
         SwordStatus = new SwordParameter(0, 0);
     }
 
@@ -27,18 +42,15 @@ public static class PlayerSwordParameterHolder
     {
         if (playerStatus == null)
         {
-            PlayerStatus.SetStatus(0, 0, 0, 0, MovePattern.Before, 0, 0);
+            PlayerStatus = new PlayerParameter(0, 0, 0, 0);
             return;
         }
 
-        PlayerStatus.SetStatus(
+        PlayerStatus = new PlayerParameter(
             playerStatus.HP,
             playerStatus.Attack,
             playerStatus.Defend,
-            playerStatus.Move,
-            playerStatus.MovePattern,
-            playerStatus.Experience,
-            playerStatus.Energy
+            playerStatus.Move
         );
     }
 
