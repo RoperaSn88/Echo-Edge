@@ -12,6 +12,9 @@ public class AudioManager : MonoBehaviour
     private const string SeRelativePath = "SE/";
     private const string AudioExtension = ".wav";
 
+    private static readonly Dictionary<BgmAudioType, string> BgmPathCache = BuildBgmPathCache();
+    private static readonly Dictionary<SeAudioType, string> SePathCache = BuildSePathCache();
+
     [SerializeField] private AudioSource _bgmSource;
     [SerializeField] private AudioSource _additionalBgmSource;
     [SerializeField, Min(1)] private int _initialSeSourceCount = 2;
@@ -115,12 +118,7 @@ public class AudioManager : MonoBehaviour
 
     private async UniTaskVoid PlaySeAsync(SeAudioType seType)
     {
-        if (_seSources.Count == 0)
-        {
-            InitializeSeAudioSources();
-        }
-
-        if (_seSources.Count == 0)
+        if (!InitializeSeAudioSources())
         {
             Debug.LogError("SE 用 AudioSource の初期化に失敗しました");
             return;
@@ -173,12 +171,12 @@ public class AudioManager : MonoBehaviour
 
     private static string GetBgmAddressablesPath(BgmAudioType bgmType)
     {
-        return $"{AudioBasePath}{BgmRelativePath}{bgmType.ToString()}{AudioExtension}";
+        return BgmPathCache[bgmType];
     }
 
     private static string GetSeAddressablesPath(SeAudioType seType)
     {
-        return $"{AudioBasePath}{SeRelativePath}{seType.ToString()}{AudioExtension}";
+        return SePathCache[seType];
     }
 
     private AudioSource GetNextSeAudioSource()
@@ -200,18 +198,49 @@ public class AudioManager : MonoBehaviour
         return newSource;
     }
 
-    private void InitializeSeAudioSources()
+    private bool InitializeSeAudioSources()
     {
+        if (_seSources.Count > 0)
+        {
+            return true;
+        }
+
         int sourceCount = Mathf.Max(1, _initialSeSourceCount);
         while (_seSources.Count < sourceCount)
         {
             _seSources.Add(CreateSeAudioSource());
         }
+
+        return _seSources.Count > 0;
     }
 
     private AudioSource CreateSeAudioSource()
     {
         return gameObject.AddComponent<AudioSource>();
+    }
+
+    private static Dictionary<BgmAudioType, string> BuildBgmPathCache()
+    {
+        var cache = new Dictionary<BgmAudioType, string>();
+        var bgmTypes = (BgmAudioType[])System.Enum.GetValues(typeof(BgmAudioType));
+        foreach (var bgmType in bgmTypes)
+        {
+            cache[bgmType] = $"{AudioBasePath}{BgmRelativePath}{bgmType.ToString()}{AudioExtension}";
+        }
+
+        return cache;
+    }
+
+    private static Dictionary<SeAudioType, string> BuildSePathCache()
+    {
+        var cache = new Dictionary<SeAudioType, string>();
+        var seTypes = (SeAudioType[])System.Enum.GetValues(typeof(SeAudioType));
+        foreach (var seType in seTypes)
+        {
+            cache[seType] = $"{AudioBasePath}{SeRelativePath}{seType.ToString()}{AudioExtension}";
+        }
+
+        return cache;
     }
 
     private static async UniTask FadeVolumeAsync(AudioSource source, float from, float to, float durationSeconds, CancellationToken cancellationToken)
