@@ -1,15 +1,3 @@
-public struct PlayerParameter
-{
-    public int HP;
-    public int Attack;
-
-    public PlayerParameter(int hp, int attack)
-    {
-        HP = hp;
-        Attack = attack;
-    }
-}
-
 public struct SwordParameter
 {
     public int HP;
@@ -24,18 +12,33 @@ public struct SwordParameter
 
 public static class PlayerSwordParameterHolder
 {
-    public static PlayerParameter PlayerStatus { get; private set; }
+    public static BattleStatus PlayerStatus { get; private set; }
     public static SwordParameter SwordStatus { get; private set; }
     
     static PlayerSwordParameterHolder()
     {
-        PlayerStatus = new PlayerParameter(0, 0);
+        PlayerStatus = new BattleStatus();
+        PlayerStatus.SetStatus(0, 0, 0, 0, MovePattern.Before, 0, 0);
         SwordStatus = new SwordParameter(0, 0);
     }
 
-    public static void SetPlayerStatus(int hp, int attack)
+    public static void SetPlayerStatus(BattleStatus playerStatus)
     {
-        PlayerStatus = new PlayerParameter(hp, attack);
+        if (playerStatus == null)
+        {
+            PlayerStatus.SetStatus(0, 0, 0, 0, MovePattern.Before, 0, 0);
+            return;
+        }
+
+        PlayerStatus.SetStatus(
+            playerStatus.HP,
+            playerStatus.Attack,
+            playerStatus.Defend,
+            playerStatus.Move,
+            playerStatus.MovePattern,
+            playerStatus.Experience,
+            playerStatus.Energy
+        );
     }
 
     public static void SetSwordStatus(int hp, int attack)
