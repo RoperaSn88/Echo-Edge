@@ -1,16 +1,18 @@
-﻿using TMPro;
+﻿using DG.Tweening;
+using TMPro;
 using UnityEngine;
 
 namespace UnityEngine
 {
     /// <summary>
     /// TextMeshPro用のISelectInterface実装クラス。
-    /// 選択時に文字サイズを拡大し、選択解除時に元のサイズに戻す。
+    /// 選択時に文字サイズをDOTweenでアニメーションさせ、選択解除時に元のサイズに戻す。
     /// </summary>
     public class TMPSelectObject : MonoBehaviour, ISelectInterface
     {
         private const float SelectedFontSize = 150f;
         private const float DeselectedFontSize = 90f;
+        private const float TweenDuration = 0.2f;
 
         [SerializeField]
         private TextMeshProUGUI _text;
@@ -27,23 +29,28 @@ namespace UnityEngine
         }
 
         /// <summary>
-        /// 選択された場合の処理。文字サイズを90から150に変化させ、rect.heightを調整する。
+        /// カーソルで選択された場合の処理。文字サイズを90から150にDOTweenでアニメーションさせ、rect.heightも調整する。
         /// </summary>
         public void OnSelect()
         {
-            _text.fontSize = SelectedFontSize;
-            var size = _rectTransform.sizeDelta;
-            _rectTransform.sizeDelta = new Vector2(size.x, SelectedFontSize);
+            DOTween.To(() => _text.fontSize, x => _text.fontSize = x, SelectedFontSize, TweenDuration);
+            _rectTransform.DOSizeDelta(new Vector2(_rectTransform.sizeDelta.x, SelectedFontSize), TweenDuration);
         }
 
         /// <summary>
-        /// 選択解除された場合の処理。文字サイズを150から90に変化させ、rect.heightを調整する。
+        /// クリックで決定された場合の処理。
+        /// </summary>
+        public void OnDecide()
+        {
+        }
+
+        /// <summary>
+        /// カーソルの選択が外れた場合の処理。文字サイズを150から90にDOTweenでアニメーションさせ、rect.heightも調整する。
         /// </summary>
         public void OnDeselect()
         {
-            _text.fontSize = DeselectedFontSize;
-            var size = _rectTransform.sizeDelta;
-            _rectTransform.sizeDelta = new Vector2(size.x, DeselectedFontSize);
+            DOTween.To(() => _text.fontSize, x => _text.fontSize = x, DeselectedFontSize, TweenDuration);
+            _rectTransform.DOSizeDelta(new Vector2(_rectTransform.sizeDelta.x, DeselectedFontSize), TweenDuration);
         }
     }
 }
