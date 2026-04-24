@@ -1,4 +1,6 @@
-﻿using DG.Tweening;
+﻿using System.Threading;
+using System.Threading.Tasks;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 
@@ -19,6 +21,8 @@ namespace UnityEngine
 
         private RectTransform _rectTransform;
 
+        private CancellationTokenSource _cts;
+
         private void Awake()
         {
             _rectTransform = GetComponent<RectTransform>();
@@ -26,15 +30,48 @@ namespace UnityEngine
             {
                 _text = GetComponent<TextMeshProUGUI>();
             }
+            _cts = new CancellationTokenSource();
+        }
+
+        private void OnDestroy()
+        {
+            _cts?.Cancel();
+            _cts?.Dispose();
+        }
+
+        /// <summary>
+        /// 現在進行中のトゥイーンをキャンセルし、新しいCancellationTokenを返す。
+        /// </summary>
+        private CancellationToken ResetCancellationToken()
+        {
+            _cts.Cancel();
+            _cts.Dispose();
+            _cts = new CancellationTokenSource();
+            return _cts.Token;
+        }
+
+        /// <summary>
+        /// DOTweenのTweenをTask化して待機できるようにするユーティリティメソッド。
+        /// </summary>
+        private static Task AwaitTween(Tween tween)
+        {
+            var tcs = new TaskCompletionSource<bool>();
+            tween.OnComplete(() => tcs.TrySetResult(true))
+                 .OnKill(() => tcs.TrySetResult(false));
+            return tcs.Task;
         }
 
         /// <summary>
         /// カーソルで選択された場合の処理。文字サイズを90から150にDOTweenでアニメーションさせ、rect.heightも調整する。
         /// </summary>
-        public void OnSelect()
+        public async void OnSelect()
         {
-            DOTween.To(() => _text.fontSize, x => _text.fontSize = x, SelectedFontSize, TweenDuration);
-            _rectTransform.DOSizeDelta(new Vector2(_rectTransform.sizeDelta.x, SelectedFontSize), TweenDuration);
+            var ct = ResetCancellationToken();
+            await Task.WhenAll(
+                AwaitTween(DOTween.To(() => _text.fontSize, x => _text.fontSize = x, SelectedFontSize, TweenDuration)),
+                AwaitTween(_rectTransform.DOSizeDelta(new Vector2(_rectTransform.sizeDelta.x, SelectedFontSize), TweenDuration))
+            );
+            if (ct.IsCancellationRequested) return;
         }
 
         /// <summary>
@@ -47,10 +84,14 @@ namespace UnityEngine
         /// <summary>
         /// カーソルの選択が外れた場合の処理。文字サイズを150から90にDOTweenでアニメーションさせ、rect.heightも調整する。
         /// </summary>
-        public void OnDeselect()
+        public async void OnDeselect()
         {
-            DOTween.To(() => _text.fontSize, x => _text.fontSize = x, DeselectedFontSize, TweenDuration);
-            _rectTransform.DOSizeDelta(new Vector2(_rectTransform.sizeDelta.x, DeselectedFontSize), TweenDuration);
+            var ct = ResetCancellationToken();
+            await Task.WhenAll(
+                AwaitTween(DOTween.To(() => _text.fontSize, x => _text.fontSize = x, DeselectedFontSize, TweenDuration)),
+                AwaitTween(_rectTransform.DOSizeDelta(new Vector2(_rectTransform.sizeDelta.x, DeselectedFontSize), TweenDuration))
+            );
+            if (ct.IsCancellationRequested) return;
         }
     }
 }
