@@ -1,9 +1,9 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class SceneLoader : MonoBehaviour
+public static class SceneLoader
 {
-    public void Load(GameScene scene)
+    public static void Load(GameScene scene)
     {
         if (!TryGetSceneIndex(scene, out var sceneIndex))
         {
@@ -13,7 +13,7 @@ public class SceneLoader : MonoBehaviour
         SceneManager.LoadScene(sceneIndex);
     }
 
-    public void AdditiveLoad(GameScene scene)
+    public static void AdditiveLoad(GameScene scene)
     {
         if (!TryGetSceneIndex(scene, out var sceneIndex))
         {
@@ -23,7 +23,7 @@ public class SceneLoader : MonoBehaviour
         SceneManager.LoadScene(sceneIndex, LoadSceneMode.Additive);
     }
 
-    public void Unload(GameScene scene)
+    public static void Unload(GameScene scene)
     {
         if (!TryGetSceneIndex(scene, out var sceneIndex))
         {

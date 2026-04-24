@@ -1,0 +1,35 @@
+{
+    "version": 1,
+    "name": "Preparing",
+    "maps": [
+        {
+            "name": "Preparing",
+            "id": "b1ab84cb-884e-4973-a720-c042b4b1c737",
+            "actions": [
+                {
+                    "name": "Click",
+                    "type": "Button",
+                    "id": "445fd9dd-8335-46ce-8701-08c6b75ce31d",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "d2661c20-0575-42c8-bbab-2a9ef31b753d",
+                    "path": "<Pointer>/press",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Click",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}
