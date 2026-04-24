@@ -1,5 +1,5 @@
 ﻿using System.Threading;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
@@ -51,27 +51,15 @@ namespace UnityEngine
         }
 
         /// <summary>
-        /// DOTweenのTweenをTask化して待機できるようにするユーティリティメソッド。
-        /// </summary>
-        private static Task AwaitTween(Tween tween)
-        {
-            var tcs = new TaskCompletionSource<bool>();
-            tween.OnComplete(() => tcs.TrySetResult(true))
-                 .OnKill(() => tcs.TrySetResult(false));
-            return tcs.Task;
-        }
-
-        /// <summary>
         /// カーソルで選択された場合の処理。文字サイズを90から150にDOTweenでアニメーションさせ、rect.heightも調整する。
         /// </summary>
         public async void OnSelect()
         {
             var ct = ResetCancellationToken();
-            await Task.WhenAll(
-                AwaitTween(DOTween.To(() => _text.fontSize, x => _text.fontSize = x, SelectedFontSize, TweenDuration)),
-                AwaitTween(_rectTransform.DOSizeDelta(new Vector2(_rectTransform.sizeDelta.x, SelectedFontSize), TweenDuration))
+            await UniTask.WhenAll(
+                DOTween.To(() => _text.fontSize, x => _text.fontSize = x, SelectedFontSize, TweenDuration).ToUniTask(cancellationToken: ct),
+                _rectTransform.DOSizeDelta(new Vector2(_rectTransform.sizeDelta.x, SelectedFontSize), TweenDuration).ToUniTask(cancellationToken: ct)
             );
-            if (ct.IsCancellationRequested) return;
         }
 
         /// <summary>
@@ -87,11 +75,10 @@ namespace UnityEngine
         public async void OnDeselect()
         {
             var ct = ResetCancellationToken();
-            await Task.WhenAll(
-                AwaitTween(DOTween.To(() => _text.fontSize, x => _text.fontSize = x, DeselectedFontSize, TweenDuration)),
-                AwaitTween(_rectTransform.DOSizeDelta(new Vector2(_rectTransform.sizeDelta.x, DeselectedFontSize), TweenDuration))
+            await UniTask.WhenAll(
+                DOTween.To(() => _text.fontSize, x => _text.fontSize = x, DeselectedFontSize, TweenDuration).ToUniTask(cancellationToken: ct),
+                _rectTransform.DOSizeDelta(new Vector2(_rectTransform.sizeDelta.x, DeselectedFontSize), TweenDuration).ToUniTask(cancellationToken: ct)
             );
-            if (ct.IsCancellationRequested) return;
         }
     }
 }
