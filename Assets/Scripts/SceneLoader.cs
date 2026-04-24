@@ -3,36 +3,6 @@ using UnityEngine.SceneManagement;
 
 public class SceneLoader : MonoBehaviour
 {
-    public void LoadPreparingScene()
-    {
-        Load(GameScene.Preparing);
-    }
-
-    public void LoadMainGameScene()
-    {
-        Load(GameScene.MainGame);
-    }
-
-    public void AdditiveLoadPreparingScene()
-    {
-        AdditiveLoad(GameScene.Preparing);
-    }
-
-    public void AdditiveLoadMainGameScene()
-    {
-        AdditiveLoad(GameScene.MainGame);
-    }
-
-    public void UnloadPreparingScene()
-    {
-        Unload(GameScene.Preparing);
-    }
-
-    public void UnloadMainGameScene()
-    {
-        Unload(GameScene.MainGame);
-    }
-
     public void Load(GameScene scene)
     {
         if (!TryGetSceneIndex(scene, out var sceneIndex))
