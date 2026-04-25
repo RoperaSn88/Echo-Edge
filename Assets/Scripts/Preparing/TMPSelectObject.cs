@@ -16,6 +16,9 @@ namespace UnityEngine
         private const float DeselectedFontSize = 90f;
         private const float TweenDuration = 0.2f;
 
+        private readonly Vector2 DefaultSize = new Vector2(450.01f,120.01f);
+        private readonly Vector2 SelectSize = new Vector2(750.01f,150.01f);
+
         [SerializeField]
         private TextMeshProUGUI _text;
 
@@ -58,7 +61,7 @@ namespace UnityEngine
             var ct = ResetCancellationToken();
             await UniTask.WhenAll(
                 DOTween.To(() => _text.fontSize, x => _text.fontSize = x, SelectedFontSize, TweenDuration).ToUniTask(cancellationToken: ct),
-                _rectTransform.DOSizeDelta(new Vector2(_rectTransform.sizeDelta.x, SelectedFontSize), TweenDuration).ToUniTask(cancellationToken: ct)
+                _rectTransform.DOSizeDelta(SelectSize, TweenDuration).ToUniTask(cancellationToken: ct)
             );
         }
 
@@ -77,7 +80,7 @@ namespace UnityEngine
             var ct = ResetCancellationToken();
             await UniTask.WhenAll(
                 DOTween.To(() => _text.fontSize, x => _text.fontSize = x, DeselectedFontSize, TweenDuration).ToUniTask(cancellationToken: ct),
-                _rectTransform.DOSizeDelta(new Vector2(_rectTransform.sizeDelta.x, DeselectedFontSize), TweenDuration).ToUniTask(cancellationToken: ct)
+                _rectTransform.DOSizeDelta(DefaultSize, TweenDuration).ToUniTask(cancellationToken: ct)
             );
         }
     }

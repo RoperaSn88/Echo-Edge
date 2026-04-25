@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
+using Mono.Cecil.Cil;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -23,21 +25,44 @@ namespace UnityEngine
         private List<RaycastResult> _raycastResults = new List<RaycastResult>();
         
         private PreparingAction _preparingAction;
+        PointerEventData pointerData;
+
+        private ISelectInterface _selecting;
         private void Start()
         {
             Instance = this;
+            pointerData = new PointerEventData(_eventSystem);
             _preparingAction = new PreparingAction();
-            _preparingAction.Preparing.Click.performed += OnClick;
             _preparingAction.Enable();
+            _selecting = null;
         }
 
-        private void Update()
+        /// <summary>
+        /// クリックされたインターフェースを返却する
+        /// </summary>
+        /// <returns></returns>
+        public async UniTask<ISelectInterface> Selecting()
         {
-            PointerEventData pointerData = new PointerEventData(_eventSystem);
-            pointerData.position = Pointer.current.position.ReadValue();
+            while (true)
+            {
+                pointerData.position = Pointer.current.position.ReadValue();
 
-            _raycastResults = new List<RaycastResult>();
-            _graphicRaycaster.Raycast(pointerData, _raycastResults);
+                _raycastResults = new List<RaycastResult>();
+                _graphicRaycaster.Raycast(pointerData, _raycastResults);
+                var selecting = GetClickedObject();
+                if (_selecting != selecting)
+                {
+                    if(_selecting != null) _selecting.OnDeselect();
+                    _selecting = selecting;
+                    if(_selecting != null) _selecting.OnSelect();
+                }
+
+                await UniTask.Yield();
+                if (_preparingAction.Preparing.Click.IsPressed())
+                {
+                    return _selecting;
+                }
+            }
         }
         
         /// <summary>
@@ -46,6 +71,7 @@ namespace UnityEngine
         /// <returns></returns>
         public ISelectInterface GetClickedObject()
         {
+            if(_raycastResults.Count == 0) return null;
             if (_raycastResults[0].gameObject.TryGetComponent(out ISelectInterface selectInterface))
             {
                 return selectInterface;
@@ -53,14 +79,8 @@ namespace UnityEngine
             return null;
         }
 
-        private void OnClick(InputAction.CallbackContext context)
-        {
-            
-        }
-
         private void OnDestroy()
         {
-            _preparingAction.Preparing.Click.performed -= OnClick;
             _preparingAction.Disable();
         }
     }
