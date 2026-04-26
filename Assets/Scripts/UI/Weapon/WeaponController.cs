@@ -14,6 +14,11 @@ namespace UI.Weapon
         [SerializeField, Tooltip("選択されている武器のインデックス")]
         private int _selectedWeaponIndex = 0;
         
+        /// <summary>
+        /// 現在選択されている武器のインデックス
+        /// </summary>
+        public int SelectedWeaponIndex => _selectedWeaponIndex;
+        
         [SerializeField, Tooltip("プレゼンターを突っ込む")]
         private WeaponPresenter[] _presenters= new WeaponPresenter[2];
 
@@ -28,6 +33,17 @@ namespace UI.Weapon
         private void Start()
         {
             Instance = this;
+        }
+
+        /// <summary>
+        /// 全ての武器UIを即時非表示にする
+        /// </summary>
+        public void HideAllWeaponUIs()
+        {
+            foreach (var presenter in _presenters)
+            {
+                presenter.HideUIs();
+            }
         }
 
         public async UniTask<WeaponActionType> SelectWeapon()
