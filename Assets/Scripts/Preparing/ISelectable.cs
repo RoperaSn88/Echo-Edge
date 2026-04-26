@@ -1,6 +1,8 @@
-﻿namespace UnityEngine
+﻿using Cysharp.Threading.Tasks;
+
+namespace UnityEngine
 {
-    public interface ISelectInterface
+    public interface ISelectable
     {
         /// <summary>
         /// カーソルで選択された場合の処理
@@ -10,7 +12,7 @@
         /// <summary>
         /// クリックで決定された場合の処理
         /// </summary>
-        public void OnDecide();
+        public UniTask OnDecide();
 
         /// <summary>
         /// カーソルの選択が外れた場合の処理

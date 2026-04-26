@@ -27,7 +27,7 @@ namespace UnityEngine
         private PreparingAction _preparingAction;
         PointerEventData pointerData;
 
-        private ISelectInterface _selecting;
+        private ISelectable _selecting;
         private void Start()
         {
             Instance = this;
@@ -41,7 +41,7 @@ namespace UnityEngine
         /// クリックされたインターフェースを返却する
         /// </summary>
         /// <returns></returns>
-        public async UniTask<ISelectInterface> Selecting()
+        public async UniTask<ISelectable> Selecting()
         {
             while (true)
             {
@@ -69,10 +69,10 @@ namespace UnityEngine
         /// 選択されたUIを返却する
         /// </summary>
         /// <returns></returns>
-        public ISelectInterface GetClickedObject()
+        public ISelectable GetClickedObject()
         {
             if(_raycastResults.Count == 0) return null;
-            if (_raycastResults[0].gameObject.TryGetComponent(out ISelectInterface selectInterface))
+            if (_raycastResults[0].gameObject.TryGetComponent(out ISelectable selectInterface))
             {
                 return selectInterface;
             }
