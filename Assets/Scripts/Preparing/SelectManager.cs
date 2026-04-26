@@ -48,8 +48,11 @@ public class SelectManager : MonoBehaviour
     /// <returns></returns>
     async UniTask Selecting()
     {
-        var v = await RayCasterManager.Instance.Selecting();
-        await v.OnDecide();
+        UnityEngine.Selectable.ISelectableManager manager = UnityEngine.Selectable.SelectableManager.Instance;
+        while (manager != null)
+        {
+            manager = await manager.Selecting();
+        }
     }
     
     public async UniTask PlaceAtTop(RectTransform rectTransform)
