@@ -1,15 +1,44 @@
 ﻿using Cysharp.Threading.Tasks;
+using UnityEngine;
 
-namespace UnityEngine.Selectable
+/// <summary>
+/// 現在選択中の選択肢を管理するクラス。
+/// 決定済みの選択肢を追跡し、再選択されないよう管理する。
+/// </summary>
+public class SelectableManager : MonoBehaviour, ISelectableManager
 {
+    /// <summary>決定済みの選択肢</summary>
+    private ISelectable _decidedItem;
+
     /// <summary>
-    /// このクラスのSelectingが呼ばれた時、このクラスの変数で指定されているオブジェクトしか選択できないようにして。
+    /// 選択肢を決定済みとしてマークする
     /// </summary>
-    public class SelectableManager: MonoBehaviour, ISelectableManager
+    public void MarkAsDecided(ISelectable selectable)
     {
-        public UniTask<ISelectableManager> Selecting()
+        _decidedItem = selectable;
+    }
+
+    /// <summary>
+    /// 選択肢が決定済みかどうかを確認する
+    /// </summary>
+    public bool IsDecided(ISelectable selectable)
+    {
+        return _decidedItem == selectable;
+    }
+
+    /// <summary>
+    /// 選び始める時 - 決定済みでない選択肢から一つ選ばせる
+    /// </summary>
+    public async UniTask<ISelectableManager> Selecting()
+    {
+        ISelectable selected;
+        do
         {
-            throw new System.NotImplementedException();
-        }
+            selected = await RayCasterManager.Instance.Selecting();
+        } while (selected == null || IsDecided(selected));
+
+        MarkAsDecided(selected);
+        await selected.OnDecide();
+        return this;
     }
 }
