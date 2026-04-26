@@ -2409,6 +2409,7 @@ GameObject:
   m_Component:
   - component: {fileID: 158857740}
   - component: {fileID: 158857741}
+  - component: {fileID: 158857742}
   m_Layer: 5
   m_Name: FirstSelect (1)
   m_TagString: Untagged
@@ -2466,6 +2467,18 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!114 &158857742
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 158857739}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa4390109c67411fb5cd1773a1283992, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SelectableManager
 --- !u!1001 &163025656
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3621,7 +3634,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: babbd3fa56f3442399eb4153cb95dd1e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UnityEngine.Selectable.NextText
-  _text: {fileID: 0}
+  _text: {fileID: 242582271}
   _nextRectTransformGroup: {fileID: 0}
 --- !u!114 &242582271
 MonoBehaviour:
@@ -5795,7 +5808,7 @@ GameObject:
   - component: {fileID: 347831634}
   - component: {fileID: 347831637}
   - component: {fileID: 347831636}
-  - component: {fileID: 347831635}
+  - component: {fileID: 347831638}
   m_Layer: 5
   m_Name: Text (TMP) (4)
   m_TagString: Untagged
@@ -5822,20 +5835,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 450, y: 120}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &347831635
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 347831633}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: babbd3fa56f3442399eb4153cb95dd1e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::UnityEngine.Selectable.NextText
-  _text: {fileID: 0}
-  _nextRectTransformGroup: {fileID: 0}
 --- !u!114 &347831636
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5856,7 +5855,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u3084\u3081\u308B"
+  m_text: "\u623B\u308B\u308F"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: e0e891a8435edff45afeef14828736c8, type: 2}
   m_sharedMaterial: {fileID: -5227877727957157810, guid: e0e891a8435edff45afeef14828736c8, type: 2}
@@ -5936,6 +5935,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 347831633}
   m_CullTransparentMesh: 1
+--- !u!114 &347831638
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 347831633}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 91481de82995442680c445b336676561, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UnityEngine.Selectable.BackText
+  _text: {fileID: 347831636}
+  _backRectTransformGroup: {fileID: 1048470370}
 --- !u!1 &349104119
 GameObject:
   m_ObjectHideFlags: 0
@@ -5999,6 +6012,7 @@ MonoBehaviour:
   _panel: {fileID: 1889241411}
   _topRectTransform: {fileID: 1462122529}
   _defaultPosition: {fileID: 521739670}
+  _selectableGroup: {fileID: 0}
 --- !u!1001 &349791804
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -12118,7 +12132,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: babbd3fa56f3442399eb4153cb95dd1e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UnityEngine.Selectable.NextText
-  _text: {fileID: 0}
+  _text: {fileID: 733478886}
   _nextRectTransformGroup: {fileID: 0}
 --- !u!114 &733478886
 MonoBehaviour:
@@ -16610,6 +16624,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1048470370}
   - component: {fileID: 1048470371}
+  - component: {fileID: 1048470372}
   m_Layer: 5
   m_Name: FirstSelect
   m_TagString: Untagged
@@ -16667,6 +16682,18 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!114 &1048470372
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1048470369}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa4390109c67411fb5cd1773a1283992, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SelectableManager
 --- !u!1 &1048634782
 GameObject:
   m_ObjectHideFlags: 0
@@ -26287,7 +26314,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: babbd3fa56f3442399eb4153cb95dd1e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UnityEngine.Selectable.NextText
-  _text: {fileID: 0}
+  _text: {fileID: 1688819669}
   _nextRectTransformGroup: {fileID: 0}
 --- !u!114 &1688819669
 MonoBehaviour:
@@ -27699,7 +27726,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: babbd3fa56f3442399eb4153cb95dd1e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UnityEngine.Selectable.NextText
-  _text: {fileID: 0}
+  _text: {fileID: 1786230484}
   _nextRectTransformGroup: {fileID: 0}
 --- !u!114 &1786230484
 MonoBehaviour:

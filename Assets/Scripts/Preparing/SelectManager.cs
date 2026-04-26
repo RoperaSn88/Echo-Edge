@@ -22,7 +22,7 @@ public class SelectManager : MonoBehaviour
     private Stack<Vector3> _placingStackOriginPos = new Stack<Vector3>();
 
     [SerializeField] private Transform _defaultPosition;
-    [SerializeField] private SelectableManager _selectableManager;
+    [SerializeField] private SelectableGroup _selectableGroup;
 
     public Vector3 DefaultPosition => _defaultPosition.position;
 
@@ -49,7 +49,7 @@ public class SelectManager : MonoBehaviour
     /// <returns></returns>
     async UniTask Selecting()
     {
-        ISelectableManager manager = _selectableManager;
+        ISelectableManager manager = _selectableGroup;
         while (manager != null)
         {
             manager = await manager.Selecting();

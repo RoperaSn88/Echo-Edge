@@ -14,6 +14,8 @@ namespace UnityEngine.Selectable
         /// </summary>
         [SerializeField]
         private RectTransform _nextRectTransformGroup;
+
+        private const float Duration = 0.5f;
         
         public override async UniTask OnDecide()
         {
@@ -38,17 +40,13 @@ namespace UnityEngine.Selectable
                 {
                     if (selectable == otherSelectables[otherSelectables.Length - 1])
                     {
-                        await selectable.DOLocalMoveX(800f, 1.0f).SetEase(Ease.InQuad).ToUniTask();
+                        await selectable.DOLocalMoveX(800f, Duration).SetEase(Ease.InQuad).ToUniTask();
                     }
                     else
                     {
-                        selectable.DOLocalMoveX(800f, 1.0f).SetEase(Ease.InQuad).ToUniTask();
+                        selectable.DOLocalMoveX(800f, Duration).SetEase(Ease.InQuad).ToUniTask();
                         await UniTask.Delay(100);
                     }
-                }
-                else
-                {
-                    Debug.Log("同じやで");
                 }
             }
             
@@ -57,7 +55,7 @@ namespace UnityEngine.Selectable
             
             // 次の選択肢を表示する
             _nextRectTransformGroup.gameObject.SetActive(true);
-            await _nextRectTransformGroup.DOMove(SelectManager.Instance.DefaultPosition, 1.0f).SetEase(Ease.OutQuad).ToUniTask();
+            await _nextRectTransformGroup.DOMove(SelectManager.Instance.DefaultPosition, Duration).SetEase(Ease.OutQuad).ToUniTask();
         }
     }
 }
