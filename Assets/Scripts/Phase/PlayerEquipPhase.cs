@@ -51,7 +51,7 @@ public class PlayerEquipPhase : IPhase
         switch (_clickKind)
         {
             case ClickKinds.Left:
-                return PlayerPhase.Instance;
+                return PlayerWeaponActivePhase.Instance;
             case ClickKinds.Right:
                 return PlayerWeaponPhase.Instance;
         }

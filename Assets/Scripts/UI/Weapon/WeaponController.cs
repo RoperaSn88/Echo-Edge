@@ -14,6 +14,11 @@ namespace UI.Weapon
         [SerializeField, Tooltip("選択されている武器のインデックス")]
         private int _selectedWeaponIndex = 0;
         
+        /// <summary>
+        /// 現在選択されている武器のインデックス
+        /// </summary>
+        public int SelectedWeaponIndex => _selectedWeaponIndex;
+        
         [SerializeField, Tooltip("プレゼンターを突っ込む")]
         private WeaponPresenter[] _presenters= new WeaponPresenter[2];
 
