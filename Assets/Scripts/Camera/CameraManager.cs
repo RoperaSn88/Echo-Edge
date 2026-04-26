@@ -364,7 +364,7 @@ public class CameraManager : MonoBehaviour
     /// <summary>
     /// カメラを上から元の位置に戻し始める
     /// </summary>
-    public async void ActMoveCameraToDefault()
+    public async UniTask ActMoveCameraToDefault()
     {
         // カメラが動いている最中ならばキャンセル
         if (_cameraMoving)

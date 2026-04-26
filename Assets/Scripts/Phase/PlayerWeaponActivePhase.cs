@@ -20,7 +20,7 @@ public class PlayerWeaponActivePhase : IPhase
     public async UniTask<IPhase> WaitPhase()
     {
         // カメラをもとの位置に戻す
-        CameraManager.Instance.ActMoveCameraToDefault();
+        await CameraManager.Instance.ActMoveCameraToDefault();
 
         // 選択された装備品の効果を発揮する
         IEquipEffect effect = CreateEquipEffect(WeaponController.Instance.SelectedWeaponIndex);

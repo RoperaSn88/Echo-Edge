@@ -2,6 +2,8 @@ using System;
 using Actions;
 using Cysharp.Threading.Tasks;
 using UI.Weapon;
+using Unity.Mathematics;
+using UnityEngine;
 using UnityEngine.InputSystem;
 
 /// <summary>
@@ -29,6 +31,17 @@ public class PlayerEquipPhase : IPhase
     /// </summary>
     private ClickKinds _clickKind;
 
+    /// <summary>
+    /// クリック時のマウスのスクリーン座標
+    /// </summary>
+    private Vector2 _clickMousePos;
+
+    /// <summary>
+    /// クリック位置の床座標から原点(0,0)までの距離(int)
+    /// </summary>
+    private int _targetFloorDistance;
+    public int TargetFloorDistance => _targetFloorDistance;
+
     public async UniTask<IPhase> WaitPhase()
     {
         // 装備品のUIを非表示にする
@@ -48,6 +61,18 @@ public class PlayerEquipPhase : IPhase
         _clickFlug = false;
         playerActions.Dispose();
 
+        // 左クリック時はカーソル位置の床座標を保存する
+        if (_clickKind == ClickKinds.Left)
+        {
+            _targetFloorDistance = -1;
+            Ray ray = Camera.main.ScreenPointToRay(_clickMousePos);
+            if (Physics.Raycast(ray, out RaycastHit rch, math.INFINITY, PlayerAttackPhase.LayerNumber))
+            {
+                var xz = new Vector2(rch.point.x, rch.point.z);
+                _targetFloorDistance = Mathf.RoundToInt(xz.magnitude);
+            }
+        }
+
         switch (_clickKind)
         {
             case ClickKinds.Left:
@@ -61,6 +86,7 @@ public class PlayerEquipPhase : IPhase
 
     private void OnPressAttack(InputAction.CallbackContext context)
     {
+        _clickMousePos = CameraManager.Instance.GetMousePosition();
         _clickKind = ClickKinds.Left;
         _clickFlug = true;
     }
