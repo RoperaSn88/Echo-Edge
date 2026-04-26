@@ -29,10 +29,63 @@ public class AudioManager : MonoBehaviour
     private CancellationTokenSource _addBgmFadeCancellation;
     private int _nextSeSourceIndex;
 
+    private float _masterVolume = 1.0f;
+    private float _bgmVolume = 1.0f;
+    private float _seVolume = 1.0f;
+
+    /// <summary>マスター音量 (0〜1)</summary>
+    public float MasterVolume => _masterVolume;
+
+    /// <summary>BGM音量 (0〜1)</summary>
+    public float BgmVolume => _bgmVolume;
+
+    /// <summary>SE音量 (0〜1)</summary>
+    public float SeVolume => _seVolume;
+
     private void Awake()
     {
         InitializeSeAudioSources();
         Instance = this;
+
+        // 初期音量を各AudioSourceへ反映する
+        AudioListener.volume = _masterVolume;
+        if (_bgmSource != null) _bgmSource.volume = _bgmVolume;
+        if (_additionalBgmSource != null) _additionalBgmSource.volume = _bgmVolume;
+        foreach (var source in _seSources)
+        {
+            if (source != null) source.volume = _seVolume;
+        }
+    }
+
+    /// <summary>
+    /// マスター音量を設定する
+    /// </summary>
+    public void SetMasterVolume(float volume)
+    {
+        _masterVolume = Mathf.Clamp01(volume);
+        AudioListener.volume = _masterVolume;
+    }
+
+    /// <summary>
+    /// BGM音量を設定する
+    /// </summary>
+    public void SetBgmVolume(float volume)
+    {
+        _bgmVolume = Mathf.Clamp01(volume);
+        if (_bgmSource != null) _bgmSource.volume = _bgmVolume;
+        if (_additionalBgmSource != null) _additionalBgmSource.volume = _bgmVolume;
+    }
+
+    /// <summary>
+    /// SE音量を設定する
+    /// </summary>
+    public void SetSeVolume(float volume)
+    {
+        _seVolume = Mathf.Clamp01(volume);
+        foreach (var source in _seSources)
+        {
+            if (source != null) source.volume = _seVolume;
+        }
     }
 
     public void PlayBgm(BgmAudioType bgmType, bool isLoop)
