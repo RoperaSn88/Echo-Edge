@@ -27,6 +27,11 @@ public class SelectManager : MonoBehaviour
     public Vector3 DefaultPosition => _defaultPosition.position;
 
     /// <summary>
+    /// スタックの最上位にあるRectTransform
+    /// </summary>
+    public RectTransform TopItem => _placingStack.Count > 0 ? _placingStack.Peek() : null;
+
+    /// <summary>
     /// 起動時
     /// </summary>
     async void Start()

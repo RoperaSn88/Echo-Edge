@@ -31,7 +31,15 @@ public class SelectableGroup : MonoBehaviour, ISelectableManager
 
     private RectTransform _rectTransform;
     
+    private RectTransform[] _children;
+    
     private const float Duration = 0.5f;
+
+    private void Start()
+    {
+        _rectTransform = GetComponent<RectTransform>();
+        _children = transform.GetComponentsInChildren<RectTransform>();
+    }
 
     /// <summary>
     /// 選択肢を決定済みとしてマークする
@@ -73,9 +81,8 @@ public class SelectableGroup : MonoBehaviour, ISelectableManager
     {
         _verticalLayoutGroup.enabled = false;
 
-        var selectables = transform.GetComponentsInChildren<RectTransform>();
         bool isFirst = true;
-        foreach (var selectable in selectables)
+        foreach (var selectable in _children)
         {
             if (isFirst)
             {
@@ -86,7 +93,7 @@ public class SelectableGroup : MonoBehaviour, ISelectableManager
             selectable.TryGetComponent<ISelectable>(out var item);
             if (item == _decidedItem) continue;
 
-            if (selectable == selectables[selectables.Length - 1])
+            if (selectable == _children[_children.Length - 1])
             {
                 await selectable.DOLocalMoveX(800f, Duration).SetEase(Ease.InQuad).ToUniTask();
             }
@@ -108,26 +115,31 @@ public class SelectableGroup : MonoBehaviour, ISelectableManager
     }
 
     /// <summary>
-    /// 戻り先グループを表示して所定位置へ移動させる
+    /// 戻り先グループの選択肢を元の位置に戻し、トップにある文字を元の位置へ戻す
     /// </summary>
     public async UniTask ShowBackGroup()
     {
-        if (_backRectTransformGroup != null)
+        if (_backRectTransformGroup == null) return;
+
+        // 戻り先グループの、トップ以外の選択肢を元の位置に戻す
+        var topItem = SelectManager.Instance.TopItem;
+        var backChildren = _backRectTransformGroup.GetComponentsInChildren<RectTransform>();
+        bool isFirst = true;
+        foreach (var child in backChildren)
         {
-            _backRectTransformGroup.gameObject.SetActive(true);
+            if (isFirst) { isFirst = false; continue; }
+            if (child == topItem) continue;
+            child.DOLocalMoveX(0f, Duration).SetEase(Ease.OutQuad);
+        }
 
-            var pos = _backRectTransformGroup.localPosition;
-            _backRectTransformGroup.localPosition = new Vector3(-800f, pos.y, pos.z);
+        // トップにある文字を元の位置に戻す
+        await SelectManager.Instance.RemoveFromTop();
 
-            await _backRectTransformGroup.DOMove(SelectManager.Instance.DefaultPosition, 0.8f)
-                .SetEase(Ease.OutQuad)
-                .ToUniTask();
-
-            var backLayout = _backRectTransformGroup.GetComponent<VerticalLayoutGroup>();
-            if (backLayout != null)
-            {
-                backLayout.enabled = true;
-            }
+        // 戻り先グループのレイアウトを再開
+        var backLayout = _backRectTransformGroup.GetComponent<VerticalLayoutGroup>();
+        if (backLayout != null)
+        {
+            backLayout.enabled = true;
         }
     }
     
@@ -136,11 +148,10 @@ public class SelectableGroup : MonoBehaviour, ISelectableManager
     /// </summary>
     public async UniTask ResetGroup()
     {
-        var selectables = transform.GetComponentsInChildren<RectTransform>();
         bool isFirst = true;
 
         await SelectManager.Instance.RemoveFromTop(); 
-        foreach (var selectable in selectables)
+        foreach (var selectable in _children)
         {
             if (isFirst)
             {
@@ -156,7 +167,7 @@ public class SelectableGroup : MonoBehaviour, ISelectableManager
             
             if (selectable != _rectTransform)
             {
-                if (selectable == selectables[selectables.Length - 1])
+                if (selectable == _children[_children.Length - 1])
                 {
                     await selectable.DOLocalMoveX(800f, Duration).SetEase(Ease.InQuad).ToUniTask();
                 }

@@ -6,11 +6,17 @@ namespace UnityEngine.Selectable{
     /// </summary>
     public class BackText : TMPSelectObject {
 
+        private SelectableGroup _group;
+
+        private void Start()
+        {
+            _group = GetComponentInParent<SelectableGroup>();
+        }
+
         public override async UniTask OnDecide()
         {
             // 戻り先グループを表示して所定位置へ
-            var group = GetComponentInParent<SelectableGroup>();
-            await group.ShowBackGroup();
+            await _group.ShowBackGroup();
         }
     }
 }
