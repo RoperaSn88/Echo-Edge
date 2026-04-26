@@ -1,3 +1,4 @@
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -21,6 +22,21 @@ public static class SceneLoader
         }
 
         SceneManager.LoadScene(sceneIndex, LoadSceneMode.Additive);
+    }
+
+    /// <summary>
+    /// シーンを追加ロードし、そのシーンがアンロードされるまで待機します。
+    /// </summary>
+    public static async UniTask AdditiveLoadAndWait(GameScene scene)
+    {
+        if (!TryGetSceneIndex(scene, out var sceneIndex))
+        {
+            return;
+        }
+
+        await SceneManager.LoadSceneAsync(sceneIndex, LoadSceneMode.Additive).ToUniTask();
+        var loadedScene = SceneManager.GetSceneByBuildIndex(sceneIndex);
+        await UniTask.WaitUntil(() => !loadedScene.isLoaded);
     }
 
     public static void Unload(GameScene scene)
