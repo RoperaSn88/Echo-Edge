@@ -5,7 +5,7 @@ using UnityEngine;
 /// 現在選択中の選択肢を管理するクラス。
 /// 決定済みの選択肢を追跡し、再選択されないよう管理する。
 /// </summary>
-public class SelectableManager : MonoBehaviour, UnityEngine.Selectable.ISelectableManager
+public class SelectableManager : MonoBehaviour, ISelectableManager
 {
     /// <summary>決定済みの選択肢</summary>
     private ISelectable _decidedItem;
@@ -29,7 +29,7 @@ public class SelectableManager : MonoBehaviour, UnityEngine.Selectable.ISelectab
     /// <summary>
     /// 選び始める時 - 決定済みでない選択肢から一つ選ばせる
     /// </summary>
-    public async UniTask<UnityEngine.Selectable.ISelectableManager> Selecting()
+    public async UniTask<ISelectableManager> Selecting()
     {
         ISelectable selected;
         do

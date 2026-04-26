@@ -49,7 +49,7 @@ public class SelectManager : MonoBehaviour
     /// <returns></returns>
     async UniTask Selecting()
     {
-        UnityEngine.Selectable.ISelectableManager manager = _selectableManager;
+        ISelectableManager manager = _selectableManager;
         while (manager != null)
         {
             manager = await manager.Selecting();
