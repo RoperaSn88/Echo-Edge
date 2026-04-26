@@ -30,6 +30,17 @@ namespace UI.Weapon
             Instance = this;
         }
 
+        /// <summary>
+        /// 全ての武器UIを即時非表示にする
+        /// </summary>
+        public void HideAllWeaponUIs()
+        {
+            foreach (var presenter in _presenters)
+            {
+                presenter.HideUIs();
+            }
+        }
+
         public async UniTask<WeaponActionType> SelectWeapon()
         {
             WeaponActionType result = WeaponActionType.Invalid;

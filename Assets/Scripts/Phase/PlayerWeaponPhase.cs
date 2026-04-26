@@ -20,11 +20,17 @@ public class PlayerWeaponPhase : IPhase
         await CameraManager.Instance.ActPlayerWeaponZoom(PlayerView.Instance.Transform.position);
         
         // 武器選びする
-        await WeaponController.Instance.SelectWeapon();
+        WeaponActionType result = await WeaponController.Instance.SelectWeapon();
         
         // キャンセル時の操作
         PlayerView.Instance.ResetRotateAnim();
         await CameraManager.Instance.ActResetCameraTarget();
+
+        // 武器が選択されたときは装備品使用フェーズへ遷移する
+        if (result == WeaponActionType.Press)
+        {
+            return PlayerEquipPhase.Instance;
+        }
         
         return PlayerPhase.Instance;
     }
