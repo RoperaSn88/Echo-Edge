@@ -74,12 +74,6 @@ namespace UnityEngine
             if(_raycastResults.Count == 0) return null;
             if (_raycastResults[0].gameObject.TryGetComponent(out ISelectable selectInterface))
             {
-                // 決定済みの選択肢は選択不可
-                if (Selectable.SelectableManager.Instance != null &&
-                    Selectable.SelectableManager.Instance.IsDecided(selectInterface))
-                {
-                    return null;
-                }
                 return selectInterface;
             }
             return null;
