@@ -17,6 +17,11 @@ public class PlayerView: MonoBehaviour
     [SerializeField]
     private SpriteRenderer _renderer;
 
+    /// <summary>
+    /// 現在のプレイヤーのスプライト
+    /// </summary>
+    public Sprite CurrentSprite => _renderer.sprite;
+
     private readonly Vector3 SkillRotationAngle = new Vector3(0, -40f, 0);
     private const float AnimTime = 0.6f;
 

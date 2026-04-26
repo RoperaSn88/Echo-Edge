@@ -59,6 +59,23 @@ public class PlayerController: MonoBehaviour
 
     private const float Speed = 23;
 
+    /// <summary>
+    /// 残像オブジェクトプール
+    /// </summary>
+    [SerializeField]
+    private AfterimagePool _afterimagePool;
+
+    /// <summary>
+    /// 残像を出現させる移動距離の間隔
+    /// </summary>
+    [SerializeField, Tooltip("残像を出現させる移動距離の間隔")]
+    private float _afterimageInterval = 1f;
+
+    /// <summary>
+    /// 最後に残像を出現させた位置
+    /// </summary>
+    private Vector3 _lastAfterimagePosition;
+
     public void Start()
     {
         Instance = this;
@@ -94,7 +111,9 @@ public class PlayerController: MonoBehaviour
                 var distance = Vector3.Distance(_ray.origin, _hit.point);
                 // プレイヤーを移動する
                 _vec.Set(_hit.point.x, _hit.point.y, _hit.point.z);
-                await transform.DOMove(_vec, distance / Speed);
+                _lastAfterimagePosition = transform.position;
+                await transform.DOMove(_vec, distance / Speed)
+                    .OnUpdate(SpawnAfterimageIfNeeded);
 
                 _direction = Vector3.Reflect(_direction, _hit.normal);
                 if(i != _reflectCount - 1) _pos = _playerTransform.position;
@@ -122,6 +141,35 @@ public class PlayerController: MonoBehaviour
         {
             atatta = true;
             Debug.Log("aaaaaaa");
+        }
+    }
+
+    /// <summary>
+    /// 一定距離移動した場合に残像を出現させる。DOTweenのOnUpdateコールバックから呼ばれる。
+    /// </summary>
+    private void SpawnAfterimageIfNeeded()
+    {
+        if (_afterimagePool == null) return;
+        if (Vector3.Distance(transform.position, _lastAfterimagePosition) >= _afterimageInterval)
+        {
+            _lastAfterimagePosition = transform.position;
+            SpawnAfterimage(transform.position, transform.rotation);
+        }
+    }
+
+    /// <summary>
+    /// 残像をオブジェクトプールから取り出し、指定した位置・回転で出現させる。
+    /// </summary>
+    private async UniTaskVoid SpawnAfterimage(Vector3 position, Quaternion rotation)
+    {
+        var pooledObject = await _afterimagePool.GetPooledObject();
+        if (pooledObject is AfterimageObject afterimage)
+        {
+            afterimage.AfterimageAppear(
+                PlayerView.Instance.CurrentSprite,
+                position,
+                rotation
+            ).Forget();
         }
     }
 
