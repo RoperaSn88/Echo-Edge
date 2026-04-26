@@ -30,6 +30,22 @@ public class MapManager: MonoBehaviour
     /// </summary>
     private Vector3 vector;
 
+    /// <summary>
+    /// マップ配置のベースとなるオブジェクトのTransform
+    /// </summary>
+    [SerializeField]
+    private Transform _baseTransform;
+
+    /// <summary>
+    /// マップ配置のベース座標を返す
+    /// </summary>
+    public Vector3 GetBasePos()
+    {
+        if (_baseTransform == null)
+            throw new InvalidOperationException("MapManager: _baseTransform が設定されていません。インスペクターで割り当ててください。");
+        return _baseTransform.position;
+    }
+
     public void Start()
     {
         Instance = this;

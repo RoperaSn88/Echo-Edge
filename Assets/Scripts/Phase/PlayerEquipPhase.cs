@@ -37,10 +37,10 @@ public class PlayerEquipPhase : IPhase
     private Vector2 _clickMousePos;
 
     /// <summary>
-    /// クリック位置の床座標から原点(0,0)までの距離(int)
+    /// クリック位置の床座標をマップベース座標からのオフセット(Vector2Int)で保存する
     /// </summary>
-    private int _targetFloorDistance;
-    public int TargetFloorDistance => _targetFloorDistance;
+    private Vector2Int _targetFloorPos;
+    public Vector2Int TargetFloorPos => _targetFloorPos;
 
     public async UniTask<IPhase> WaitPhase()
     {
@@ -64,12 +64,15 @@ public class PlayerEquipPhase : IPhase
         // 左クリック時はカーソル位置の床座標を保存する
         if (_clickKind == ClickKinds.Left)
         {
-            _targetFloorDistance = -1;
+            _targetFloorPos = new Vector2Int(int.MinValue, int.MinValue);
             Ray ray = Camera.main.ScreenPointToRay(_clickMousePos);
             if (Physics.Raycast(ray, out RaycastHit rch, math.INFINITY, PlayerAttackPhase.LayerNumber))
             {
-                var xz = new Vector2(rch.point.x, rch.point.z);
-                _targetFloorDistance = Mathf.RoundToInt(xz.magnitude);
+                Vector3 basePos = MapManager.Instance.GetBasePos();
+                _targetFloorPos = new Vector2Int(
+                    Mathf.RoundToInt(rch.point.x - basePos.x),
+                    Mathf.RoundToInt(rch.point.z - basePos.z)
+                );
             }
         }
 
