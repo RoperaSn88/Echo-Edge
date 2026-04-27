@@ -19,6 +19,13 @@ public class PlayerPhase: IPhase
     private ClickKinds _clickKind;
 
     /// <summary>
+    /// ポーズ操作が行われたか検知するブール
+    /// </summary>
+    private bool _pauseFlug;
+
+    private const int OptionSceneBuildIndex = 3;
+
+    /// <summary>
     /// プレイヤーフェーズのインスタンス
     /// </summary>
     private static PlayerPhase _instance;
@@ -33,30 +40,44 @@ public class PlayerPhase: IPhase
     {
         // 初期条件
         _clickFlug = false;
+        _pauseFlug = false;
         Debug.Log("Player Phase");
         PlayerActions playerActions = new PlayerActions();
         EnableController(playerActions);
 
-        // 押させるのを待つ
-        await UniTask.WaitUntil(()=>_clickFlug);
-        
-        // 右クリックか左クリックか識別する。
-        _clickFlug = false;
-
-        switch (_clickKind)
+        while (true)
         {
-            case ClickKinds.Left:
-                CameraManager.Instance.ActMoveCameraToTopAngle();
-                await UniTask.WaitUntil(()=>_clickFlug);
-                ResetController(playerActions);
-                return PlayerAttackPhase.Instance;
-            case ClickKinds.Right:
-                // 右クリック時
-                ResetController(playerActions);
-                return PlayerWeaponPhase.Instance;
-        }
+            // クリックまたはポーズ操作を待つ
+            await UniTask.WaitUntil(() => _clickFlug || _pauseFlug);
 
-        throw new InvalidOperationException("クリックがうまくできない謎のエラーです");
+            if (_pauseFlug)
+            {
+                _pauseFlug = false;
+                _clickFlug = false;
+                Time.timeScale = 0;
+                await SceneLoader.AdditiveLoadAndWait(OptionSceneBuildIndex);
+                Time.timeScale = 1;
+                continue;
+            }
+
+            // 右クリックか左クリックか識別する。
+            _clickFlug = false;
+
+            switch (_clickKind)
+            {
+                case ClickKinds.Left:
+                    CameraManager.Instance.ActMoveCameraToTopAngle();
+                    await UniTask.WaitUntil(() => _clickFlug);
+                    ResetController(playerActions);
+                    return PlayerAttackPhase.Instance;
+                case ClickKinds.Right:
+                    // 右クリック時
+                    ResetController(playerActions);
+                    return PlayerWeaponPhase.Instance;
+            }
+
+            throw new InvalidOperationException("クリックがうまくできない謎のエラーです");
+        }
     }
 
     public void EnableController(PlayerActions playerActions)
@@ -64,6 +85,7 @@ public class PlayerPhase: IPhase
         playerActions.PlayerPhase.Attack.started += OnPressAttack;
         playerActions.PlayerPhase.Attack.canceled += OnReleaseAttack;
         playerActions.PlayerPhase.Skill.started += OnPressSkill;
+        playerActions.PlayerPhase.Pause.started += OnPressPause;
         playerActions.Enable();
     }
 
@@ -87,5 +109,10 @@ public class PlayerPhase: IPhase
     public void OnReleaseAttack(InputAction.CallbackContext context)
     {
         _clickFlug = true;
+    }
+
+    public void OnPressPause(InputAction.CallbackContext context)
+    {
+        _pauseFlug = true;
     }
 }
