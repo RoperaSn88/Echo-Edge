@@ -122,7 +122,7 @@ public class SelectableGroup : MonoBehaviour, ISelectableManager
     public async UniTask ShowNextGroup()
     {
         _nextRectTransformGroup.gameObject.SetActive(true);
-        await _nextRectTransformGroup.DOMove(SelectManager.Instance.DefaultPosition, Duration).SetEase(Ease.OutQuad).ToUniTask();
+        await _nextRectTransformGroup.DOLocalMove(SelectManager.Instance.DefaultLocalPosition, Duration).SetEase(Ease.OutQuad).ToUniTask();
     }
 
     /// <summary>
