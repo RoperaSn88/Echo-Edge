@@ -1,4 +1,5 @@
-﻿using DG.Tweening;
+﻿using System;
+using DG.Tweening;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
@@ -104,6 +105,16 @@ public class SelectableGroup : MonoBehaviour, ISelectableManager
             }
         }
     }
+    
+    /// <summary>
+    /// 選択時、グループ全体を右に退避させる
+    /// </summary>
+    public async UniTask MoveSelectables()
+    {
+        await _rectTransform.DOLocalMoveX(_rectTransform.localPosition.x + 800f, Duration).SetEase(Ease.InQuad).ToUniTask();
+        
+        MarkAsDecided(null);
+    }
 
     /// <summary>
     /// 次の選択肢グループを表示して所定位置へ移動させる
@@ -127,9 +138,14 @@ public class SelectableGroup : MonoBehaviour, ISelectableManager
         bool isFirst = true;
         foreach (var child in backChildren)
         {
-            if (isFirst) { isFirst = false; continue; }
+            if (isFirst)
+            {
+                isFirst = false;
+                continue;
+            }
             if (child == topItem) continue;
-            child.DOLocalMoveX(0f, Duration).SetEase(Ease.OutQuad);
+            
+            child.DOLocalMoveX(-125f, Duration).SetEase(Ease.OutQuad);
         }
 
         // トップにある文字を元の位置に戻す
@@ -165,18 +181,18 @@ public class SelectableGroup : MonoBehaviour, ISelectableManager
                 continue;
             }
             
-            if (selectable != _rectTransform)
+            if (selectable == _children[_children.Length - 1])
             {
-                if (selectable == _children[_children.Length - 1])
-                {
-                    await selectable.DOLocalMoveX(800f, Duration).SetEase(Ease.InQuad).ToUniTask();
-                }
-                else
-                {
-                    selectable.DOLocalMoveX(800f, Duration).SetEase(Ease.InQuad).ToUniTask().Forget();
-                }
+                await selectable.DOLocalMoveX(-125f, Duration).SetEase(Ease.InQuad).ToUniTask();
+            }
+            else
+            {
+                selectable.DOLocalMoveX(-125f, Duration).SetEase(Ease.InQuad).ToUniTask().Forget();
+                await UniTask.Delay(100);
             }
         }
+        
+        await UniTask.Delay(TimeSpan.FromSeconds(Duration));
         
         MarkAsDecided(null);
         _verticalLayoutGroup.enabled = true;
