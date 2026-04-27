@@ -3,9 +3,13 @@
 /// </summary>
 public enum OptionResult
 {
-    /// <summary>閉じる（Escキーまたは閉じるテキスト）</summary>
+    /// <summary>
+    /// 閉じる（Escキーまたは閉じるテキスト）
+    /// </summary>
     Close,
 
-    /// <summary>リタイア</summary>
+    /// <summary>
+    /// リタイア
+    /// </summary>
     Retire,
 }
