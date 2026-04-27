@@ -17,40 +17,66 @@ public class OptionSceneController : MonoBehaviour
     private const float TweenDuration = 0.5f;
     private const float RetireDisabledAlpha = 0.5f;
 
-    /// <summary>画面外に配置するための画面幅に対する追加オフセット</summary>
-    [SerializeField, Tooltip("スライドイン/アウト時の画面外X位置オフセット（正の値）")]
+    /// <summary>
+    /// 画面外に配置するための画面幅に対する追加オフセット
+    /// </summary>
+    [SerializeField]
+    [Tooltip("スライドイン/アウト時の画面外X位置オフセット（正の値）")]
     private float _offScreenXOffset = 200f;
 
-    /// <summary>音量スライダー・テキストなどをまとめたグループ</summary>
-    [SerializeField] private RectTransform _group;
+    /// <summary>
+    /// 音量スライダー・テキストなどをまとめたグループ
+    /// </summary>
+    [SerializeField]
+    private RectTransform _group;
 
-    /// <summary>マスター音量スライダー</summary>
-    [SerializeField] private Slider _masterVolumeSlider;
+    /// <summary>
+    /// マスター音量スライダー
+    /// </summary>
+    [SerializeField]
+    private Slider _masterVolumeSlider;
 
-    /// <summary>BGM音量スライダー</summary>
-    [SerializeField] private Slider _bgmVolumeSlider;
+    /// <summary>
+    /// BGM音量スライダー
+    /// </summary>
+    [SerializeField]
+    private Slider _bgmVolumeSlider;
 
-    /// <summary>SE音量スライダー</summary>
-    [SerializeField] private Slider _seVolumeSlider;
+    /// <summary>
+    /// SE音量スライダー
+    /// </summary>
+    [SerializeField]
+    private Slider _seVolumeSlider;
 
-    /// <summary>リタイアテキスト（表示用）</summary>
-    [SerializeField] private TextMeshProUGUI _retireText;
+    /// <summary>
+    /// リタイアテキスト（表示用）
+    /// </summary>
+    [SerializeField]
+    private TextMeshProUGUI _retireText;
 
-    /// <summary>リタイアボタン（クリック検知用）</summary>
-    [SerializeField] private Button _retireButton;
+    /// <summary>
+    /// リタイアボタン（クリック検知用）
+    /// </summary>
+    [SerializeField]
+    private Button _retireButton;
 
-    /// <summary>閉じるボタン（クリック検知用）</summary>
-    [SerializeField] private Button _closeButton;
+    /// <summary>
+    /// 閉じるボタン（クリック検知用）
+    /// </summary>
+    [SerializeField]
+    private Button _closeButton;
 
     private Vector2 _onScreenAnchoredPosition;
     private bool _closeRequested;
     private bool _retireRequested;
     private CancellationTokenSource _cts;
+    private UnityEngine.UI.Image _retireButtonImage;
 
     private void Awake()
     {
         // 画面上のデザイン位置を記録する
         _onScreenAnchoredPosition = _group.anchoredPosition;
+        _retireButtonImage = _retireButton != null ? _retireButton.GetComponent<UnityEngine.UI.Image>() : null;
     }
 
     private Vector2 GetOffScreenAnchoredPosition()
@@ -134,11 +160,21 @@ public class OptionSceneController : MonoBehaviour
     private void SetRetireInteractable(bool canRetire)
     {
         _retireButton.interactable = canRetire;
-        if (!canRetire && _retireText != null)
+        if (!canRetire)
         {
-            var color = _retireText.color;
-            color.a = RetireDisabledAlpha;
-            _retireText.color = color;
+            if (_retireText != null)
+            {
+                var textColor = _retireText.color;
+                textColor.a = RetireDisabledAlpha;
+                _retireText.color = textColor;
+            }
+
+            if (_retireButtonImage != null)
+            {
+                var imageColor = _retireButtonImage.color;
+                imageColor.a = RetireDisabledAlpha;
+                _retireButtonImage.color = imageColor;
+            }
         }
     }
 

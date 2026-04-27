@@ -33,13 +33,19 @@ public class AudioManager : MonoBehaviour
     private float _bgmVolume = 1.0f;
     private float _seVolume = 1.0f;
 
-    /// <summary>マスター音量 (0〜1)</summary>
+    /// <summary>
+    /// マスター音量 (0〜1)
+    /// </summary>
     public float MasterVolume => _masterVolume;
 
-    /// <summary>BGM音量 (0〜1)</summary>
+    /// <summary>
+    /// BGM音量 (0〜1)
+    /// </summary>
     public float BgmVolume => _bgmVolume;
 
-    /// <summary>SE音量 (0〜1)</summary>
+    /// <summary>
+    /// SE音量 (0〜1)
+    /// </summary>
     public float SeVolume => _seVolume;
 
     private void Awake()
@@ -47,7 +53,11 @@ public class AudioManager : MonoBehaviour
         InitializeSeAudioSources();
         Instance = this;
 
-        // 初期音量を各AudioSourceへ反映する
+        // PlayerPrefsから音量を読み込み、各AudioSourceへ反映する
+        _masterVolume = AudioVolumeSaveManager.LoadMasterVolume();
+        _bgmVolume = AudioVolumeSaveManager.LoadBgmVolume();
+        _seVolume = AudioVolumeSaveManager.LoadSeVolume();
+
         AudioListener.volume = _masterVolume;
         if (_bgmSource != null) _bgmSource.volume = _bgmVolume;
         if (_additionalBgmSource != null) _additionalBgmSource.volume = _bgmVolume;
@@ -64,6 +74,7 @@ public class AudioManager : MonoBehaviour
     {
         _masterVolume = Mathf.Clamp01(volume);
         AudioListener.volume = _masterVolume;
+        AudioVolumeSaveManager.SaveVolumes(_masterVolume, _bgmVolume, _seVolume);
     }
 
     /// <summary>
@@ -74,6 +85,7 @@ public class AudioManager : MonoBehaviour
         _bgmVolume = Mathf.Clamp01(volume);
         if (_bgmSource != null) _bgmSource.volume = _bgmVolume;
         if (_additionalBgmSource != null) _additionalBgmSource.volume = _bgmVolume;
+        AudioVolumeSaveManager.SaveVolumes(_masterVolume, _bgmVolume, _seVolume);
     }
 
     /// <summary>
@@ -86,6 +98,7 @@ public class AudioManager : MonoBehaviour
         {
             if (source != null) source.volume = _seVolume;
         }
+        AudioVolumeSaveManager.SaveVolumes(_masterVolume, _bgmVolume, _seVolume);
     }
 
     public void PlayBgm(BgmAudioType bgmType, bool isLoop)
