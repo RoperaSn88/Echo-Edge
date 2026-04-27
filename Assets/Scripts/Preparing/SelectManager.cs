@@ -64,7 +64,7 @@ public class SelectManager : MonoBehaviour
     public async UniTask PlaceAtTop(RectTransform rectTransform)
     {
         //対象の元の位置を保存しておく
-        _placingStackOriginPos.Push(rectTransform.position);
+        _placingStackOriginPos.Push(rectTransform.anchoredPosition);
         
         // すでにスタックしてるやつらは右にズラす
         if (_placingStack.Count != 0)
@@ -87,14 +87,16 @@ public class SelectManager : MonoBehaviour
         if (_placingStack.Count == 0) return;
         
         // 最上位にいたやつを元の位置に戻す
-        _placingStack.Pop();
+        var targetRect = _placingStack.Pop();
         var originPos = _placingStackOriginPos.Pop();
-        await _topRectTransform.DOMove(originPos, 0.5f).SetEase(Ease.OutQuad);
+        targetRect.DOMove(originPos, 0.5f).SetEase(Ease.OutQuad).ToUniTask().Forget();
         
         // スタックしてるやつらを左にズラす
         foreach (var rect in _placingStack)
         {
             rect.DOMoveX(rect.position.x - 600f, 0.5f).SetEase(Ease.InQuad);
         }
+        
+        await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
     }
 }

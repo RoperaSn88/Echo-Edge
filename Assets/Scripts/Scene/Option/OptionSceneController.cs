@@ -14,8 +14,11 @@ using UnityEngine.UI;
 /// </summary>
 public class OptionSceneController : MonoBehaviour
 {
-    private const float TweenDuration = 0.5f;
-    private const float RetireDisabledAlpha = 0.5f;
+    private const float TweenDuration = 1.0f;
+    private const float RetireDisabledAlpha = 0.05f;
+    
+    [SerializeField]
+    private Canvas _canvas;
 
     /// <summary>
     /// 画面外に配置するための画面幅に対する追加オフセット
@@ -70,13 +73,16 @@ public class OptionSceneController : MonoBehaviour
     private bool _closeRequested;
     private bool _retireRequested;
     private CancellationTokenSource _cts;
-    private UnityEngine.UI.Image _retireButtonImage;
+    private Camera _uiCamera;
 
     private void Awake()
     {
+        _uiCamera = GameObject.FindGameObjectWithTag("UICamera").GetComponent<Camera>();
+        _canvas.worldCamera = _uiCamera;
+        
         // 画面上のデザイン位置を記録する
         _onScreenAnchoredPosition = _group.anchoredPosition;
-        _retireButtonImage = _retireButton != null ? _retireButton.GetComponent<UnityEngine.UI.Image>() : null;
+        OpenAsync(false).Forget();
     }
 
     private Vector2 GetOffScreenAnchoredPosition()
@@ -167,13 +173,6 @@ public class OptionSceneController : MonoBehaviour
                 var textColor = _retireText.color;
                 textColor.a = RetireDisabledAlpha;
                 _retireText.color = textColor;
-            }
-
-            if (_retireButtonImage != null)
-            {
-                var imageColor = _retireButtonImage.color;
-                imageColor.a = RetireDisabledAlpha;
-                _retireButtonImage.color = imageColor;
             }
         }
     }
