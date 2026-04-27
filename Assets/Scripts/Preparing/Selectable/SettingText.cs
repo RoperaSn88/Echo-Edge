@@ -7,9 +7,11 @@ namespace UnityEngine.Selectable
     /// </summary>
     public class SettingText : TMPSelectObject
     {
+        private const int OptionSceneBuildIndex = 3;
+
         public override async UniTask OnDecide()
         {
-            await SceneLoader.AdditiveLoadAndWait(GameScene.Option);
+            await SceneLoader.AdditiveLoadAndWait(OptionSceneBuildIndex);
         }
     }
 }

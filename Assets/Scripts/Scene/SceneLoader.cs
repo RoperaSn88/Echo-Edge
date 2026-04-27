@@ -34,6 +34,20 @@ public static class SceneLoader
             return;
         }
 
+        await AdditiveLoadAndWait(sceneIndex);
+    }
+
+    /// <summary>
+    /// ビルドインデックスで指定されたシーンを追加ロードし、アンロードされるまで待機します。
+    /// </summary>
+    public static async UniTask AdditiveLoadAndWait(int sceneIndex)
+    {
+        if (sceneIndex < 0 || sceneIndex >= SceneManager.sceneCountInBuildSettings)
+        {
+            Debug.LogError($"Build Settings にシーンインデックス {sceneIndex} が存在しません");
+            return;
+        }
+
         await SceneManager.LoadSceneAsync(sceneIndex, LoadSceneMode.Additive).ToUniTask();
         var loadedScene = SceneManager.GetSceneByBuildIndex(sceneIndex);
         await UniTask.WaitUntil(() => !loadedScene.isLoaded);

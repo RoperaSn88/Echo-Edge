@@ -23,6 +23,8 @@ public class PlayerPhase: IPhase
     /// </summary>
     private bool _pauseFlug;
 
+    private const int OptionSceneBuildIndex = 3;
+
     /// <summary>
     /// プレイヤーフェーズのインスタンス
     /// </summary>
@@ -53,7 +55,7 @@ public class PlayerPhase: IPhase
                 _pauseFlug = false;
                 _clickFlug = false;
                 Time.timeScale = 0;
-                await SceneLoader.AdditiveLoadAndWait(GameScene.Option);
+                await SceneLoader.AdditiveLoadAndWait(OptionSceneBuildIndex);
                 Time.timeScale = 1;
                 continue;
             }
