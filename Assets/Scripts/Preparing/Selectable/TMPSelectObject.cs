@@ -3,6 +3,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 
 /// <summary>
@@ -23,7 +24,7 @@ public abstract class TMPSelectObject : MonoBehaviour, ISelectable
     
     [NonSerialized]
     public RectTransform RectTransform;
-
+    
     private CancellationTokenSource _cts;
     private bool _isDecided = false;
 

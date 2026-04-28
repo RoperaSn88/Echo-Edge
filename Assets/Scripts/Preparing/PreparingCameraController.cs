@@ -12,19 +12,22 @@ public class PreparingCameraController : MonoBehaviour
     /// インスタンス
     /// </summary>
     public static PreparingCameraController Instance;
+    
+    [SerializeField]
+    private Transform _cameraTransform;
 
     [Header("前方向（左）")]
     /// <summary>
     /// 前方向の移動先
     /// </summary>
     [SerializeField]
-    private Transform _forwardTarget;
+    private Vector3 _forwardTarget;
 
     /// <summary>
     /// 前方向の曲線移動中継点
     /// </summary>
     [SerializeField]
-    private Transform[] _forwardWaypoints;
+    private Vector3[] _forwardWaypoints;
 
     [Header("右方向")]
     /// <summary>
@@ -36,15 +39,16 @@ public class PreparingCameraController : MonoBehaviour
     /// <summary>
     /// 移動にかける時間
     /// </summary>
-    [SerializeField]
-    private float _duration = 1.0f;
+    private const float _forwardDuration = 2.5f;
+    
+    private const float _rightDuration = 1.5f;
 
     private Vector3 _startPosition;
 
     private void Awake()
     {
         Instance = this;
-        _startPosition = transform.position;
+        _startPosition = _cameraTransform.position;
     }
 
     /// <summary>
@@ -59,7 +63,7 @@ public class PreparingCameraController : MonoBehaviour
         }
 
         var points = BuildForwardPath();
-        await transform.DOPath(points, _duration, PathType.CatmullRom)
+        await _cameraTransform.DOPath(points, _forwardDuration, PathType.CatmullRom)
             .SetEase(Ease.InOutQuad)
             .ToUniTask();
     }
@@ -74,11 +78,11 @@ public class PreparingCameraController : MonoBehaviour
         for (int i = 0; i < waypointCount; i++)
         {
             if (_forwardWaypoints[waypointCount - 1 - i] == null) continue;
-            points[i] = _forwardWaypoints[waypointCount - 1 - i].position;
+            points[i] = _forwardWaypoints[waypointCount - 1 - i];
         }
         points[points.Length - 1] = _startPosition;
 
-        await transform.DOPath(points, _duration, PathType.CatmullRom)
+        await _cameraTransform.DOPath(points, _forwardDuration, PathType.CatmullRom)
             .SetEase(Ease.InOutQuad)
             .ToUniTask();
     }
@@ -88,7 +92,7 @@ public class PreparingCameraController : MonoBehaviour
     /// </summary>
     public async UniTask MoveRight()
     {
-        await transform.DOMoveX(_rightTargetX, _duration)
+        await _cameraTransform.DOMoveX(_rightTargetX, _rightDuration)
             .SetEase(Ease.InOutQuad)
             .ToUniTask();
     }
@@ -103,9 +107,9 @@ public class PreparingCameraController : MonoBehaviour
         for (int i = 0; i < waypointCount; i++)
         {
             if (_forwardWaypoints[i] == null) continue;
-            points[i] = _forwardWaypoints[i].position;
+            points[i] = _forwardWaypoints[i];
         }
-        points[points.Length - 1] = _forwardTarget.position;
+        points[points.Length - 1] = _forwardTarget;
         return points;
     }
 }

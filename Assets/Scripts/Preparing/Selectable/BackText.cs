@@ -4,9 +4,16 @@ namespace UnityEngine.Selectable{
     /// <summary>
     /// 選択時、前の選択肢へ戻すテキストを管理するクラス
     /// </summary>
-    public class BackText : TMPSelectObject {
-
+    public class BackText : TMPSelectObject
+    {
         private SelectableGroup _group;
+        
+        /// <summary>
+        /// 次の選択肢を表示するグループ。選択されたときにこのグループに遷移する。
+        /// </summary>
+        [SerializeField]
+        private RectTransform _selectableGroup;
+
 
         private void Start()
         {
@@ -15,11 +22,10 @@ namespace UnityEngine.Selectable{
 
         public override async UniTask OnDecide()
         {
-            Debug.Log("MoveSelectables");
+            _group.SetBackSelectableGroup(_selectableGroup);
             await _group.MoveSelectables();
             // 戻り先グループを表示して所定位置へ
             
-            Debug.Log("ShowBackGroup");
             await _group.ShowBackGroup();
         }
     }

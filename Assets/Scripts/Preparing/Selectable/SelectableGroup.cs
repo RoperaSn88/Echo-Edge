@@ -59,6 +59,16 @@ public class SelectableGroup : MonoBehaviour, ISelectableManager
     {
         return _decidedItem == selectable;
     }
+    
+    public void SetNextSelectableGroup(RectTransform group)
+    {
+        _nextRectTransformGroup = group;
+    }
+    
+    public void SetBackSelectableGroup(RectTransform group)
+    {
+        _backRectTransformGroup = group;
+    }
 
     /// <summary>
     /// 選び始める時 - 決定済みでない選択肢から一つ選ばせる
@@ -72,9 +82,9 @@ public class SelectableGroup : MonoBehaviour, ISelectableManager
         } while (selected == null || IsDecided(selected));
 
         MarkAsDecided(selected);
-        Debug.Log("Selected: " + selected);
+        
         await MoveSelectablesExcept();
-        Debug.Log("Moved except decided item");
+        
         await selected.OnDecide();
         return this;
     }
@@ -84,7 +94,6 @@ public class SelectableGroup : MonoBehaviour, ISelectableManager
     /// </summary>
     public async UniTask MoveSelectablesExcept()
     {
-        Debug.Log("MoveSelectablesExcept: " + gameObject.name);
         _verticalLayoutGroup.enabled = false;
 
         bool isFirst = true;

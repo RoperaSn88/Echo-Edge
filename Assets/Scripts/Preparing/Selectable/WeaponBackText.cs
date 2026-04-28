@@ -7,6 +7,12 @@ namespace UnityEngine.Selectable
     /// </summary>
     public class WeaponBackText : TMPSelectObject
     {
+        /// <summary>
+        /// 次の選択肢を表示するグループ。選択されたときにこのグループに遷移する。
+        /// </summary>
+        [SerializeField]
+        private RectTransform _selectableGroup;
+        
         private SelectableGroup _group;
 
         private void Start()
@@ -20,6 +26,8 @@ namespace UnityEngine.Selectable
 
         public override async UniTask OnDecide()
         {
+            _group.SetBackSelectableGroup(_selectableGroup);
+            await _group.MoveSelectables();
             // Preparing シーン専用カメラを始点へ戻す
             if (PreparingCameraController.Instance != null)
             {
