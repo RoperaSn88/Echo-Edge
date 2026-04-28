@@ -23,8 +23,11 @@ namespace UnityEngine.Selectable
             // 上に移動させる
             await SelectManager.Instance.PlaceAtTop(RectTransform);
 
-            // カメラを移動させる
-            await CameraManager.Instance.ActMoveCameraToDefault();
+            // Preparing シーン専用カメラを移動させる
+            if (PreparingCameraController.Instance != null)
+            {
+                await PreparingCameraController.Instance.MoveToTarget();
+            }
 
             // 次の選択肢を表示する
             await _group.ShowNextGroup();

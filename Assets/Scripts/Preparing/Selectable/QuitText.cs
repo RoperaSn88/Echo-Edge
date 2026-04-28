@@ -9,7 +9,11 @@ namespace UnityEngine.Selectable
     {
         public override UniTask OnDecide()
         {
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+#else
             Application.Quit();
+#endif
             return UniTask.CompletedTask;
         }
     }

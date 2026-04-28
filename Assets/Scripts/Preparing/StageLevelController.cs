@@ -1,12 +1,10 @@
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 /// <summary>
 /// ステージのレベルを調節するスクリプト。
-/// Imageオブジェクトに追加して使用する。
 /// </summary>
-[RequireComponent(typeof(Image))]
 public class StageLevelController : MonoBehaviour
 {
     /// <summary>
@@ -15,9 +13,50 @@ public class StageLevelController : MonoBehaviour
     [SerializeField]
     private TextMeshProUGUI _levelText;
 
+    /// <summary>
+    /// レベルを増加させるボタン（ClickableImage）
+    /// </summary>
+    [SerializeField]
+    private ClickableImage _incrementButton;
+
+    /// <summary>
+    /// レベルを減少させるボタン（ClickableImage）
+    /// </summary>
+    [SerializeField]
+    private ClickableImage _decrementButton;
+
+    private ClickAction _incrementAction;
+    private ClickAction _decrementAction;
+
     private void Start()
     {
+        _incrementAction = _ => IncrementLevel();
+        _decrementAction = _ => DecrementLevel();
+
+        if (_incrementButton != null)
+        {
+            _incrementButton.OnClick += _incrementAction;
+        }
+
+        if (_decrementButton != null)
+        {
+            _decrementButton.OnClick += _decrementAction;
+        }
+
         UpdateLevelText();
+    }
+
+    private void OnDestroy()
+    {
+        if (_incrementButton != null)
+        {
+            _incrementButton.OnClick -= _incrementAction;
+        }
+
+        if (_decrementButton != null)
+        {
+            _decrementButton.OnClick -= _decrementAction;
+        }
     }
 
     /// <summary>
