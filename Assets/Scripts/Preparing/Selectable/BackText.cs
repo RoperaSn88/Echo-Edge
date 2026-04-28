@@ -15,8 +15,11 @@ namespace UnityEngine.Selectable{
 
         public override async UniTask OnDecide()
         {
+            Debug.Log("MoveSelectables");
             await _group.MoveSelectables();
             // 戻り先グループを表示して所定位置へ
+            
+            Debug.Log("ShowBackGroup");
             await _group.ShowBackGroup();
         }
     }
