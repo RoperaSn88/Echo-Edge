@@ -24,12 +24,17 @@ public class SelectManager : MonoBehaviour
     [SerializeField] private Transform _defaultPosition;
     [SerializeField] private SelectableGroup _selectableGroup;
 
-    public Vector3 DefaultPosition => _defaultPosition.position;
+    public Vector3 DefaultLocalPosition => _defaultPosition.localPosition;
 
     /// <summary>
     /// スタックの最上位にあるRectTransform
     /// </summary>
     public RectTransform TopItem => _placingStack.Count > 0 ? _placingStack.Peek() : null;
+
+    /// <summary>
+    /// 指定されたRectTransformがトップ配置スタックに含まれているか確認する
+    /// </summary>
+    public bool IsPlacedAtTop(RectTransform rect) => _placingStack.Contains(rect);
 
     /// <summary>
     /// 起動時
@@ -64,21 +69,21 @@ public class SelectManager : MonoBehaviour
     public async UniTask PlaceAtTop(RectTransform rectTransform)
     {
         //対象の元の位置を保存しておく
-        _placingStackOriginPos.Push(rectTransform.anchoredPosition);
+        _placingStackOriginPos.Push(rectTransform.localPosition);
         
         // すでにスタックしてるやつらは右にズラす
         if (_placingStack.Count != 0)
         {
             foreach (var rect in _placingStack)
             {
-                rect.DOMoveX(rect.position.x + 600f, 0.5f).SetEase(Ease.InQuad);
+                rect.DOLocalMoveX(rect.localPosition.x + 600f, 0.5f).SetEase(Ease.InQuad);
             }
         }
 
         await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
         
         // 新しいやつをスタックしてるやつの上に置く
-        await rectTransform.DOMoveY(_topRectTransform.position.y, 0.5f).SetEase(Ease.OutQuad);
+        await rectTransform.DOLocalMoveY(_topRectTransform.localPosition.y, 0.5f).SetEase(Ease.OutQuad);
         _placingStack.Push(rectTransform);
     }
     
@@ -89,12 +94,12 @@ public class SelectManager : MonoBehaviour
         // 最上位にいたやつを元の位置に戻す
         var targetRect = _placingStack.Pop();
         var originPos = _placingStackOriginPos.Pop();
-        targetRect.DOMove(originPos, 0.5f).SetEase(Ease.OutQuad).ToUniTask().Forget();
+        targetRect.DOLocalMove(originPos, 0.5f).SetEase(Ease.OutQuad).ToUniTask().Forget();
         
         // スタックしてるやつらを左にズラす
         foreach (var rect in _placingStack)
         {
-            rect.DOMoveX(rect.position.x - 600f, 0.5f).SetEase(Ease.InQuad);
+            rect.DOLocalMoveX(rect.localPosition.x - 600f, 0.5f).SetEase(Ease.InQuad);
         }
         
         await UniTask.Delay(TimeSpan.FromSeconds(0.5f));

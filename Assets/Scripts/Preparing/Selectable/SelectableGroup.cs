@@ -47,7 +47,9 @@ public class SelectableGroup : MonoBehaviour, ISelectableManager
     /// </summary>
     public void MarkAsDecided(ISelectable selectable)
     {
+        if (_decidedItem is TMPSelectObject prevTmp) prevTmp.SetDecided(false);
         _decidedItem = selectable;
+        if (_decidedItem is TMPSelectObject newTmp) newTmp.SetDecided(true);
     }
 
     /// <summary>
@@ -70,7 +72,9 @@ public class SelectableGroup : MonoBehaviour, ISelectableManager
         } while (selected == null || IsDecided(selected));
 
         MarkAsDecided(selected);
+        Debug.Log("Selected: " + selected);
         await MoveSelectablesExcept();
+        Debug.Log("Moved except decided item");
         await selected.OnDecide();
         return this;
     }
@@ -80,6 +84,7 @@ public class SelectableGroup : MonoBehaviour, ISelectableManager
     /// </summary>
     public async UniTask MoveSelectablesExcept()
     {
+        Debug.Log("MoveSelectablesExcept: " + gameObject.name);
         _verticalLayoutGroup.enabled = false;
 
         bool isFirst = true;
@@ -93,6 +98,7 @@ public class SelectableGroup : MonoBehaviour, ISelectableManager
 
             selectable.TryGetComponent<ISelectable>(out var item);
             if (item == _decidedItem) continue;
+            if (SelectManager.Instance.IsPlacedAtTop(selectable)) continue;
 
             if (selectable == _children[_children.Length - 1])
             {
@@ -122,7 +128,7 @@ public class SelectableGroup : MonoBehaviour, ISelectableManager
     public async UniTask ShowNextGroup()
     {
         _nextRectTransformGroup.gameObject.SetActive(true);
-        await _nextRectTransformGroup.DOMove(SelectManager.Instance.DefaultPosition, Duration).SetEase(Ease.OutQuad).ToUniTask();
+        await _nextRectTransformGroup.DOLocalMove(SelectManager.Instance.DefaultLocalPosition, Duration).SetEase(Ease.OutQuad).ToUniTask();
     }
 
     /// <summary>
