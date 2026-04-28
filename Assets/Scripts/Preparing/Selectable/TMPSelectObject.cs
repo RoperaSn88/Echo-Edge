@@ -25,6 +25,15 @@ public abstract class TMPSelectObject : MonoBehaviour, ISelectable
     public RectTransform RectTransform;
 
     private CancellationTokenSource _cts;
+    private bool _isDecided = false;
+
+    /// <summary>
+    /// 決定済みフラグを設定する。trueの場合はDeSelectによるサイズリセットを行わない。
+    /// </summary>
+    public void SetDecided(bool decided)
+    {
+        _isDecided = decided;
+    }
 
     private void Awake()
     {
@@ -72,9 +81,11 @@ public abstract class TMPSelectObject : MonoBehaviour, ISelectable
 
     /// <summary>
     /// カーソルの選択が外れた場合の処理。文字サイズを150から90にDOTweenでアニメーションさせ、rect.heightも調整する。
+    /// 決定済みの場合はサイズをリセットしない。
     /// </summary>
     public async void OnDeselect()
     {
+        if (_isDecided) return;
         var ct = ResetCancellationToken();
         await UniTask.WhenAll(
             DOTween.To(() => _text.fontSize, x => _text.fontSize = x, DeselectedFontSize, TweenDuration).ToUniTask(cancellationToken: ct),

@@ -47,7 +47,9 @@ public class SelectableGroup : MonoBehaviour, ISelectableManager
     /// </summary>
     public void MarkAsDecided(ISelectable selectable)
     {
+        if (_decidedItem is TMPSelectObject prevTmp) prevTmp.SetDecided(false);
         _decidedItem = selectable;
+        if (_decidedItem is TMPSelectObject newTmp) newTmp.SetDecided(true);
     }
 
     /// <summary>
