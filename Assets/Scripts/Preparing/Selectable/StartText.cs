@@ -23,6 +23,12 @@ namespace UnityEngine.Selectable
 
         public override async UniTask OnDecide()
         {
+            // カメラを右方向に移動させる
+            if (PreparingCameraController.Instance != null)
+            {
+                await PreparingCameraController.Instance.MoveRight();
+            }
+
             if (_panel != null)
             {
                 _panel.gameObject.SetActive(true);

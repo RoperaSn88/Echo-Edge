@@ -4,7 +4,7 @@ using UnityEngine;
 
 /// <summary>
 /// Preparing シーン専用のカメラ移動を管理するクラス。
-/// あらかじめ設定した座標へ曲線移動する。
+/// あらかじめ設定した座標へ曲線移動する。前方向・右方向の双方向に遷移できる。
 /// </summary>
 public class PreparingCameraController : MonoBehaviour
 {
@@ -13,17 +13,31 @@ public class PreparingCameraController : MonoBehaviour
     /// </summary>
     public static PreparingCameraController Instance;
 
+    [Header("前方向（左）")]
     /// <summary>
-    /// 移動先の座標
+    /// 前方向の移動先
     /// </summary>
     [SerializeField]
-    private Transform _targetPosition;
+    private Transform _forwardTarget;
 
     /// <summary>
-    /// 曲線移動の中継点（経由地点）
+    /// 前方向の曲線移動中継点
     /// </summary>
     [SerializeField]
-    private Transform[] _waypoints;
+    private Transform[] _forwardWaypoints;
+
+    [Header("右方向")]
+    /// <summary>
+    /// 右方向の移動先
+    /// </summary>
+    [SerializeField]
+    private Transform _rightTarget;
+
+    /// <summary>
+    /// 右方向の曲線移動中継点
+    /// </summary>
+    [SerializeField]
+    private Transform[] _rightWaypoints;
 
     /// <summary>
     /// 移動にかける時間
@@ -37,23 +51,39 @@ public class PreparingCameraController : MonoBehaviour
     }
 
     /// <summary>
-    /// あらかじめ設定した座標へ中継点を経由した曲線移動を行う。
+    /// 前方向（左）へ中継点を経由した曲線移動を行う。
     /// </summary>
     public async UniTask MoveToTarget()
     {
-        if (_targetPosition == null)
+        await MoveAlongPath(_forwardWaypoints, _forwardTarget, "前方向");
+    }
+
+    /// <summary>
+    /// 右方向へ中継点を経由した曲線移動を行う。
+    /// </summary>
+    public async UniTask MoveRight()
+    {
+        await MoveAlongPath(_rightWaypoints, _rightTarget, "右方向");
+    }
+
+    /// <summary>
+    /// 指定された中継点と目標座標へ曲線移動する共通処理。
+    /// </summary>
+    private async UniTask MoveAlongPath(Transform[] waypoints, Transform target, string directionName)
+    {
+        if (target == null)
         {
-            Debug.LogWarning($"{nameof(PreparingCameraController)}: 移動先の座標が設定されていません。");
+            Debug.LogWarning($"{nameof(PreparingCameraController)}: {directionName}の移動先座標が設定されていません。");
             return;
         }
 
-        // 中継点 + 目標点の配列を構築
-        var points = new Vector3[_waypoints.Length + 1];
-        for (int i = 0; i < _waypoints.Length; i++)
+        var waypointCount = waypoints?.Length ?? 0;
+        var points = new Vector3[waypointCount + 1];
+        for (int i = 0; i < waypointCount; i++)
         {
-            points[i] = _waypoints[i].position;
+            points[i] = waypoints[i].position;
         }
-        points[_waypoints.Length] = _targetPosition.position;
+        points[points.Length - 1] = target.position;
 
         await transform.DOPath(points, _duration, PathType.CatmullRom)
             .SetEase(Ease.InOutQuad)
