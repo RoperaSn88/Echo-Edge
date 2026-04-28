@@ -4,7 +4,7 @@ using UnityEngine;
 
 /// <summary>
 /// Preparing シーン専用のカメラ移動を管理するクラス。
-/// あらかじめ設定した座標へ曲線移動する。前方向・右方向の双方向に遷移できる。
+/// 前方向へ中継点を経由した曲線移動、その逆方向への復帰、右方向への直線移動をサポートする。
 /// </summary>
 public class PreparingCameraController : MonoBehaviour
 {
@@ -28,16 +28,10 @@ public class PreparingCameraController : MonoBehaviour
 
     [Header("右方向")]
     /// <summary>
-    /// 右方向の移動先
+    /// 右方向の移動先 X 座標
     /// </summary>
     [SerializeField]
-    private Transform _rightTarget;
-
-    /// <summary>
-    /// 右方向の曲線移動中継点
-    /// </summary>
-    [SerializeField]
-    private Transform[] _rightWaypoints;
+    private float _rightTargetX;
 
     /// <summary>
     /// 移動にかける時間
@@ -45,48 +39,73 @@ public class PreparingCameraController : MonoBehaviour
     [SerializeField]
     private float _duration = 1.0f;
 
+    private Vector3 _startPosition;
+
     private void Awake()
     {
         Instance = this;
+        _startPosition = transform.position;
     }
 
     /// <summary>
     /// 前方向（左）へ中継点を経由した曲線移動を行う。
     /// </summary>
-    public async UniTask MoveToTarget()
+    public async UniTask MoveForward()
     {
-        await MoveAlongPath(_forwardWaypoints, _forwardTarget, "前方向");
-    }
-
-    /// <summary>
-    /// 右方向へ中継点を経由した曲線移動を行う。
-    /// </summary>
-    public async UniTask MoveRight()
-    {
-        await MoveAlongPath(_rightWaypoints, _rightTarget, "右方向");
-    }
-
-    /// <summary>
-    /// 指定された中継点と目標座標へ曲線移動する共通処理。
-    /// </summary>
-    private async UniTask MoveAlongPath(Transform[] waypoints, Transform target, string directionName)
-    {
-        if (target == null)
+        if (_forwardTarget == null)
         {
-            Debug.LogWarning($"{nameof(PreparingCameraController)}: {directionName}の移動先座標が設定されていません。");
+            Debug.LogWarning($"{nameof(PreparingCameraController)}: 前方向の移動先座標が設定されていません。");
             return;
         }
 
-        var waypointCount = waypoints?.Length ?? 0;
+        var points = BuildForwardPath();
+        await transform.DOPath(points, _duration, PathType.CatmullRom)
+            .SetEase(Ease.InOutQuad)
+            .ToUniTask();
+    }
+
+    /// <summary>
+    /// 前方向の中継点を逆順にたどって始点へ戻る曲線移動を行う。
+    /// </summary>
+    public async UniTask MoveBack()
+    {
+        var waypointCount = _forwardWaypoints?.Length ?? 0;
         var points = new Vector3[waypointCount + 1];
         for (int i = 0; i < waypointCount; i++)
         {
-            points[i] = waypoints[i].position;
+            if (_forwardWaypoints[waypointCount - 1 - i] == null) continue;
+            points[i] = _forwardWaypoints[waypointCount - 1 - i].position;
         }
-        points[points.Length - 1] = target.position;
+        points[points.Length - 1] = _startPosition;
 
         await transform.DOPath(points, _duration, PathType.CatmullRom)
             .SetEase(Ease.InOutQuad)
             .ToUniTask();
+    }
+
+    /// <summary>
+    /// 右方向へ X 軸直線移動を行う。
+    /// </summary>
+    public async UniTask MoveRight()
+    {
+        await transform.DOMoveX(_rightTargetX, _duration)
+            .SetEase(Ease.InOutQuad)
+            .ToUniTask();
+    }
+
+    /// <summary>
+    /// 前方向の中継点と目標座標を結合したパスを構築する。
+    /// </summary>
+    private Vector3[] BuildForwardPath()
+    {
+        var waypointCount = _forwardWaypoints?.Length ?? 0;
+        var points = new Vector3[waypointCount + 1];
+        for (int i = 0; i < waypointCount; i++)
+        {
+            if (_forwardWaypoints[i] == null) continue;
+            points[i] = _forwardWaypoints[i].position;
+        }
+        points[points.Length - 1] = _forwardTarget.position;
+        return points;
     }
 }

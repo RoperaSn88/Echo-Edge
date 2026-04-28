@@ -3,9 +3,9 @@ using Cysharp.Threading.Tasks;
 namespace UnityEngine.Selectable
 {
     /// <summary>
-    /// 選択時、カメラを移動させ次の選択肢グループを表示するテキストを管理するクラス
+    /// 選択時、カメラを移動させ武器パラメータ調整の選択肢グループを表示するテキストを管理するクラス
     /// </summary>
-    public class CameraNextText : TMPSelectObject
+    public class WeaponNextText : TMPSelectObject
     {
         private SelectableGroup _group;
 
@@ -14,7 +14,7 @@ namespace UnityEngine.Selectable
             _group = GetComponentInParent<SelectableGroup>();
             if (_group == null)
             {
-                Debug.LogError($"{nameof(CameraNextText)}: SelectableGroup が親オブジェクトに見つかりません。");
+                Debug.LogError($"{nameof(WeaponNextText)}: SelectableGroup が親オブジェクトに見つかりません。");
             }
         }
 
@@ -26,7 +26,7 @@ namespace UnityEngine.Selectable
             // Preparing シーン専用カメラを移動させる
             if (PreparingCameraController.Instance != null)
             {
-                await PreparingCameraController.Instance.MoveToTarget();
+                await PreparingCameraController.Instance.MoveForward();
             }
 
             // 次の選択肢を表示する
