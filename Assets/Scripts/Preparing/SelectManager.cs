@@ -32,6 +32,11 @@ public class SelectManager : MonoBehaviour
     public RectTransform TopItem => _placingStack.Count > 0 ? _placingStack.Peek() : null;
 
     /// <summary>
+    /// 指定されたRectTransformがトップ配置スタックに含まれているか確認する
+    /// </summary>
+    public bool IsPlacedAtTop(RectTransform rect) => _placingStack.Contains(rect);
+
+    /// <summary>
     /// 起動時
     /// </summary>
     async void Start()

@@ -98,6 +98,7 @@ public class SelectableGroup : MonoBehaviour, ISelectableManager
 
             selectable.TryGetComponent<ISelectable>(out var item);
             if (item == _decidedItem) continue;
+            if (SelectManager.Instance.IsPlacedAtTop(selectable)) continue;
 
             if (selectable == _children[_children.Length - 1])
             {
