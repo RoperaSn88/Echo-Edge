@@ -16,8 +16,8 @@ public abstract class TMPSelectObject : MonoBehaviour, ISelectable
     private const float DeselectedFontSize = 90f;
     private const float TweenDuration = 0.2f;
 
-    private readonly Vector2 DefaultSize = new Vector2(450.01f,120.01f);
-    private readonly Vector2 SelectSize = new Vector2(750.01f,150.01f);
+    private readonly Vector2 DefaultSize = new Vector2(600.01f,120.01f);
+    private readonly Vector2 SelectSize = new Vector2(900.01f,150.01f);
 
     [SerializeField]
     private TextMeshProUGUI _text;
