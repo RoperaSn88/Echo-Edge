@@ -16,7 +16,7 @@ MonoBehaviour:
   m_GUID: 66a1a5f39fa4bad43a571f3a47cc6f39
   m_SerializeEntries:
   - m_GUID: 1f118d5e95b62574eb426102960b9294
-    m_Address: Assets/Addressables/Audio/BGM/tTitle.wav
+    m_Address: Assets/Addressables/Audio/BGM/Title.wav
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

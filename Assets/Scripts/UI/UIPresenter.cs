@@ -43,6 +43,9 @@ public class UIPresenter : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
+            var c = _fadePanel.color;
+            c.a = 1f;
+            _fadePanel.color = c;
         }
         else
         {

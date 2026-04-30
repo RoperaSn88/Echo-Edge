@@ -20,6 +20,7 @@ public class StartPhase : IPhase
         await MapManager.Instance.BuildStageFromCsv();
 
         // 3. Panelをフェードイン
+        await AudioManager.Instance.PlayBgm(BgmAudioType.Battle, true);
         await UIPresenter.Instance.FadeInAsync();
 
         return PlayerPhase.Instance;

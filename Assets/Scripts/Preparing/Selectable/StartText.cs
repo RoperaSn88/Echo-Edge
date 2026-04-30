@@ -1,3 +1,4 @@
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine.UI;
@@ -19,7 +20,7 @@ namespace UnityEngine.Selectable
         /// フェード時間
         /// </summary>
         [SerializeField]
-        private float _fadeDuration = 1.0f;
+        private float _fadeDuration;
 
         public override async UniTask OnDecide()
         {
@@ -30,7 +31,8 @@ namespace UnityEngine.Selectable
 
             await UniTask.WhenAll(
                 PreparingCameraController.Instance.MoveRight(),
-                _panel.DOFade(1f, _fadeDuration).ToUniTask()
+                _panel.DOFade(1f, _fadeDuration).ToUniTask(),
+                AudioManager.Instance.FadeBGMAsync(_fadeDuration, CancellationToken.None)
             );
 
             SceneLoader.Load(GameScene.MainGame);

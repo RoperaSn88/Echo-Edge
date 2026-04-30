@@ -41,7 +41,7 @@ public class PreparingCameraController : MonoBehaviour
     /// </summary>
     private const float _forwardDuration = 2.5f;
     
-    private const float _rightDuration = 1.5f;
+    private const float _rightDuration = 2.5f;
 
     private Vector3 _startPosition;
 
@@ -93,7 +93,7 @@ public class PreparingCameraController : MonoBehaviour
     public async UniTask MoveRight()
     {
         await _cameraTransform.DOMoveX(_rightTargetX, _rightDuration)
-            .SetEase(Ease.InOutQuad)
+            .SetEase(Ease.InQuad)
             .ToUniTask();
     }
 
