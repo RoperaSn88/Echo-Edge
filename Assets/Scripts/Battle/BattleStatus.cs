@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -50,9 +52,16 @@ public class BattleStatus : IDamagable
     /// </summary>
     public int Energy => _energy;
 
+    /// <summary>
+    /// 現在かかっているバフのリスト (バフ, 残りターン数)
+    /// </summary>
+    [NonSerialized]
+    private List<(IBuff buff, int remainingTurns)> _activeBuffs = new();
+
     public void Initialize()
     {
         MaxHP = HP;
+        _activeBuffs = new List<(IBuff, int)>();
     }
 
     /// <summary>
@@ -68,6 +77,46 @@ public class BattleStatus : IDamagable
         MovePattern = movePattern;
         _experience = experience;
         _energy = energy;
+    }
+
+    /// <summary>
+    /// 指定した種類のバフが現在かかっているか確認する
+    /// </summary>
+    public bool HasBuff(BuffKinds kind)
+    {
+        return _activeBuffs.Any(b => b.buff.GetBuffKinds() == kind);
+    }
+
+    /// <summary>
+    /// バフを付与し、ターン数つきで管理リストに追加する
+    /// </summary>
+    /// <param name="buff">付与するバフ</param>
+    /// <param name="durationTurns">効果が続くターン数</param>
+    public void AddBuff(IBuff buff, int durationTurns)
+    {
+        buff.Buff(this);
+        _activeBuffs.Add((buff, durationTurns));
+    }
+
+    /// <summary>
+    /// EnemyPhase開始時に呼び出し、バフの残りターンを減らして期限切れのバフを消す
+    /// </summary>
+    public void TickBuffs()
+    {
+        for (int i = _activeBuffs.Count - 1; i >= 0; i--)
+        {
+            var (buff, remaining) = _activeBuffs[i];
+            remaining--;
+            if (remaining <= 0)
+            {
+                buff.RemoveBuff(this);
+                _activeBuffs.RemoveAt(i);
+            }
+            else
+            {
+                _activeBuffs[i] = (buff, remaining);
+            }
+        }
     }
 
     /// <summary>

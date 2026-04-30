@@ -10,6 +10,11 @@ public class HPBuff : IBuff
         targetStatus.HP = (int)(targetStatus.HP * HPbuff);
     }
 
+    public void RemoveBuff(BattleStatus targetStatus)
+    {
+        targetStatus.HP = (int)(targetStatus.HP / HPbuff);
+    }
+
     public BuffKinds GetBuffKinds()
     {
         return kind;

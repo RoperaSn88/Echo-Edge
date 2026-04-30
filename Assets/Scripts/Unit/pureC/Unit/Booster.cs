@@ -1,5 +1,7 @@
 ﻿using Cysharp.Threading.Tasks;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Unit.pureC.Unit
@@ -8,6 +10,8 @@ namespace Unit.pureC.Unit
     {
         private const float PlayerDamageRate = 1.0f;
         private const float SpecificRate = 0.2f;
+        private const int BuffDurationTurns = 3;
+
         /// <inheritdoc/>
         public async UniTask Attack()
         {
@@ -44,8 +48,22 @@ namespace Unit.pureC.Unit
         /// <inheritdoc/>
         public async UniTask Specific(int selfHeight, int selfWidth)
         {
-            return;
-            throw new System.NotImplementedException();
+            if (MapManager.Instance == null) return;
+
+            List<(IUnit unit, int h, int w)> allUnits = MapManager.Instance.GetUnitPositionsSnapshot();
+
+            // 他の敵がバフをかかっていないならばSpecificを発動する
+            bool anyOtherBuffed = allUnits
+                .Where(u => u.h != selfHeight || u.w != selfWidth)
+                .Any(u => u.unit.GetStatus().HasBuff(BuffKinds.Move));
+
+            if (anyOtherBuffed) return;
+
+            // 全ての敵のBattleStatusのmoveを1上昇させる
+            foreach (var unitInfo in allUnits)
+            {
+                unitInfo.unit.GetStatus().AddBuff(new MoveBuff(), BuffDurationTurns);
+            }
         }
 
         /// <inheritdoc/>
