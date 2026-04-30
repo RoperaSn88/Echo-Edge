@@ -50,12 +50,23 @@ namespace UI
         private Color RedColor;
         
         /// <summary>
+        /// プレイヤーのバトルステータス
+        /// </summary>
+        private BattleStatus _playerBattleStatus;
+
+        /// <summary>
+        /// プレイヤーのバトルステータスを取得するプロパティ
+        /// </summary>
+        public BattleStatus PlayerBattleStatus => _playerBattleStatus;
+
+        /// <summary>
         /// 初期値設定。コンストラクタでできたら嬉しいなぁ...
         /// </summary>
         private void Start()
         {
             ColorUtility.TryParseHtmlString("#6593E6", out DefaultColor);
             ColorUtility.TryParseHtmlString("#E67A65", out RedColor);
+            _playerBattleStatus = PlayerSwordParameterHolder.GetBattleStatus();
             Instance = this;
         }
 
