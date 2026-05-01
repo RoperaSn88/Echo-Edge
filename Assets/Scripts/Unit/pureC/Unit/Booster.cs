@@ -1,7 +1,6 @@
 ﻿using Cysharp.Threading.Tasks;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace Unit.pureC.Unit
@@ -56,14 +55,7 @@ namespace Unit.pureC.Unit
 
             List<(IUnit unit, int h, int w)> allUnits = MapManager.Instance.GetUnitPositionsSnapshot();
 
-            // 他の敵がバフをかかっていないならばSpecificを発動する
-            bool anyOtherBuffed = allUnits
-                .Where(u => u.h != selfHeight || u.w != selfWidth)
-                .Any(u => u.unit.GetStatus().HasBuff(BuffKinds.Move));
-
-            if (anyOtherBuffed) return;
-
-            // 全ての敵のBattleStatusのmoveを1上昇させる
+            // 全ての敵のBattleStatusのmoveを1上昇させる（1体につき1つバフ、既にある場合はAddBuff内でスキップ）
             foreach (var unitInfo in allUnits)
             {
                 unitInfo.unit.GetStatus().AddBuff(new MoveBuff(), BuffDurationTurns);

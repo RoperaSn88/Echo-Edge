@@ -88,12 +88,14 @@ public class BattleStatus : IDamagable
     }
 
     /// <summary>
-    /// バフを付与し、ターン数つきで管理リストに追加する
+    /// バフを付与し、ターン数つきで管理リストに追加する。
+    /// 同じ種類のバフが既に付与されている場合は何もしない（1体につき1種類1つまで）。
     /// </summary>
     /// <param name="buff">付与するバフ</param>
     /// <param name="durationTurns">効果が続くターン数</param>
     public void AddBuff(IBuff buff, int durationTurns)
     {
+        if (HasBuff(buff.GetBuffKinds())) return;
         buff.Buff(this);
         _activeBuffs.Add((buff, durationTurns));
     }
