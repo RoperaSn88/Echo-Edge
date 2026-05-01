@@ -42,10 +42,10 @@ namespace CommonUI.Tutorial
         /// <summary>
         /// チュートリアルの表示を開始する
         /// </summary>
-        public void StartTutorial()
+        public async void StartTutorial()
         {
             gameObject.SetActive(true);
-            _ = ShowTutorialAsync(_cts.Token);
+            await ShowTutorialAsync(_cts.Token);
         }
 
         /// <summary>

@@ -141,7 +141,7 @@ public class CreditSceneController : MonoBehaviour
         string text = "";
         foreach (var tmp in _credits)
         {
-            text = ZString.Concat(text, '\n', tmp.CreditName, '\n', tmp.CreditIntroduction, '\n');
+            text = ZString.Concat(text,"-------------------------" ,'\n', tmp.CreditName, '\n', tmp.CreditIntroduction, '\n');
         }
         _creditText.text = text;
     }
