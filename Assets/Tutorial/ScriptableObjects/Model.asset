@@ -1,0 +1,332 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c5170c4cf9c4f8681fdfadd51d60994, type: 3}
+  m_Name: Model
+  m_EditorClassIdentifier: 
+  _models:
+  - _character: {fileID: 0}
+    _position: 4
+    _radiusVerticalOffset: 0
+    _radiusHorizontalOffset: 0
+    _models:
+    - _text: "\u3053\u308C\u306F\u30C1\u30E5\u30FC\u30C8\u30EA\u30A2\u30EB\u3067\u3059\u3002\n\u30B9\u30AD\u30C3\u30D7\u30DC\u30BF\u30F3\u3092\u9577\u62BC\u3057\u3059\u308C\u3070\n\u4EE5\u964D\u306E\u30C6\u30AD\u30B9\u30C8\u3092\u98DB\u3070\u3059\u3053\u3068\u304C\u3067\u304D\u307E\u3059\u3002"
+      _coachMark:
+        _shape: 0
+        _isGradiate: 0
+        _radius: 0
+        _paddingRadius: 0
+        _gradiateRadius: 0
+        _targetObjectName: Canvas/SafeArea/Image
+      _isFingerIconEnabled: 0
+      _fingerIconDirection: 0
+      _isEffectEnabled: 0
+    - _text: "\u53F3\u30AF\u30EA\u30C3\u30AF/\u53F3\u77E2\u5370\u3067\u6B21\u306E\u30DA\u30FC\u30B8\u306B\u9032\u307F\u307E\u3059"
+      _coachMark:
+        _shape: 0
+        _isGradiate: 0
+        _radius: 0
+        _paddingRadius: 0
+        _gradiateRadius: 0
+        _targetObjectName: Canvas/SafeArea/Image
+      _isFingerIconEnabled: 0
+      _fingerIconDirection: 0
+      _isEffectEnabled: 0
+    - _text: "\u5DE6\u77E2\u5370\u3067\u524D\u306E\u30DA\u30FC\u30B8\u306B\u9032\u307F\u307E\u3059"
+      _coachMark:
+        _shape: 0
+        _isGradiate: 0
+        _radius: 0
+        _paddingRadius: 0
+        _gradiateRadius: 0
+        _targetObjectName: Canvas/SafeArea/Image
+      _isFingerIconEnabled: 0
+      _fingerIconDirection: 0
+      _isEffectEnabled: 0
+    - _text: "\u30AA\u30D6\u30B8\u30A7\u30AF\u30C8\u306E\u540D\u524D\u3092\u6307\u5B9A\u3059\u308B\u3053\u3068\u3067\u3001\u305D\u306E\u30AA\u30D6\u30B8\u30A7\u30AF\u30C8\u306B\u30D5\u30A9\u30FC\u30AB\u30B9\u304C\u3067\u304D\u307E\u3059"
+      _coachMark:
+        _shape: 0
+        _isGradiate: 0
+        _radius: 0
+        _paddingRadius: 0
+        _gradiateRadius: 0
+        _targetObjectName: Canvas/SafeArea/Tutorial/TextBaseLong
+      _isFingerIconEnabled: 0
+      _fingerIconDirection: 0
+      _isEffectEnabled: 0
+    - _text: "\u30D5\u30A9\u30FC\u30AB\u30B9\u3057\u305F\u6642\u306E\u7BC4\u56F2\u3092\u8ABF\u6574\u3059\u308B\u3053\u3068\u304C\u3067\u304D\u307E\u3059"
+      _coachMark:
+        _shape: 0
+        _isGradiate: 0
+        _radius: 100
+        _paddingRadius: 0
+        _gradiateRadius: 0
+        _targetObjectName: Canvas/SafeArea/Image
+      _isFingerIconEnabled: 0
+      _fingerIconDirection: 0
+      _isEffectEnabled: 0
+    - _text: "UI\u3067\u306F\u306A\u3044\u30AA\u30D6\u30B8\u30A7\u30AF\u30C8\u306B\u306F\u5186\u5F62\u306E\u30D5\u30A9\u30FC\u30AB\u30B9\u304C\u9069\u7528\u3055\u308C\u307E\u3059"
+      _coachMark:
+        _shape: 0
+        _isGradiate: 0
+        _radius: 150
+        _paddingRadius: 0
+        _gradiateRadius: 0
+        _targetObjectName: Cube
+      _isFingerIconEnabled: 0
+      _fingerIconDirection: 0
+      _isEffectEnabled: 0
+    - _text: "\u30B0\u30E9\u30C7\u30FC\u30B7\u30E7\u30F3\u53EF\u80FD"
+      _coachMark:
+        _shape: 0
+        _isGradiate: 1
+        _radius: 150
+        _paddingRadius: 0
+        _gradiateRadius: 1
+        _targetObjectName: Canvas/SafeArea/Tutorial/TextBaseLong
+      _isFingerIconEnabled: 0
+      _fingerIconDirection: 0
+      _isEffectEnabled: 0
+    - _text: "\u30B0\u30E9\u30C7\u30FC\u30B7\u30E7\u30F3\u53EF\u80FD"
+      _coachMark:
+        _shape: 0
+        _isGradiate: 1
+        _radius: 150
+        _paddingRadius: 0
+        _gradiateRadius: 1
+        _targetObjectName: Cube
+      _isFingerIconEnabled: 0
+      _fingerIconDirection: 0
+      _isEffectEnabled: 0
+  - _character: {fileID: 21300000, guid: 7f057f520ffea421aac530982cf7625d, type: 3}
+    _position: 4
+    _radiusVerticalOffset: 0
+    _radiusHorizontalOffset: 0
+    _models:
+    - _text: "\u753B\u50CF\u3092\u8A2D\u5B9A\u3059\u308C\u3070\u30AD\u30E3\u30E9\u30AF\u30BF\u30FC\u98A8\u306E\u30B3\u30FC\u30C1\u30DE\u30FC\u30AF\u306B\u306A\u308A\u307E\u3059\n"
+      _coachMark:
+        _shape: 0
+        _isGradiate: 0
+        _radius: 0
+        _paddingRadius: 0
+        _gradiateRadius: 0
+        _targetObjectName: Canvas/SafeArea/Tutorial/TextBase
+      _isFingerIconEnabled: 0
+      _fingerIconDirection: 0
+      _isEffectEnabled: 0
+  - _character: {fileID: 0}
+    _position: 0
+    _radiusVerticalOffset: 0
+    _radiusHorizontalOffset: 0
+    _models:
+    - _text: "8\u65B9\u5411+\u4E2D\u592E\u306B\u30B3\u30FC\u30C1\u30DE\u30FC\u30AF\u3092\u8A2D\u5B9A\u3067\u304D\u307E\u3059"
+      _coachMark:
+        _shape: 0
+        _isGradiate: 0
+        _radius: 0
+        _paddingRadius: 0
+        _gradiateRadius: 0
+        _targetObjectName: Canvas/SafeArea/Tutorial/TextBaseLong
+      _isFingerIconEnabled: 0
+      _fingerIconDirection: 0
+      _isEffectEnabled: 0
+  - _character: {fileID: 0}
+    _position: 1
+    _radiusVerticalOffset: 0
+    _radiusHorizontalOffset: 0
+    _models:
+    - _text: "8\u65B9\u5411+\u4E2D\u592E\u306B\u30B3\u30FC\u30C1\u30DE\u30FC\u30AF\u3092\u8A2D\u5B9A\u3067\u304D\u307E\u3059"
+      _coachMark:
+        _shape: 0
+        _isGradiate: 0
+        _radius: 0
+        _paddingRadius: 0
+        _gradiateRadius: 0
+        _targetObjectName: Canvas/SafeArea/Tutorial/TextBaseLong
+      _isFingerIconEnabled: 0
+      _fingerIconDirection: 0
+      _isEffectEnabled: 0
+  - _character: {fileID: 0}
+    _position: 2
+    _radiusVerticalOffset: 0
+    _radiusHorizontalOffset: 0
+    _models:
+    - _text: "8\u65B9\u5411+\u4E2D\u592E\u306B\u30B3\u30FC\u30C1\u30DE\u30FC\u30AF\u3092\u8A2D\u5B9A\u3067\u304D\u307E\u3059"
+      _coachMark:
+        _shape: 0
+        _isGradiate: 0
+        _radius: 0
+        _paddingRadius: 0
+        _gradiateRadius: 0
+        _targetObjectName: Canvas/SafeArea/Tutorial/TextBaseLong
+      _isFingerIconEnabled: 0
+      _fingerIconDirection: 0
+      _isEffectEnabled: 0
+  - _character: {fileID: 0}
+    _position: 3
+    _radiusVerticalOffset: 0
+    _radiusHorizontalOffset: 0
+    _models:
+    - _text: "8\u65B9\u5411+\u4E2D\u592E\u306B\u30B3\u30FC\u30C1\u30DE\u30FC\u30AF\u3092\u8A2D\u5B9A\u3067\u304D\u307E\u3059"
+      _coachMark:
+        _shape: 0
+        _isGradiate: 0
+        _radius: 0
+        _paddingRadius: 0
+        _gradiateRadius: 0
+        _targetObjectName: Canvas/SafeArea/Tutorial/TextBaseLong
+      _isFingerIconEnabled: 0
+      _fingerIconDirection: 0
+      _isEffectEnabled: 0
+  - _character: {fileID: 0}
+    _position: 4
+    _radiusVerticalOffset: 0
+    _radiusHorizontalOffset: 0
+    _models:
+    - _text: "8\u65B9\u5411+\u4E2D\u592E\u306B\u30B3\u30FC\u30C1\u30DE\u30FC\u30AF\u3092\u8A2D\u5B9A\u3067\u304D\u307E\u3059"
+      _coachMark:
+        _shape: 0
+        _isGradiate: 0
+        _radius: 0
+        _paddingRadius: 0
+        _gradiateRadius: 0
+        _targetObjectName: Canvas/SafeArea/Tutorial/TextBaseLong
+      _isFingerIconEnabled: 0
+      _fingerIconDirection: 0
+      _isEffectEnabled: 0
+  - _character: {fileID: 0}
+    _position: 5
+    _radiusVerticalOffset: 0
+    _radiusHorizontalOffset: 0
+    _models:
+    - _text: "8\u65B9\u5411+\u4E2D\u592E\u306B\u30B3\u30FC\u30C1\u30DE\u30FC\u30AF\u3092\u8A2D\u5B9A\u3067\u304D\u307E\u3059"
+      _coachMark:
+        _shape: 0
+        _isGradiate: 0
+        _radius: 0
+        _paddingRadius: 0
+        _gradiateRadius: 0
+        _targetObjectName: Canvas/SafeArea/Tutorial/TextBaseLong
+      _isFingerIconEnabled: 0
+      _fingerIconDirection: 0
+      _isEffectEnabled: 0
+  - _character: {fileID: 0}
+    _position: 6
+    _radiusVerticalOffset: 0
+    _radiusHorizontalOffset: 0
+    _models:
+    - _text: "8\u65B9\u5411+\u4E2D\u592E\u306B\u30B3\u30FC\u30C1\u30DE\u30FC\u30AF\u3092\u8A2D\u5B9A\u3067\u304D\u307E\u3059"
+      _coachMark:
+        _shape: 0
+        _isGradiate: 0
+        _radius: 0
+        _paddingRadius: 0
+        _gradiateRadius: 0
+        _targetObjectName: Canvas/SafeArea/Tutorial/TextBaseLong
+      _isFingerIconEnabled: 0
+      _fingerIconDirection: 0
+      _isEffectEnabled: 0
+  - _character: {fileID: 0}
+    _position: 7
+    _radiusVerticalOffset: 0
+    _radiusHorizontalOffset: 0
+    _models:
+    - _text: "8\u65B9\u5411+\u4E2D\u592E\u306B\u30B3\u30FC\u30C1\u30DE\u30FC\u30AF\u3092\u8A2D\u5B9A\u3067\u304D\u307E\u3059"
+      _coachMark:
+        _shape: 0
+        _isGradiate: 0
+        _radius: 0
+        _paddingRadius: 0
+        _gradiateRadius: 0
+        _targetObjectName: Canvas/SafeArea/Tutorial/TextBaseLong
+      _isFingerIconEnabled: 0
+      _fingerIconDirection: 0
+      _isEffectEnabled: 0
+  - _character: {fileID: 0}
+    _position: 8
+    _radiusVerticalOffset: 0
+    _radiusHorizontalOffset: 0
+    _models:
+    - _text: "8\u65B9\u5411+\u4E2D\u592E\u306B\u30B3\u30FC\u30C1\u30DE\u30FC\u30AF\u3092\u8A2D\u5B9A\u3067\u304D\u307E\u3059"
+      _coachMark:
+        _shape: 0
+        _isGradiate: 0
+        _radius: 0
+        _paddingRadius: 0
+        _gradiateRadius: 0
+        _targetObjectName: Canvas/SafeArea/Tutorial/TextBaseLong
+      _isFingerIconEnabled: 0
+      _fingerIconDirection: 0
+      _isEffectEnabled: 0
+  - _character: {fileID: 0}
+    _position: 4
+    _radiusVerticalOffset: 0
+    _radiusHorizontalOffset: 0
+    _models:
+    - _text: "\u30D5\u30A9\u30FC\u30AB\u30B9\u306F\u30B0\u30E9\u30C7\u30FC\u30B7\u30E7\u30F3\u306B\u3067\u304D\u307E\u3059"
+      _coachMark:
+        _shape: 0
+        _isGradiate: 1
+        _radius: 0
+        _paddingRadius: 0
+        _gradiateRadius: 0.758
+        _targetObjectName: Canvas/SafeArea/Image
+      _isFingerIconEnabled: 0
+      _fingerIconDirection: 0
+      _isEffectEnabled: 0
+  - _character: {fileID: 0}
+    _position: 4
+    _radiusVerticalOffset: 0
+    _radiusHorizontalOffset: 0
+    _models:
+    - _text: "\u30D5\u30A9\u30FC\u30AB\u30B9\u306F\u30B0\u30E9\u30C7\u30FC\u30B7\u30E7\u30F3\u306B\u3067\u304D\u307E\u3059"
+      _coachMark:
+        _shape: 1
+        _isGradiate: 1
+        _radius: 200
+        _paddingRadius: 0
+        _gradiateRadius: 0.758
+        _targetObjectName: Canvas/SafeArea/Image
+      _isFingerIconEnabled: 0
+      _fingerIconDirection: 0
+      _isEffectEnabled: 0
+  - _character: {fileID: 21300000, guid: 7f057f520ffea421aac530982cf7625d, type: 3}
+    _position: 4
+    _radiusVerticalOffset: 0
+    _radiusHorizontalOffset: 0
+    _models:
+    - _text: "\u6307\u30A2\u30A4\u30B3\u30F3"
+      _coachMark:
+        _shape: 1
+        _isGradiate: 0
+        _radius: 100
+        _paddingRadius: 0
+        _gradiateRadius: 0
+        _targetObjectName: Canvas/SafeArea/Tutorial/TextBase
+      _isFingerIconEnabled: 1
+      _fingerIconDirection: 0
+      _isEffectEnabled: 0
+  - _character: {fileID: 0}
+    _position: 4
+    _radiusVerticalOffset: 0
+    _radiusHorizontalOffset: 0
+    _models:
+    - _text: "\u30A8\u30D5\u30A7\u30AF\u30C8"
+      _coachMark:
+        _shape: 1
+        _isGradiate: 0
+        _radius: 200
+        _paddingRadius: 0
+        _gradiateRadius: 0
+        _targetObjectName: Canvas/SafeArea/Tutorial/TextBaseLong
+      _isFingerIconEnabled: 0
+      _fingerIconDirection: 0
+      _isEffectEnabled: 1
