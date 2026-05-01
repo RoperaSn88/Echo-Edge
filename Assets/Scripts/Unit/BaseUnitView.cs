@@ -90,15 +90,36 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
         height = y;
         width = x;
     }
-
-    public async UniTask WaitAttack()
+    
+    /// <summary>
+    /// 攻撃アニメーションを実行する前のカメラの移動を行う
+    /// </summary>
+    public async UniTask WaitToCameraZoom()
     {
         await CameraManager.Instance.ActSetCameraTarget(transform.position);
-        
+    }
+    
+    /// <summary>
+    /// 攻撃のアニメーションを開始
+    /// </summary>
+    public async UniTask WaitAttackAnim()
+    {
         _animator.SetTrigger("AttackT");
         _attackFlag = false;
         
         await UniTask.WaitUntil(() => _attackFlag);
+    }
+    
+    /// <summary>
+    /// 攻撃のアニメーションを開始
+    /// </summary>
+    public async UniTask WaitSpecificAnim()
+    {
+        await UniTask.Delay(TimeSpan.FromSeconds(1f));
+        // _animator.SetTrigger("SpecificT");
+        // _attackFlag = false;
+        //
+        // await UniTask.WaitUntil(() => _attackFlag);
     }
 
     public void ActiveAttack()
@@ -126,7 +147,7 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
         if (damageValue.isDeath)
         {
             _animator.SetTrigger("DeadT");
-            UIPresenter.Instance.AppearEnergy(transform.position, MapManager.Instance.GetUnitAt(height, width).GetStatus().Energy);
+            UIPresenter.Instance.AppearEnergy(transform.position, MapManager.Instance.GetUnitAt(height, width).GetStatus().Energy).Forget();
             await UniTask.WaitUntil(() => _isDeath);
             await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
         }

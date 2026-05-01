@@ -1,0 +1,64 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c5170c4cf9c4f8681fdfadd51d60994, type: 3}
+  m_Name: Model
+  m_EditorClassIdentifier: 
+  _models:
+  - _character: {fileID: 21300000, guid: e9316dfbe0350cd4fa3c8b10b66b73fd, type: 3}
+    _position: 4
+    _radiusVerticalOffset: 0
+    _radiusHorizontalOffset: 0
+    _models:
+    - _text: "\u3053\u308C\u306F\u30C1\u30E5\u30FC\u30C8\u30EA\u30A2\u30EB\u3067\u3059\n\u53F3\u30AF\u30EA\u30C3\u30AF\u3067\u6B21\u306E\u30C6\u30AD\u30B9\u30C8\u3092\u8868\u793A\u3057\u307E\u3059\n"
+      _coachMark:
+        _shape: 0
+        _isGradiate: 0
+        _radius: 100
+        _paddingRadius: 0
+        _gradiateRadius: 0
+        _targetObjectName: Canvas/Tutorial/TextBase
+      _isFingerIconEnabled: 0
+      _fingerIconDirection: 0
+      _isEffectEnabled: 0
+    - _text: "\u3053\u308C\u306F\u30D7\u30EC\u30A4\u30E4\u30FC\u3067\u3059"
+      _coachMark:
+        _shape: 0
+        _isGradiate: 0
+        _radius: 100
+        _paddingRadius: 0
+        _gradiateRadius: 0
+        _targetObjectName: Player
+      _isFingerIconEnabled: 0
+      _fingerIconDirection: 0
+      _isEffectEnabled: 0
+    - _text: "\u3053\u308C\u306F\u30D7\u30EC\u30A4\u30E4\u30FC\u306EHP\u3067\u3059"
+      _coachMark:
+        _shape: 0
+        _isGradiate: 0
+        _radius: 50
+        _paddingRadius: 0
+        _gradiateRadius: 0
+        _targetObjectName: Canvas/PlayerInfo/Bar/HP_Base
+      _isFingerIconEnabled: 0
+      _fingerIconDirection: 0
+      _isEffectEnabled: 0
+    - _text: "\u3053\u308C\u306F\u30D7\u30EC\u30A4\u30E4\u30FC\u306E\u300E\u30A8\u30CA\u30B8\u30FC\u300F\u3067\u3059\n\u88C5\u5099\u54C1\u3092\u4F7F\u3046\u305F\u3081\u306E\u30B3\u30B9\u30C8\u306B\u4F7F\u7528\u3055\u308C\u307E\u3059"
+      _coachMark:
+        _shape: 0
+        _isGradiate: 0
+        _radius: 100
+        _paddingRadius: 0
+        _gradiateRadius: 0
+        _targetObjectName: Canvas/PlayerInfo/Energy
+      _isFingerIconEnabled: 0
+      _fingerIconDirection: 0
+      _isEffectEnabled: 0

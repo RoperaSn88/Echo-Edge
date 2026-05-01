@@ -1,6 +1,8 @@
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UI;
 using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using UI;
 using UI.Energy;
 using UI.QTE;
@@ -27,6 +29,12 @@ public class UIPresenter : MonoBehaviour
 
     [SerializeField] private RectTransform _destination;
 
+    [SerializeField, Tooltip("シーン開始時のフェードに使用するパネル")]
+    private Image _fadePanel;
+
+    [SerializeField, Tooltip("フェード時間")]
+    private float _fadeDuration = 1.0f;
+
     private bool _canFadeText;
     public bool CanFadeText => _canFadeText;
     
@@ -35,6 +43,9 @@ public class UIPresenter : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
+            var c = _fadePanel.color;
+            c.a = 1f;
+            _fadePanel.color = c;
         }
         else
         {
@@ -75,5 +86,19 @@ public class UIPresenter : MonoBehaviour
     public void ResetFade()
     {
         _canFadeText = false;
+    }
+
+    /// <summary>
+    /// パネルをフェードインします（シーン開始時の暗転を解除する）。
+    /// </summary>
+    public async UniTask FadeInAsync()
+    {
+        if (_fadePanel == null) return;
+        var c = _fadePanel.color;
+        c.a = 1f;
+        _fadePanel.color = c;
+        _fadePanel.gameObject.SetActive(true);
+        await _fadePanel.DOFade(0f, _fadeDuration).ToUniTask();
+        _fadePanel.gameObject.SetActive(false);
     }
 }

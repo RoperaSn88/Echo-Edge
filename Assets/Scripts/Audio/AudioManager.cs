@@ -101,9 +101,9 @@ public class AudioManager : MonoBehaviour
         AudioVolumeSaveManager.SaveVolumes(_masterVolume, _bgmVolume, _seVolume);
     }
 
-    public void PlayBgm(BgmAudioType bgmType, bool isLoop)
+    public async UniTask PlayBgm(BgmAudioType bgmType, bool isLoop)
     {
-        PlayBgmAsync(bgmType, isLoop).Forget();
+        await PlayBgmAsync(bgmType, isLoop);
     }
 
     public void AddPlayBgm(BgmAudioType bgmType, bool isLoop)
@@ -129,7 +129,7 @@ public class AudioManager : MonoBehaviour
         PlaySeAsync(seType).Forget();
     }
 
-    private async UniTaskVoid PlayBgmAsync(BgmAudioType bgmType, bool isLoop)
+    private async UniTask PlayBgmAsync(BgmAudioType bgmType, bool isLoop)
     {
         if (_bgmSource == null)
         {
@@ -183,6 +183,21 @@ public class AudioManager : MonoBehaviour
         if (!cancellationToken.IsCancellationRequested)
         {
             _additionalBgmSource.Stop();
+        }
+    }
+    
+    public async UniTask FadeBGMAsync(float durationSeconds, CancellationToken cancellationToken)
+    {
+        if (_bgmSource == null || !_bgmSource.isPlaying)
+        {
+            return;
+        }
+
+        await FadeVolumeAsync(_bgmSource, _bgmSource.volume, 0.0f, durationSeconds, cancellationToken);
+
+        if (!cancellationToken.IsCancellationRequested)
+        {
+            _bgmSource.Stop();
         }
     }
 

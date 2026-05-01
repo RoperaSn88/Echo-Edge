@@ -85,7 +85,7 @@ public class CameraManager : MonoBehaviour
     /// <summary>
     /// 通常時のカメラの距離
     /// </summary>
-    private const float DefaultCameraDistance = 11;
+    private const float DefaultCameraDistance = 13;
 
     /// <summary>
     /// 上のカメラの距離

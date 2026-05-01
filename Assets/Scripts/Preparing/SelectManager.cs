@@ -43,6 +43,8 @@ public class SelectManager : MonoBehaviour
     {
         Instance = this;
         
+        await AudioManager.Instance.PlayBgm(BgmAudioType.Title, true);
+        
         _panel.gameObject.SetActive(true);
         var c = _panel.color;
         c.a = 1f;

@@ -27,16 +27,20 @@ namespace Unit.pureC.Unit
             await CameraManager.Instance.ActResetCameraTarget();
         }
         
+        public async UniTask BeforeAttack()
+        {
+            await MessageManager.Instance.AppearMessage("ブースターの攻撃");
+        }
+        
         /// <inheritdoc/>
-        public async UniTask Act(int selfHeight, int selfWidth)
+        public async UniTask<EnemyMoveKinds> Act(int selfHeight, int selfWidth)
         {
             if (UnityEngine.Random.value < SpecificRate)
             {
-                await Specific(selfHeight, selfWidth);
-                return;
+                return EnemyMoveKinds.Specific;
             }
 
-            await Attack();
+            return EnemyMoveKinds.Attack;
         }
 
         /// <inheritdoc/>
@@ -64,6 +68,11 @@ namespace Unit.pureC.Unit
             {
                 unitInfo.unit.GetStatus().AddBuff(new MoveBuff(), BuffDurationTurns);
             }
+        }
+        
+        public async UniTask BeforeSpecific()
+        {
+            await MessageManager.Instance.AppearMessage("ブースターの特殊行動");
         }
 
         /// <inheritdoc/>

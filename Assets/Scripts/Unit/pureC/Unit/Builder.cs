@@ -10,17 +10,16 @@ namespace Unit.pureC.Unit
     {
         private const float PlayerDamageRate = 1.0f;
         private const string BuilderAttackMessage = "ビルダーの攻撃";
-        private const float SpecificRate = 0.6f;
+        private const float SpecificRate = 0.2f;
+        
+        public async UniTask BeforeAttack()
+        {
+            await MessageManager.Instance.AppearMessage("ビルダーの攻撃");
+        }
         
         /// <inheritdoc/>
         public async UniTask Attack()
         {
-            var messageManager = MessageManager.Instance;
-            if (messageManager != null)
-            {
-                await messageManager.AppearMessage(BuilderAttackMessage);
-            }
-
             try
             {
                 Time.timeScale = 0.001f;
@@ -33,32 +32,32 @@ namespace Unit.pureC.Unit
             }
             finally
             {
-                if (messageManager != null)
-                {
-                    messageManager.DisappearMessage().Forget();
-                }
-
                 BattleManager.ResetQTE();
                 await CameraManager.Instance.ActResetCameraTarget();
             }
         }
         
         /// <inheritdoc/>
-        public async UniTask Act(int selfHeight, int selfWidth)
+        public async UniTask<EnemyMoveKinds> Act(int selfHeight, int selfWidth)
         {
             if (UnityEngine.Random.value < SpecificRate)
             {
                 await Specific(selfHeight, selfWidth);
-                return;
+                return EnemyMoveKinds.Specific;
             }
 
-            await Attack();
+            return EnemyMoveKinds.Attack;
         }
 
         /// <inheritdoc/>
         public async UniTask Dead()
         {
-            throw new System.NotImplementedException();
+            await UniTask.CompletedTask;
+        }
+        
+        public async UniTask BeforeSpecific()
+        {
+            await MessageManager.Instance.AppearMessage("ビルダーは壁を建設し始めた");
         }
 
         /// <inheritdoc/>
@@ -105,9 +104,9 @@ namespace Unit.pureC.Unit
         }
         
         /// <inheritdoc/>
-        public async UniTask Damage()
+        public UniTask Damage()
         {
-            throw new System.NotImplementedException();
+            return UniTask.CompletedTask;
         }
     }
 }

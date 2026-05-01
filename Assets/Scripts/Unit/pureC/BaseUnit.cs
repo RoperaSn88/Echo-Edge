@@ -79,21 +79,42 @@ public　class BaseUnit: IUnit, IDamagable
     public async UniTask Attack()
     {
         BattleManager.RegisterEnemy(_battleStatus);
-        await _view.WaitAttack();
-        if (_unitAction == null) return;
+        await UniTask.WhenAll(
+            _view.WaitToCameraZoom(),
+            _unitAction.BeforeAttack()
+        );
+
+        await _view.WaitAttackAnim();
+        
         await _unitAction.Attack();
     }
 
     public async UniTask Specific()
     {
-        if (_unitAction == null) return;
+        BattleManager.RegisterEnemy(_battleStatus);
+        await UniTask.WhenAll(
+            _view.WaitToCameraZoom(),
+            _unitAction.BeforeAttack()
+        );
+        
+        await _view.WaitSpecificAnim();
+        
         await _unitAction.Specific(Height, Width);
     }
 
     public async UniTask Act()
     {
         if (_unitAction == null) return;
-        await _unitAction.Act(Height, Width);
+        var pattern = await _unitAction.Act(Height, Width);
+        switch (pattern)
+        {
+            case EnemyMoveKinds.Attack:
+                await Attack();
+                break;
+            case EnemyMoveKinds.Specific:
+                await Specific();
+                break;
+        }
     }
 
     public async UniTask OnTurnStart()
@@ -120,6 +141,7 @@ public　class BaseUnit: IUnit, IDamagable
         {
             // 攻撃をするが、遠距離か近距離かで攻撃するか変更する
             await Act();
+            await MessageManager.Instance.DisappearMessage();
         }
         
         // 移動
@@ -137,6 +159,7 @@ public　class BaseUnit: IUnit, IDamagable
             // 行動をする
             // いったん攻撃か
             await Act();
+            await MessageManager.Instance.DisappearMessage();
         }
     } 
 

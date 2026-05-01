@@ -27,8 +27,8 @@ namespace UI
         [SerializeField, Tooltip("プレイヤーHPのUI")] 
         private PlayerHP _playerHp;
         
-        [SerializeField, Tooltip("城のUI")]
-        private CastleHP _castleHp;
+        // [SerializeField, Tooltip("城のUI")]
+        // private CastleHP _castleHp;
         
         [SerializeField, Tooltip("エナジーのUI")]
         private Energy _energy;
@@ -50,12 +50,23 @@ namespace UI
         private Color RedColor;
         
         /// <summary>
+        /// プレイヤーのバトルステータス
+        /// </summary>
+        private BattleStatus _playerBattleStatus;
+
+        /// <summary>
+        /// プレイヤーのバトルステータスを取得するプロパティ
+        /// </summary>
+        public BattleStatus PlayerBattleStatus => _playerBattleStatus;
+
+        /// <summary>
         /// 初期値設定。コンストラクタでできたら嬉しいなぁ...
         /// </summary>
         private void Start()
         {
             ColorUtility.TryParseHtmlString("#6593E6", out DefaultColor);
             ColorUtility.TryParseHtmlString("#E67A65", out RedColor);
+            _playerBattleStatus = PlayerSwordParameterHolder.GetBattleStatus();
             Instance = this;
         }
 
@@ -67,33 +78,33 @@ namespace UI
             if(value < maxValue * 0.2f)
             {
                 _playerHp.SetColorCode(RedColor);
-                _castleHp.SetColorCode(RedColor);
+                // _castleHp.SetColorCode(RedColor);
                 _energy.SetColorCode(RedColor);
             }
             else
             {
                 _playerHp.SetColorCode(DefaultColor);
-                _castleHp.SetColorCode(DefaultColor);
+                // _castleHp.SetColorCode(DefaultColor);
                 _energy.SetColorCode(DefaultColor);
             }
         }
         
         public void SetCastleHP(int value, int maxValue)
         {
-            _castleHp.SetCastleHP(value, maxValue);
+            // _castleHp.SetCastleHP(value, maxValue);
             
             // HPが2割未満ならば赤色にする
             if(value < maxValue * 0.2f)
             {
                 _playerHp.SetColorCode(RedColor);
-                _castleHp.SetColorCode(RedColor);
+                // _castleHp.SetColorCode(RedColor);
                 _energy.SetColorCode(RedColor);
                 ShowAttentionGradiate(AttentionKinds.Red);
             }
             else
             {
                 _playerHp.SetColorCode(DefaultColor);
-                _castleHp.SetColorCode(DefaultColor);
+                // _castleHp.SetColorCode(DefaultColor);
                 _energy.SetColorCode(DefaultColor);
                 HideAttentionGradiate();
             }
