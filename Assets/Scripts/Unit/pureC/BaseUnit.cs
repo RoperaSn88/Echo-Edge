@@ -119,6 +119,7 @@ public　class BaseUnit: IUnit, IDamagable
 
     public async UniTask OnTurnStart()
     {
+        _battleStatus?.TickBuffs();
         if (_unitAction == null) return;
         await _unitAction.OnTurnStart();
     }
