@@ -126,7 +126,7 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
         if (damageValue.isDeath)
         {
             _animator.SetTrigger("DeadT");
-            UIPresenter.Instance.AppearEnergy(transform.position, MapManager.Instance.GetUnitAt(height, width).GetStatus().Energy);
+            UIPresenter.Instance.AppearEnergy(transform.position, MapManager.Instance.GetUnitAt(height, width).GetStatus().Energy).Forget();
             await UniTask.WaitUntil(() => _isDeath);
             await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
         }

@@ -4,6 +4,7 @@ using CommonUI.Tutorial.Models;
 using CommonUI.Tutorial.Views;
 using UnityEngine;
 using UnityEngine.UI;
+using Cysharp.Threading.Tasks;
 
 namespace CommonUI.Tutorial
 {
@@ -30,6 +31,9 @@ namespace CommonUI.Tutorial
         private TextBoxPresenter _currentTextBox;
 
         private CancellationTokenSource _cts = new();
+        
+        private static MouseClick _mouseClick;
+        public static MouseClick MouseClick => _mouseClick;
 
         private void Start()
         {
@@ -42,10 +46,13 @@ namespace CommonUI.Tutorial
         /// <summary>
         /// チュートリアルの表示を開始する
         /// </summary>
-        public async void StartTutorial()
+        public async UniTask StartTutorial()
         {
+            _mouseClick = new MouseClick();
+            _mouseClick.Enable();
             gameObject.SetActive(true);
             await ShowTutorialAsync(_cts.Token);
+            _mouseClick.Disable();
         }
 
         /// <summary>

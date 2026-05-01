@@ -1,9 +1,11 @@
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 using TMPro;
 using CommonUI.Tutorial.Models;
 using CommonUI.Tutorial.Views;
+using Cysharp.Threading.Tasks;
 
 namespace CommonUI.Tutorial
 {
@@ -92,11 +94,13 @@ namespace CommonUI.Tutorial
 
                 PageTurn turn;
                 // 進むか戻るの入力があるまで待ち、前にページがないときは再度入力を待つ.
+                await UniTask.WaitUntil(() => !TextBasePresenter.MouseClick.Mouse.MouseClick.IsPressed());
                 do
                 {
                     turn = await WaitUntilInputAsync(cancellationToken);
                 } while (turn == PageTurn.Prev && pageIndex == 0);
-
+                
+                Debug.Log(turn);
                 switch (turn)
                 {
                     case PageTurn.Next:
@@ -176,7 +180,7 @@ namespace CommonUI.Tutorial
 
                 while (true)
                 {
-                    if (Input.GetMouseButtonDown(0) || Input.GetKeyDown(KeyCode.RightArrow))
+                    if (TextBasePresenter.MouseClick.Mouse.MouseClick.IsPressed())
                     {
                         // 文字送り中にクリックされた場合は全文表示
                         if (_isTextAnimating)
@@ -189,11 +193,11 @@ namespace CommonUI.Tutorial
                         return PageTurn.Next;
                     }
 
-                    // 戻るボタンで前のページ表示
-                    if (Input.GetKeyDown(KeyCode.LeftArrow))
-                    {
-                        return PageTurn.Prev;
-                    }
+                    // // 戻るボタンで前のページ表示
+                    // if (Input.GetKeyDown(KeyCode.LeftArrow))
+                    // {
+                    //     return PageTurn.Prev;
+                    // }
 
                     await Awaitable.NextFrameAsync(cancellationToken);
                 }
