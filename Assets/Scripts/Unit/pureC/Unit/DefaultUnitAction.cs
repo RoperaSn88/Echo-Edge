@@ -1,5 +1,6 @@
 using System;
 using Cysharp.Threading.Tasks;
+using Unit.pureC.Unit;
 using UnityEngine;
 
 public class DefaultUnitAction : IUnitAction
@@ -7,6 +8,11 @@ public class DefaultUnitAction : IUnitAction
     private const float PlayerDamageRate = 1.0f;
     private const string EnemyAttackMessage = "敵の攻撃";
     private const float SpecificRate = 0.3f;
+    
+    public async UniTask BeforeAttack()
+    {
+        await MessageManager.Instance.AppearMessage("敵の攻撃");
+    }
     
     /// <inheritdoc/>
     public async UniTask Attack()
@@ -40,21 +46,26 @@ public class DefaultUnitAction : IUnitAction
     }
     
     /// <inheritdoc/>
-    public async UniTask Act(int selfHeight, int selfWidth)
+    public async UniTask<EnemyMoveKinds> Act(int selfHeight, int selfWidth)
     {
         if (UnityEngine.Random.value < SpecificRate)
         {
             await Specific(selfHeight, selfWidth);
-            return;
+            return EnemyMoveKinds.Specific;
         }
 
-        await Attack();
+        return EnemyMoveKinds.Attack;
     }
 
     /// <inheritdoc/>
     public async UniTask Dead()
     {
         // 死亡時と同時に発生する処理
+    }
+    
+    public async UniTask BeforeSpecific()
+    {
+        await MessageManager.Instance.AppearMessage("特殊行動");
     }
     
     /// <inheritdoc/>

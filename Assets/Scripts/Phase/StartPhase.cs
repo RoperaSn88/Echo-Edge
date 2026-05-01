@@ -9,12 +9,11 @@ public class StartPhase : IPhase
 
     public async UniTask<IPhase> WaitPhase()
     {
-        Debug.Log("StartPhase");
-
         // 1. PlayerStatusPresenterからプレイヤーのデータを取得してBattleManagerにセット
         await UniTask.WaitUntil(() => PlayerStatusPresenter.Instance != null);
         var status = PlayerStatusPresenter.Instance.PlayerBattleStatus;
-        BattleManager.RegisterPlayer(status);
+        BattleManager.RegisterPlayer(PlayerStatusPresenter.Instance.PlayerBattleStatus);
+        
         PlayerStatusPresenter.Instance.SetPlayerHP(status.HP, status.MaxHP);
         var energyResult = EnergyManager.AddEnergy(0);
         PlayerStatusPresenter.Instance.SetEnergy(energyResult.gaugeValue, energyResult.energyCount);
@@ -34,7 +33,7 @@ public class StartPhase : IPhase
             PlayerPrefs.Save();
             await TutorialActivator.Instance.StartTutorial();
         }
-        
+        Debug.Log(BattleManager.PlayerStatus);
 
         return PlayerPhase.Instance;
     }

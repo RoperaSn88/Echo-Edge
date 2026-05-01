@@ -90,15 +90,36 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
         height = y;
         width = x;
     }
-
-    public async UniTask WaitAttack()
+    
+    /// <summary>
+    /// 攻撃アニメーションを実行する前のカメラの移動を行う
+    /// </summary>
+    public async UniTask WaitToCameraZoom()
     {
         await CameraManager.Instance.ActSetCameraTarget(transform.position);
-        
+    }
+    
+    /// <summary>
+    /// 攻撃のアニメーションを開始
+    /// </summary>
+    public async UniTask WaitAttackAnim()
+    {
         _animator.SetTrigger("AttackT");
         _attackFlag = false;
         
         await UniTask.WaitUntil(() => _attackFlag);
+    }
+    
+    /// <summary>
+    /// 攻撃のアニメーションを開始
+    /// </summary>
+    public async UniTask WaitSpecificAnim()
+    {
+        await UniTask.Delay(TimeSpan.FromSeconds(1f));
+        // _animator.SetTrigger("SpecificT");
+        // _attackFlag = false;
+        //
+        // await UniTask.WaitUntil(() => _attackFlag);
     }
 
     public void ActiveAttack()

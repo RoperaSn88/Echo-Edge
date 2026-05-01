@@ -8,12 +8,12 @@ public class BattleManager : MonoBehaviour
     [SerializeField]
     private static BattleStatus _playerStatus;
 
-    public BattleStatus PlayerStatus => _playerStatus;
+    public static BattleStatus PlayerStatus => _playerStatus;
 
     [SerializeField]
     private static BattleStatus _enemyStatus;
     
-    public BattleStatus EnemyStatus => _enemyStatus;
+    public static BattleStatus EnemyStatus => _enemyStatus;
 
     /// <summary>
     /// QTEを実行するためのフラグ
@@ -55,6 +55,7 @@ public class BattleManager : MonoBehaviour
             _qteResult = await UIPresenter.Instance.AppearQTE(QTEKinds.Defend);
             _QTEFlug = true;
         } 
+
         var result = await _playerStatus.Damage((int)(_enemyStatus.Attack * _qteResult));
         
         PlayerStatusPresenter.Instance.SetPlayerHP(_playerStatus.HP, _playerStatus.MaxHP);

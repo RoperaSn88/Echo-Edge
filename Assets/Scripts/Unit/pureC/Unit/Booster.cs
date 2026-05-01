@@ -8,6 +8,7 @@ namespace Unit.pureC.Unit
     {
         private const float PlayerDamageRate = 1.0f;
         private const float SpecificRate = 0.2f;
+
         /// <inheritdoc/>
         public async UniTask Attack()
         {
@@ -23,16 +24,20 @@ namespace Unit.pureC.Unit
             await CameraManager.Instance.ActResetCameraTarget();
         }
         
+        public async UniTask BeforeAttack()
+        {
+            await MessageManager.Instance.AppearMessage("ブースターの攻撃");
+        }
+        
         /// <inheritdoc/>
-        public async UniTask Act(int selfHeight, int selfWidth)
+        public async UniTask<EnemyMoveKinds> Act(int selfHeight, int selfWidth)
         {
             if (UnityEngine.Random.value < SpecificRate)
             {
-                await Specific(selfHeight, selfWidth);
-                return;
+                return EnemyMoveKinds.Specific;
             }
 
-            await Attack();
+            return EnemyMoveKinds.Attack;
         }
 
         /// <inheritdoc/>
@@ -46,6 +51,11 @@ namespace Unit.pureC.Unit
         {
             return;
             throw new System.NotImplementedException();
+        }
+        
+        public async UniTask BeforeSpecific()
+        {
+            await MessageManager.Instance.AppearMessage("ブースターの特殊行動");
         }
 
         /// <inheritdoc/>
