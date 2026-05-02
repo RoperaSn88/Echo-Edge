@@ -23,7 +23,7 @@ public　class BaseUnit: IUnit, IDamagable
     private int moveWidth;
     public int MoveWidth => moveWidth;
 
-    private BaseUnitView _view;
+    private IUnitView _view;
 
     private BattleStatus _battleStatus;
     private IUnitAction _unitAction;
@@ -55,8 +55,8 @@ public　class BaseUnit: IUnit, IDamagable
     /// <summary>
     /// 表示用 View を紐づけ、UnitAction を生成する
     /// </summary>
-    /// <param name="view">対応する BaseUnitView</param>
-    public void SetView(BaseUnitView view)
+    /// <param name="view">対応する IUnitView</param>
+    public void SetView(IUnitView view)
     {
         _view = view;
     }
@@ -94,10 +94,34 @@ public　class BaseUnit: IUnit, IDamagable
         BattleManager.RegisterEnemy(_battleStatus);
         await UniTask.WhenAll(
             _view.WaitToCameraZoom(),
-            _unitAction.BeforeAttack()
+            _unitAction.BeforeSpecific()
         );
-        
-        await _view.WaitSpecificAnim();
+
+        // 飛行可能なユニットは飛行状態に応じてアニメーションを切り替える。
+        // IsFlying が true（既に飛行中）→ ビームアニメ、false（地上）→ 飛び上がりアニメ
+        if (_unitAction is IFlyingUnit flyingUnit)
+        {
+            if (_view is IFlyingUnitView flyingView)
+            {
+                if (flyingUnit.IsFlying)
+                {
+                    await flyingView.WaitBeamAnim();
+                }
+                else
+                {
+                    await flyingView.WaitFlyAnim();
+                }
+            }
+            else
+            {
+                Debug.LogWarning($"{_view.GetType().Name} は IFlyingUnitView を実装していません。WaitSpecificAnim にフォールバックします。");
+                await _view.WaitSpecificAnim();
+            }
+        }
+        else
+        {
+            await _view.WaitSpecificAnim();
+        }
         
         await _unitAction.Specific(Height, Width);
     }

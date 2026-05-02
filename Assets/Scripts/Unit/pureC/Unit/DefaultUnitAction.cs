@@ -8,6 +8,7 @@ public class DefaultUnitAction : IUnitAction
     private const float PlayerDamageRate = 1.0f;
     private const string EnemyAttackMessage = "敵の攻撃";
     private const float SpecificRate = 0.3f;
+    private const float QTETimeScale = 0.001f;
     
     public async UniTask BeforeAttack()
     {
@@ -25,7 +26,7 @@ public class DefaultUnitAction : IUnitAction
 
         try
         {
-            Time.timeScale = 0.001f;
+            Time.timeScale = QTETimeScale;
             var damageValue = await BattleManager.PlayerDamage(PlayerDamageRate);
             Time.timeScale = 1.0f;
 

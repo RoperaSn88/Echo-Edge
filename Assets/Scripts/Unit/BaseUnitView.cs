@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
 
-public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
+public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposable
 {
     private const string EnemyAnimPath = "Assets/Addressables/Animator/";
     
@@ -55,7 +55,7 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
     /// </summary>
     /// <param name="h">配置する縦座標</param>
     /// <param name="w">配置する横座標</param>
-    public async UniTask Setup(int h, int w, EnemyKinds enemyID)
+    public virtual async UniTask Setup(int h, int w, EnemyKinds enemyID)
     {
         height = h;
         width = w;

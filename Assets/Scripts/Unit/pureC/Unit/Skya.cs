@@ -4,11 +4,19 @@ using UnityEngine;
 
 namespace Unit.pureC.Unit
 {
-    public class Skya: IUnitAction
+    public class Skya: IUnitAction, IFlyingUnit
     {
-        private const float PlayerDamageRate = 1.0f;
-        private const float SpecificRate = 0.2f;
-        
+        private const float SpecificDamageRate = 2.0f;
+        private const float QTETimeScale = 0.001f;
+
+        /// <summary>
+        /// 現在飛行中かどうか
+        /// </summary>
+        private bool _isFlying = false;
+
+        /// <inheritdoc/>
+        public bool IsFlying => _isFlying;
+
         public async UniTask BeforeAttack()
         {
             await MessageManager.Instance.AppearMessage("スカイアの攻撃");
@@ -17,8 +25,8 @@ namespace Unit.pureC.Unit
         /// <inheritdoc/>
         public async UniTask Attack()
         {
-            Time.timeScale = 0.001f;
-            var damageValue = await BattleManager.PlayerDamage(PlayerDamageRate);
+            Time.timeScale = QTETimeScale;
+            var damageValue = await BattleManager.PlayerDamage(1.0f);
             Time.timeScale = 1.0f;
 
             UIPresenter.Instance.AppearDamageText($"{damageValue.damage}", PlayerController.Instance.transform.position).Forget();
@@ -32,9 +40,14 @@ namespace Unit.pureC.Unit
         /// <inheritdoc/>
         public async UniTask<EnemyMoveKinds> Act(int selfHeight, int selfWidth)
         {
-            if (UnityEngine.Random.value < SpecificRate)
+            // 飛行中は必ず特殊行動（ビーム攻撃）を行う
+            if (_isFlying)
             {
-                await Specific(selfHeight, selfWidth);
+                return EnemyMoveKinds.Specific;
+            }
+
+            if (UnityEngine.Random.value < 0.2f) // 20% の確率で特殊行動
+            {
                 return EnemyMoveKinds.Specific;
             }
 
@@ -55,8 +68,38 @@ namespace Unit.pureC.Unit
         /// <inheritdoc/>
         public async UniTask Specific(int selfHeight, int selfWidth)
         {
-            return;
-            throw new System.NotImplementedException();
+            var status = MapManager.Instance?.GetUnitAt(selfHeight, selfWidth)?.GetStatus();
+
+            if (!_isFlying)
+            {
+                // 1ターン目：飛び上がり、ダメージ無効を有効化
+                _isFlying = true;
+                if (status != null)
+                {
+                    status.IsInvincible = true;
+                }
+            }
+            else
+            {
+                // 2ターン目：ビーム攻撃（2倍ダメージ）
+                Time.timeScale = QTETimeScale;
+                var damageValue = await BattleManager.PlayerDamage(SpecificDamageRate);
+                Time.timeScale = 1.0f;
+
+                UIPresenter.Instance.AppearDamageText($"{damageValue.damage}", PlayerController.Instance.transform.position).Forget();
+
+                await UniTask.Delay(TimeSpan.FromSeconds(1.0f));
+
+                BattleManager.ResetQTE();
+                await CameraManager.Instance.ActResetCameraTarget();
+
+                // 地上に戻り、ダメージ無効を解除
+                _isFlying = false;
+                if (status != null)
+                {
+                    status.IsInvincible = false;
+                }
+            }
         }
 
         /// <inheritdoc/>
