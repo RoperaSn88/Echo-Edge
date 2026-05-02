@@ -48,6 +48,7 @@ public class PreparingCameraController : MonoBehaviour
     private void Awake()
     {
         Instance = this;
+        Time.timeScale = 1.0f;
         _startPosition = _cameraTransform.position;
     }
 

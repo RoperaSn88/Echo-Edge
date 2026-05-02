@@ -149,6 +149,7 @@ public class OptionSceneController : MonoBehaviour
 
         await _group.DOAnchorPos(_onScreenAnchoredPosition, TweenDuration)
             .SetEase(Ease.OutQuad)
+            .SetUpdate(true)
             .ToUniTask(cancellationToken: _cts.Token);
 
         // 閉じる / リタイア / Escキーを待機
@@ -166,6 +167,7 @@ public class OptionSceneController : MonoBehaviour
         // グループを画面外へスライドアウト
         await _group.DOAnchorPos(offScreenPosition, TweenDuration)
             .SetEase(Ease.InQuad)
+            .SetUpdate(true)
             .ToUniTask(cancellationToken: _cts.Token);
 
         // アンロード前に結果を記録する
