@@ -38,15 +38,14 @@ namespace Unit.pureC.Unit
         }
         
         /// <inheritdoc/>
-        public async UniTask<EnemyMoveKinds> Act(int selfHeight, int selfWidth)
+        public UniTask<EnemyMoveKinds> Act(int selfHeight, int selfWidth)
         {
             if (UnityEngine.Random.value < SpecificRate)
             {
-                await Specific(selfHeight, selfWidth);
-                return EnemyMoveKinds.Specific;
+                return UniTask.FromResult(EnemyMoveKinds.Specific);
             }
 
-            return EnemyMoveKinds.Attack;
+            return UniTask.FromResult(EnemyMoveKinds.Attack);
         }
 
         /// <inheritdoc/>
