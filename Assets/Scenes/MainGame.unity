@@ -6676,6 +6676,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UnitSpawner
   unitPrefab: {fileID: 9216188697129997988, guid: ecd660bcbc3235e49841b0cfe1883f44, type: 3}
+  flyingUnitPrefab: {fileID: 9216188697129997988, guid: 164755584e172224b86665577acfd5d8, type: 3}
   unitsParent: {fileID: 1076311551}
   initialPoolSize: 8
 --- !u!4 &263045787

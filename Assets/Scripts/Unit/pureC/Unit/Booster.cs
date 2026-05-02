@@ -59,8 +59,11 @@ namespace Unit.pureC.Unit
             // 全ての敵のBattleStatusのmoveを1上昇させる（1体につき1つバフ、既にある場合はAddBuff内でスキップ）
             foreach (var unitInfo in allUnits)
             {
-                unitInfo.unit.GetStatus().AddBuff(new MoveBuff(), BuffDurationTurns);
+                if(unitInfo.unit is not building) unitInfo.unit.GetStatus().AddBuff(new MoveBuff(), BuffDurationTurns);
             }
+
+            await UniTask.Delay(TimeSpan.FromSeconds(1f));
+            await CameraManager.Instance.ActResetCameraTarget();
         }
         
         public async UniTask BeforeSpecific()

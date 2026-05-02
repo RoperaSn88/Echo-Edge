@@ -92,9 +92,21 @@ public　class BaseUnit: IUnit, IDamagable
     public async UniTask Specific()
     {
         BattleManager.RegisterEnemy(_battleStatus);
+
+        UniTask action;
+        if (_unitAction is IFlyingUnit flyingUnit1)
+        {
+            if(flyingUnit1.IsFlying) action = flyingUnit1.WaitFlyingMessage();
+            else action = flyingUnit1.WaitToFlyMessage();
+        }
+        else
+        {
+            action = _unitAction.BeforeSpecific();
+        }
+        
         await UniTask.WhenAll(
             _view.WaitToCameraZoom(),
-            _unitAction.BeforeSpecific()
+            action
         );
 
         // 飛行可能なユニットは飛行状態に応じてアニメーションを切り替える。
@@ -105,7 +117,7 @@ public　class BaseUnit: IUnit, IDamagable
             {
                 if (flyingUnit.IsFlying)
                 {
-                    await flyingView.WaitBeamAnim();
+                    await flyingView.WaitAnimAfterFlying();
                 }
                 else
                 {
@@ -171,7 +183,15 @@ public　class BaseUnit: IUnit, IDamagable
         // 移動
         try
         {
-            await MapManager.Instance.TryMoveUnit(_battleStatus.Move, Height, Width);
+            // もし飛行中ならナシ
+            if (_unitAction is IFlyingUnit fly)
+            {
+                if(!fly.IsFlying) await MapManager.Instance.TryMoveUnit(_battleStatus.Move, Height, Width);
+            }
+            else
+            {
+                await MapManager.Instance.TryMoveUnit(_battleStatus.Move, Height, Width);
+            }
         }
         catch
         {

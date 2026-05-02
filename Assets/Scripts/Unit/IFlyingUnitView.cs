@@ -9,10 +9,10 @@ public interface IFlyingUnitView : IUnitView
     /// <summary>
     /// 飛び上がるアニメーションを実行する
     /// </summary>
-    UniTask WaitFlyAnim();
+    public UniTask WaitFlyAnim();
 
     /// <summary>
     /// ビームエフェクトを表示し地上に戻るアニメーションを実行する
     /// </summary>
-    UniTask WaitBeamAnim();
+    public UniTask WaitAnimAfterFlying();
 }

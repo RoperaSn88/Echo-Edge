@@ -6,6 +6,7 @@ namespace Unit.pureC.Unit
 {
     public class Skya: IUnitAction, IFlyingUnit
     {
+        private const float SpecificRate = 0.8f;
         private const float SpecificDamageRate = 2.0f;
         private const float QTETimeScale = 0.001f;
 
@@ -20,6 +21,16 @@ namespace Unit.pureC.Unit
         public async UniTask BeforeAttack()
         {
             await MessageManager.Instance.AppearMessage("スカイアの攻撃");
+        }
+        
+        public async UniTask WaitToFlyMessage()
+        {
+            await MessageManager.Instance.AppearMessage("スカイアは飛び始める");
+        }
+
+        public async UniTask WaitFlyingMessage()
+        {
+            await MessageManager.Instance.AppearMessage("スカイアはビームを放つ");
         }
         
         /// <inheritdoc/>
@@ -46,7 +57,7 @@ namespace Unit.pureC.Unit
                 return EnemyMoveKinds.Specific;
             }
 
-            if (UnityEngine.Random.value < 0.2f) // 20% の確率で特殊行動
+            if (UnityEngine.Random.value < SpecificRate)
             {
                 return EnemyMoveKinds.Specific;
             }
@@ -62,7 +73,7 @@ namespace Unit.pureC.Unit
         
         public async UniTask BeforeSpecific()
         {
-            await MessageManager.Instance.AppearMessage("スカイアの特殊行動");
+            await MessageManager.Instance.AppearMessage("スカイアは空を飛び始めた");
         }
         
         /// <inheritdoc/>
@@ -91,7 +102,6 @@ namespace Unit.pureC.Unit
                 await UniTask.Delay(TimeSpan.FromSeconds(1.0f));
 
                 BattleManager.ResetQTE();
-                await CameraManager.Instance.ActResetCameraTarget();
 
                 // 地上に戻り、ダメージ無効を解除
                 _isFlying = false;
@@ -100,6 +110,9 @@ namespace Unit.pureC.Unit
                     status.IsInvincible = false;
                 }
             }
+            
+            await UniTask.Delay(TimeSpan.FromSeconds(1f));
+            await CameraManager.Instance.ActResetCameraTarget();
         }
 
         /// <inheritdoc/>

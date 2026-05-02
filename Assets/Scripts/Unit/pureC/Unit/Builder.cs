@@ -90,6 +90,9 @@ namespace Unit.pureC.Unit
                 }
                 BuildingManager.Instance.TrySetBuilderWall(wallHeight, wallWidth);
             }
+            
+            await UniTask.Delay(TimeSpan.FromSeconds(1f));
+            await CameraManager.Instance.ActResetCameraTarget();
         }
 
         /// <inheritdoc/>

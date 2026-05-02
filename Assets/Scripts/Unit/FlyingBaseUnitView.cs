@@ -14,7 +14,7 @@ public class FlyingBaseUnitView : BaseUnitView, IFlyingUnitView
     /// </summary>
     private float _groundY;
 
-    private const float FlyHeight = 3f;
+    private const float FlyHeight = 2f;
     private const float FlyTime = 0.5f;
 
     /// <inheritdoc/>
@@ -31,7 +31,7 @@ public class FlyingBaseUnitView : BaseUnitView, IFlyingUnitView
     }
 
     /// <inheritdoc/>
-    public async UniTask WaitBeamAnim()
+    public async UniTask WaitAnimAfterFlying()
     {
         // ビームのアニメーショントリガー（アニメーター実装後に対応）
         // _animator.SetTrigger("BeamT");

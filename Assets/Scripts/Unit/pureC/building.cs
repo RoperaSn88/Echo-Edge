@@ -76,7 +76,7 @@ public class building : IUnit
 
     public BattleStatus GetStatus()
     {
-        throw new System.NotImplementedException();
+        return null;
     }
 
     public UniTask<(int damage, bool isDeath)> Damage(int damage)
