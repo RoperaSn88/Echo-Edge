@@ -58,6 +58,12 @@ public class BattleStatus : IDamagable
     [NonSerialized]
     private List<(IBuff buff, int remainingTurns)> _activeBuffs = new();
 
+    /// <summary>
+    /// ダメージを無効化するか（飛行中など）
+    /// </summary>
+    [NonSerialized]
+    public bool IsInvincible;
+
     public void Initialize()
     {
         MaxHP = HP;
@@ -128,6 +134,12 @@ public class BattleStatus : IDamagable
     /// <returns>死んだかどうか</returns>
     public async UniTask<(int damage, bool isDeath)> Damage(int targetAttack)
     {
+        // 無敵状態ならダメージを受けない
+        if (IsInvincible)
+        {
+            return (0, false);
+        }
+
         // ダメージ計算式
         int damage = targetAttack - Defend / 2;
         if (damage < 0)

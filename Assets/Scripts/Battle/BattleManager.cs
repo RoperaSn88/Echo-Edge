@@ -56,7 +56,7 @@ public class BattleManager : MonoBehaviour
             _QTEFlug = true;
         } 
 
-        var result = await _playerStatus.Damage((int)(_enemyStatus.Attack * _qteResult));
+        var result = await _playerStatus.Damage((int)(_enemyStatus.Attack * rate * _qteResult));
         
         PlayerStatusPresenter.Instance.SetPlayerHP(_playerStatus.HP, _playerStatus.MaxHP);
         

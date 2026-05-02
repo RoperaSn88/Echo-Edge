@@ -94,10 +94,26 @@ public　class BaseUnit: IUnit, IDamagable
         BattleManager.RegisterEnemy(_battleStatus);
         await UniTask.WhenAll(
             _view.WaitToCameraZoom(),
-            _unitAction.BeforeAttack()
+            _unitAction.BeforeSpecific()
         );
-        
-        await _view.WaitSpecificAnim();
+
+        // 飛行可能なユニットは飛行状態に応じてアニメーションを切り替える。
+        // IsFlying が true（既に飛行中）→ ビームアニメ、false（地上）→ 飛び上がりアニメ
+        if (_unitAction is IFlyingUnit flyingUnit)
+        {
+            if (flyingUnit.IsFlying)
+            {
+                await _view.WaitBeamAnim();
+            }
+            else
+            {
+                await _view.WaitFlyAnim();
+            }
+        }
+        else
+        {
+            await _view.WaitSpecificAnim();
+        }
         
         await _unitAction.Specific(Height, Width);
     }
