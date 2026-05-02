@@ -55,8 +55,16 @@ public class PlayerPhase: IPhase
                 _pauseFlug = false;
                 _clickFlug = false;
                 Time.timeScale = 0;
+                OptionSceneController.CanRetire = true;
                 await SceneLoader.AdditiveLoadAndWait(OptionSceneBuildIndex);
+                OptionSceneController.CanRetire = false;
                 Time.timeScale = 1;
+                if (OptionSceneController.LastResult == OptionResult.Retire)
+                {
+                    ResetController(playerActions);
+                    SceneLoader.Load(GameScene.Preparing);
+                    return PlayerPhase.Instance;
+                }
                 continue;
             }
 

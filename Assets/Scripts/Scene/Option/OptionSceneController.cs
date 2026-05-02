@@ -75,6 +75,16 @@ public class OptionSceneController : MonoBehaviour
     private CancellationTokenSource _cts;
     private Camera _uiCamera;
 
+    /// <summary>
+    /// Additiveロード前に呼び出し元が設定する「リタイア可否」フラグ。
+    /// </summary>
+    public static bool CanRetire { get; set; }
+
+    /// <summary>
+    /// オプションシーン終了後の結果。アンロード後に呼び出し元が参照する。
+    /// </summary>
+    public static OptionResult LastResult { get; private set; }
+
     private void Awake()
     {
         _uiCamera = GameObject.FindGameObjectWithTag("UICamera").GetComponent<Camera>();
@@ -82,7 +92,11 @@ public class OptionSceneController : MonoBehaviour
         
         // 画面上のデザイン位置を記録する
         _onScreenAnchoredPosition = _group.anchoredPosition;
-        OpenAsync(false).Forget();
+
+        // 今回のオープン前に結果をリセットしておく
+        LastResult = OptionResult.Close;
+
+        OpenAsync(CanRetire).Forget();
     }
 
     private Vector2 GetOffScreenAnchoredPosition()
@@ -135,6 +149,7 @@ public class OptionSceneController : MonoBehaviour
 
         await _group.DOAnchorPos(_onScreenAnchoredPosition, TweenDuration)
             .SetEase(Ease.OutQuad)
+            .SetUpdate(true)
             .ToUniTask(cancellationToken: _cts.Token);
 
         // 閉じる / リタイア / Escキーを待機
@@ -152,7 +167,11 @@ public class OptionSceneController : MonoBehaviour
         // グループを画面外へスライドアウト
         await _group.DOAnchorPos(offScreenPosition, TweenDuration)
             .SetEase(Ease.InQuad)
+            .SetUpdate(true)
             .ToUniTask(cancellationToken: _cts.Token);
+
+        // アンロード前に結果を記録する
+        LastResult = result;
 
         // オプションシーンのアンロード
         SceneLoader.Unload(GameScene.Option);
