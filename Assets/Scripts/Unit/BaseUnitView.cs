@@ -34,15 +34,8 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposab
     /// </summary>
     private bool _isDeath;
 
-    /// <summary>
-    /// 地上のY座標（飛行前の元の高さ）
-    /// </summary>
-    private float _groundY;
-
     private const float MoveTime = 0.15f;
     private const float DeadFadeTime = 0.5f;
-    private const float FlyHeight = 3f;
-    private const float FlyTime = 0.5f;
 
     public async UniTask SetAnimator(EnemyKinds enemyID)
     {
@@ -62,7 +55,7 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposab
     /// </summary>
     /// <param name="h">配置する縦座標</param>
     /// <param name="w">配置する横座標</param>
-    public async UniTask Setup(int h, int w, EnemyKinds enemyID)
+    public virtual async UniTask Setup(int h, int w, EnemyKinds enemyID)
     {
         height = h;
         width = w;
@@ -75,7 +68,6 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposab
             _renderer.color = color;
         }
         transform.localPosition = new Vector3(w, 0, h);
-        _groundY = transform.localPosition.y;
         await SetAnimator(enemyID);
         gameObject.SetActive(true);
     }
@@ -128,25 +120,6 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposab
         // _attackFlag = false;
         //
         // await UniTask.WaitUntil(() => _attackFlag);
-    }
-
-    /// <summary>
-    /// 飛び上がるアニメーションを実行する
-    /// </summary>
-    public async UniTask WaitFlyAnim()
-    {
-        await transform.DOLocalMoveY(_groundY + FlyHeight, FlyTime).SetEase(Ease.OutQuad);
-    }
-
-    /// <summary>
-    /// ビームエフェクトを表示し地上に戻るアニメーションを実行する
-    /// </summary>
-    public async UniTask WaitBeamAnim()
-    {
-        // ビームのアニメーショントリガー（アニメーター実装後に対応）
-        // _animator.SetTrigger("BeamT");
-        await UniTask.Delay(TimeSpan.FromSeconds(1f));
-        await transform.DOLocalMoveY(_groundY, FlyTime).SetEase(Ease.InQuad);
     }
 
     public void ActiveAttack()
