@@ -23,7 +23,7 @@ public　class BaseUnit: IUnit, IDamagable
     private int moveWidth;
     public int MoveWidth => moveWidth;
 
-    private BaseUnitView _view;
+    private IUnitView _view;
 
     private BattleStatus _battleStatus;
     private IUnitAction _unitAction;
@@ -55,8 +55,8 @@ public　class BaseUnit: IUnit, IDamagable
     /// <summary>
     /// 表示用 View を紐づけ、UnitAction を生成する
     /// </summary>
-    /// <param name="view">対応する BaseUnitView</param>
-    public void SetView(BaseUnitView view)
+    /// <param name="view">対応する IUnitView</param>
+    public void SetView(IUnitView view)
     {
         _view = view;
     }

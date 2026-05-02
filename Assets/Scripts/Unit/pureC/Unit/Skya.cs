@@ -7,7 +7,6 @@ namespace Unit.pureC.Unit
     public class Skya: IUnitAction, IFlyingUnit
     {
         private const float SpecificDamageRate = 2.0f;
-        private const float SpecificRate = 0.2f;
         private const float QTETimeScale = 0.001f;
 
         /// <summary>
@@ -47,7 +46,7 @@ namespace Unit.pureC.Unit
                 return EnemyMoveKinds.Specific;
             }
 
-            if (UnityEngine.Random.value < SpecificRate)
+            if (UnityEngine.Random.value < 0.2f) // 20% の確率で特殊行動
             {
                 return EnemyMoveKinds.Specific;
             }
