@@ -9,8 +9,7 @@ namespace Unit.pureC.Unit
     public class Builder: IUnitAction
     {
         private const float PlayerDamageRate = 1.0f;
-        private const string BuilderAttackMessage = "ビルダーの攻撃";
-        private const float SpecificRate = 0.2f;
+        private const float SpecificRate = 0.8f;
         private const float QTETimeScale = 0.001f;
         
         public async UniTask BeforeAttack()
