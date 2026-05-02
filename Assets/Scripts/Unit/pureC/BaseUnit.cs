@@ -101,13 +101,21 @@ public　class BaseUnit: IUnit, IDamagable
         // IsFlying が true（既に飛行中）→ ビームアニメ、false（地上）→ 飛び上がりアニメ
         if (_unitAction is IFlyingUnit flyingUnit)
         {
-            if (flyingUnit.IsFlying)
+            if (_view is IFlyingUnitView flyingView)
             {
-                await _view.WaitBeamAnim();
+                if (flyingUnit.IsFlying)
+                {
+                    await flyingView.WaitBeamAnim();
+                }
+                else
+                {
+                    await flyingView.WaitFlyAnim();
+                }
             }
             else
             {
-                await _view.WaitFlyAnim();
+                Debug.LogWarning($"{_view.GetType().Name} は IFlyingUnitView を実装していません。WaitSpecificAnim にフォールバックします。");
+                await _view.WaitSpecificAnim();
             }
         }
         else

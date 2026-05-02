@@ -11,6 +11,7 @@ namespace Unit.pureC.Unit
         private const float PlayerDamageRate = 1.0f;
         private const string BuilderAttackMessage = "ビルダーの攻撃";
         private const float SpecificRate = 0.2f;
+        private const float QTETimeScale = 0.001f;
         
         public async UniTask BeforeAttack()
         {
@@ -22,7 +23,7 @@ namespace Unit.pureC.Unit
         {
             try
             {
-                Time.timeScale = 0.001f;
+                Time.timeScale = QTETimeScale;
                 var damageValue = await BattleManager.PlayerDamage(PlayerDamageRate);
                 Time.timeScale = 1.0f;
 

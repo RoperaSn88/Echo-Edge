@@ -6,7 +6,6 @@ namespace Unit.pureC.Unit
 {
     public class Skya: IUnitAction, IFlyingUnit
     {
-        private const float PlayerDamageRate = 1.0f;
         private const float SpecificDamageRate = 2.0f;
         private const float SpecificRate = 0.2f;
         private const float QTETimeScale = 0.001f;
@@ -28,7 +27,7 @@ namespace Unit.pureC.Unit
         public async UniTask Attack()
         {
             Time.timeScale = QTETimeScale;
-            var damageValue = await BattleManager.PlayerDamage(PlayerDamageRate);
+            var damageValue = await BattleManager.PlayerDamage(1.0f);
             Time.timeScale = 1.0f;
 
             UIPresenter.Instance.AppearDamageText($"{damageValue.damage}", PlayerController.Instance.transform.position).Forget();

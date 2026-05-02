@@ -10,11 +10,12 @@ namespace Unit.pureC.Unit
         private const float PlayerDamageRate = 1.0f;
         private const float SpecificRate = 0.2f;
         private const int BuffDurationTurns = 3;
+        private const float QTETimeScale = 0.001f;
 
         /// <inheritdoc/>
         public async UniTask Attack()
         {
-            Time.timeScale = 0.001f;
+            Time.timeScale = QTETimeScale;
             var damageValue = await BattleManager.PlayerDamage(PlayerDamageRate);
             Time.timeScale = 1.0f;
 

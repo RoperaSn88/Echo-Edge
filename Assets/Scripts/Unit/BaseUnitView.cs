@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
 
-public class BaseUnitView: MonoBehaviour, IDamageActivator, IDisposable
+public class BaseUnitView: MonoBehaviour, IDamageActivator, IFlyingUnitView, IDisposable
 {
     private const string EnemyAnimPath = "Assets/Addressables/Animator/";
     
