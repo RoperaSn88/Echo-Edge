@@ -163,12 +163,13 @@ public class CameraManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 追尾を終了する。
+    /// 追尾を終了し、カメラを初期位置に戻す。
     /// </summary>
     public void StopTracking()
     {
         _trackingTarget = null;
         _isTracking = false;
+        ActResetCameraTarget().Forget();
     }
 
     /// <summary>
