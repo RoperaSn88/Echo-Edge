@@ -18,6 +18,11 @@ public class ComboPresenter : MonoBehaviour
     private TextMeshProUGUI _multiplierText;
 
     private CanvasGroup _canvasGroup;
+    private RectTransform _rectTransform;
+
+    // 通常時のサイズとフォントサイズ（Awake で記録）
+    private Vector2 _normalSize;
+    private float _normalFontSize;
 
     private const float PopScale = 1.5f;
     private const float AppearDuration = 0.3f;
@@ -29,6 +34,9 @@ public class ComboPresenter : MonoBehaviour
     {
         Instance = this;
         _canvasGroup = GetComponent<CanvasGroup>();
+        _rectTransform = GetComponent<RectTransform>();
+        _normalSize = _rectTransform.sizeDelta;
+        _normalFontSize = _comboText.fontSize;
         gameObject.SetActive(false);
     }
 
@@ -39,7 +47,8 @@ public class ComboPresenter : MonoBehaviour
     public void SetCombo(int combo)
     {
         // 実行中のトゥイーンをキャンセル
-        DOTween.Kill(transform);
+        DOTween.Kill(_rectTransform);
+        DOTween.Kill(_comboText);
         DOTween.Kill(_canvasGroup);
 
         gameObject.SetActive(true);
@@ -55,9 +64,11 @@ public class ComboPresenter : MonoBehaviour
             _multiplierText.text = $"×{multiplier:F2}";
         }
 
-        // でかい状態から元の大きさになるトゥイーン
-        transform.localScale = Vector3.one * PopScale;
-        transform.DOScale(Vector3.one, AppearDuration).SetEase(Ease.OutBack);
+        // でかい状態から元の大きさになるトゥイーン（rect.width/height と fontSize を使用）
+        _rectTransform.sizeDelta = _normalSize * PopScale;
+        _comboText.fontSize = _normalFontSize * PopScale;
+        _rectTransform.DOSizeDelta(_normalSize, AppearDuration).SetEase(Ease.OutBack);
+        _comboText.DOFontSize(_normalFontSize, AppearDuration).SetEase(Ease.OutBack);
     }
 
     /// <summary>
@@ -72,7 +83,8 @@ public class ComboPresenter : MonoBehaviour
     {
         // 小さくなるトゥイーンと、完全に透明になるトゥイーン
         await UniTask.WhenAll(
-            transform.DOScale(Vector3.zero, DisappearDuration).SetEase(Ease.InQuad).ToUniTask(),
+            _rectTransform.DOSizeDelta(Vector2.zero, DisappearDuration).SetEase(Ease.InQuad).ToUniTask(),
+            _comboText.DOFontSize(0, DisappearDuration).SetEase(Ease.InQuad).ToUniTask(),
             _canvasGroup.DOFade(0f, DisappearDuration).ToUniTask()
         );
 
