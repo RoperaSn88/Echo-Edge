@@ -23,6 +23,13 @@ public class BattleManager : MonoBehaviour
 
     private static float _qteResult;
 
+    /// <summary>
+    /// 現在のコンボ数
+    /// </summary>
+    private static int _combo = 0;
+
+    public static int Combo => _combo;
+
     public static void RegisterEnemy(BattleStatus targetStatus)
     {
         _enemyStatus = targetStatus;
@@ -38,14 +45,29 @@ public class BattleManager : MonoBehaviour
         _QTEFlug = false;
     }
 
+    /// <summary>
+    /// コンボをリセットしてコンボテキストを非表示にする
+    /// </summary>
+    public static void ResetCombo()
+    {
+        _combo = 0;
+        ComboPresenter.Instance?.ResetCombo();
+    }
+
     public async static UniTask<(int damage, bool isDeath)> EnemyDamage()
     {
         if (!_QTEFlug)
         {
             _qteResult = await UIPresenter.Instance.AppearQTE(QTEKinds.Attack);
             _QTEFlug = true;
-        } 
-        return await _enemyStatus.Damage((int)(_playerStatus.Attack * _qteResult));
+        }
+
+        // コンボを増やしてテキストを更新する
+        _combo++;
+        float comboValue = 1.0f + (_combo - 1) * 0.1f;
+        ComboPresenter.Instance?.SetCombo(_combo);
+
+        return await _enemyStatus.Damage((int)(_playerStatus.Attack * (comboValue * comboValue) * _qteResult));
     }
 
     public async static UniTask<(int damage, bool isDeath)> PlayerDamage(float rate)
