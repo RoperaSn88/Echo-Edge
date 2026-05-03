@@ -22,7 +22,14 @@ public class PlayerAttackPhase: IPhase
         CameraManager.Instance.ActMoveCameraToDefault();
         Ray ray = Camera.main.ScreenPointToRay(CameraManager.Instance.GetMousePosition());
         Physics.Raycast(ray, out RaycastHit rch, math.INFINITY,LayerNumber);
+
+        // プレイヤーの攻撃開始時に追尾を開始する
+        CameraManager.Instance.StartTracking(PlayerController.Instance.transform);
+
         await PlayerController.Instance.Move(rch.point);
+
+        // 追尾を終了する
+        CameraManager.Instance.StopTracking();
         
         return EnemyPhase.Instance;
     }

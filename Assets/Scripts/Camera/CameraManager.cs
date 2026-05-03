@@ -51,6 +51,16 @@ public class CameraManager : MonoBehaviour
     /// </summary>
     private Vector3 _baseCameraPos;
 
+    /// <summary>
+    /// 追尾対象のTransform
+    /// </summary>
+    private Transform _trackingTarget;
+
+    /// <summary>
+    /// 追尾中のフラグ
+    /// </summary>
+    private bool _isTracking;
+
     private MousePosition _mousePosition;
 
     /// <summary>
@@ -116,6 +126,14 @@ public class CameraManager : MonoBehaviour
         _mousePosition.Enable();
     }
 
+    void LateUpdate()
+    {
+        if (_isTracking && _trackingTarget != null)
+        {
+            _defaultCameraPos.position = _trackingTarget.position;
+        }
+    }
+
     /// <summary>
     /// 現在のマウスの位置を取得する
     /// </summary>
@@ -132,6 +150,26 @@ public class CameraManager : MonoBehaviour
     {
         _baseCameraPos = _defaultCameraPos.position;
         _cinemachineThirdPersonFollow = _cinemachineCamera.GetComponent<CinemachineThirdPersonFollow>();
+    }
+
+    /// <summary>
+    /// 指定したオブジェクトへの追尾を開始する。
+    /// </summary>
+    /// <param name="target">追尾する対象のTransform</param>
+    public void StartTracking(Transform target)
+    {
+        _trackingTarget = target;
+        _isTracking = true;
+    }
+
+    /// <summary>
+    /// 追尾を終了し、カメラを初期位置に戻す。
+    /// </summary>
+    public void StopTracking()
+    {
+        _trackingTarget = null;
+        _isTracking = false;
+        ActResetCameraTarget().Forget();
     }
 
     /// <summary>
