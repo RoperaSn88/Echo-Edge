@@ -1,0 +1,115 @@
+using System;
+using Cysharp.Threading.Tasks;
+using UI;
+using UnityEngine;
+
+/// <summary>
+/// ゲームクリアの演出を管理するクラス。
+/// </summary>
+public static class GameClearManager
+{
+    /// <summary>
+    /// 残り敵ユニット数
+    /// </summary>
+    private static int _enemyCount;
+
+    /// <summary>
+    /// 最後に倒した敵の高さ座標
+    /// </summary>
+    private static int _lastEnemyH;
+
+    /// <summary>
+    /// 最後に倒した敵の横座標
+    /// </summary>
+    private static int _lastEnemyW;
+
+    /// <summary>
+    /// ゲームクリア演出が開始済みか
+    /// </summary>
+    private static bool _isGameClearStarted;
+
+    /// <summary>
+    /// 敵の数をキャッシュする。StartPhase から呼ぶ。
+    /// </summary>
+    /// <param name="count">ステージ開始時の敵ユニット数</param>
+    public static void SetEnemyCount(int count)
+    {
+        _enemyCount = count;
+        _isGameClearStarted = false;
+    }
+
+    /// <summary>
+    /// 敵が死亡したときに呼ぶ。カウントを減らし、0になればゲームクリア演出を開始する。
+    /// </summary>
+    /// <param name="h">死亡した敵の高さ座標</param>
+    /// <param name="w">死亡した敵の横座標</param>
+    public static void OnEnemyDead(int h, int w)
+    {
+        if (_isGameClearStarted) return;
+
+        _lastEnemyH = h;
+        _lastEnemyW = w;
+        _enemyCount--;
+
+        if (_enemyCount <= 0)
+        {
+            _isGameClearStarted = true;
+            StartGameClearSequenceAsync().Forget();
+        }
+    }
+
+    private static async UniTask StartGameClearSequenceAsync()
+    {
+        // 1. 暗転する
+        await UIPresenter.Instance.FadeOutAsync();
+
+        // 2. ステータスのUIを非表示にする
+        if (PlayerStatusPresenter.Instance != null)
+        {
+            PlayerStatusPresenter.Instance.gameObject.SetActive(false);
+        }
+
+        // 3. プレイヤーにカメラをより大きく瞬時に拡大し、カメラの角度をy軸30ほど傾ける
+        if (PlayerController.Instance != null)
+        {
+            CameraManager.Instance.SetGameClearCamera(PlayerController.Instance.transform.position);
+        }
+
+        // 最後に倒した敵から下1マス、横3マスに壁が存在する場合は削除する
+        RemoveWallsNearLastEnemy();
+
+        // 4. 暗転をやめて表示する
+        await UIPresenter.Instance.FadeInAsync();
+
+        // 5. カメラを揺らす
+        CameraManager.Instance.StartCameraShake();
+
+        // クリックを待つ
+        bool clicked = false;
+        var mouseActions = new MouseClick();
+        mouseActions.Mouse.MouseClick.started += _ => clicked = true;
+        mouseActions.Enable();
+
+        await UniTask.WaitUntil(() => clicked);
+        mouseActions.Dispose();
+
+        // クリック時: カメラをもとの位置に戻して揺らすのをやめる
+        CameraManager.Instance.StopCameraShake();
+        await CameraManager.Instance.ActResetCameraTarget();
+
+        // 6. MainGameをアンロードし、Preparingシーンを読み込む
+        SceneLoader.Load(GameScene.Preparing);
+        SceneLoader.Unload(GameScene.MainGame);
+    }
+
+    private static void RemoveWallsNearLastEnemy()
+    {
+        if (BuildingManager.Instance == null) return;
+
+        // 最後に倒した敵から下1マス、横3マスの壁を削除する
+        for (int offsetW = -1; offsetW <= 1; offsetW++)
+        {
+            BuildingManager.Instance.TryRemoveWallAt(_lastEnemyH - 1, _lastEnemyW + offsetW);
+        }
+    }
+}

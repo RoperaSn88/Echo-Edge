@@ -249,6 +249,15 @@ public class MapManager: MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// マップ上の敵ユニット（BaseUnit）の数を返します。
+    /// building（壁）は GetStatus() が null を返すため除外されます。
+    /// </summary>
+    public int CountEnemies()
+    {
+        return _unitPositions.Keys.Count(u => u.GetStatus() != null);
+    }
+
     public void ResetMap()
     {
         _mapGrid = new IUnit[MapHeight, MapWidth];

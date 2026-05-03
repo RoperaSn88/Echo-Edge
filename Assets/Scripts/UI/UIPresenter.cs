@@ -101,4 +101,17 @@ public class UIPresenter : MonoBehaviour
         await _fadePanel.DOFade(0f, _fadeDuration).ToUniTask();
         _fadePanel.gameObject.SetActive(false);
     }
+
+    /// <summary>
+    /// パネルをフェードアウトします（暗転する）。
+    /// </summary>
+    public async UniTask FadeOutAsync()
+    {
+        if (_fadePanel == null) return;
+        var c = _fadePanel.color;
+        c.a = 0f;
+        _fadePanel.color = c;
+        _fadePanel.gameObject.SetActive(true);
+        await _fadePanel.DOFade(1f, _fadeDuration).ToUniTask();
+    }
 }

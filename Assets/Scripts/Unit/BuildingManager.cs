@@ -13,6 +13,7 @@ public class BuildingManager : MonoBehaviour
     private WallStack builderWallStack;
 
     private readonly List<(BuildingView view, int h, int w)> _activeBuilderWalls = new();
+    private readonly List<(BuildingView view, int h, int w)> _activeWalls = new();
 
     void Start()
     {
@@ -49,6 +50,29 @@ public class BuildingManager : MonoBehaviour
             return;
         }
         v.Set(h, w);
+        _activeWalls.Add((v, h, w));
+    }
+
+    /// <summary>
+    /// 指定座標の壁を削除し、プールに返却します。
+    /// </summary>
+    public void TryRemoveWallAt(int h, int w)
+    {
+        if (wallStack == null) return;
+        for (int i = _activeWalls.Count - 1; i >= 0; i--)
+        {
+            var wall = _activeWalls[i];
+            if (wall.h == h && wall.w == w)
+            {
+                if (MapManager.Instance != null)
+                {
+                    MapManager.Instance.RemoveUnitAt(h, w);
+                }
+                wallStack.ReturnWall(wall.view);
+                _activeWalls.RemoveAt(i);
+                return;
+            }
+        }
     }
 
     public bool TrySetBuilderWall(int h, int w)
