@@ -131,11 +131,6 @@ public class CameraManager : MonoBehaviour
     
     private const float PlayerWeaponTokenTime = 0.4f;
 
-    /// <summary>
-    /// カメラシェイク用のキャンセルトークンソース
-    /// </summary>
-    private CancellationTokenSource _shakeCts;
-
 
 
     void Start()
@@ -600,9 +595,13 @@ public class CameraManager : MonoBehaviour
     /// </summary>
     public void StartCameraShake()
     {
-        StopCameraShake();
-        _shakeCts = new CancellationTokenSource();
-        CameraShakeLoop(_shakeCts.Token).Forget();
+        if (_cameraMoving)
+        {
+            Debug.Log("キャンセルだ");
+            _cts.Cancel();
+        }
+        _cts = new CancellationTokenSource();
+        CameraShake(_cts.Token).Forget();
     }
 
     /// <summary>
@@ -610,22 +609,18 @@ public class CameraManager : MonoBehaviour
     /// </summary>
     public void StopCameraShake()
     {
-        _shakeCts?.Cancel();
-        _shakeCts = null;
+        _cts?.Cancel();
     }
 
-    private async UniTask CameraShakeLoop(CancellationToken ct)
+    private async UniTask CameraShake(CancellationToken ct)
     {
-        while (!ct.IsCancellationRequested)
+        try
         {
-            try
-            {
-                await _defaultCameraPos.DOShakePosition(0.5f, 0.05f, 10, 90f, false, true).ToUniTask(cancellationToken: ct);
-            }
-            catch (OperationCanceledException)
-            {
-                break;
-            }
+            await _defaultCameraPos.DOShakePosition(0.5f, 0.05f, 10, 90f, false, true).ToUniTask(cancellationToken: ct);
+        }
+        catch (OperationCanceledException)
+        {
+            Debug.Log("キャンセル");
         }
     }
 }
