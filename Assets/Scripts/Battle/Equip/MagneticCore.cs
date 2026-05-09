@@ -86,17 +86,24 @@ public class MagneticCore : IEquipEffect
     private List<(int h, int w)> GetCandidateCells(int targetH, int targetW)
     {
         List<(int h, int w)> cells = new();
-        int maxDistance = MapManager.Instance.Height + MapManager.Instance.Width;
+        HashSet<(int h, int w)> added = new();
+        int maxDistance = MapManager.Instance.Height + MapManager.Instance.Width - 2;
+        int maxCellCount = (MapManager.Instance.Height * MapManager.Instance.Width) - 1;
 
         for (int distance = 1; distance <= maxDistance; distance++)
         {
+            if (cells.Count >= maxCellCount)
+            {
+                break;
+            }
+
             for (int hOffset = -distance; hOffset <= distance; hOffset++)
             {
                 int wOffsetMagnitude = distance - Mathf.Abs(hOffset);
-                AddCandidate(targetH + hOffset, targetW + wOffsetMagnitude, cells);
+                AddCandidate(targetH + hOffset, targetW + wOffsetMagnitude, cells, added);
                 if (wOffsetMagnitude != 0)
                 {
-                    AddCandidate(targetH + hOffset, targetW - wOffsetMagnitude, cells);
+                    AddCandidate(targetH + hOffset, targetW - wOffsetMagnitude, cells, added);
                 }
             }
         }
@@ -104,7 +111,7 @@ public class MagneticCore : IEquipEffect
         return cells;
     }
 
-    private void AddCandidate(int h, int w, List<(int h, int w)> cells)
+    private void AddCandidate(int h, int w, List<(int h, int w)> cells, HashSet<(int h, int w)> added)
     {
         if (!MapManager.Instance.IsInBounds(h, w))
         {
@@ -112,7 +119,7 @@ public class MagneticCore : IEquipEffect
         }
 
         var candidate = (h, w);
-        if (!cells.Contains(candidate))
+        if (added.Add(candidate))
         {
             cells.Add(candidate);
         }
