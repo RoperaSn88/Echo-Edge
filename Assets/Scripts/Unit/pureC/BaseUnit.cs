@@ -72,8 +72,12 @@ public　class BaseUnit: IUnit, IDamagable
     public async UniTask Dead()
     {
         await _unitAction.Dead();
+        var h = Height;
+        var w = Width;
         // 死んだら自身のいるマスを空にする
-        MapManager.Instance.RemoveUnitAt(Height, Width);
+        MapManager.Instance.RemoveUnitAt(h, w);
+        // ゲームクリア判定
+        GameClearManager.OnEnemyDead(h, w);
     }
 
     public async UniTask Attack()

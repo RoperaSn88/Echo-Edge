@@ -110,6 +110,21 @@ public class CameraManager : MonoBehaviour
     private const float PlayerWeaponCameraDistance = 2f;
 
     /// <summary>
+    /// ゲームクリア時のカメラの距離
+    /// </summary>
+    private const float GameClearCameraDistance = 2f;
+
+    /// <summary>
+    /// ゲームクリア時のカメラのy軸角度
+    /// </summary>
+    private const float GameClearCameraYAngle = 30f;
+
+    /// <summary>
+    /// ゲームクリア時のカメラオフセット
+    /// </summary>
+    private readonly Vector3 GameClearCameraOffset = new Vector3(0f, -0.5f, 1f);
+
+    /// <summary>
     /// 非同期処理の待機時間
     /// </summary>
     private const float TokenTime = 0.25f;
@@ -559,6 +574,53 @@ public class CameraManager : MonoBehaviour
             offsetTween.Complete();
             rotationTween.Complete();
             _cameraMoving = false;
+        }
+    }
+
+    /// <summary>
+    /// ゲームクリア時にカメラをプレイヤーへ瞬時に大きくズームし、y軸を傾ける。
+    /// </summary>
+    /// <param name="playerPos">プレイヤーのワールド座標</param>
+    public void SetGameClearCamera(Vector3 playerPos)
+    {
+        _defaultCameraPos.position = playerPos;
+        _cinemachineThirdPersonFollow.CameraDistance = GameClearCameraDistance;
+        _cinemachineThirdPersonFollow.ShoulderOffset = GameClearCameraOffset;
+        var angles = _defaultCameraPos.rotation.eulerAngles;
+        _defaultCameraPos.rotation = Quaternion.Euler(angles.x, GameClearCameraYAngle, angles.z);
+    }
+
+    /// <summary>
+    /// カメラの揺れを開始する。
+    /// </summary>
+    public void StartCameraShake()
+    {
+        if (_cameraMoving)
+        {
+            Debug.Log("キャンセルだ");
+            _cts.Cancel();
+        }
+        _cts = new CancellationTokenSource();
+        CameraShake(_cts.Token).Forget();
+    }
+
+    /// <summary>
+    /// カメラの揺れを停止する。
+    /// </summary>
+    public void StopCameraShake()
+    {
+        _cts?.Cancel();
+    }
+
+    private async UniTask CameraShake(CancellationToken ct)
+    {
+        try
+        {
+            await _defaultCameraPos.DOShakePosition(0.5f, 0.05f, 10, 90f, false, true).ToUniTask(cancellationToken: ct);
+        }
+        catch (OperationCanceledException)
+        {
+            Debug.Log("キャンセル");
         }
     }
 }
