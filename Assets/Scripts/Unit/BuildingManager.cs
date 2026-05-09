@@ -3,6 +3,16 @@ using System.Collections.Generic;
 
 public class BuildingManager : MonoBehaviour
 {
+    private const int EnergyWallLifetimePlayerPhaseStarts = 2;
+
+    private class ActiveEnergyWall
+    {
+        public BuildingView View;
+        public int Height;
+        public int Width;
+        public int RemainingPlayerPhaseStarts;
+    }
+
     public static BuildingManager Instance;
     public event System.Action OnTurnStart;
 
@@ -13,7 +23,7 @@ public class BuildingManager : MonoBehaviour
     private WallStack builderWallStack;
 
     private readonly List<(BuildingView view, int h, int w)> _activeBuilderWalls = new();
-    private readonly List<(BuildingView view, int h, int w, int remainingPlayerPhaseStarts)> _activeEnergyWalls = new();
+    private readonly List<ActiveEnergyWall> _activeEnergyWalls = new();
     private readonly List<(BuildingView view, int h, int w)> _activeWalls = new();
 
     void Start()
@@ -122,7 +132,13 @@ public class BuildingManager : MonoBehaviour
         }
 
         wallView.Set(h, w);
-        _activeEnergyWalls.Add((wallView, h, w, 2));
+        _activeEnergyWalls.Add(new ActiveEnergyWall
+        {
+            View = wallView,
+            Height = h,
+            Width = w,
+            RemainingPlayerPhaseStarts = EnergyWallLifetimePlayerPhaseStarts
+        });
         return true;
     }
 
@@ -154,19 +170,18 @@ public class BuildingManager : MonoBehaviour
         for (int i = _activeEnergyWalls.Count - 1; i >= 0; i--)
         {
             var activeWall = _activeEnergyWalls[i];
-            int remainingPlayerPhaseStarts = activeWall.remainingPlayerPhaseStarts - 1;
+            activeWall.RemainingPlayerPhaseStarts -= 1;
 
-            if (remainingPlayerPhaseStarts > 0)
+            if (activeWall.RemainingPlayerPhaseStarts > 0)
             {
-                _activeEnergyWalls[i] = (activeWall.view, activeWall.h, activeWall.w, remainingPlayerPhaseStarts);
                 continue;
             }
 
             if (MapManager.Instance != null)
             {
-                MapManager.Instance.RemoveUnitAt(activeWall.h, activeWall.w);
+                MapManager.Instance.RemoveUnitAt(activeWall.Height, activeWall.Width);
             }
-            builderWallStack.ReturnBuilderWall(activeWall.view);
+            builderWallStack.ReturnBuilderWall(activeWall.View);
             _activeEnergyWalls.RemoveAt(i);
         }
     }
