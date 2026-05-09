@@ -85,12 +85,12 @@ public static class GameClearManager
         CameraManager.Instance.StartCameraShake();
 
         // クリックを待つ
-        bool clicked = false;
         var mouseActions = new MouseClick();
-        mouseActions.Mouse.MouseClick.started += _ => clicked = true;
         mouseActions.Enable();
-
-        await UniTask.WaitUntil(() => clicked);
+        var tcs = new UniTaskCompletionSource();
+        mouseActions.Mouse.MouseClick.started += _ => tcs.TrySetResult();
+        await tcs.Task;
+        mouseActions.Mouse.Disable();
         mouseActions.Dispose();
 
         // クリック時: カメラをもとの位置に戻して揺らすのをやめる
@@ -104,7 +104,7 @@ public static class GameClearManager
 
     private static void RemoveWallsNearLastEnemy()
     {
-        if (BuildingManager.Instance == null) return;
+        if (BuildingManager.Instance == null) throw new InvalidOperationException("BuildingManager.Instance が null です。");
 
         // 最後に倒した敵から下1マス、横3マスの壁を削除する
         for (int offsetW = -1; offsetW <= 1; offsetW++)

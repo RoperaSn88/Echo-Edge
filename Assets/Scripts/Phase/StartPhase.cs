@@ -22,9 +22,6 @@ public class StartPhase : IPhase
         await UniTask.WaitUntil(() => MapManager.Instance != null);
         await MapManager.Instance.BuildStageFromCsv();
 
-        // 敵の数をゲームクリアマネージャーにキャッシュする
-        GameClearManager.SetEnemyCount(MapManager.Instance.CountEnemies());
-
         // 3. Panelをフェードイン
         await AudioManager.Instance.PlayBgm(BgmAudioType.Battle, true);
         await UIPresenter.Instance.FadeInAsync();

@@ -64,7 +64,7 @@ public class MapManager: MonoBehaviour
             if (placement.objectKind == StageObjectKind.Wall)
             {
                 var buildingUnit = new building();
-                RegisterUnit(buildingUnit, placement.height, placement.width);
+                RegisterWall(buildingUnit, placement.height, placement.width);
                 BuildingManager.Instance.SetBuilding(placement.height, placement.width);
                 continue;
             }
@@ -76,6 +76,15 @@ public class MapManager: MonoBehaviour
                 UnitSpawner.Instance.SpawnView(unit, placement.enemyKind);
             }
         }
+
+        GameClearManager.SetEnemyCount(CountEnemies());
+    }
+
+    private void RegisterWall(IUnit wall, int h, int w)
+    {
+        if (_mapGrid[h, w] == null)
+            _mapGrid[h, w] = wall;
+        else throw new InvalidOperationException("指定したマスにはunitがいるか、範囲外です h:" + h + ", w:" + w);
     }
 
     public void RegisterUnit(IUnit unit, int h, int w)
@@ -250,12 +259,11 @@ public class MapManager: MonoBehaviour
     }
 
     /// <summary>
-    /// マップ上の敵ユニット（BaseUnit）の数を返します。
-    /// building（壁）は GetStatus() が null を返すため除外されます。
+    /// マップ上の敵ユニットの数を返します。
     /// </summary>
     public int CountEnemies()
     {
-        return _unitPositions.Keys.Count(u => u.GetStatus() != null);
+        return _unitPositions.Count;
     }
 
     public void ResetMap()

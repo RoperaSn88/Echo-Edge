@@ -1,3 +1,4 @@
+using System;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
@@ -107,7 +108,7 @@ public class UIPresenter : MonoBehaviour
     /// </summary>
     public async UniTask FadeOutAsync()
     {
-        if (_fadePanel == null) return;
+        if (_fadePanel == null) throw new InvalidOperationException("_fadePanel が設定されていません。インスペクターで割り当ててください。");
         var c = _fadePanel.color;
         c.a = 0f;
         _fadePanel.color = c;
