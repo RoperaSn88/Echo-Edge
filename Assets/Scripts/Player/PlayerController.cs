@@ -129,6 +129,7 @@ public class PlayerController: MonoBehaviour
         _vec.Set(-8, _playerTransform.position.y, _playerTransform.position.z);
 
         BattleManager.ResetQTE();
+        BattleManager.ResetCombo();
         UIPresenter.Instance.FadeTexts();
 
         _playerTransform.position = _vec;
