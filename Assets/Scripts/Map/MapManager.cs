@@ -46,6 +46,9 @@ public class MapManager: MonoBehaviour
         return _baseTransform.position;
     }
 
+    public int Height => MapHeight;
+    public int Width => MapWidth;
+
     public void Start()
     {
         Instance = this;
@@ -110,6 +113,11 @@ public class MapManager: MonoBehaviour
             return null;
         }
         return _mapGrid[h, w];
+    }
+
+    public bool IsInBounds(int h, int w)
+    {
+        return h >= 0 && h < MapHeight && w >= 0 && w < MapWidth;
     }
 
     /// <summary>
@@ -202,6 +210,32 @@ public class MapManager: MonoBehaviour
         if (_mapGrid[h, w] != null) return false;
         _mapGrid[h, w] = unit;
         _unitPositions[unit] = (h, w);
+        return true;
+    }
+
+    public async UniTask<bool> TryMoveUnitTo(IUnit unit, int dstH, int dstW)
+    {
+        if (unit == null) return false;
+        if (!IsInBounds(dstH, dstW)) return false;
+        if (_mapGrid[dstH, dstW] != null) return false;
+        if (!_unitPositions.TryGetValue(unit, out var src)) return false;
+
+        _mapGrid[src.h, src.w] = null;
+        _mapGrid[dstH, dstW] = unit;
+        _unitPositions[unit] = (dstH, dstW);
+
+        try
+        {
+            await unit.Move(dstH, dstW);
+        }
+        catch
+        {
+            _mapGrid[dstH, dstW] = null;
+            _mapGrid[src.h, src.w] = unit;
+            _unitPositions[unit] = src;
+            return false;
+        }
+
         return true;
     }
 
