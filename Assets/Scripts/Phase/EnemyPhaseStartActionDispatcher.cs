@@ -11,6 +11,7 @@ public static class EnemyPhaseStartActionDispatcher
             return;
         }
 
+        OnEnemyPhaseStart -= action.OnEnemyPhaseStart;
         OnEnemyPhaseStart += action.OnEnemyPhaseStart;
     }
 

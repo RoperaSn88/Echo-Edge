@@ -71,9 +71,10 @@ public class EnergyWallManager : IEnemyPhaseStartAction
         for (int i = _activeEnergyWalls.Count - 1; i >= 0; i--)
         {
             var activeWall = _activeEnergyWalls[i];
+            activeWall.RemainingEnemyPhaseStarts -= 1;
+
             if (activeWall.RemainingEnemyPhaseStarts > 0)
             {
-                activeWall.RemainingEnemyPhaseStarts -= 1;
                 continue;
             }
 
@@ -96,7 +97,7 @@ public class EnergyWallManager : IEnemyPhaseStartAction
         }
 
         var wallStacks = Object.FindObjectsByType<WallStack>(FindObjectsSortMode.None);
-        if (wallStacks.Length <= 0)
+        if (wallStacks.Length == 0)
         {
             wallStack = null;
             return false;
