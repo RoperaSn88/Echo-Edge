@@ -42,7 +42,6 @@ public class PlayerPhase: IPhase
         _clickFlug = false;
         _pauseFlug = false;
         Debug.Log("Player Phase");
-        BuildingManager.Instance?.ReturnAllEnergyWalls();
         PlayerActions playerActions = new PlayerActions();
         EnableController(playerActions);
 

@@ -11,7 +11,7 @@ public class EnergyWall : IEquipEffect
     /// </summary>
     public async UniTask Activate()
     {
-        if (MapManager.Instance == null || BuildingManager.Instance == null)
+        if (MapManager.Instance == null)
         {
             return;
         }
@@ -24,7 +24,7 @@ public class EnergyWall : IEquipEffect
 
         int wallHeight = targetFloorPos.y;
         int wallWidth = targetFloorPos.x;
-        BuildingManager.Instance.TrySetEnergyWall(wallHeight, wallWidth);
+        EnergyWallManager.Instance.TrySetEnergyWall(wallHeight, wallWidth);
         await UniTask.CompletedTask;
     }
 }
