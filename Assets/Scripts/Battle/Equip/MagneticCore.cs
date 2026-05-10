@@ -34,17 +34,14 @@ public class MagneticCore : IEquipEffect
             .OrderBy(unitInfo => Mathf.Abs(unitInfo.h - targetH) + Mathf.Abs(unitInfo.w - targetW))
             .ToList();
 
-        if (targetUnits.Count == 0)
-        {
-            return;
-        }
-
         List<(int h, int w)> candidateCells = GetCandidateCells(targetH, targetW);
         if (candidateCells.Count == 0)
         {
             return;
         }
 
+        // 吸引対象以外のユニットがいるマスは固定で埋まっている扱いにして、
+        // 再配置先に割り当てないようにする。
         HashSet<(int h, int w)> fixedOccupiedCells = MapManager.Instance.GetUnitPositionsSnapshot()
             .Where(unitInfo => !targetUnits.Any(target => target.unit == unitInfo.unit))
             .Select(unitInfo => (unitInfo.h, unitInfo.w))
@@ -87,6 +84,8 @@ public class MagneticCore : IEquipEffect
     {
         List<(int h, int w)> cells = new();
         HashSet<(int h, int w)> added = new();
+        // target マスからのマンハッタン距離を 1 ずつ広げて、
+        // 近いマスから順番に候補を作る。
         int maxDistance = MapManager.Instance.Height + MapManager.Instance.Width - 2;
         int maxCellCount = (MapManager.Instance.Height * MapManager.Instance.Width) - 1;
 
@@ -99,6 +98,8 @@ public class MagneticCore : IEquipEffect
 
             for (int hOffset = -distance; hOffset <= distance; hOffset++)
             {
+                // |hOffset| + |wOffset| = distance を満たす2点を追加し、
+                // 1つの距離リング上のマスを列挙する。
                 int wOffsetMagnitude = distance - Mathf.Abs(hOffset);
                 AddCandidate(targetH + hOffset, targetW + wOffsetMagnitude, cells, added);
                 if (wOffsetMagnitude != 0)
