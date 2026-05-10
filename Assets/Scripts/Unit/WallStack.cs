@@ -98,6 +98,16 @@ public class WallStack : MonoBehaviour
         _availableBuilderWalls.Push(wall);
     }
 
+    public BuildingView GetTemporaryWall()
+    {
+        return GetBuilderWall();
+    }
+
+    public void ReturnTemporaryWall(BuildingView wall)
+    {
+        ReturnBuilderWall(wall);
+    }
+
     private BuildingView CreateWall()
     {
         if (wallPrefab == null)

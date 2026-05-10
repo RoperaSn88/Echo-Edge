@@ -3,14 +3,14 @@ using UnityEngine;
 
 public class EnergyWallManager : IEnemyPhaseStartAction
 {
-    private const int EnergyWallLifetimeEnemyPhaseStarts = 1;
+    private const int EnergyWallLifetime = 1;
 
     private class ActiveEnergyWall
     {
         public BuildingView View;
         public int Height;
         public int Width;
-        public int RemainingEnemyPhaseStarts;
+        public int RemainingLifetime;
     }
 
     private static EnergyWallManager _instance;
@@ -42,7 +42,7 @@ public class EnergyWallManager : IEnemyPhaseStartAction
             return false;
         }
 
-        var wallView = wallStack.GetBuilderWall();
+        var wallView = wallStack.GetTemporaryWall();
         if (wallView == null)
         {
             MapManager.Instance.RemoveUnitAt(h, w);
@@ -55,7 +55,7 @@ public class EnergyWallManager : IEnemyPhaseStartAction
             View = wallView,
             Height = h,
             Width = w,
-            RemainingEnemyPhaseStarts = EnergyWallLifetimeEnemyPhaseStarts
+            RemainingLifetime = EnergyWallLifetime
         });
 
         return true;
@@ -71,9 +71,9 @@ public class EnergyWallManager : IEnemyPhaseStartAction
         for (int i = _activeEnergyWalls.Count - 1; i >= 0; i--)
         {
             var activeWall = _activeEnergyWalls[i];
-            activeWall.RemainingEnemyPhaseStarts -= 1;
+            activeWall.RemainingLifetime -= 1;
 
-            if (activeWall.RemainingEnemyPhaseStarts > 0)
+            if (activeWall.RemainingLifetime > 0)
             {
                 continue;
             }
@@ -83,7 +83,7 @@ public class EnergyWallManager : IEnemyPhaseStartAction
                 MapManager.Instance.RemoveUnitAt(activeWall.Height, activeWall.Width);
             }
 
-            wallStack.ReturnBuilderWall(activeWall.View);
+            wallStack.ReturnTemporaryWall(activeWall.View);
             _activeEnergyWalls.RemoveAt(i);
         }
     }
