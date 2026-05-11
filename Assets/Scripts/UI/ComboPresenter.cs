@@ -68,7 +68,7 @@ public class ComboPresenter : MonoBehaviour
         _rectTransform.sizeDelta = _normalSize * PopScale;
         _comboText.fontSize = _normalFontSize * PopScale;
         _rectTransform.DOSizeDelta(_normalSize, AppearDuration).SetEase(Ease.OutBack);
-        _comboText.DOFontSize(_normalFontSize, AppearDuration).SetEase(Ease.OutBack);
+        // _comboText.DOFontSize(_normalFontSize, AppearDuration).SetEase(Ease.OutBack);
     }
 
     /// <summary>
@@ -84,7 +84,7 @@ public class ComboPresenter : MonoBehaviour
         // 小さくなるトゥイーンと、完全に透明になるトゥイーン
         await UniTask.WhenAll(
             _rectTransform.DOSizeDelta(Vector2.zero, DisappearDuration).SetEase(Ease.InQuad).ToUniTask(),
-            _comboText.DOFontSize(0, DisappearDuration).SetEase(Ease.InQuad).ToUniTask(),
+            // _comboText.DOFontSize(0, DisappearDuration).SetEase(Ease.InQuad).ToUniTask(),
             _canvasGroup.DOFade(0f, DisappearDuration).ToUniTask()
         );
 

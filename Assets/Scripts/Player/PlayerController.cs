@@ -141,7 +141,6 @@ public class PlayerController: MonoBehaviour
         if (collision.gameObject.CompareTag("Wall"))
         {
             atatta = true;
-            Debug.Log("aaaaaaa");
         }
     }
 
