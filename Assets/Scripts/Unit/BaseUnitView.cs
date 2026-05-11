@@ -16,6 +16,8 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposab
     [SerializeField]
     private Animator _animator;
 
+    public Animator Animator => _animator;
+
     [SerializeField]
     private SpriteRenderer _renderer;
 
@@ -27,7 +29,9 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposab
     /// <summary>
     /// アニメ中に攻撃を行うフラグ
     /// </summary>
-    private bool _attackFlag;
+    private bool _animationFlag;
+
+    public bool AnimationFlag => _animationFlag;
     
     /// <summary>
     /// 死んだか
@@ -60,7 +64,7 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposab
         height = h;
         width = w;
         _isDeath = false;
-        _attackFlag = false;
+        _animationFlag = false;
         if (_renderer != null)
         {
             var color = _renderer.color;
@@ -105,9 +109,9 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposab
     public async UniTask WaitAttackAnim()
     {
         _animator.SetTrigger("AttackT");
-        _attackFlag = false;
+        _animationFlag = false;
         
-        await UniTask.WaitUntil(() => _attackFlag);
+        await UniTask.WaitUntil(() => _animationFlag);
     }
     
     /// <summary>
@@ -115,16 +119,15 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposab
     /// </summary>
     public async UniTask WaitSpecificAnim()
     {
-        await UniTask.Delay(TimeSpan.FromSeconds(1f));
-        // _animator.SetTrigger("SpecificT");
-        // _attackFlag = false;
-        //
-        // await UniTask.WaitUntil(() => _attackFlag);
+        _animator.SetTrigger("SkillT");
+        _animationFlag = false;
+        
+        await UniTask.WaitUntil(() => _animationFlag);
     }
 
     public void ActiveAttack()
     {
-        _attackFlag = true;
+        _animationFlag = true;
     }
 
     public async UniTask Attack()

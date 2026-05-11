@@ -97,6 +97,8 @@ public class PlayerController: MonoBehaviour
 
         _direction.Set(targetPos.x - _pos.x, 0, targetPos.z - _pos.z);
         _direction = _direction.normalized;
+        
+        PlayerView.Instance.Animator.SetBool("AttackingF", true);
 
         for(int i = 0; i < _reflectCount; i++)
         {
@@ -131,6 +133,8 @@ public class PlayerController: MonoBehaviour
         BattleManager.ResetQTE();
         BattleManager.ResetCombo();
         UIPresenter.Instance.FadeTexts();
+        
+        PlayerView.Instance.Animator.SetBool("AttackingF", false);
 
         _playerTransform.position = _vec;
         await UniTask.Delay(TimeSpan.FromSeconds(0.6f));
@@ -181,7 +185,7 @@ public class PlayerController: MonoBehaviour
     {
         if (other.CompareTag("Enemy"))
         {
-            Debug.Log("damage");
+            PlayerView.Instance.Animator.SetTrigger("AttackT");
             other.TryGetComponent<IDamageActivator>(out var status);
             status.Damage();
         }

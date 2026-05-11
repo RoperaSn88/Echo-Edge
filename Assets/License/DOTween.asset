@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 0}
+  m_Name: DOTween
+  m_EditorClassIdentifier: Assembly-CSharp::LicenseComposer
+  licenseName: DOTween
+  licenseIntroduction: 'Copyright (c) 2015 Daniele Giardini, Demigiant
+
+    
+
+    To
+    check out DOTween license, visit this page: http://dotween.demigiant.com/license.php
+
+    
+
+    In
+    short:
+
+    - You can freely use DOTween in both commercial and non-commercial
+    projects
+
+    - You can redistribute verbatim copies of the code, along with
+    any readme files and attributions
+
+    - You can modify the code only for your
+    own use and you cannot redistribute modified versions (but you can send pull
+    requests to me)'

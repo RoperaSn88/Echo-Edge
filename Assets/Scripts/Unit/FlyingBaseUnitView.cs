@@ -27,15 +27,16 @@ public class FlyingBaseUnitView : BaseUnitView, IFlyingUnitView
     /// <inheritdoc/>
     public async UniTask WaitFlyAnim()
     {
+        Animator.SetTrigger("SkillT");
         await transform.DOLocalMoveY(_groundY + FlyHeight, FlyTime).SetEase(Ease.OutQuad);
     }
 
     /// <inheritdoc/>
     public async UniTask WaitAnimAfterFlying()
     {
-        // ビームのアニメーショントリガー（アニメーター実装後に対応）
-        // _animator.SetTrigger("BeamT");
-        await UniTask.Delay(TimeSpan.FromSeconds(1f));
+        // スカイア用のアニメーター
+        Animator.SetTrigger("BeamT");
+        await UniTask.WaitUntil(() => AnimationFlag);
         await transform.DOLocalMoveY(_groundY, FlyTime).SetEase(Ease.InQuad);
     }
 }

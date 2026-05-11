@@ -14,6 +14,8 @@ public class PlayerView: MonoBehaviour
     [SerializeField]
     private Animator _animator;
 
+    public Animator Animator => _animator; 
+
     [SerializeField]
     private SpriteRenderer _renderer;
 

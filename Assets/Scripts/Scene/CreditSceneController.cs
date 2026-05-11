@@ -1,4 +1,4 @@
-using System.Threading;
+﻿using System.Threading;
 using Cysharp.Text;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
@@ -26,18 +26,6 @@ public class CreditSceneController : MonoBehaviour
     /// </summary>
     [SerializeField]
     private RectTransform _group;
-    
-    /// <summary>
-    /// クレジットテキスト
-    /// </summary>
-    [SerializeField]
-    private TextMeshProUGUI _creditText;
-    
-    /// <summary>
-    /// クレジットテキストをもつcontentのRectTransform。スクロールに使用する。
-    /// </summary>
-    [SerializeField]
-    private RectTransform _contentRect;
 
     /// <summary>
     /// 閉じるボタン（クリック検知用）
@@ -50,8 +38,6 @@ public class CreditSceneController : MonoBehaviour
     private bool _retireRequested;
     private CancellationTokenSource _cts;
     private Camera _uiCamera;
-
-    [SerializeField] private CreditComposer[] _credits; 
 
     private void Awake()
     {
@@ -89,10 +75,6 @@ public class CreditSceneController : MonoBehaviour
         _cts?.Cancel();
         _cts?.Dispose();
         _cts = new CancellationTokenSource();
-        
-        // テキストの設定
-        SetText();
-        SetSize();
         
         // ボタンのリスナー設定
         _closeRequested = false;
@@ -136,34 +118,5 @@ public class CreditSceneController : MonoBehaviour
         }
     }
 
-    private void SetText()
-    {
-        string text = "";
-        foreach (var tmp in _credits)
-        {
-            text = ZString.Concat(text,"-------------------------" ,'\n', tmp.CreditName, '\n', tmp.CreditIntroduction, '\n');
-        }
-        _creditText.text = text;
-    }
-
-    private void SetSize()
-    {
-        _contentRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, _creditText.rectTransform.rect.height);
-    }
-
     private void OnCloseClicked() => _closeRequested = true;
-}
-
-
-[System.Serializable]
-public struct CreditComposer
-{
-    [SerializeField]
-    private string creditName;
-    
-    public string CreditName => creditName;
-    
-    [SerializeField,TextArea]
-    private string creditIntroduction;
-    public string CreditIntroduction => creditIntroduction;
 }
