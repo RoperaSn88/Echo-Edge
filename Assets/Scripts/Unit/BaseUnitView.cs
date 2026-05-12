@@ -172,6 +172,7 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposab
         if (damageValue.isDeath)
         {
             MapManager.Instance.RemoveUnitAt(height, width);
+            GameClearManager.OnEnemyDead(height, width);
             //Destroyするが、後でオブジェクトプールにする
             Dispose();
             if (UnitSpawner.Instance != null)
