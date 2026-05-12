@@ -23,6 +23,7 @@ public class ComboPresenter : MonoBehaviour
     // 通常時のサイズとフォントサイズ（Awake で記録）
     private Vector2 _normalSize;
     private float _normalFontSize;
+    private float _subFontSize;
 
     private const float PopScale = 1.5f;
     private const float AppearDuration = 0.3f;
@@ -37,6 +38,7 @@ public class ComboPresenter : MonoBehaviour
         _rectTransform = GetComponent<RectTransform>();
         _normalSize = _rectTransform.sizeDelta;
         _normalFontSize = _comboText.fontSize;
+        _subFontSize = _multiplierText.fontSize;
         gameObject.SetActive(false);
     }
 
@@ -67,8 +69,12 @@ public class ComboPresenter : MonoBehaviour
         // でかい状態から元の大きさになるトゥイーン（rect.width/height と fontSize を使用）
         _rectTransform.sizeDelta = _normalSize * PopScale;
         _comboText.fontSize = _normalFontSize * PopScale;
-        _rectTransform.DOSizeDelta(_normalSize, AppearDuration).SetEase(Ease.OutBack);
-        // _comboText.DOFontSize(_normalFontSize, AppearDuration).SetEase(Ease.OutBack);
+        _multiplierText.fontSize = _subFontSize * PopScale;
+        _rectTransform.DOSizeDelta(_normalSize, AppearDuration).SetEase(Ease.OutBack).SetUpdate(true);
+        DOTween.To(() => _comboText.fontSize, size => _comboText.fontSize = size, _normalFontSize, AppearDuration)
+            .SetEase(Ease.OutCubic).SetUpdate(true);
+        DOTween.To(() => _subFontSize, size => _multiplierText.fontSize = size, _subFontSize, AppearDuration)
+            .SetEase(Ease.OutCubic).SetUpdate(true);
     }
 
     /// <summary>

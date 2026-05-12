@@ -45,6 +45,7 @@ public static class GameClearManager
     /// <param name="w">死亡した敵の横座標</param>
     public static void OnEnemyDead(int h, int w)
     {
+        Debug.Log("GameClear");
         if (_isGameClearStarted) return;
 
         _lastEnemyH = h;

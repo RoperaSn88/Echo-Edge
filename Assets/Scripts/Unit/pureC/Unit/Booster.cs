@@ -68,7 +68,7 @@ namespace Unit.pureC.Unit
         
         public async UniTask BeforeSpecific()
         {
-            await MessageManager.Instance.AppearMessage("ブースターの特殊行動");
+            await MessageManager.Instance.AppearMessage("ブースターが加速バフを与える");
         }
 
         /// <inheritdoc/>

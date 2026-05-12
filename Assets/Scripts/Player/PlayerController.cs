@@ -113,6 +113,7 @@ public class PlayerController: MonoBehaviour
                 var distance = Vector3.Distance(_ray.origin, _hit.point);
                 // プレイヤーを移動する
                 _vec.Set(_hit.point.x, _hit.point.y, _hit.point.z);
+                _vec = Vector3.Lerp(transform.position, _vec, 0.99f);
                 _lastAfterimagePosition = transform.position;
                 await transform.DOMove(_vec, distance / Speed)
                     .OnUpdate(SpawnAfterimageIfNeeded);

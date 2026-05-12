@@ -143,8 +143,6 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposab
         BattleManager.RegisterEnemy(MapManager.Instance.GetUnitAt(height, width).GetStatus());
         var damageValue = await BattleManager.EnemyDamage();
         
-        Time.timeScale = 1.0f;
-        
         UIPresenter.Instance.AppearDamageText($"{damageValue.damage}", transform.position).Forget();
 
         if (damageValue.isDeath)
@@ -152,14 +150,16 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposab
             _animator.SetTrigger("DeadT");
             UIPresenter.Instance.AppearEnergy(transform.position, MapManager.Instance.GetUnitAt(height, width).GetStatus().Energy).Forget();
             await UniTask.WaitUntil(() => _isDeath);
-            await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
+            await UniTask.Delay(TimeSpan.FromSeconds(0.7f), ignoreTimeScale:true);
         }
         else
         {
-            await UniTask.Delay(TimeSpan.FromSeconds(1.0f));
+            await UniTask.Delay(TimeSpan.FromSeconds(0.5f), ignoreTimeScale:true);
         }
+        
+        Time.timeScale = 1.0f;
 
-        CameraManager.Instance.ActResetCameraTarget().Forget();
+        // CameraManager.Instance.ActResetCameraTarget().Forget();
 
         if (damageValue.isDeath)
         {

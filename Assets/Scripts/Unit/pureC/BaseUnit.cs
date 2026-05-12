@@ -249,6 +249,7 @@ public　class BaseUnit: IUnit, IDamagable
 
         if (result.isDeath)
         {
+            Debug.Log("dead");
             await Dead();
         }
             
