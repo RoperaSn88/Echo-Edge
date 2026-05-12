@@ -94,12 +94,17 @@ public class UIPresenter : MonoBehaviour
     /// </summary>
     public async UniTask FadeInAsync()
     {
+        await FadeInAsync(_fadeDuration);
+    }
+
+    public async UniTask FadeInAsync(float duration)
+    {
         if (_fadePanel == null) return;
         var c = _fadePanel.color;
         c.a = 1f;
         _fadePanel.color = c;
         _fadePanel.gameObject.SetActive(true);
-        await _fadePanel.DOFade(0f, _fadeDuration).ToUniTask();
+        await _fadePanel.DOFade(0f, duration).ToUniTask();
         _fadePanel.gameObject.SetActive(false);
     }
 
@@ -108,11 +113,16 @@ public class UIPresenter : MonoBehaviour
     /// </summary>
     public async UniTask FadeOutAsync()
     {
+        await FadeOutAsync(_fadeDuration);
+    }
+
+    public async UniTask FadeOutAsync(float duration)
+    {
         if (_fadePanel == null) throw new InvalidOperationException("_fadePanel が設定されていません。インスペクターで割り当ててください。");
         var c = _fadePanel.color;
         c.a = 0f;
         _fadePanel.color = c;
         _fadePanel.gameObject.SetActive(true);
-        await _fadePanel.DOFade(1f, _fadeDuration).ToUniTask();
+        await _fadePanel.DOFade(1f, duration).ToUniTask();
     }
 }
