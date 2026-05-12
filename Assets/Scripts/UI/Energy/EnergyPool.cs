@@ -12,7 +12,7 @@ namespace UI.Energy
             ObjectPooler instance = null;
             for (int i = 0; i < this._initSize; i++)
             {
-                instance = Instantiate(objectToPool);
+                instance = Instantiate(objectToPool, transform);
                 instance.Pool = this;
                 instance.gameObject.SetActive(false);
                 stack.Push(instance);
@@ -24,7 +24,7 @@ namespace UI.Energy
             // プールの大きさが十分でない場合は、新しい PooledObjects をインスタンス化する
             if (stack.Count == 0)
             {
-                ObjectPooler newInstance = Instantiate(objectToPool);
+                ObjectPooler newInstance = Instantiate(objectToPool, transform);
                 newInstance.Pool = this;
                 return newInstance;
             }
