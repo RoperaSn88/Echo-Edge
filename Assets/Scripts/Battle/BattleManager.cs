@@ -4,6 +4,7 @@ using Cysharp.Threading.Tasks;
 using UI.QTE;
 using UI;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class BattleManager : MonoBehaviour
 {
@@ -128,7 +129,11 @@ public class BattleManager : MonoBehaviour
 
         await UniTask.WhenAll(fadeTask, fadeBgmTask);
 
-        SceneLoader.Load(GameScene.Preparing);
-        SceneLoader.Unload(GameScene.MainGame);
+        await SceneManager.LoadSceneAsync((int)GameScene.Preparing, LoadSceneMode.Additive).ToUniTask();
+
+        if (SceneManager.GetSceneByBuildIndex((int)GameScene.MainGame).isLoaded)
+        {
+            await SceneManager.UnloadSceneAsync((int)GameScene.MainGame).ToUniTask();
+        }
     }
 }
