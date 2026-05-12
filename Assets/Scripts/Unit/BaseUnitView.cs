@@ -150,7 +150,7 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposab
         var targetStatus = targetUnit.GetStatus();
         BattleManager.RegisterEnemy(targetStatus);
         var damageValue = await BattleManager.EnemyDamage();
-        Debug.Log("value" + damageValue.isDeath);
+        Debug.Log("value: " + damageValue.isDeath);
         
         UIPresenter.Instance.AppearDamageText($"{damageValue.damage}", transform.position).Forget();
 
