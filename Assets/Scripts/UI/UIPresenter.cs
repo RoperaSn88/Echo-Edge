@@ -92,14 +92,10 @@ public class UIPresenter : MonoBehaviour
     /// <summary>
     /// パネルをフェードインします（シーン開始時の暗転を解除する）。
     /// </summary>
-    public async UniTask FadeInAsync()
-    {
-        await FadeInAsync(_fadeDuration);
-    }
-
-    public async UniTask FadeInAsync(float duration)
+    public async UniTask FadeInAsync(float duration = -1f)
     {
         if (_fadePanel == null) return;
+        if (duration < 0f) duration = _fadeDuration;
         var c = _fadePanel.color;
         c.a = 1f;
         _fadePanel.color = c;
@@ -111,14 +107,10 @@ public class UIPresenter : MonoBehaviour
     /// <summary>
     /// パネルをフェードアウトします（暗転する）。
     /// </summary>
-    public async UniTask FadeOutAsync()
-    {
-        await FadeOutAsync(_fadeDuration);
-    }
-
-    public async UniTask FadeOutAsync(float duration)
+    public async UniTask FadeOutAsync(float duration = -1f)
     {
         if (_fadePanel == null) throw new InvalidOperationException("_fadePanel が設定されていません。インスペクターで割り当ててください。");
+        if (duration < 0f) duration = _fadeDuration;
         var c = _fadePanel.color;
         c.a = 0f;
         _fadePanel.color = c;
