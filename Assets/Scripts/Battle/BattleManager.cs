@@ -1,3 +1,5 @@
+using System;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using UI.QTE;
 using UI;
@@ -28,6 +30,12 @@ public class BattleManager : MonoBehaviour
     /// </summary>
     private static int _combo = 0;
 
+    private const float PlayerDeathHitStopTimeScale = 0.05f;
+    private const float PlayerDeathHitStopDurationSeconds = 0.2f;
+    private const float PlayerDeathFadeDurationSeconds = 2.0f;
+
+    private static bool _isPlayerDeathStarted;
+
     public static int Combo => _combo;
 
     public static void RegisterEnemy(BattleStatus targetStatus)
@@ -38,6 +46,7 @@ public class BattleManager : MonoBehaviour
     public static void RegisterPlayer(BattleStatus targetStatus)
     {
         _playerStatus = targetStatus;
+        _isPlayerDeathStarted = false;
     }
 
     public static void ResetQTE()
@@ -72,6 +81,11 @@ public class BattleManager : MonoBehaviour
 
     public async static UniTask<(int damage, bool isDeath)> PlayerDamage(float rate)
     {
+        if (_isPlayerDeathStarted)
+        {
+            return (0, true);
+        }
+
         if (!_QTEFlug)
         {
             _qteResult = await UIPresenter.Instance.AppearQTE(QTEKinds.Defend);
@@ -81,7 +95,40 @@ public class BattleManager : MonoBehaviour
         var result = await _playerStatus.Damage((int)(_enemyStatus.Attack * rate * _qteResult));
         
         PlayerStatusPresenter.Instance.SetPlayerHP(_playerStatus.HP, _playerStatus.MaxHP);
+
+        if (result.isDeath)
+        {
+            await StartPlayerDeathSequenceAsync();
+        }
         
         return result;
+    }
+
+    private static async UniTask StartPlayerDeathSequenceAsync()
+    {
+        if (_isPlayerDeathStarted)
+        {
+            return;
+        }
+
+        _isPlayerDeathStarted = true;
+        ResetQTE();
+        ResetCombo();
+
+        Time.timeScale = PlayerDeathHitStopTimeScale;
+        await UniTask.Delay(TimeSpan.FromSeconds(PlayerDeathHitStopDurationSeconds), ignoreTimeScale: true);
+        Time.timeScale = 1.0f;
+
+        var fadeTask = UIPresenter.Instance != null
+            ? UIPresenter.Instance.FadeOutAsync(PlayerDeathFadeDurationSeconds)
+            : UniTask.CompletedTask;
+        var fadeBgmTask = AudioManager.Instance != null
+            ? AudioManager.Instance.FadeBGMAsync(PlayerDeathFadeDurationSeconds, CancellationToken.None)
+            : UniTask.CompletedTask;
+
+        await UniTask.WhenAll(fadeTask, fadeBgmTask);
+
+        SceneLoader.Load(GameScene.Preparing);
+        SceneLoader.Unload(GameScene.MainGame);
     }
 }
