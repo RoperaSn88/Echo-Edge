@@ -129,7 +129,7 @@ public class BattleManager : MonoBehaviour
 
         await UniTask.WhenAll(fadeTask, fadeBgmTask);
 
-        await SceneLoader.AdditiveLoadAndWait(GameScene.Preparing);
+        await SceneLoader.AdditiveLoadAsync(GameScene.Preparing);
 
         SceneLoader.Unload(GameScene.MainGame);
     }

@@ -25,6 +25,33 @@ public static class SceneLoader
     }
 
     /// <summary>
+    /// シーンを追加ロードし、ロード完了まで待機します。
+    /// </summary>
+    public static async UniTask AdditiveLoadAsync(GameScene scene)
+    {
+        if (!TryGetSceneIndex(scene, out var sceneIndex))
+        {
+            return;
+        }
+
+        await AdditiveLoadAsync(sceneIndex);
+    }
+
+    /// <summary>
+    /// ビルドインデックスで指定されたシーンを追加ロードし、ロード完了まで待機します。
+    /// </summary>
+    public static async UniTask AdditiveLoadAsync(int sceneIndex)
+    {
+        if (sceneIndex < 0 || sceneIndex >= SceneManager.sceneCountInBuildSettings)
+        {
+            Debug.LogError($"Build Settings にシーンインデックス {sceneIndex} が存在しません");
+            return;
+        }
+
+        await SceneManager.LoadSceneAsync(sceneIndex, LoadSceneMode.Additive).ToUniTask();
+    }
+
+    /// <summary>
     /// シーンを追加ロードし、そのシーンがアンロードされるまで待機します。
     /// </summary>
     public static async UniTask AdditiveLoadAndWait(GameScene scene)
