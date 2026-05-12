@@ -61,3 +61,7 @@ public interface IUnit : IDamagable
 
     public UniTask<(int damage, bool isDeath)> Damage(int damage);
 }
+
+public interface IEnemyUnit : IUnit
+{
+}
