@@ -1,4 +1,4 @@
 ID,HP,Attack,Defend,Move,MovePattern,Experience,Energy,Memo
-1,10,20,10,2,After,50,30,スカイアのステータス
+1,10,200,10,2,After,50,30,スカイアのステータス
 2,200,30,15,1,After,100,50,ビルダーのステータス
 3,150,25,12,3,Before,75,40,ブースターのステータス

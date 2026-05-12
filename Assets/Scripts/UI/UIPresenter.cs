@@ -92,27 +92,29 @@ public class UIPresenter : MonoBehaviour
     /// <summary>
     /// パネルをフェードインします（シーン開始時の暗転を解除する）。
     /// </summary>
-    public async UniTask FadeInAsync()
+    public async UniTask FadeInAsync(float duration = -1f)
     {
         if (_fadePanel == null) return;
+        if (duration < 0f) duration = _fadeDuration;
         var c = _fadePanel.color;
         c.a = 1f;
         _fadePanel.color = c;
         _fadePanel.gameObject.SetActive(true);
-        await _fadePanel.DOFade(0f, _fadeDuration).ToUniTask();
+        await _fadePanel.DOFade(0f, duration).ToUniTask();
         _fadePanel.gameObject.SetActive(false);
     }
 
     /// <summary>
     /// パネルをフェードアウトします（暗転する）。
     /// </summary>
-    public async UniTask FadeOutAsync()
+    public async UniTask FadeOutAsync(float duration = -1f)
     {
         if (_fadePanel == null) throw new InvalidOperationException("_fadePanel が設定されていません。インスペクターで割り当ててください。");
+        if (duration < 0f) duration = _fadeDuration;
         var c = _fadePanel.color;
         c.a = 0f;
         _fadePanel.color = c;
         _fadePanel.gameObject.SetActive(true);
-        await _fadePanel.DOFade(1f, _fadeDuration).ToUniTask();
+        await _fadePanel.DOFade(1f, duration).ToUniTask();
     }
 }
