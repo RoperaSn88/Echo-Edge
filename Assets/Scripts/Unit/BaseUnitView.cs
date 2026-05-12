@@ -139,8 +139,16 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposab
     {
         Time.timeScale = 0.001f;
         CameraManager.Instance.ActSetCameraTarget(transform.position).Forget();
-        
-        BattleManager.RegisterEnemy(MapManager.Instance.GetUnitAt(height, width).GetStatus());
+
+        var targetUnit = MapManager.Instance.GetUnitAt(height, width);
+        if (targetUnit == null)
+        {
+            Time.timeScale = 1.0f;
+            return;
+        }
+
+        var targetStatus = targetUnit.GetStatus();
+        BattleManager.RegisterEnemy(targetStatus);
         var damageValue = await BattleManager.EnemyDamage();
         Debug.Log("value" + damageValue.isDeath);
         
@@ -149,7 +157,7 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposab
         if (damageValue.isDeath)
         {
             _animator.SetTrigger("DeadT");
-            UIPresenter.Instance.AppearEnergy(transform.position, MapManager.Instance.GetUnitAt(height, width).GetStatus().Energy).Forget();
+            UIPresenter.Instance.AppearEnergy(transform.position, targetStatus.Energy).Forget();
             await UniTask.Delay(TimeSpan.FromSeconds(0.7f), ignoreTimeScale:true);
         }
         else
@@ -163,6 +171,7 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposab
 
         if (damageValue.isDeath)
         {
+            MapManager.Instance.RemoveUnitAt(height, width);
             //Destroyするが、後でオブジェクトプールにする
             Dispose();
             if (UnitSpawner.Instance != null)
