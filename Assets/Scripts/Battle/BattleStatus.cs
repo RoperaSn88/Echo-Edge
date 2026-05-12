@@ -151,7 +151,6 @@ public class BattleStatus : IDamagable
         Debug.Log($"ダメージをうけた 残り:{HP}");
         if(HP <= 0)
         {
-            Debug.Log("死んだぜ");
             return (damage, true);
         }
         return (damage, false);

@@ -68,7 +68,7 @@ namespace Unit.pureC.Unit
         /// <inheritdoc/>
         public async UniTask Dead()
         {
-            throw new System.NotImplementedException();
+            await UniTask.CompletedTask;
         }
         
         public async UniTask BeforeSpecific()

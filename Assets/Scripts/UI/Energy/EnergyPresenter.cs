@@ -45,8 +45,6 @@ namespace UI.Energy
             // z にカメラからの距離（奥行き）を入れて ScreenToWorldPoint で変換する
             var screenPos = _destinationRect.position;
             screenPos.Set(screenPos.x, screenPos.y, 1f);
-            var destination = Camera.main.ScreenToWorldPoint(screenPos);
-            Debug.Log(destination);
 
             var start = emit;
             transform.position = start;

@@ -71,7 +71,9 @@ public　class BaseUnit: IUnit, IDamagable
 
     public async UniTask Dead()
     {
+        Debug.Log("EnemyWillDead");
         await _unitAction.Dead();
+        Debug.Log("EnemyDeaded");
         var h = Height;
         var w = Width;
         // 死んだら自身のいるマスを空にする
@@ -246,10 +248,9 @@ public　class BaseUnit: IUnit, IDamagable
     public async UniTask<(int damage, bool isDeath)> Damage(int damage)
     {
         var result = await _battleStatus.Damage(damage);
-
+        
         if (result.isDeath)
         {
-            Debug.Log("dead");
             await Dead();
         }
             

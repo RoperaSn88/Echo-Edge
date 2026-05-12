@@ -142,6 +142,7 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposab
         
         BattleManager.RegisterEnemy(MapManager.Instance.GetUnitAt(height, width).GetStatus());
         var damageValue = await BattleManager.EnemyDamage();
+        Debug.Log("value" + damageValue.isDeath);
         
         UIPresenter.Instance.AppearDamageText($"{damageValue.damage}", transform.position).Forget();
 
@@ -149,7 +150,6 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposab
         {
             _animator.SetTrigger("DeadT");
             UIPresenter.Instance.AppearEnergy(transform.position, MapManager.Instance.GetUnitAt(height, width).GetStatus().Energy).Forget();
-            await UniTask.WaitUntil(() => _isDeath);
             await UniTask.Delay(TimeSpan.FromSeconds(0.7f), ignoreTimeScale:true);
         }
         else
