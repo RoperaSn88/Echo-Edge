@@ -5,7 +5,7 @@ using Unit.pureC.Unit;
 
 
 [System.Serializable]
-public　class BaseUnit: IUnit, IDamagable
+public　class BaseUnit: IEnemyUnit, IDamagable
 {
     [SerializeField]
     private int height;
