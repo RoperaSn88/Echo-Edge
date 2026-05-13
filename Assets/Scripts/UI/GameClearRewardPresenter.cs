@@ -9,7 +9,7 @@ namespace UI
 {
     public class GameClearRewardPresenter : MonoBehaviour
     {
-        private const float SlideDuration = 0.35f;
+        private const float SlideInDuration = 0.35f;
         private static readonly Vector2 PanelSize = new(360f, 120f);
         private static readonly Vector2 VisibleAnchoredPosition = new(24f, -140f);
         private static readonly Vector2 HiddenAnchoredPosition = new(-PanelSize.x - 24f, -140f);
@@ -77,7 +77,7 @@ namespace UI
             gameObject.SetActive(true);
             _rectTransform.SetAsLastSibling();
 
-            await _rectTransform.DOAnchorPos(VisibleAnchoredPosition, SlideDuration)
+            await _rectTransform.DOAnchorPos(VisibleAnchoredPosition, SlideInDuration)
                 .SetEase(Ease.OutQuad)
                 .SetUpdate(true)
                 .ToUniTask();

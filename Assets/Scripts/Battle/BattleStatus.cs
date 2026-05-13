@@ -109,7 +109,8 @@ public class BattleStatus : IDamagable
     }
 
     /// <summary>
-    /// 経験値に応じてレベルアップする。
+    /// 累計経験値に応じてレベルアップする。
+    /// 100EXP ごとに 1 レベル上がるため、次レベル到達に必要な累計経験値は Level * 100。
     /// </summary>
     /// <returns>上昇したレベル数</returns>
     public int LevelUp()
