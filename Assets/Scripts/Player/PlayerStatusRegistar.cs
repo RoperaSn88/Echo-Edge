@@ -29,8 +29,9 @@ public class PlayerStatusRegistar : MonoBehaviour
             battleParameter.Defend,
             battleParameter.Move,
             _battleStatus.MovePattern,
-            _battleStatus.Experience,
-            _battleStatus.Energy
+            battleParameter.Experience,
+            _battleStatus.Energy,
+            battleParameter.Level
         );
         BattleManager.RegisterPlayer(_battleStatus);
     }

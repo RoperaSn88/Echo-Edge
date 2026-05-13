@@ -5,6 +5,8 @@ public static class PlayerSwordParameterSaveManager
     private const string PlayerHpKey = "PlayerStatus.HP";
     private const string PlayerAttackKey = "PlayerStatus.Attack";
     private const string PlayerDefendKey = "PlayerStatus.Defend";
+    private const string PlayerExperienceKey = "PlayerStatus.Experience";
+    private const string PlayerLevelKey = "PlayerStatus.Level";
     private const string SwordHpKey = "SwordStatus.HP";
     private const string SwordAttackKey = "SwordStatus.Attack";
     private const string SwordReflectCountKey = "SwordStatus.ReflectCount";
@@ -24,7 +26,9 @@ public static class PlayerSwordParameterSaveManager
         return new PlayerParameter(
             PlayerPrefs.GetInt(PlayerHpKey, 100),
             PlayerPrefs.GetInt(PlayerAttackKey, 20),
-            PlayerPrefs.GetInt(PlayerDefendKey, 0)
+            PlayerPrefs.GetInt(PlayerDefendKey, 0),
+            PlayerPrefs.GetInt(PlayerExperienceKey, 0),
+            PlayerPrefs.GetInt(PlayerLevelKey, 1)
         );
     }
 
@@ -42,6 +46,8 @@ public static class PlayerSwordParameterSaveManager
         PlayerPrefs.SetInt(PlayerHpKey, playerStatus.HP);
         PlayerPrefs.SetInt(PlayerAttackKey, playerStatus.Attack);
         PlayerPrefs.SetInt(PlayerDefendKey, playerStatus.Defend);
+        PlayerPrefs.SetInt(PlayerExperienceKey, playerStatus.Experience);
+        PlayerPrefs.SetInt(PlayerLevelKey, playerStatus.Level);
         PlayerPrefs.Save();
     }
 

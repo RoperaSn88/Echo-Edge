@@ -17,12 +17,16 @@ public struct PlayerParameter
     public int HP;
     public int Attack;
     public int Defend;
+    public int Experience;
+    public int Level;
 
-    public PlayerParameter(int hp, int attack, int defend)
+    public PlayerParameter(int hp, int attack, int defend, int experience = 0, int level = 1)
     {
         HP = hp;
         Attack = attack;
         Defend = defend;
+        Experience = experience;
+        Level = level;
     }
 }
 
@@ -35,7 +39,7 @@ public static class PlayerSwordParameterHolder
     {
         PlayerStatus = PlayerSwordParameterSaveManager.HasPlayerStatusData()
             ? PlayerSwordParameterSaveManager.LoadPlayerStatus()
-            : new PlayerParameter(100, 20, 0);
+            : new PlayerParameter(100, 20, 0, 0, 1);
         SwordStatus = PlayerSwordParameterSaveManager.HasSwordStatusData()
             ? PlayerSwordParameterSaveManager.LoadSwordStatus()
             : new SwordParameter(0, 0, 0);
@@ -45,7 +49,7 @@ public static class PlayerSwordParameterHolder
     {
         if (playerStatus == null)
         {
-            PlayerStatus = new PlayerParameter(100, 20, 0);
+            PlayerStatus = new PlayerParameter(100, 20, 0, 0, 1);
             PlayerSwordParameterSaveManager.SavePlayerStatus(PlayerStatus);
             return;
         }
@@ -53,7 +57,9 @@ public static class PlayerSwordParameterHolder
         PlayerStatus = new PlayerParameter(
             playerStatus.HP,
             playerStatus.Attack,
-            playerStatus.Defend
+            playerStatus.Defend,
+            playerStatus.Experience,
+            playerStatus.Level
         );
         PlayerSwordParameterSaveManager.SavePlayerStatus(PlayerStatus);
     }
@@ -64,15 +70,31 @@ public static class PlayerSwordParameterHolder
         PlayerSwordParameterSaveManager.SaveSwordStatus(SwordStatus);
     }
 
+    public static void SetPlayerProgress(int experience, int level)
+    {
+        PlayerStatus = new PlayerParameter(
+            PlayerStatus.HP,
+            PlayerStatus.Attack,
+            PlayerStatus.Defend,
+            experience,
+            level
+        );
+        PlayerSwordParameterSaveManager.SavePlayerStatus(PlayerStatus);
+    }
+
     public static BattleStatus GetBattleStatus()
     {
-        return new BattleStatus
-        {
-            HP = PlayerStatus.HP + SwordStatus.HP,
-            MaxHP = PlayerStatus.HP + SwordStatus.HP,
-            Attack = PlayerStatus.Attack + SwordStatus.Attack,
-            Defend = PlayerStatus.Defend,
-            Move = SwordStatus.ReflectCount,
-        };
+        var status = new BattleStatus();
+        status.SetStatus(
+            PlayerStatus.HP + SwordStatus.HP,
+            PlayerStatus.Attack + SwordStatus.Attack,
+            PlayerStatus.Defend,
+            SwordStatus.ReflectCount,
+            default,
+            PlayerStatus.Experience,
+            0,
+            PlayerStatus.Level
+        );
+        return status;
     }
 }

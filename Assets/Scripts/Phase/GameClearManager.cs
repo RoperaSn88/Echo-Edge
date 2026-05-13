@@ -29,6 +29,11 @@ public static class GameClearManager
     private static bool _isGameClearStarted;
 
     /// <summary>
+    /// ステージで獲得した経験値
+    /// </summary>
+    private static int _stageEarnedExperience;
+
+    /// <summary>
     /// 敵の数をキャッシュする。StartPhase から呼ぶ。
     /// </summary>
     /// <param name="count">ステージ開始時の敵ユニット数</param>
@@ -36,6 +41,7 @@ public static class GameClearManager
     {
         _enemyCount = count;
         _isGameClearStarted = false;
+        _stageEarnedExperience = 0;
     }
 
     /// <summary>
@@ -43,13 +49,14 @@ public static class GameClearManager
     /// </summary>
     /// <param name="h">死亡した敵の高さ座標</param>
     /// <param name="w">死亡した敵の横座標</param>
-    public static void OnEnemyDead(int h, int w)
+    public static void OnEnemyDead(int h, int w, int experience)
     {
         Debug.Log("EnemyEnd");
         if (_isGameClearStarted) return;
 
         _lastEnemyH = h;
         _lastEnemyW = w;
+        _stageEarnedExperience += experience;
         _enemyCount--;
 
         if (_enemyCount <= 0)
@@ -81,7 +88,9 @@ public static class GameClearManager
 
         // 4. 暗転をやめて表示する
         await UIPresenter.Instance.FadeInAsync();
+        var reward = ApplyStageClearReward();
         Time.timeScale = 0.0f;
+        await GameClearRewardPresenter.Instance.ShowAsync(reward.level, reward.gainedExperience, reward.totalExperience);
 
         // 5. カメラを揺らす
         CameraManager.Instance.StartCameraShake();
@@ -114,5 +123,20 @@ public static class GameClearManager
         {
             BuildingManager.Instance.TryRemoveWallAt(_lastEnemyH - 1, _lastEnemyW + offsetW);
         }
+    }
+
+    private static (int gainedExperience, int totalExperience, int level) ApplyStageClearReward()
+    {
+        var playerStatus = PlayerStatusPresenter.Instance?.PlayerBattleStatus;
+        if (playerStatus == null)
+        {
+            return (_stageEarnedExperience, 0, 1);
+        }
+
+        playerStatus.AddExperience(_stageEarnedExperience);
+        playerStatus.LevelUp();
+        PlayerSwordParameterHolder.SetPlayerProgress(playerStatus.Experience, playerStatus.Level);
+
+        return (_stageEarnedExperience, playerStatus.Experience, playerStatus.Level);
     }
 }
