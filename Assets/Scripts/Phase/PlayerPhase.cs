@@ -24,11 +24,7 @@ public class PlayerPhase: IPhase
     private bool _pauseFlug;
 
     private const int OptionSceneBuildIndex = 3;
-    private const float AimLineHeightOffset = 0.1f;
-    private const float AimLineWidth = 0.08f;
-    private static readonly Color AimLineColor = new Color(1f, 0.35f, 0.2f, 0.9f);
-    private readonly RaycastHit[] _wallHitBuffer = new RaycastHit[32];
-    private LineRenderer _attackGuideLine;
+    private readonly PlayerAttackGuideLine _attackGuideLine = new PlayerAttackGuideLine();
 
     /// <summary>
     /// プレイヤーフェーズのインスタンス
@@ -46,7 +42,7 @@ public class PlayerPhase: IPhase
         // 初期条件
         _clickFlug = false;
         _pauseFlug = false;
-        HideAttackGuideLine();
+        _attackGuideLine.Hide();
         Debug.Log("Player Phase");
         PlayerActions playerActions = new PlayerActions();
         EnableController(playerActions);
@@ -86,12 +82,12 @@ public class PlayerPhase: IPhase
                         UpdateAttackGuideLine();
                         await UniTask.Yield();
                     }
-                    HideAttackGuideLine();
+                    _attackGuideLine.Hide();
                     ResetController(playerActions);
                     return PlayerAttackPhase.Instance;
                 case ClickKinds.Right:
                     // 右クリック時
-                    HideAttackGuideLine();
+                    _attackGuideLine.Hide();
                     ResetController(playerActions);
                     return PlayerWeaponPhase.Instance;
             }
@@ -128,13 +124,13 @@ public class PlayerPhase: IPhase
 
     public void OnReleaseAttack(InputAction.CallbackContext context)
     {
-        HideAttackGuideLine();
+        _attackGuideLine.Hide();
         _clickFlug = true;
     }
 
     public void OnPressPause(InputAction.CallbackContext context)
     {
-        HideAttackGuideLine();
+        _attackGuideLine.Hide();
         _pauseFlug = true;
     }
 
@@ -142,79 +138,17 @@ public class PlayerPhase: IPhase
     {
         if (Camera.main == null || PlayerController.Instance == null)
         {
-            HideAttackGuideLine();
+            _attackGuideLine.Hide();
             return;
         }
 
         Ray pointerRay = Camera.main.ScreenPointToRay(CameraManager.Instance.GetMousePosition());
         if (!Physics.Raycast(pointerRay, out RaycastHit pointerHit, Mathf.Infinity, PlayerAttackPhase.LayerNumber))
         {
-            HideAttackGuideLine();
+            _attackGuideLine.Hide();
             return;
         }
 
-        Transform playerTransform = PlayerController.Instance.PlayerTransform;
-        Vector3 lineStart = playerTransform.position;
-        lineStart.y += AimLineHeightOffset;
-
-        Vector3 lineEnd = pointerHit.point;
-        lineEnd.y = lineStart.y;
-
-        Vector3 direction = lineEnd - lineStart;
-        float targetDistance = direction.magnitude;
-        if (targetDistance <= Mathf.Epsilon)
-        {
-            HideAttackGuideLine();
-            return;
-        }
-
-        Ray attackRay = new Ray(lineStart, direction.normalized);
-        int hitCount = Physics.RaycastNonAlloc(attackRay, _wallHitBuffer, targetDistance);
-        float wallDistance = targetDistance;
-        bool hasWall = false;
-
-        for (int i = 0; i < hitCount; i++)
-        {
-            if (!_wallHitBuffer[i].collider.CompareTag("Wall")) continue;
-            if (_wallHitBuffer[i].distance < wallDistance)
-            {
-                wallDistance = _wallHitBuffer[i].distance;
-                hasWall = true;
-            }
-        }
-
-        if (hasWall)
-        {
-            lineEnd = lineStart + attackRay.direction * wallDistance;
-        }
-
-        EnsureAttackGuideLine();
-        _attackGuideLine.enabled = true;
-        _attackGuideLine.positionCount = 2;
-        _attackGuideLine.SetPosition(0, lineStart);
-        _attackGuideLine.SetPosition(1, lineEnd);
-    }
-
-    private void EnsureAttackGuideLine()
-    {
-        if (_attackGuideLine != null) return;
-
-        GameObject lineObject = new GameObject("PlayerAttackGuideLine");
-        _attackGuideLine = lineObject.AddComponent<LineRenderer>();
-        _attackGuideLine.positionCount = 2;
-        _attackGuideLine.startWidth = AimLineWidth;
-        _attackGuideLine.endWidth = AimLineWidth;
-        _attackGuideLine.startColor = AimLineColor;
-        _attackGuideLine.endColor = AimLineColor;
-        _attackGuideLine.useWorldSpace = true;
-        _attackGuideLine.enabled = false;
-        _attackGuideLine.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-        _attackGuideLine.receiveShadows = false;
-    }
-
-    private void HideAttackGuideLine()
-    {
-        if (_attackGuideLine == null) return;
-        _attackGuideLine.enabled = false;
+        _attackGuideLine.Update(PlayerController.Instance.PlayerTransform.position, pointerHit.point);
     }
 }
