@@ -27,7 +27,8 @@ public class PlayerPhase: IPhase
     private const float AimLineHeightOffset = 0.1f;
     private const float AimLineWidth = 0.08f;
     private static readonly Color AimLineColor = new Color(1f, 0.35f, 0.2f, 0.9f);
-    private static LineRenderer _attackGuideLine;
+    private readonly RaycastHit[] _wallHitBuffer = new RaycastHit[32];
+    private LineRenderer _attackGuideLine;
 
     /// <summary>
     /// プレイヤーフェーズのインスタンス
@@ -137,7 +138,7 @@ public class PlayerPhase: IPhase
         _pauseFlug = true;
     }
 
-    private static void UpdateAttackGuideLine()
+    private void UpdateAttackGuideLine()
     {
         if (Camera.main == null || PlayerController.Instance == null)
         {
@@ -168,16 +169,16 @@ public class PlayerPhase: IPhase
         }
 
         Ray attackRay = new Ray(lineStart, direction.normalized);
-        RaycastHit[] rayHits = Physics.RaycastAll(attackRay, targetDistance);
+        int hitCount = Physics.RaycastNonAlloc(attackRay, _wallHitBuffer, targetDistance);
         float wallDistance = targetDistance;
         bool hasWall = false;
 
-        for (int i = 0; i < rayHits.Length; i++)
+        for (int i = 0; i < hitCount; i++)
         {
-            if (!rayHits[i].collider.CompareTag("Wall")) continue;
-            if (rayHits[i].distance < wallDistance)
+            if (!_wallHitBuffer[i].collider.CompareTag("Wall")) continue;
+            if (_wallHitBuffer[i].distance < wallDistance)
             {
-                wallDistance = rayHits[i].distance;
+                wallDistance = _wallHitBuffer[i].distance;
                 hasWall = true;
             }
         }
@@ -194,7 +195,7 @@ public class PlayerPhase: IPhase
         _attackGuideLine.SetPosition(1, lineEnd);
     }
 
-    private static void EnsureAttackGuideLine()
+    private void EnsureAttackGuideLine()
     {
         if (_attackGuideLine != null) return;
 
@@ -209,15 +210,9 @@ public class PlayerPhase: IPhase
         _attackGuideLine.enabled = false;
         _attackGuideLine.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         _attackGuideLine.receiveShadows = false;
-
-        Shader shader = Shader.Find("Sprites/Default");
-        if (shader != null)
-        {
-            _attackGuideLine.material = new Material(shader);
-        }
     }
 
-    private static void HideAttackGuideLine()
+    private void HideAttackGuideLine()
     {
         if (_attackGuideLine == null) return;
         _attackGuideLine.enabled = false;
