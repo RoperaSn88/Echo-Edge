@@ -58,6 +58,15 @@ public static class PlayerSwordParameterHolder
         PlayerSwordParameterSaveManager.SavePlayerStatus(PlayerStatus);
     }
 
+    /// <summary>
+    /// PlayerParameter を直接指定してプレイヤーステータスを更新し永続化する。
+    /// </summary>
+    public static void SetPlayerStatus(PlayerParameter playerParameter)
+    {
+        PlayerStatus = playerParameter;
+        PlayerSwordParameterSaveManager.SavePlayerStatus(PlayerStatus);
+    }
+
     public static void SetSwordStatus(int hp, int attack, byte reflectCount)
     {
         SwordStatus = new SwordParameter(hp, attack, reflectCount);
