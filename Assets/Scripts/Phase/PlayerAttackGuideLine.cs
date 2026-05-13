@@ -5,7 +5,7 @@ public class PlayerAttackGuideLine
     private const float HeightOffset = 0.1f;
     private const float LineWidth = 0.08f;
     private static readonly Color LineColor = new Color(1f, 0.35f, 0.2f, 0.9f);
-    private readonly RaycastHit[] _wallHitBuffer = new RaycastHit[32];
+    private readonly RaycastHit[] _wallHitBuffer = new RaycastHit[8];
     private GameObject _lineObject;
     private LineRenderer _lineRenderer;
 
