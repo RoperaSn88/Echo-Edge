@@ -36,7 +36,12 @@ public static class EnhancementManager
     /// <param name="amount">追加する経験値量</param>
     public static void AddExperience(int amount)
     {
-        if (amount <= 0) return;
+        if (amount < 0)
+        {
+            Debug.LogWarning($"{nameof(EnhancementManager)}: 負の経験値が渡されました ({amount})。無視します。");
+            return;
+        }
+        if (amount == 0) return;
         _experience += amount;
         EnhancementSaveManager.SaveExperience(_experience);
     }

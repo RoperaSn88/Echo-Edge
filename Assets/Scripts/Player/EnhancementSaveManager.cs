@@ -28,7 +28,12 @@ public static class EnhancementSaveManager
     /// </summary>
     public static void SaveExperience(int experience)
     {
-        PlayerPrefs.SetInt(ExperienceKey, Mathf.Max(0, experience));
+        if (experience < 0)
+        {
+            Debug.LogWarning($"{nameof(EnhancementSaveManager)}: 負の経験値を保存しようとしました ({experience})。0 にクランプします。");
+            experience = 0;
+        }
+        PlayerPrefs.SetInt(ExperienceKey, experience);
         PlayerPrefs.Save();
     }
 }

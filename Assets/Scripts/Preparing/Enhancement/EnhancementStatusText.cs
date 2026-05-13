@@ -19,6 +19,12 @@ public class EnhancementStatusText : MonoBehaviour
 
     private void Awake()
     {
+        if (Instance != null && Instance != this)
+        {
+            Debug.LogError($"{nameof(EnhancementStatusText)}: 複数のインスタンスが検出されました。重複インスタンスを削除します。");
+            Destroy(gameObject);
+            return;
+        }
         Instance = this;
     }
 
