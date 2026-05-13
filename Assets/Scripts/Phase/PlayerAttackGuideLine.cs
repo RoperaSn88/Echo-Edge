@@ -6,6 +6,7 @@ public class PlayerAttackGuideLine
     private const float LineWidth = 0.08f;
     private static readonly Color LineColor = new Color(1f, 0.35f, 0.2f, 0.9f);
     private readonly RaycastHit[] _wallHitBuffer = new RaycastHit[32];
+    private GameObject _lineObject;
     private LineRenderer _lineRenderer;
 
     public void Update(Vector3 playerPosition, Vector3 pointerPosition)
@@ -57,12 +58,20 @@ public class PlayerAttackGuideLine
         _lineRenderer.enabled = false;
     }
 
+    public void Destroy()
+    {
+        if (_lineObject == null) return;
+        Object.Destroy(_lineObject);
+        _lineObject = null;
+        _lineRenderer = null;
+    }
+
     private void EnsureLineRenderer()
     {
         if (_lineRenderer != null) return;
 
-        GameObject lineObject = new GameObject("PlayerAttackGuideLine");
-        _lineRenderer = lineObject.AddComponent<LineRenderer>();
+        _lineObject = new GameObject("PlayerAttackGuideLine");
+        _lineRenderer = _lineObject.AddComponent<LineRenderer>();
         _lineRenderer.positionCount = 2;
         _lineRenderer.startWidth = LineWidth;
         _lineRenderer.endWidth = LineWidth;

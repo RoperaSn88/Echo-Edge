@@ -63,6 +63,7 @@ public class PlayerPhase: IPhase
                 Time.timeScale = 1;
                 if (OptionSceneController.LastResult == OptionResult.Retire)
                 {
+                    _attackGuideLine.Destroy();
                     ResetController(playerActions);
                     SceneLoader.Load(GameScene.Preparing);
                     return PlayerPhase.Instance;
@@ -83,11 +84,13 @@ public class PlayerPhase: IPhase
                         await UniTask.Yield();
                     }
                     _attackGuideLine.Hide();
+                    _attackGuideLine.Destroy();
                     ResetController(playerActions);
                     return PlayerAttackPhase.Instance;
                 case ClickKinds.Right:
                     // 右クリック時
                     _attackGuideLine.Hide();
+                    _attackGuideLine.Destroy();
                     ResetController(playerActions);
                     return PlayerWeaponPhase.Instance;
             }
