@@ -81,6 +81,7 @@ public static class GameClearManager
 
         // 4. 暗転をやめて表示する
         await UIPresenter.Instance.FadeInAsync();
+        Time.timeScale = 0.0f;
 
         // 5. カメラを揺らす
         CameraManager.Instance.StartCameraShake();
@@ -97,6 +98,7 @@ public static class GameClearManager
         // クリック時: カメラをもとの位置に戻して揺らすのをやめる
         CameraManager.Instance.StopCameraShake();
         await CameraManager.Instance.ActResetCameraTarget();
+        Time.timeScale = 1.0f;
 
         // 6. MainGameをアンロードし、Preparingシーンを読み込む
         SceneLoader.Load(GameScene.Preparing);

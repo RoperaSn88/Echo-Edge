@@ -616,7 +616,9 @@ public class CameraManager : MonoBehaviour
     {
         try
         {
-            await _defaultCameraPos.DOShakePosition(0.5f, 0.05f, 10, 90f, false, true).ToUniTask(cancellationToken: ct);
+            await _defaultCameraPos.DOShakePosition(0.5f, 0.05f, 10, 90f, false, true)
+                .SetUpdate(true)
+                .ToUniTask(cancellationToken: ct);
         }
         catch (OperationCanceledException)
         {
