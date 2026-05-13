@@ -82,7 +82,7 @@ public class BattleStatus : IDamagable
     /// <summary>
     /// ステータスを更新する
     /// </summary>
-    public void SetStatus(int hp, int attack, int defend, byte move, MovePattern movePattern, int experience, int energy, int level = 1)
+    public void SetStatus(int hp, int attack, int defend, byte move, MovePattern movePattern, int experience, int energy)
     {
         HP = hp;
         MaxHP = hp;
@@ -92,6 +92,10 @@ public class BattleStatus : IDamagable
         MovePattern = movePattern;
         _experience = experience;
         _energy = energy;
+    }
+
+    public void SetLevel(int level)
+    {
         _level = Mathf.Max(1, level);
     }
 
@@ -109,15 +113,15 @@ public class BattleStatus : IDamagable
     }
 
     /// <summary>
-    /// 累計経験値に応じてレベルアップする。
-    /// 100EXP ごとに 1 レベル上がるため、次レベル到達に必要な累計経験値は Level * 100。
+    /// 100EXP ごとにレベルアップし、レベルアップ分の経験値を消費する。
     /// </summary>
     /// <returns>上昇したレベル数</returns>
     public int LevelUp()
     {
         var levelUpCount = 0;
-        while (_experience >= _level * ExperiencePerLevel)
+        while (_experience >= ExperiencePerLevel)
         {
+            _experience -= ExperiencePerLevel;
             _level++;
             levelUpCount++;
         }

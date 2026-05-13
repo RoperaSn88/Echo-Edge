@@ -90,7 +90,7 @@ public static class GameClearManager
         await UIPresenter.Instance.FadeInAsync();
         var reward = ApplyStageClearReward();
         Time.timeScale = 0.0f;
-        await GameClearRewardPresenter.Instance.ShowAsync(reward.level, reward.gainedExperience, reward.totalExperience);
+        await GameClearRewardPresenter.Instance.ShowAsync(reward.level, reward.gainedExperience, reward.currentExperience);
 
         // 5. カメラを揺らす
         CameraManager.Instance.StartCameraShake();
@@ -125,7 +125,7 @@ public static class GameClearManager
         }
     }
 
-    private static (int gainedExperience, int totalExperience, int level) ApplyStageClearReward()
+    private static (int gainedExperience, int currentExperience, int level) ApplyStageClearReward()
     {
         var playerStatus = PlayerStatusPresenter.Instance?.PlayerBattleStatus;
         if (playerStatus == null)

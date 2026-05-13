@@ -92,9 +92,9 @@ public static class PlayerSwordParameterHolder
             SwordStatus.ReflectCount,
             default,
             PlayerStatus.Experience,
-            0,
-            PlayerStatus.Level
+            0
         );
+        status.SetLevel(PlayerStatus.Level);
         return status;
     }
 }

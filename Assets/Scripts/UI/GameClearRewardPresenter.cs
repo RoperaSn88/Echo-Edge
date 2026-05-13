@@ -63,12 +63,12 @@ namespace UI
             EnsureInitialized();
         }
 
-        public async UniTask ShowAsync(int level, int gainedExperience, int totalExperience)
+        public async UniTask ShowAsync(int level, int gainedExperience, int currentExperience)
         {
             EnsureInitialized();
 
             _levelText.text = $"LEVEL  {level}";
-            _experienceText.text = $"EXP  +{gainedExperience}\nTOTAL {totalExperience}";
+            _experienceText.text = $"EXP  +{gainedExperience}\nNEXT {currentExperience} / 100";
 
             _rectTransform.DOKill();
             _canvasGroup.DOKill();
