@@ -9,18 +9,18 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
-  m_Name: DOTween
+  m_Script: {fileID: 11500000, guid: 8c33d07d416f48878ddfe655eb2273a3, type: 3}
+  m_Name: DOTween2
   m_EditorClassIdentifier: Assembly-CSharp::LicenseComposer
   licenseName: DOTween
   licenseIntroduction: 'Copyright (c) 2015 Daniele Giardini, Demigiant
 
-    
+
 
     To
     check out DOTween license, visit this page: http://dotween.demigiant.com/license.php
 
-    
+
 
     In
     short:

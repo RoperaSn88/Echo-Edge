@@ -9,8 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
-  m_Name: UniTask
+  m_Script: {fileID: 11500000, guid: 8c33d07d416f48878ddfe655eb2273a3, type: 3}
+  m_Name: UniTask2
   m_EditorClassIdentifier: Assembly-CSharp::LicenseComposer
   licenseName: UniTask
   licenseIntroduction: 'The MIT License (MIT)
