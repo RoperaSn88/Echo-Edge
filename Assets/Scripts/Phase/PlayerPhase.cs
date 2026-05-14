@@ -81,10 +81,9 @@ public class PlayerPhase: IPhase
                     while (!_clickFlug)
                     {
                         UpdateAttackGuideLine();
-                        Time.timeScale = 0;
                         await UniTask.Yield();
                     }
-                    // _attackGuideLine.Hide();
+                    _attackGuideLine.Hide();
                     _attackGuideLine.Destroy();
                     ResetController(playerActions);
                     return PlayerAttackPhase.Instance;
