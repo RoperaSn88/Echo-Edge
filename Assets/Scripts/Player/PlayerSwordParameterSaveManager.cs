@@ -10,6 +10,7 @@ public static class PlayerSwordParameterSaveManager
     private const string SwordHpKey = "SwordStatus.HP";
     private const string SwordAttackKey = "SwordStatus.Attack";
     private const string SwordReflectCountKey = "SwordStatus.ReflectCount";
+    private const string StoneKey = "Enhancement.Stone";
 
     public static bool HasPlayerStatusData()
     {
@@ -56,6 +57,36 @@ public static class PlayerSwordParameterSaveManager
         PlayerPrefs.SetInt(SwordHpKey, swordStatus.HP);
         PlayerPrefs.SetInt(SwordAttackKey, swordStatus.Attack);
         PlayerPrefs.SetInt(SwordReflectCountKey, swordStatus.ReflectCount);
+        PlayerPrefs.Save();
+    }
+
+    /// <summary>
+    /// 石（強化用通貨）のデータが保存済みか確認する。
+    /// </summary>
+    public static bool HasStoneData()
+    {
+        return PlayerPrefs.HasKey(StoneKey);
+    }
+
+    /// <summary>
+    /// 現在の石の所持数を読み込む。保存データがない場合は 0 を返す。
+    /// </summary>
+    public static int LoadStone()
+    {
+        return PlayerPrefs.GetInt(StoneKey, 0);
+    }
+
+    /// <summary>
+    /// 石の所持数を保存する。
+    /// </summary>
+    public static void SaveStone(int stone)
+    {
+        if (stone < 0)
+        {
+            Debug.LogWarning($"{nameof(PlayerSwordParameterSaveManager)}: 負の石の所持数を保存しようとしました ({stone})。0 にクランプします。");
+            stone = 0;
+        }
+        PlayerPrefs.SetInt(StoneKey, stone);
         PlayerPrefs.Save();
     }
 }
