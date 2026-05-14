@@ -201,6 +201,25 @@ public class AudioManager : MonoBehaviour
         }
     }
 
+    public async UniTask FadeAddedBGMAsync(float durationSeconds, CancellationToken cancellationToken)
+    {
+        _addBgmFadeCancellation?.Cancel();
+        _addBgmFadeCancellation?.Dispose();
+        _addBgmFadeCancellation = null;
+
+        if (_additionalBgmSource == null || !_additionalBgmSource.isPlaying)
+        {
+            return;
+        }
+
+        await FadeVolumeAsync(_additionalBgmSource, _additionalBgmSource.volume, 0.0f, durationSeconds, cancellationToken);
+
+        if (!cancellationToken.IsCancellationRequested)
+        {
+            _additionalBgmSource.Stop();
+        }
+    }
+
     private async UniTaskVoid PlaySeAsync(SeAudioType seType)
     {
         if (!InitializeSeAudioSources())
