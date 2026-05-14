@@ -9,17 +9,18 @@ using UnityEngine.AddressableAssets;
 /// </summary>
 public static class StageLayoutLoader
 {
-    private const string CsvPath = "Assets/Addressables/StageLayout.csv";
+    private const string CsvAddressFormat = "Assets/Addressables/StageLayout_{0}.csv";
 
     public static async UniTask<IReadOnlyList<StagePlacementData>> GetPlacementsAsync(int mapHeight, int mapWidth)
     {
         var placements = new List<StagePlacementData>();
         var occupied = new HashSet<(int height, int width)>();
 
-        var csv = await Addressables.LoadAssetAsync<TextAsset>(CsvPath);
+        var csvAddress = string.Format(CsvAddressFormat, StageData.Level);
+        var csv = await Addressables.LoadAssetAsync<TextAsset>(csvAddress);
         if (csv == null)
         {
-            Debug.LogError("StageLayout.csv が見つかりません");
+            Debug.LogError($"ステージ {StageData.Level} の CSV が見つかりません (address: {csvAddress})");
             return placements;
         }
 

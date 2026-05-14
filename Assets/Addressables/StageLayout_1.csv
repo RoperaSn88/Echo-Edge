@@ -1,0 +1,4 @@
+ObjectKind,Height,Width,EnemyKind
+Wall,3,6,
+Wall,4,6,
+Unit,2,2,Skya
