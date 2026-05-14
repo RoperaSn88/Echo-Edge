@@ -44,6 +44,13 @@ public class BattleStatus : IDamagable
     /// 経験値
     /// </summary>
     public int Experience => _experience;
+
+    [SerializeField]
+    private int _level = 1;
+    /// <summary>
+    /// レベル
+    /// </summary>
+    public int Level => _level;
     
     [SerializeField]
     private int _energy;
@@ -64,6 +71,8 @@ public class BattleStatus : IDamagable
     [NonSerialized]
     public bool IsInvincible;
 
+    private const int ExperiencePerLevel = 100;
+
     public void Initialize()
     {
         MaxHP = HP;
@@ -83,6 +92,41 @@ public class BattleStatus : IDamagable
         MovePattern = movePattern;
         _experience = experience;
         _energy = energy;
+    }
+
+    public void SetLevel(int level)
+    {
+        _level = Mathf.Max(1, level);
+    }
+
+    /// <summary>
+    /// 経験値を加算する。
+    /// </summary>
+    public void AddExperience(int experience)
+    {
+        if (experience < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(experience), "experience must be greater than or equal to 0.");
+        }
+
+        _experience += experience;
+    }
+
+    /// <summary>
+    /// 100EXP ごとにレベルアップし、レベルアップ分の経験値を消費する。
+    /// </summary>
+    /// <returns>上昇したレベル数</returns>
+    public int LevelUp()
+    {
+        var levelUpCount = 0;
+        while (_experience >= ExperiencePerLevel)
+        {
+            _experience -= ExperiencePerLevel;
+            _level++;
+            levelUpCount++;
+        }
+
+        return levelUpCount;
     }
 
     /// <summary>

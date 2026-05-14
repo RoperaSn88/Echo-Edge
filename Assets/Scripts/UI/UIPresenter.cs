@@ -100,7 +100,7 @@ public class UIPresenter : MonoBehaviour
         c.a = 1f;
         _fadePanel.color = c;
         _fadePanel.gameObject.SetActive(true);
-        await _fadePanel.DOFade(0f, duration).ToUniTask();
+        await _fadePanel.DOFade(0f, duration).SetUpdate(true).ToUniTask();
         _fadePanel.gameObject.SetActive(false);
     }
 
@@ -115,6 +115,6 @@ public class UIPresenter : MonoBehaviour
         c.a = 0f;
         _fadePanel.color = c;
         _fadePanel.gameObject.SetActive(true);
-        await _fadePanel.DOFade(1f, duration).ToUniTask();
+        await _fadePanel.DOFade(1f, duration).SetUpdate(true).ToUniTask();
     }
 }

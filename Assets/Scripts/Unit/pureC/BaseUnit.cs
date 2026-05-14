@@ -79,7 +79,7 @@ public　class BaseUnit: IEnemyUnit, IDamagable
         // 死んだら自身のいるマスを空にする
         MapManager.Instance.RemoveUnitAt(h, w);
         // ゲームクリア判定
-        GameClearManager.OnEnemyDead(h, w);
+        GameClearManager.OnEnemyDead(h, w, _battleStatus.Experience);
     }
 
     public async UniTask Attack()
