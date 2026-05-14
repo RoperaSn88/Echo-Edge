@@ -71,6 +71,11 @@ public class PlayerController: MonoBehaviour
     [SerializeField, Tooltip("残像を出現させる移動距離の間隔")]
     private float _afterimageInterval = 1f;
 
+    [SerializeField, Tooltip("ヤケクソの線マテリアル")]
+    private Material _lineMaterial;
+    
+    public Material LineMaterial => _lineMaterial;
+
     /// <summary>
     /// 最後に残像を出現させた位置
     /// </summary>

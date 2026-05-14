@@ -24,6 +24,7 @@ public class PlayerPhase: IPhase
     private bool _pauseFlug;
 
     private const int OptionSceneBuildIndex = 3;
+    private readonly PlayerAttackGuideLine _attackGuideLine = new PlayerAttackGuideLine();
 
     /// <summary>
     /// プレイヤーフェーズのインスタンス
@@ -41,7 +42,8 @@ public class PlayerPhase: IPhase
         // 初期条件
         _clickFlug = false;
         _pauseFlug = false;
-        Debug.Log("Player Phase");
+        _attackGuideLine.Hide();
+        _attackGuideLine.SetMaterial(PlayerController.Instance.LineMaterial);
         PlayerActions playerActions = new PlayerActions();
         EnableController(playerActions);
 
@@ -61,6 +63,7 @@ public class PlayerPhase: IPhase
                 Time.timeScale = 1;
                 if (OptionSceneController.LastResult == OptionResult.Retire)
                 {
+                    _attackGuideLine.Destroy();
                     ResetController(playerActions);
                     SceneLoader.Load(GameScene.Preparing);
                     return PlayerPhase.Instance;
@@ -75,11 +78,19 @@ public class PlayerPhase: IPhase
             {
                 case ClickKinds.Left:
                     CameraManager.Instance.ActMoveCameraToTopAngle();
-                    await UniTask.WaitUntil(() => _clickFlug);
+                    while (!_clickFlug)
+                    {
+                        UpdateAttackGuideLine();
+                        await UniTask.Yield();
+                    }
+                    _attackGuideLine.Hide();
+                    _attackGuideLine.Destroy();
                     ResetController(playerActions);
                     return PlayerAttackPhase.Instance;
                 case ClickKinds.Right:
                     // 右クリック時
+                    _attackGuideLine.Hide();
+                    _attackGuideLine.Destroy();
                     ResetController(playerActions);
                     return PlayerWeaponPhase.Instance;
             }
@@ -116,11 +127,31 @@ public class PlayerPhase: IPhase
 
     public void OnReleaseAttack(InputAction.CallbackContext context)
     {
+        _attackGuideLine.Hide();
         _clickFlug = true;
     }
 
     public void OnPressPause(InputAction.CallbackContext context)
     {
+        _attackGuideLine.Hide();
         _pauseFlug = true;
+    }
+
+    private void UpdateAttackGuideLine()
+    {
+        if (Camera.main == null || PlayerController.Instance == null)
+        {
+            _attackGuideLine.Hide();
+            return;
+        }
+
+        Ray pointerRay = Camera.main.ScreenPointToRay(CameraManager.Instance.GetMousePosition());
+        if (!Physics.Raycast(pointerRay, out RaycastHit pointerHit, Mathf.Infinity, PlayerAttackPhase.LayerNumber))
+        {
+            _attackGuideLine.Hide();
+            return;
+        }
+
+        _attackGuideLine.Update(PlayerController.Instance.PlayerTransform.position, pointerHit.point);
     }
 }
