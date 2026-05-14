@@ -79,6 +79,10 @@ public class PlayerAttackGuideLine
         _lineRenderer.enabled = false;
         _lineRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         _lineRenderer.receiveShadows = false;
+        if (_lineMaterial == null && PlayerController.Instance != null)
+        {
+            _lineMaterial = PlayerController.Instance.LineMaterial;
+        }
         if (_lineMaterial != null)
         {
             _lineRenderer.sharedMaterial = _lineMaterial;
