@@ -33,7 +33,9 @@ namespace UnityEngine.Selectable
             // Preparing シーン専用カメラを始点へ戻す
             if (PreparingCameraController.Instance != null)
             {
-                await PreparingCameraController.Instance.MoveBack();
+                var t1 = PreparingCameraController.Instance.MoveBack();
+                var t2 = PreparingCameraController.Instance.ResetRotateCamera();
+                await UniTask.WhenAll(t1, t2);
             }
 
             // メインメニューグループを表示する

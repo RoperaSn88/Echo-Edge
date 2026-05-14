@@ -42,6 +42,11 @@ public class SelectManager : MonoBehaviour
     async void Start()
     {
         Instance = this;
+
+        if (AudioManager.Instance == null)
+        {
+            throw new InvalidOperationException("AudioManager.Instance が見つかりません。シーンに AudioManager を配置してください。");
+        }
         
         await AudioManager.Instance.PlayBgm(BgmAudioType.Title, true);
         

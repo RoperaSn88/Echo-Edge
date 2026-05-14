@@ -44,12 +44,17 @@ public class PreparingCameraController : MonoBehaviour
     private const float _rightDuration = 2.5f;
 
     private Vector3 _startPosition;
+    
+    private Vector3 _defaultAngle;
+    
+    private readonly Vector3 _rotateVector = new Vector3(0.919f, -123.249f, 0.802f);
 
     private void Awake()
     {
         Instance = this;
         Time.timeScale = 1.0f;
         _startPosition = _cameraTransform.position;
+        _defaultAngle = _cameraTransform.eulerAngles;
     }
 
     /// <summary>
@@ -112,5 +117,15 @@ public class PreparingCameraController : MonoBehaviour
         }
         points[points.Length - 1] = _forwardTarget;
         return points;
+    }
+    
+    public async UniTask RotateCamera()
+    {
+        await _cameraTransform.DORotate(_rotateVector, _rightDuration, RotateMode.Fast);
+    }
+    
+    public async UniTask ResetRotateCamera()
+    {
+        await _cameraTransform.DORotate(_defaultAngle, _rightDuration, RotateMode.Fast);
     }
 }

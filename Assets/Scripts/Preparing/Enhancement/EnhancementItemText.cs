@@ -50,7 +50,7 @@ public abstract class EnhancementItemText : TMPSelectObject
 
         bool success = TryEnhance();
 
-        _feedbackText.text = success ? "強化成功！" : "石が足りません";
+        _feedbackText.text = success ? "強化成功" : "石が足りません";
 
         // 画面左から登場するトゥイーン
         _feedbackText.rectTransform.anchoredPosition = new Vector2(_feedbackDefaultPos.x + SlideOffsetX, _feedbackDefaultPos.y);
