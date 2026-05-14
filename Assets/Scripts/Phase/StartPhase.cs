@@ -15,8 +15,14 @@ public class StartPhase : IPhase
         BattleManager.RegisterPlayer(PlayerStatusPresenter.Instance.PlayerBattleStatus);
         
         PlayerStatusPresenter.Instance.SetPlayerHP(status.HP, status.MaxHP);
+
+        // エナジーをリセットしてから表示する
+        EnergyManager.Reset();
         var energyResult = EnergyManager.AddEnergy(0);
         PlayerStatusPresenter.Instance.SetEnergy(energyResult.gaugeValue, energyResult.energyCount);
+
+        // オブジェクトプールをリセットする
+        EnergyWallManager.Reset();
 
         // 2. 敵や壁の配置が完了するまでawait
         await UniTask.WaitUntil(() => MapManager.Instance != null);

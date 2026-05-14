@@ -24,6 +24,20 @@ public class EnergyWallManager : IEnemyPhaseStartAction
         EnemyPhaseStartActionDispatcher.Register(this);
     }
 
+    /// <summary>
+    /// オブジェクトプールと壁リストをリセットする。ゲーム開始時に呼ぶ。
+    /// </summary>
+    public static void Reset()
+    {
+        if (_instance == null)
+        {
+            return;
+        }
+
+        _instance._activeEnergyWalls.Clear();
+        _instance._energyWallStack = null;
+    }
+
     public bool TrySetEnergyWall(int h, int w)
     {
         if (MapManager.Instance == null)
