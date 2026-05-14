@@ -35,7 +35,7 @@ namespace UnityEngine.Selectable
                 AudioManager.Instance.FadeBGMAsync(_fadeDuration, CancellationToken.None)
             );
 
-            SceneLoader.Load(GameScene.MainGame);
+            await SceneLoader.AdditiveLoadAsync(GameScene.MainGame);
             SceneLoader.Unload(GameScene.Preparing);
         }
     }
