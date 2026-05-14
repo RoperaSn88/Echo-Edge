@@ -23967,6 +23967,7 @@ MonoBehaviour:
   _reflectCount: 2
   _afterimagePool: {fileID: 1640804801}
   _afterimageInterval: 1
+  _lineMaterial: {fileID: 2100000, guid: aafd00f21b8ec7c42926d4152a702055, type: 2}
 --- !u!54 &907845584
 Rigidbody:
   m_ObjectHideFlags: 0

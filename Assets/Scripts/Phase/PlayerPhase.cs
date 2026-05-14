@@ -43,7 +43,7 @@ public class PlayerPhase: IPhase
         _clickFlug = false;
         _pauseFlug = false;
         _attackGuideLine.Hide();
-        Debug.Log("Player Phase");
+        _attackGuideLine.SetMaterial(PlayerController.Instance.LineMaterial);
         PlayerActions playerActions = new PlayerActions();
         EnableController(playerActions);
 
@@ -81,9 +81,10 @@ public class PlayerPhase: IPhase
                     while (!_clickFlug)
                     {
                         UpdateAttackGuideLine();
+                        Time.timeScale = 0;
                         await UniTask.Yield();
                     }
-                    _attackGuideLine.Hide();
+                    // _attackGuideLine.Hide();
                     _attackGuideLine.Destroy();
                     ResetController(playerActions);
                     return PlayerAttackPhase.Instance;

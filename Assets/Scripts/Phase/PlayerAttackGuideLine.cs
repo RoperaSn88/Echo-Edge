@@ -1,10 +1,10 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerAttackGuideLine
 {
     private const float HeightOffset = 0.1f;
     private const float LineWidth = 0.08f;
-    private static readonly Color LineColor = new Color(1f, 0.35f, 0.2f, 0.9f);
     private readonly RaycastHit[] _wallHitBuffer = new RaycastHit[8];
     private GameObject _lineObject;
     private LineRenderer _lineRenderer;
@@ -60,10 +60,10 @@ public class PlayerAttackGuideLine
 
     public void Destroy()
     {
-        if (_lineObject == null) return;
-        Object.Destroy(_lineObject);
-        _lineObject = null;
-        _lineRenderer = null;
+        // if (_lineObject == null) return;
+        // Object.Destroy(_lineObject);
+        // _lineObject = null;
+        // _lineRenderer = null;
     }
 
     private void EnsureLineRenderer()
@@ -75,11 +75,18 @@ public class PlayerAttackGuideLine
         _lineRenderer.positionCount = 2;
         _lineRenderer.startWidth = LineWidth;
         _lineRenderer.endWidth = LineWidth;
-        _lineRenderer.startColor = LineColor;
-        _lineRenderer.endColor = LineColor;
         _lineRenderer.useWorldSpace = true;
         _lineRenderer.enabled = false;
         _lineRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         _lineRenderer.receiveShadows = false;
+    }
+
+    public void SetMaterial(Material material)
+    {
+        if (_lineRenderer == null) return;
+        _lineRenderer.SetMaterials(new List<Material>()
+        {
+            material
+        });
     }
 }
