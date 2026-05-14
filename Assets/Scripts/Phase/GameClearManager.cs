@@ -51,7 +51,6 @@ public static class GameClearManager
     /// <param name="w">死亡した敵の横座標</param>
     public static void OnEnemyDead(int h, int w, int experience)
     {
-        Debug.Log("EnemyEnd");
         if (_isGameClearStarted) return;
 
         _lastEnemyH = h;
@@ -69,7 +68,7 @@ public static class GameClearManager
     private static async UniTask StartGameClearSequenceAsync()
     {
         // 1. 暗転する
-        await UIPresenter.Instance.FadeOutAsync();
+        await UIPresenter.Instance.FadeOutAsync(0.01f);
 
         // 2. ステータスのUIを非表示にする
         if (PlayerStatusPresenter.Instance != null)
@@ -87,7 +86,7 @@ public static class GameClearManager
         RemoveWallsNearLastEnemy();
 
         // 4. 暗転をやめて表示する
-        await UIPresenter.Instance.FadeInAsync();
+        await UIPresenter.Instance.FadeInAsync(0.01f);
         var reward = ApplyStageClearReward();
         Time.timeScale = 0.0f;
         await GameClearRewardPresenter.Instance.ShowAsync(reward.level, reward.gainedExperience, reward.currentExperience);
