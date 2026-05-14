@@ -162,6 +162,7 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposab
         }
         else
         {
+            UIPresenter.Instance.AppearEnergy(transform.position, targetStatus.Energy / 2).Forget();
             await UniTask.Delay(TimeSpan.FromSeconds(0.5f), ignoreTimeScale:true);
         }
         
