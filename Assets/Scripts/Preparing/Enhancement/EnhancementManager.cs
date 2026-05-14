@@ -2,85 +2,92 @@ using UnityEngine;
 
 /// <summary>
 /// 強化画面のロジックを管理するクラス。
-/// 累積経験値を保持し、ステータス強化を行う。
+/// 石（強化用通貨）を保持し、剣のステータス強化を行う。
 /// </summary>
 public static class EnhancementManager
 {
-    /// <summary>HP 1回の強化量</summary>
-    public const int HpUpgradeAmount = 10;
+    /// <summary>剣の攻撃力 1回の強化量</summary>
+    public const int SwordAttackUpgradeAmount = 5;
 
-    /// <summary>攻撃力 1回の強化量</summary>
-    public const int AttackUpgradeAmount = 5;
+    /// <summary>剣の反射回数 1回の強化量</summary>
+    public const int SwordReflectUpgradeAmount = 1;
 
-    /// <summary>防御力 1回の強化量</summary>
-    public const int DefendUpgradeAmount = 5;
+    /// <summary>強化 1回のコスト（石）</summary>
+    public const int UpgradeCost = 1;
 
-    /// <summary>強化 1回のコスト（経験値）</summary>
-    public const int UpgradeCost = 50;
-
-    private static int _experience;
+    private static int _stone;
 
     /// <summary>
-    /// 現在の累積経験値
+    /// 現在の石の所持数
     /// </summary>
-    public static int Experience => _experience;
+    public static int Stone => _stone;
 
     static EnhancementManager()
     {
-        _experience = EnhancementSaveManager.LoadExperience();
+        _stone = PlayerSwordParameterSaveManager.LoadStone();
     }
 
     /// <summary>
-    /// 経験値を追加して永続化する。
+    /// 石を追加して永続化する。
     /// </summary>
-    /// <param name="amount">追加する経験値量</param>
-    public static void AddExperience(int amount)
+    /// <param name="amount">追加する石の数</param>
+    public static void AddStone(int amount)
     {
         if (amount < 0)
         {
-            Debug.LogWarning($"{nameof(EnhancementManager)}: 負の経験値が渡されました ({amount})。無視します。");
+            Debug.LogWarning($"{nameof(EnhancementManager)}: 負の石の数が渡されました ({amount})。無視します。");
             return;
         }
         if (amount == 0) return;
-        _experience += amount;
-        EnhancementSaveManager.SaveExperience(_experience);
+        _stone += amount;
+        PlayerSwordParameterSaveManager.SaveStone(_stone);
     }
 
     /// <summary>
-    /// 指定したステータスを強化する。
-    /// 経験値が足りない場合は強化せずに false を返す。
+    /// 剣の攻撃力を強化する。
+    /// 石が足りない場合は強化せずに false を返す。
     /// </summary>
-    /// <param name="kind">強化するステータスの種類</param>
     /// <returns>強化が成功したか</returns>
-    public static bool TryUpgrade(EnhancementKind kind)
+    public static bool TryUpgradeSwordAttack()
     {
-        if (_experience < UpgradeCost)
+        if (_stone < UpgradeCost)
         {
             return false;
         }
 
-        _experience -= UpgradeCost;
-        EnhancementSaveManager.SaveExperience(_experience);
+        _stone -= UpgradeCost;
+        PlayerSwordParameterSaveManager.SaveStone(_stone);
 
-        var current = PlayerSwordParameterHolder.PlayerStatus;
-        PlayerParameter upgraded;
-        switch (kind)
+        var current = PlayerSwordParameterHolder.SwordStatus;
+        PlayerSwordParameterHolder.SetSwordStatus(
+            current.HP,
+            current.Attack + SwordAttackUpgradeAmount,
+            current.ReflectCount
+        );
+        return true;
+    }
+
+    /// <summary>
+    /// 剣の反射回数を強化する。
+    /// 石が足りない場合は強化せずに false を返す。
+    /// </summary>
+    /// <returns>強化が成功したか</returns>
+    public static bool TryUpgradeSwordReflect()
+    {
+        if (_stone < UpgradeCost)
         {
-            case EnhancementKind.HP:
-                upgraded = new PlayerParameter(current.HP + HpUpgradeAmount, current.Attack, current.Defend);
-                break;
-            case EnhancementKind.Attack:
-                upgraded = new PlayerParameter(current.HP, current.Attack + AttackUpgradeAmount, current.Defend);
-                break;
-            case EnhancementKind.Defend:
-                upgraded = new PlayerParameter(current.HP, current.Attack, current.Defend + DefendUpgradeAmount);
-                break;
-            default:
-                Debug.LogWarning($"{nameof(EnhancementManager)}: 未知の {nameof(EnhancementKind)} '{kind}'");
-                return false;
+            return false;
         }
 
-        PlayerSwordParameterHolder.SetPlayerStatus(upgraded);
+        _stone -= UpgradeCost;
+        PlayerSwordParameterSaveManager.SaveStone(_stone);
+
+        var current = PlayerSwordParameterHolder.SwordStatus;
+        PlayerSwordParameterHolder.SetSwordStatus(
+            current.HP,
+            current.Attack,
+            (byte)(current.ReflectCount + SwordReflectUpgradeAmount)
+        );
         return true;
     }
 }

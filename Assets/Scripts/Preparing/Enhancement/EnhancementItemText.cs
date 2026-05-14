@@ -3,86 +3,49 @@ using TMPro;
 using UnityEngine;
 
 /// <summary>
-/// 強化画面の各ステータス強化項目を表示・操作するクラス。
-/// 選択時に強化内容（現在値 → 強化後の値、コスト）を表示し、
-/// 決定時に EnhancementManager 経由でステータスを強化する。
+/// 強化画面の各強化項目の基底クラス。
+/// 強化実行後に Overseer の Magic アニメーションを再生する。
+/// 具体的な強化処理はサブクラスで実装する。
 /// </summary>
-public class EnhancementItemText : TMPSelectObject
+public abstract class EnhancementItemText : TMPSelectObject
 {
+    private const string MagicTrigger = "MagicT";
+
     /// <summary>
-    /// 強化するステータスの種類
+    /// Overseer の Animator（インスペクターから設定する）
     /// </summary>
     [SerializeField]
-    private EnhancementKind _kind;
+    protected Animator _overseerAnimator;
 
     /// <summary>
-    /// 強化内容（現在値・強化量・コスト）を表示するテキスト
+    /// 強化成功 / 石不足を一時的に表示するテキスト
     /// </summary>
     [SerializeField]
-    private TextMeshProUGUI _infoText;
-
-    /// <summary>
-    /// 強化成功 / 経験値不足を一時的に表示するテキスト
-    /// </summary>
-    [SerializeField]
-    private TextMeshProUGUI _feedbackText;
-
-    private void Start()
-    {
-        RefreshInfoText();
-    }
-
-    /// <summary>
-    /// 強化内容テキストを現在のステータスで更新する。
-    /// </summary>
-    public void RefreshInfoText()
-    {
-        if (_infoText == null) return;
-
-        var player = PlayerSwordParameterHolder.PlayerStatus;
-        string label;
-        int current;
-        int amount;
-
-        switch (_kind)
-        {
-            case EnhancementKind.HP:
-                label = "HP";
-                current = player.HP;
-                amount = EnhancementManager.HpUpgradeAmount;
-                break;
-            case EnhancementKind.Attack:
-                label = "攻撃力";
-                current = player.Attack;
-                amount = EnhancementManager.AttackUpgradeAmount;
-                break;
-            case EnhancementKind.Defend:
-                label = "防御力";
-                current = player.Defend;
-                amount = EnhancementManager.DefendUpgradeAmount;
-                break;
-            default:
-                return;
-        }
-
-        _infoText.text = $"{label}  {current} → {current + amount}\n(消費EXP: {EnhancementManager.UpgradeCost})";
-    }
+    protected TextMeshProUGUI _feedbackText;
 
     /// <inheritdoc/>
     public override async UniTask OnDecide()
     {
-        bool success = EnhancementManager.TryUpgrade(_kind);
+        bool success = TryEnhance();
 
         if (_feedbackText != null)
         {
-            _feedbackText.text = success ? "強化成功！" : "EXPが足りません";
+            _feedbackText.text = success ? "強化成功！" : "石が足りません";
             _feedbackText.gameObject.SetActive(true);
         }
 
         if (success)
         {
-            RefreshInfoText();
-            EnhancementStatusText.Instance?.RefreshText();
+            if (_overseerAnimator != null)
+            {
+                _overseerAnimator.SetTrigger(MagicTrigger);
+            }
+            else
+            {
+                Debug.LogWarning($"{GetType().Name}: Overseer の Animator が設定されていません。");
+            }
+
+            OnEnhanceSuccess();
         }
 
         await UniTask.Delay(System.TimeSpan.FromSeconds(0.8f));
@@ -91,5 +54,19 @@ public class EnhancementItemText : TMPSelectObject
         {
             _feedbackText.gameObject.SetActive(false);
         }
+    }
+
+    /// <summary>
+    /// 強化を試みる。石が足りなければ false を返す。
+    /// </summary>
+    /// <returns>強化に成功したか</returns>
+    protected abstract bool TryEnhance();
+
+    /// <summary>
+    /// 強化成功時に呼ばれる追加処理（UI更新等）。
+    /// </summary>
+    protected virtual void OnEnhanceSuccess()
+    {
+        EnhancementStatusText.Instance?.RefreshText();
     }
 }

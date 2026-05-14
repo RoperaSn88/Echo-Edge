@@ -174,8 +174,6 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposab
             MapManager.Instance.RemoveUnitAt(height, width);
             if (targetUnit is IEnemyUnit)
             {
-                // 敵の経験値を強化画面用の累積経験値に加算する
-                EnhancementManager.AddExperience(targetStatus.Experience);
                 GameClearManager.OnEnemyDead(height, width);
             }
             //Destroyするが、後でオブジェクトプールにする

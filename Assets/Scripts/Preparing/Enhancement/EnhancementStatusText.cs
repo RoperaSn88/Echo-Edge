@@ -2,7 +2,7 @@ using TMPro;
 using UnityEngine;
 
 /// <summary>
-/// 強化画面上に現在の累積経験値とプレイヤーステータスを表示するクラス。
+/// 強化画面上に現在の石の所持数と剣のステータスを表示するクラス。
 /// </summary>
 public class EnhancementStatusText : MonoBehaviour
 {
@@ -42,15 +42,15 @@ public class EnhancementStatusText : MonoBehaviour
     }
 
     /// <summary>
-    /// 表示テキストを現在の経験値・ステータスで更新する。
+    /// 表示テキストを現在の石の所持数・剣のステータスで更新する。
     /// </summary>
     public void RefreshText()
     {
         if (_statusText == null) return;
 
-        var player = PlayerSwordParameterHolder.PlayerStatus;
+        var sword = PlayerSwordParameterHolder.SwordStatus;
         _statusText.text =
-            $"EXP: {EnhancementManager.Experience}\n" +
-            $"HP: {player.HP}  攻撃力: {player.Attack}  防御力: {player.Defend}";
+            $"石: {EnhancementManager.Stone}\n" +
+            $"剣攻撃力: {sword.Attack}  反射回数: {sword.ReflectCount}";
     }
 }
