@@ -13,7 +13,7 @@ public static class EnhancementManager
     public const int SwordReflectUpgradeAmount = 1;
 
     /// <summary>強化 1回のコスト（石）</summary>
-    public const int UpgradeCost = 1;
+    public const int UpgradeCost = 0;
 
     private static int _stone;
 

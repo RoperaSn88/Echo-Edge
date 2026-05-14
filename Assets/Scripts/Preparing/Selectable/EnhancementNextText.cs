@@ -35,7 +35,7 @@ namespace UnityEngine.Selectable
             // Preparing シーン専用カメラを前方へ移動させる
             if (PreparingCameraController.Instance != null)
             {
-                var t1 =  PreparingCameraController.Instance.MoveForward();
+                var t1 = PreparingCameraController.Instance.MoveForward();
                 var t2 = PreparingCameraController.Instance.RotateCamera();
                 await UniTask.WhenAll(t1, t2);
             }

@@ -51,6 +51,6 @@ public class EnhancementStatusText : MonoBehaviour
         var sword = PlayerSwordParameterHolder.SwordStatus;
         _statusText.text =
             $"石: {EnhancementManager.Stone}\n" +
-            $"剣攻撃力: {sword.Attack}  反射回数: {sword.ReflectCount}";
+            $"剣攻撃力: {sword.Attack}\n反射回数: {sword.ReflectCount}";
     }
 }
