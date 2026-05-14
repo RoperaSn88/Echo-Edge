@@ -59,7 +59,7 @@ public static class PlayerSwordParameterHolder
     }
 
     /// <summary>
-    /// PlayerParameter を直接指定してプレイヤーステータスを更新し永続化する。
+    /// 強化したパラメーターを更新するために、PlayerParameter を直接指定してプレイヤーステータスを更新し永続化する。
     /// </summary>
     public static void SetPlayerStatus(PlayerParameter playerParameter)
     {

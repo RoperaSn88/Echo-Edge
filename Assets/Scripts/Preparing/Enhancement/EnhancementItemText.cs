@@ -1,4 +1,5 @@
 using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 
@@ -10,6 +11,8 @@ using UnityEngine;
 public abstract class EnhancementItemText : TMPSelectObject
 {
     private const string MagicTrigger = "MagicT";
+    private const float SlideDuration = 0.3f;
+    private const float SlideOffsetX = -400f;
 
     /// <summary>
     /// Overseer の Animator（インスペクターから設定する）
@@ -23,16 +26,39 @@ public abstract class EnhancementItemText : TMPSelectObject
     [SerializeField]
     protected TextMeshProUGUI _feedbackText;
 
+    private Vector2 _feedbackDefaultPos;
+
+    private void Start()
+    {
+        if (_feedbackText == null)
+        {
+            Debug.LogError($"{GetType().Name}: フィードバックテキストが設定されていません。インスペクターで _feedbackText を設定してください。");
+            return;
+        }
+        _feedbackDefaultPos = _feedbackText.rectTransform.anchoredPosition;
+        _feedbackText.gameObject.SetActive(false);
+    }
+
     /// <inheritdoc/>
     public override async UniTask OnDecide()
     {
+        if (_feedbackText == null)
+        {
+            Debug.LogError($"{GetType().Name}: フィードバックテキストが設定されていません。");
+            return;
+        }
+
         bool success = TryEnhance();
 
-        if (_feedbackText != null)
-        {
-            _feedbackText.text = success ? "強化成功！" : "石が足りません";
-            _feedbackText.gameObject.SetActive(true);
-        }
+        _feedbackText.text = success ? "強化成功！" : "石が足りません";
+
+        // 画面左から登場するトゥイーン
+        _feedbackText.rectTransform.anchoredPosition = new Vector2(_feedbackDefaultPos.x + SlideOffsetX, _feedbackDefaultPos.y);
+        _feedbackText.gameObject.SetActive(true);
+        await _feedbackText.rectTransform
+            .DOAnchorPos(_feedbackDefaultPos, SlideDuration)
+            .SetEase(Ease.OutQuad)
+            .ToUniTask();
 
         if (success)
         {
@@ -50,10 +76,7 @@ public abstract class EnhancementItemText : TMPSelectObject
 
         await UniTask.Delay(System.TimeSpan.FromSeconds(0.8f));
 
-        if (_feedbackText != null)
-        {
-            _feedbackText.gameObject.SetActive(false);
-        }
+        _feedbackText.gameObject.SetActive(false);
     }
 
     /// <summary>
