@@ -27,9 +27,11 @@ public abstract class EnhancementItemText : TMPSelectObject
     protected TextMeshProUGUI _feedbackText;
 
     private Vector2 _feedbackDefaultPos;
+    private SelectableGroup _selectableGroup;
 
     private void Start()
     {
+        _selectableGroup = GetComponentInParent<SelectableGroup>();
         if (_feedbackText == null)
         {
             Debug.LogError($"{GetType().Name}: フィードバックテキストが設定されていません。インスペクターで _feedbackText を設定してください。");
@@ -77,6 +79,10 @@ public abstract class EnhancementItemText : TMPSelectObject
         await UniTask.Delay(System.TimeSpan.FromSeconds(0.8f));
 
         _feedbackText.gameObject.SetActive(false);
+
+        // 強化後、同じグループで再選択できるようにテキストサイズと決定状態をリセット
+        _selectableGroup?.MarkAsDecided(null);
+        OnDeselect();
     }
 
     /// <summary>
