@@ -2,13 +2,15 @@ using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 /// <summary>
-/// 強化画面の各強化項目の基底クラス。
-/// 強化実行後に Overseer の Magic アニメーションを再生する。
+/// ClickableImage に対応した強化項目の基底クラス。
+/// クリック時に強化処理を実行し、Overseer の Magic アニメーションを再生する。
 /// 具体的な強化処理はサブクラスで実装する。
 /// </summary>
-public abstract class EnhancementItemText : TMPSelectObject
+[RequireComponent(typeof(ClickableImage))]
+public abstract class EnhancementItemImage : MonoBehaviour
 {
     private const string MagicTrigger = "MagicT";
     private const float SlideDuration = 0.3f;
@@ -27,11 +29,16 @@ public abstract class EnhancementItemText : TMPSelectObject
     protected TextMeshProUGUI _feedbackText;
 
     private Vector2 _feedbackDefaultPos;
-    private SelectableGroup _selectableGroup;
+    private ClickableImage _clickableImage;
+    private bool _isProcessing;
+
+    private void Awake()
+    {
+        _clickableImage = GetComponent<ClickableImage>();
+    }
 
     private void Start()
     {
-        _selectableGroup = GetComponentInParent<SelectableGroup>();
         if (_feedbackText == null)
         {
             Debug.LogError($"{GetType().Name}: フィードバックテキストが設定されていません。インスペクターで _feedbackText を設定してください。");
@@ -41,12 +48,35 @@ public abstract class EnhancementItemText : TMPSelectObject
         _feedbackText.gameObject.SetActive(false);
     }
 
-    /// <inheritdoc/>
-    public override async UniTask OnDecide()
+    private void OnEnable()
+    {
+        if (_clickableImage != null)
+        {
+            _clickableImage.OnClick += HandleClick;
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (_clickableImage != null)
+        {
+            _clickableImage.OnClick -= HandleClick;
+        }
+    }
+
+    private void HandleClick(PointerEventData eventData)
+    {
+        if (_isProcessing) return;
+        _isProcessing = true;
+        OnClickEnhance().Forget();
+    }
+
+    private async UniTaskVoid OnClickEnhance()
     {
         if (_feedbackText == null)
         {
             Debug.LogError($"{GetType().Name}: フィードバックテキストが設定されていません。");
+            _isProcessing = false;
             return;
         }
 
@@ -79,10 +109,7 @@ public abstract class EnhancementItemText : TMPSelectObject
         await UniTask.Delay(System.TimeSpan.FromSeconds(0.8f));
 
         _feedbackText.gameObject.SetActive(false);
-
-        // 強化後、同じグループで再選択できるようにテキストサイズと決定状態をリセット
-        _selectableGroup?.MarkAsDecided(null);
-        OnDeselect();
+        _isProcessing = false;
     }
 
     /// <summary>
@@ -92,7 +119,7 @@ public abstract class EnhancementItemText : TMPSelectObject
     protected abstract bool TryEnhance();
 
     /// <summary>
-    /// 強化成功時に呼ばれる追加処理（UI更新等）。
+    /// 強化成功時に呼ばれる追加処理（UI 更新等）。
     /// </summary>
     protected virtual void OnEnhanceSuccess()
     {

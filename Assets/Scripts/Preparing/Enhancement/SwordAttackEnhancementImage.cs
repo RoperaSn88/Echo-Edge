@@ -1,7 +1,7 @@
 /// <summary>
-/// 剣の攻撃力を強化するテキスト。
+/// 剣の攻撃力を強化するクリッカブルイメージ。
 /// </summary>
-public class SwordAttackEnhancementText : EnhancementItemText
+public class SwordAttackEnhancementImage : EnhancementItemImage
 {
     /// <inheritdoc/>
     protected override bool TryEnhance()
