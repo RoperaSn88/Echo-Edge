@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerAttackGuideLine
@@ -6,6 +5,7 @@ public class PlayerAttackGuideLine
     private const float HeightOffset = 0.1f;
     private const float LineWidth = 0.08f;
     private readonly RaycastHit[] _wallHitBuffer = new RaycastHit[8];
+    private Material _lineMaterial;
     private GameObject _lineObject;
     private LineRenderer _lineRenderer;
 
@@ -79,14 +79,16 @@ public class PlayerAttackGuideLine
         _lineRenderer.enabled = false;
         _lineRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         _lineRenderer.receiveShadows = false;
+        if (_lineMaterial != null)
+        {
+            _lineRenderer.sharedMaterial = _lineMaterial;
+        }
     }
 
     public void SetMaterial(Material material)
     {
+        _lineMaterial = material;
         if (_lineRenderer == null) return;
-        _lineRenderer.SetMaterials(new List<Material>()
-        {
-            material
-        });
+        _lineRenderer.sharedMaterial = _lineMaterial;
     }
 }
