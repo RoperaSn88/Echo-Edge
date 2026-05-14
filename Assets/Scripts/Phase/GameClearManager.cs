@@ -105,7 +105,11 @@ public static class GameClearManager
 
         // クリック時: カメラをもとの位置に戻して揺らすのをやめる
         CameraManager.Instance.StopCameraShake();
-        await CameraManager.Instance.ActResetCameraTarget();
+        var t1 = UIPresenter.Instance.FadeOutAsync(0.5f);
+        var t2 = GameClearRewardPresenter.Instance.CloseAsync();
+        
+        await UniTask.WhenAll(t1, t2);
+        
         Time.timeScale = 1.0f;
 
         // 6. MainGameをアンロードし、Preparingシーンを読み込む

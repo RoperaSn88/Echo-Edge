@@ -117,7 +117,7 @@ public class CameraManager : MonoBehaviour
     /// <summary>
     /// ゲームクリア時のカメラのy軸角度
     /// </summary>
-    private const float GameClearCameraYAngle = 30f;
+    private const float GameClearCameraYAngle = -30f;
 
     /// <summary>
     /// ゲームクリア時のカメラオフセット
@@ -616,7 +616,7 @@ public class CameraManager : MonoBehaviour
     {
         try
         {
-            await _defaultCameraPos.DOShakePosition(0.5f, 0.05f, 10, 90f, false, true)
+            await _defaultCameraPos.DOShakePosition(0.5f, 1f, 10, 90f, false, true)
                 .SetUpdate(true)
                 .ToUniTask(cancellationToken: ct);
         }
