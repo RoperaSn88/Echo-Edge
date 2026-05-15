@@ -18,7 +18,7 @@ MonoBehaviour:
     _radiusVerticalOffset: 0
     _radiusHorizontalOffset: 0
     _models:
-    - _text: "\u3053\u308C\u306F\u30C1\u30E5\u30FC\u30C8\u30EA\u30A2\u30EB\u3067\u3059\n\u53F3\u30AF\u30EA\u30C3\u30AF\u3067\u6B21\u306E\u30C6\u30AD\u30B9\u30C8\u3092\u8868\u793A\u3057\u307E\u3059\n"
+    - _text: "\u3053\u308C\u306F\u30C1\u30E5\u30FC\u30C8\u30EA\u30A2\u30EB\u3060\u3002\n\u2026\u2026\u3068\u306F\u3044\u3048\u3001\u57FA\u790E\u306F\u3082\u3046\u7406\u89E3\u3057\u3066\u3044\u308B\u306F\u305A\u3060\u3002\n\u78BA\u8A8D\u7A0B\u5EA6\u306B\u805E\u3044\u3066\u304A\u3051\u3002"
       _coachMark:
         _shape: 0
         _isGradiate: 0
@@ -29,29 +29,72 @@ MonoBehaviour:
       _isFingerIconEnabled: 0
       _fingerIconDirection: 0
       _isEffectEnabled: 0
-    - _text: "\u3053\u308C\u306F\u30D7\u30EC\u30A4\u30E4\u30FC\u3067\u3059"
+  - _character: {fileID: 21300000, guid: e9316dfbe0350cd4fa3c8b10b66b73fd, type: 3}
+    _position: 1
+    _radiusVerticalOffset: 0
+    _radiusHorizontalOffset: 0
+    _models:
+    - _text: "\u3053\u308C\u306F\u30D7\u30EC\u30A4\u30E4\u30FC\u3002\n\u5DE6\u30AF\u30EA\u30C3\u30AF\u3092\u9577\u62BC\u3057\u3059\u308B\u3068\u3001\u300E\u4E00\u9583\u300F\u306E\u8ECC\u9053\u3092\u5B9A\u3081\u308B\u3002\n\u96E2\u3057\u305F\u77AC\u9593\u3001\u6307\u5B9A\u65B9\u5411\u3078\u8E0F\u307F\u8FBC\u3080\u3002\u3000\u2026\u2026\u3044\u3064\u3082\u306E\u52D5\u304D\u3060\u3002"
       _coachMark:
-        _shape: 0
+        _shape: 1
         _isGradiate: 0
-        _radius: 100
+        _radius: 200
+        _paddingRadius: 0
+        _gradiateRadius: 0
+        _targetObjectName: Player
+      _isFingerIconEnabled: 1
+      _fingerIconDirection: 2
+      _isEffectEnabled: 0
+    - _text: "\u300E\u4E00\u9583\u300F\u306F\u547D\u4E2D\u3057\u305F\u6575\u3078\u30C0\u30E1\u30FC\u30B8\u3092\u4E0E\u3048\u308B\u3002\n\u9023\u7D9A\u3057\u3066\u547D\u4E2D\u3055\u305B\u308C\u3070\u3001\u4E0E\u3048\u308B\u30C0\u30E1\u30FC\u30B8\u306F\u5897\u52A0\u3059\u308B\u3002\n\u53CD\u5C04\u56DE\u6570\u306B\u306F\u9650\u5EA6\u304C\u3042\u308B\u3002\u8ECC\u9053\u306F\u3088\u304F\u898B\u3066\u304A\u3051\u3002"
+      _coachMark:
+        _shape: 1
+        _isGradiate: 0
+        _radius: 200
         _paddingRadius: 0
         _gradiateRadius: 0
         _targetObjectName: Player
       _isFingerIconEnabled: 0
       _fingerIconDirection: 0
       _isEffectEnabled: 0
-    - _text: "\u3053\u308C\u306F\u30D7\u30EC\u30A4\u30E4\u30FC\u306EHP\u3067\u3059"
+    - _text: "\u53F3\u30AF\u30EA\u30C3\u30AF\u3067\u3001\u300E\u30A8\u30CA\u30B8\u30FC\u300F\u3092\u6D88\u8CBB\u3057\u3066\u300E\u88C5\u5099\u54C1\u300F\u3092\u4F7F\u7528\u3059\u308B\u3002\n\u5148\u306B\u4ED5\u8FBC\u3093\u3067\u304B\u3089\u4E00\u9583\u3092\u884C\u3046\u304B\u3001\u305D\u306E\u307E\u307E\u8E0F\u307F\u8FBC\u3080\u304B\u3002\n\u5224\u65AD\u306F\u4EFB\u305B\u308B\u3002"
       _coachMark:
-        _shape: 0
+        _shape: 1
         _isGradiate: 0
-        _radius: 50
+        _radius: 200
         _paddingRadius: 0
         _gradiateRadius: 0
-        _targetObjectName: Canvas/PlayerInfo/Bar/HP_Base
+        _targetObjectName: Player
       _isFingerIconEnabled: 0
       _fingerIconDirection: 0
       _isEffectEnabled: 0
-    - _text: "\u3053\u308C\u306F\u30D7\u30EC\u30A4\u30E4\u30FC\u306E\u300E\u30A8\u30CA\u30B8\u30FC\u300F\u3067\u3059\n\u88C5\u5099\u54C1\u3092\u4F7F\u3046\u305F\u3081\u306E\u30B3\u30B9\u30C8\u306B\u4F7F\u7528\u3055\u308C\u307E\u3059"
+  - _character: {fileID: 21300000, guid: e9316dfbe0350cd4fa3c8b10b66b73fd, type: 3}
+    _position: 1
+    _radiusVerticalOffset: 0
+    _radiusHorizontalOffset: 0
+    _models:
+    - _text: "\u3053\u308C\u306F\u30D7\u30EC\u30A4\u30E4\u30FC\u306E\u30B9\u30C6\u30FC\u30BF\u30B9\u3002\n\u6226\u6CC1\u3092\u898B\u308B\u4F59\u88D5\u304C\u3042\u308B\u306A\u3089\u3001\u78BA\u8A8D\u3057\u3066\u304A\u3051\u3002"
+      _coachMark:
+        _shape: 0
+        _isGradiate: 0
+        _radius: 100
+        _paddingRadius: 0
+        _gradiateRadius: 0
+        _targetObjectName: Canvas/PlayerInfo
+      _isFingerIconEnabled: 0
+      _fingerIconDirection: 0
+      _isEffectEnabled: 0
+    - _text: "\u3053\u308C\u306FHP\u3002\n0\u306B\u306A\u308B\u3068\u6226\u5834\u304B\u3089\u96E2\u8131\u3059\u308B\u3002\n\u2026\u2026\u4EE5\u524D\u306E\u3088\u3046\u306B\u306F\u306A\u308B\u306A\u3002"
+      _coachMark:
+        _shape: 0
+        _isGradiate: 0
+        _radius: 100
+        _paddingRadius: 0
+        _gradiateRadius: 0
+        _targetObjectName: Canvas/PlayerInfo/Bar
+      _isFingerIconEnabled: 0
+      _fingerIconDirection: 0
+      _isEffectEnabled: 0
+    - _text: "\u3053\u308C\u306F\u300E\u30A8\u30CA\u30B8\u30FC\u300F\u3002\n\u6575\u3078\u306E\u653B\u6483\u30FB\u6483\u7834\u6642\u306B\u7372\u5F97\u3067\u304D\u308B\u3002\n\u4E0D\u8DB3\u3059\u308C\u3070\u3001\u884C\u52D5\u306F\u5236\u9650\u3055\u308C\u308B\u3002"
       _coachMark:
         _shape: 0
         _isGradiate: 0
@@ -59,6 +102,44 @@ MonoBehaviour:
         _paddingRadius: 0
         _gradiateRadius: 0
         _targetObjectName: Canvas/PlayerInfo/Energy
+      _isFingerIconEnabled: 0
+      _fingerIconDirection: 0
+      _isEffectEnabled: 0
+  - _character: {fileID: 21300000, guid: e9316dfbe0350cd4fa3c8b10b66b73fd, type: 3}
+    _position: 1
+    _radiusVerticalOffset: 0
+    _radiusHorizontalOffset: 0
+    _models:
+    - _text: "\u76EE\u7684\u306F\u3001\u8FEB\u308B\u6575\u306E\u6BB2\u6EC5\u3002\n\u30E9\u30A4\u30F3\u3092\u8D8A\u3048\u305F\u6575\u306F\u3001\u5F37\u529B\u306A\u653B\u6483\u3092\u884C\u3046\u3002\n\u8D8A\u3048\u3089\u308C\u308B\u524D\u306B\u6483\u7834\u3057\u308D\u3002"
+      _coachMark:
+        _shape: 0
+        _isGradiate: 0
+        _radius: 100
+        _paddingRadius: 0
+        _gradiateRadius: 0
+        _targetObjectName: Canvas/Tutorial/TextBase
+      _isFingerIconEnabled: 0
+      _fingerIconDirection: 0
+      _isEffectEnabled: 0
+    - _text: "\u6575\u306F\u901A\u5E38\u653B\u6483\u306E\u307B\u304B\u306B\u7279\u6B8A\u884C\u52D5\u3092\u884C\u3046\u3002\n\u898B\u3048\u3066\u3044\u308B\u884C\u52D5\u3060\u3051\u3092\u8FFD\u3046\u306A\u3002\n\u8DB3\u5143\u3092\u3059\u304F\u308F\u308C\u308B\u3002"
+      _coachMark:
+        _shape: 0
+        _isGradiate: 0
+        _radius: 100
+        _paddingRadius: 0
+        _gradiateRadius: 0
+        _targetObjectName: Canvas/Tutorial/TextBase
+      _isFingerIconEnabled: 0
+      _fingerIconDirection: 0
+      _isEffectEnabled: 0
+    - _text: "\u300E\u4E00\u9583\u300F\u3068\u300E\u88C5\u5099\u54C1\u300F\u3092\u6D3B\u7528\u3057\u308D\u3002\n\u2026\u2026\u304A\u524D\u306A\u3089\u3001\u3084\u308C\u308B\u306F\u305A\u3060\u3002"
+      _coachMark:
+        _shape: 0
+        _isGradiate: 0
+        _radius: 100
+        _paddingRadius: 0
+        _gradiateRadius: 0
+        _targetObjectName: Canvas/Tutorial/TextBase
       _isFingerIconEnabled: 0
       _fingerIconDirection: 0
       _isEffectEnabled: 0

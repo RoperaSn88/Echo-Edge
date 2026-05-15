@@ -186,7 +186,7 @@ namespace CommonUI.Tutorial
                         if (_isTextAnimating)
                         {
                             _cts.Cancel();
-                            await Awaitable.NextFrameAsync(cancellationToken);
+                            await UniTask.WaitUntil(() => !TextBasePresenter.MouseClick.Mouse.MouseClick.IsPressed());
                             continue;
                         }
 

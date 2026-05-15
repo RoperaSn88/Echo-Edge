@@ -7,6 +7,8 @@ namespace Scene
     {
         private void Start()
         {
+            // 大宮祭用にデリートしてから起動
+            PlayerPrefs.DeleteAll();
             SceneLoader.AdditiveLoad(GameScene.Preparing);
         }
     }
