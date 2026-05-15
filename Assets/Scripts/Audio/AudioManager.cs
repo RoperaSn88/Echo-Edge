@@ -51,6 +51,13 @@ public class AudioManager : MonoBehaviour
     private void Awake()
     {
         InitializeSeAudioSources();
+
+        if (Instance != null)
+        {
+            Destroy(this.gameObject);
+            return;
+        }
+
         Instance = this;
 
         // PlayerPrefsから音量を読み込み、各AudioSourceへ反映する
@@ -131,6 +138,10 @@ public class AudioManager : MonoBehaviour
 
     private async UniTask PlayBgmAsync(BgmAudioType bgmType, bool isLoop)
     {
+        if (_bgmSource.isPlaying)
+        {
+            _bgmSource.Stop();
+        }
         if (_bgmSource == null)
         {
             Debug.LogError("BGM 用 AudioSource が未設定です");
@@ -198,6 +209,25 @@ public class AudioManager : MonoBehaviour
         if (!cancellationToken.IsCancellationRequested)
         {
             _bgmSource.Stop();
+        }
+    }
+
+    public async UniTask FadeAddedBGMAsync(float durationSeconds, CancellationToken cancellationToken)
+    {
+        _addBgmFadeCancellation?.Cancel();
+        _addBgmFadeCancellation?.Dispose();
+        _addBgmFadeCancellation = null;
+
+        if (_additionalBgmSource == null || !_additionalBgmSource.isPlaying)
+        {
+            return;
+        }
+
+        await FadeVolumeAsync(_additionalBgmSource, _additionalBgmSource.volume, 0.0f, durationSeconds, cancellationToken);
+
+        if (!cancellationToken.IsCancellationRequested)
+        {
+            _additionalBgmSource.Stop();
         }
     }
 
@@ -346,7 +376,7 @@ public class AudioManager : MonoBehaviour
 
         while (elapsed < durationSeconds && !cancellationToken.IsCancellationRequested)
         {
-            elapsed += Time.deltaTime;
+            elapsed += Time.unscaledDeltaTime;
             float progress = Mathf.Clamp01(elapsed / durationSeconds);
             source.volume = Mathf.Lerp(from, to, progress);
             await UniTask.Yield(PlayerLoopTiming.Update);
