@@ -101,6 +101,5 @@ public static class PlayerSwordParameterSaveManager
         PlayerPrefs.DeleteKey(SwordAttackKey);
         PlayerPrefs.DeleteKey(SwordReflectCountKey);
         PlayerPrefs.DeleteKey(StoneKey);
-        PlayerPrefs.Save();
     }
 }

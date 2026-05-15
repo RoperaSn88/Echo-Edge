@@ -49,6 +49,5 @@ public static class AudioVolumeSaveManager
         PlayerPrefs.DeleteKey(MasterVolumeKey);
         PlayerPrefs.DeleteKey(BgmVolumeKey);
         PlayerPrefs.DeleteKey(SeVolumeKey);
-        PlayerPrefs.Save();
     }
 }
