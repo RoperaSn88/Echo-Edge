@@ -1,4 +1,4 @@
-ObjectKind,Height,Width,EnemyKind
+ObjectKind,Height(0~8),Width(0~15),EnemyKind
 Wall,3,6,
 Wall,4,6,
 Unit,2,2,Skya

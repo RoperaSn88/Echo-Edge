@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class PlayerAttackGuideLine
 {
-    private const float HeightOffset = 0.1f;
+    private const float HeightOffset = 0.49f;
     private const float LineWidth = 0.08f;
     private readonly RaycastHit[] _wallHitBuffer = new RaycastHit[8];
     private Material _lineMaterial;
@@ -12,7 +12,7 @@ public class PlayerAttackGuideLine
     public void Update(Vector3 playerPosition, Vector3 pointerPosition)
     {
         Vector3 lineStart = playerPosition;
-        lineStart.y += HeightOffset;
+        lineStart.y -= HeightOffset;
 
         Vector3 lineEnd = pointerPosition;
         lineEnd.y = lineStart.y;
@@ -60,10 +60,10 @@ public class PlayerAttackGuideLine
 
     public void Destroy()
     {
-        // if (_lineObject == null) return;
-        // Object.Destroy(_lineObject);
-        // _lineObject = null;
-        // _lineRenderer = null;
+        if (_lineObject == null) return;
+        Object.Destroy(_lineObject);
+        _lineObject = null;
+        _lineRenderer = null;
     }
 
     private void EnsureLineRenderer()

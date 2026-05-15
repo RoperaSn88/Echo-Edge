@@ -80,12 +80,14 @@ namespace UI
                 _playerHp.SetColorCode(RedColor);
                 // _castleHp.SetColorCode(RedColor);
                 _energy.SetColorCode(RedColor);
+                ShowAttentionGradiate(AttentionKinds.Red);
             }
             else
             {
                 _playerHp.SetColorCode(DefaultColor);
                 // _castleHp.SetColorCode(DefaultColor);
                 _energy.SetColorCode(DefaultColor);
+                HideAttentionGradiate();
             }
         }
         

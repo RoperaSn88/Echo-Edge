@@ -45,7 +45,12 @@ namespace Unit.pureC.Unit
                 return UniTask.FromResult(EnemyMoveKinds.Specific);
             }
 
-            return UniTask.FromResult(EnemyMoveKinds.Attack);
+            if (selfWidth == 0)
+            {
+                return UniTask.FromResult(EnemyMoveKinds.Attack);
+            }
+            
+            return UniTask.FromResult(EnemyMoveKinds.None);
         }
 
         /// <inheritdoc/>

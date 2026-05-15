@@ -3,6 +3,8 @@
     public enum EnemyMoveKinds
     {
         Attack,
-        Specific
+        Specific,
+        None,
+        Invalid
     }
 }

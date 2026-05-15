@@ -8,7 +8,7 @@ namespace Unit.pureC.Unit
     public class Booster: IUnitAction
     {
         private const float PlayerDamageRate = 1.0f;
-        private const float SpecificRate = 0.2f;
+        private const float SpecificRate = 0.3f;
         private const int BuffDurationTurns = 3;
         private const float QTETimeScale = 0.001f;
 
@@ -33,14 +33,19 @@ namespace Unit.pureC.Unit
         }
         
         /// <inheritdoc/>
-        public async UniTask<EnemyMoveKinds> Act(int selfHeight, int selfWidth)
+        public UniTask<EnemyMoveKinds> Act(int selfHeight, int selfWidth)
         {
             if (UnityEngine.Random.value < SpecificRate)
             {
-                return EnemyMoveKinds.Specific;
+                return UniTask.FromResult(EnemyMoveKinds.Specific);
             }
 
-            return EnemyMoveKinds.Attack;
+            if (selfWidth == 0)
+            {
+                return UniTask.FromResult(EnemyMoveKinds.Attack);
+            }
+            
+            return UniTask.FromResult(EnemyMoveKinds.None);
         }
 
         /// <inheritdoc/>

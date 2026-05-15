@@ -15,7 +15,7 @@ MonoBehaviour:
   m_DefaultGroup: 66a1a5f39fa4bad43a571f3a47cc6f39
   m_currentHash:
     serializedVersion: 2
-    Hash: b81bdc7b9bfc2de6b80cd55462e9e15a
+    Hash: a374a6a76fb268c68e340686196e3c47
   m_OptimizeCatalogSize: 0
   m_BuildRemoteCatalog: 0
   m_CatalogRequestsTimeout: 0
@@ -42,6 +42,7 @@ MonoBehaviour:
   m_BundleRedirectLimit: -1
   m_SharedBundleSettings: 0
   m_SharedBundleSettingsCustomGroupIndex: 0
+  m_simulatedLoadDelay: 0.1
   m_ContiguousBundles: 1
   m_StripUnityVersionFromBundleBuild: 0
   m_DisableVisibleSubAssetRepresentations: 0
@@ -54,7 +55,7 @@ MonoBehaviour:
     m_Id: 
   m_RemoteCatalogLoadPath:
     m_Id: 
-  m_ContentStateBuildPathProfileVariableName: 
+  m_ContentStateBuildPathProfileVariableName: <default settings path>
   m_CustomContentStateBuildPath: 
   m_ContentStateBuildPath: 
   m_BuildAddressablesWithPlayerBuild: 0

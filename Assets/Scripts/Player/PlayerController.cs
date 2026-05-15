@@ -52,9 +52,7 @@ public class PlayerController: MonoBehaviour
     /// ベクトルをキャッシュする
     /// </summary>
     private Vector3 _vec;
-
-    [SerializeField, Tooltip("反射回数")]
-    private byte _reflectCount = 1;
+    
     bool atatta = false;
 
     private const float Speed = 23;
@@ -104,8 +102,11 @@ public class PlayerController: MonoBehaviour
         _direction = _direction.normalized;
         
         PlayerView.Instance.Animator.SetBool("AttackingF", true);
+        
+        
+        byte reflectCount = BattleManager.PlayerStatus.Move;
 
-        for(int i = 0; i < _reflectCount; i++)
+        for(int i = 0; i <= reflectCount; i++)
         {
             await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
 
@@ -124,7 +125,7 @@ public class PlayerController: MonoBehaviour
                     .OnUpdate(SpawnAfterimageIfNeeded);
 
                 _direction = Vector3.Reflect(_direction, _hit.normal);
-                if(i != _reflectCount - 1) _pos = _playerTransform.position;
+                if(i != reflectCount) _pos = _playerTransform.position;
             }
             else
             {

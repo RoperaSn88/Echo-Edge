@@ -1,0 +1,9 @@
+ObjectKind,Height(0~8),Width(0~15),EnemyKind
+Wall,0,2,
+Wall,1,2,
+Wall,2,2,
+Wall,8,8,
+Wall,7,8,
+Wall,6,8,
+Unit,1,4,Skya
+Unit,7,10,Booster

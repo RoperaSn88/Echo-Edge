@@ -1,6 +1,5 @@
 ObjectKind,Height,Width,EnemyKind
+Wall,1,5,
 Wall,2,5,
 Wall,3,5,
-Wall,4,5,
-Unit,1,2,Skya
-Unit,3,3,Booster
+Unit,2,10,Skya

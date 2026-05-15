@@ -38,7 +38,7 @@ public static class PlayerSwordParameterSaveManager
         return new SwordParameter(
             PlayerPrefs.GetInt(SwordHpKey, 0),
             PlayerPrefs.GetInt(SwordAttackKey, 0),
-            (byte)Mathf.Clamp(PlayerPrefs.GetInt(SwordReflectCountKey, 0), byte.MinValue, byte.MaxValue)
+            (byte)Mathf.Clamp(PlayerPrefs.GetInt(SwordReflectCountKey, 1), byte.MinValue, byte.MaxValue)
         );
     }
 

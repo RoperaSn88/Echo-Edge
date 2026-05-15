@@ -13,9 +13,10 @@ public class StartPhase : IPhase
         // 1. PlayerStatusPresenterからプレイヤーのデータを取得してBattleManagerにセット
         await UniTask.WaitUntil(() => PlayerStatusPresenter.Instance != null);
         var status = PlayerStatusPresenter.Instance.PlayerBattleStatus;
-        BattleManager.RegisterPlayer(PlayerStatusPresenter.Instance.PlayerBattleStatus);
+        BattleManager.RegisterPlayer(status);
         
         PlayerStatusPresenter.Instance.SetPlayerHP(status.HP, status.MaxHP);
+        Debug.Log("Move: " + status.Move);
 
         // エナジーをリセットしてから表示する
         EnergyManager.Reset();
@@ -24,6 +25,8 @@ public class StartPhase : IPhase
 
         // オブジェクトプールをリセットする
         EnergyWallManager.Reset();
+        BattleManager.ResetQTE();
+        BattleManager.ResetCombo();
 
         // 2. 敵や壁の配置が完了するまでawait
         await UniTask.WaitUntil(() => MapManager.Instance != null);

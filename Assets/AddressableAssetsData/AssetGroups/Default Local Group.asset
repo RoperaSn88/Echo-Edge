@@ -20,8 +20,18 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 28f71623dea101146b65d1378caeb306
+    m_Address: Assets/Addressables/StageLayout_4.csv
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 507be74afe7fa8e4583396c1ca50c8f7
     m_Address: Assets/Addressables/Audio/SE/Click.wav
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7d23db7ac90df6f42970b8cf10daad93
+    m_Address: Assets/Addressables/StageLayout_3.csv
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -32,6 +42,26 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 8e7bb1e45db8a1f44bdc5008b208f3ae
     m_Address: Assets/Addressables/Audio/BGM/Battle.wav
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a1e3c5b7d9f2048612345678abcd0001
+    m_Address: Assets/Addressables/StageLayout_1.csv
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: aec1be39814099b418d8701dcf273371
+    m_Address: Assets/Addressables/StageLayout_5.csv
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b2f4d6e8c0a1359721345678abcd0002
+    m_Address: Assets/Addressables/StageLayout_2.csv
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b87db50eacdbd8a4ba6d4404320d070e
+    m_Address: Assets/Addressables/StageLayout_6.csv
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -47,6 +77,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: c34d46641704e75479f98debc78e1177
     m_Address: Assets/Addressables/Audio/BGM/Pinch.wav
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c4f217bc87d539f43a85ec8bc3947e22
+    m_Address: Assets/Addressables/StageLayout_7.csv
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -67,16 +102,6 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: f62f6a2c4db546f882dfcfc4375f9660
     m_Address: Assets/Addressables/StageLayout.csv
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: a1e3c5b7d9f2048612345678abcd0001
-    m_Address: Assets/Addressables/StageLayout_1.csv
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: b2f4d6e8c0a1359721345678abcd0002
-    m_Address: Assets/Addressables/StageLayout_2.csv
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

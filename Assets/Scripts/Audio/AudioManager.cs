@@ -177,6 +177,7 @@ public class AudioManager : MonoBehaviour
         _additionalBgmSource.loop = isLoop;
         _additionalBgmSource.clip = clip;
         _additionalBgmSource.volume = 0.0f;
+        _additionalBgmSource.time = _bgmSource.time;
         _additionalBgmSource.Play();
 
         await FadeVolumeAsync(_additionalBgmSource, 0.0f, 1.0f, _fadeDurationSeconds, cancellationToken);
