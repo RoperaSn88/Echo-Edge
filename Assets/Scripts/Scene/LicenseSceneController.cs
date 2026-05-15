@@ -153,17 +153,3 @@ public class LicenseSceneController : MonoBehaviour
 
     private void OnCloseClicked() => _closeRequested = true;
 }
-
-
-[System.Serializable, CreateAssetMenu(menuName = "License")]
-public class LicenseComposer:ScriptableObject
-{
-    [SerializeField]
-    private string licenseName;
-    
-    public string LicenseName => licenseName;
-    
-    [SerializeField,TextArea]
-    private string licenseIntroduction;
-    public string LicenseIntroduction => licenseIntroduction;
-}

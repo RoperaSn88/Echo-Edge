@@ -371,14 +371,14 @@ MonoBehaviour:
   _contentRect: {fileID: 144669184}
   _closeButton: {fileID: 1746792491}
   _credits:
-  - {fileID: 11400000, guid: e490f454569e4ce41a12255ae61b880c, type: 2}
-  - {fileID: 11400000, guid: 2bda4e8f596c4e74083c885225acf279, type: 2}
-  - {fileID: 11400000, guid: 67159fcc22ead514d9949a0e1573f08f, type: 2}
-  - {fileID: 11400000, guid: 8abde4a0cbab11a47b968bc2b4d2b387, type: 2}
-  - {fileID: 11400000, guid: b8f83d396979b2845b3bf3200f540019, type: 2}
-  - {fileID: 11400000, guid: 4140cf4c06d0d1141b22912a19dc8e06, type: 2}
-  - {fileID: 11400000, guid: c9026d0d66d4c534089e8fab2573f9e6, type: 2}
-  - {fileID: 11400000, guid: 9184457d2627a734392146b45a1081d0, type: 2}
+  - {fileID: 11400000, guid: 344dca877d8c48d4484598320d480c1b, type: 2}
+  - {fileID: 11400000, guid: 9b91713485daf734b8a50a995ecef90b, type: 2}
+  - {fileID: 11400000, guid: e4ad20be0b56cf847859dd587e9bc8fa, type: 2}
+  - {fileID: 11400000, guid: d8fd24b36c1c31e41a18a4abcd9457ee, type: 2}
+  - {fileID: 11400000, guid: 69f7d1e20fa138f489a75c6978a64108, type: 2}
+  - {fileID: 11400000, guid: 64bb5c08943f44d46a5a4743a54561b5, type: 2}
+  - {fileID: 11400000, guid: 67331f6ddab565f4992a9de79a33e2a4, type: 2}
+  - {fileID: 11400000, guid: 7e3c2ba1e8e57ae4eaef3ebea09fdf76, type: 2}
 --- !u!1 &1045876834
 GameObject:
   m_ObjectHideFlags: 0
