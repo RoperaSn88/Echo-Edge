@@ -4,6 +4,7 @@ using DG.Tweening;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
+using VFX;
 
 public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposable
 {
@@ -158,12 +159,14 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposab
             _animator.SetTrigger("DeadT");
             UIPresenter.Instance.AppearEnergy(transform.position, targetStatus.Energy).Forget();
             AudioManager.Instance.PlaySe(SeAudioType.Attack);
+            VFXEmitter.Instance.Emit(VFXKinds.Attack, transform.position);
             await UniTask.Delay(TimeSpan.FromSeconds(0.7f), ignoreTimeScale:true);
         }
         else
         {
             UIPresenter.Instance.AppearEnergy(transform.position, targetStatus.Energy / 2).Forget();
             AudioManager.Instance.PlaySe(SeAudioType.Kill);
+            VFXEmitter.Instance.Emit(VFXKinds.Defeat, transform.position);
             await UniTask.Delay(TimeSpan.FromSeconds(0.5f), ignoreTimeScale:true);
         }
         

@@ -9,9 +9,8 @@ public class VFXObject : ObjectPooler
 {
     [SerializeField]
     private VisualEffect _vfx;
-
-    [SerializeField]
-    private string _kindPropertyName = "Type";
+    
+    private const string KindPropertyName = "ParticleCount";
 
     private const float LifeTime = 1f;
 
@@ -32,7 +31,7 @@ public class VFXObject : ObjectPooler
     public async UniTaskVoid VFXAppear(VFXKinds kind, Vector3 position)
     {
         transform.position = position;
-        _vfx.SetInt(_kindPropertyName, (int)kind);
+        _vfx.SetInt(KindPropertyName, (int)kind);
         gameObject.SetActive(true);
         _vfx.Play();
 

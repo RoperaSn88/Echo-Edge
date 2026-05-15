@@ -15,6 +15,11 @@ MonoBehaviour:
   m_GroupName: Default Local Group
   m_GUID: 66a1a5f39fa4bad43a571f3a47cc6f39
   m_SerializeEntries:
+  - m_GUID: 05e9e6f847abcd340b99ecf4c8f6a849
+    m_Address: Assets/Addressables/Audio/SE/Kill.wav
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 1f118d5e95b62574eb426102960b9294
     m_Address: Assets/Addressables/Audio/BGM/Title.wav
     m_ReadOnly: 0
@@ -27,6 +32,16 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 507be74afe7fa8e4583396c1ca50c8f7
     m_Address: Assets/Addressables/Audio/SE/Click.wav
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6c93672461e3ba94f966059807cac3fa
+    m_Address: Assets/Addressables/Audio/SE/EnemyTurn.wav
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7ca5feea7b6e0024cac5ef2ae54876ea
+    m_Address: Assets/Addressables/Audio/SE/QTE_Bad.wav
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -45,6 +60,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9cb6074127301604692f33d2b6875d27
+    m_Address: Assets/Addressables/Audio/SE/QTE_Good.wav
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a1e3c5b7d9f2048612345678abcd0001
     m_Address: Assets/Addressables/StageLayout_1.csv
     m_ReadOnly: 0
@@ -52,6 +72,16 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: aec1be39814099b418d8701dcf273371
     m_Address: Assets/Addressables/StageLayout_5.csv
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b06037061f9081442acc3c88feb1d86a
+    m_Address: Assets/Addressables/Audio/SE/QTE.wav
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b0a3b7f67f3984648b044f44ff33b217
+    m_Address: Assets/Addressables/Audio/SE/Decide.wav
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -90,8 +120,18 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: de59da08bd7212d4dab62e142014941c
+    m_Address: Assets/Addressables/Audio/SE/Attack.wav
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: e20284c36052d1e499b65362a4fbc21f
     m_Address: Assets/Addressables/EnemyInfo.csv
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e8c654728f08893459120d0d042d5b13
+    m_Address: Assets/Addressables/Audio/SE/QTE_Perfect.wav
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

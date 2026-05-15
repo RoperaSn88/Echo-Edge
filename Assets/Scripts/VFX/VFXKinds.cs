@@ -3,6 +3,6 @@
 /// </summary>
 public enum VFXKinds : byte
 {
-    Attack,
-    Defeat,
+    Attack = 10,
+    Defeat = 25,
 }

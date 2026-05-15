@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 6896658778704016595}
   - component: {fileID: 1363899970621987371}
   - component: {fileID: 8900960995120348818}
+  - component: {fileID: 1704565119705002718}
   m_Layer: 0
   m_Name: Visual Effect
   m_TagString: Untagged
@@ -137,3 +138,17 @@ MonoBehaviour:
   target: {fileID: 6896658778704016595}
   EventName: OnPlay
   activation: 0
+--- !u!114 &1704565119705002718
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4516218018736244174}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 715fc3d30e2f4572b0dde10993aa4fe9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VFXObject
+  _vfx: {fileID: 6896658778704016595}
+  _kindPropertyName: Type
