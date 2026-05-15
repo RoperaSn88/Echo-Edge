@@ -59,6 +59,7 @@ public class MapManager: MonoBehaviour
         ResetMap();
 
         var placements = await StageLayoutLoader.GetPlacementsAsync(MapHeight, MapWidth);
+        var initialEnemyCount = 0;
         await UniTask.WaitUntil(() => BuildingManager.Instance != null);
         await UniTask.WaitUntil(() => UnitSpawner.Instance != null);
 
@@ -74,13 +75,14 @@ public class MapManager: MonoBehaviour
 
             if (placement.objectKind == StageObjectKind.Unit)
             {
+                initialEnemyCount++;
                 var unit = new BaseUnit(placement.height, placement.width);
                 await unit.LoadStatus(placement.enemyKind);
                 UnitSpawner.Instance.SpawnView(unit, placement.enemyKind);
             }
         }
 
-        GameClearManager.SetEnemyCount(CountEnemies());
+        GameClearManager.SetEnemyCount(initialEnemyCount);
     }
 
     private void RegisterWall(IUnit wall, int h, int w)
