@@ -51,7 +51,12 @@ public class AudioManager : MonoBehaviour
     private void Awake()
     {
         InitializeSeAudioSources();
-        Instance = this;
+
+        if (Instance != null)
+        {
+            Destroy(this.gameObject);
+            return;
+        }
 
         // PlayerPrefsから音量を読み込み、各AudioSourceへ反映する
         _masterVolume = AudioVolumeSaveManager.LoadMasterVolume();
@@ -131,6 +136,10 @@ public class AudioManager : MonoBehaviour
 
     private async UniTask PlayBgmAsync(BgmAudioType bgmType, bool isLoop)
     {
+        if (_bgmSource.isPlaying)
+        {
+            _bgmSource.Stop();
+        }
         if (_bgmSource == null)
         {
             Debug.LogError("BGM 用 AudioSource が未設定です");

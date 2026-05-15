@@ -23,7 +23,10 @@ public class StartPhase : IPhase
         await MapManager.Instance.BuildStageFromCsv();
 
         // 3. Panelをフェードイン
-        await AudioManager.Instance.PlayBgm(BgmAudioType.Battle, true);
+        if (AudioManager.Instance)
+        {
+            await AudioManager.Instance.PlayBgm(BgmAudioType.Battle, true);
+        }
         await UIPresenter.Instance.FadeInAsync();
         
         var isTutorial = PlayerPrefs.GetInt("TutorialCompleted", 0);
