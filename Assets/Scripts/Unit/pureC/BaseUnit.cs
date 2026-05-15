@@ -71,9 +71,8 @@ public　class BaseUnit: IEnemyUnit, IDamagable
 
     public async UniTask Dead()
     {
-        Debug.Log("EnemyWillDead");
         await _unitAction.Dead();
-        Debug.Log("EnemyDeaded");
+        
         var h = Height;
         var w = Width;
         // 死んだら自身のいるマスを空にする
@@ -151,9 +150,11 @@ public　class BaseUnit: IEnemyUnit, IDamagable
         switch (pattern)
         {
             case EnemyMoveKinds.Attack:
+                AudioManager.Instance.PlaySe(SeAudioType.EnemyTurn);
                 await Attack();
                 break;
             case EnemyMoveKinds.Specific:
+                AudioManager.Instance.PlaySe(SeAudioType.EnemyTurn);
                 await Specific();
                 break;
         }

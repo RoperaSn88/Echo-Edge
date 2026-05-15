@@ -13,6 +13,7 @@ namespace UnityEngine.Selectable
         
         public override async UniTask OnDecide()
         {
+            AudioManager.Instance.PlaySe(SeAudioType.Click);
             await SceneLoader.AdditiveLoadAndWait(GameScene.Option);
             await _group.ResetGroup();
         }

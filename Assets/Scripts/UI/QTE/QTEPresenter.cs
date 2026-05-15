@@ -62,6 +62,8 @@ public class QTEPresenter : ObjectPooler
         _clicked = false;
 
         // 出現
+        AudioManager.Instance.PlaySe(SeAudioType.QTE);
+        
         await UniTask.WhenAll(
             _backGroundImage.DOFade(1f, InitializeTime).SetUpdate(true).ToUniTask(),
             _backGroundImage.rectTransform.DOScale(Vector3.one, InitializeTime).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask(),
@@ -87,6 +89,7 @@ public class QTEPresenter : ObjectPooler
             
             if(endTime - timer < GreatSuccessTime && endTime - timer > SuccessTime)
             {
+                AudioManager.Instance.PlaySe(SeAudioType.QTE_Good);
                 // 成功
                 await UniTask.WhenAll(
                     _backGroundImage.DOFade(0f, DisappearTime).SetUpdate(true).ToUniTask(),
@@ -96,7 +99,7 @@ public class QTEPresenter : ObjectPooler
                     _sliderBackGround.DOFade(0f, DisappearTime).SetUpdate(true).ToUniTask(),
                     _sliderBackGround.rectTransform.DOScale(Vector3.one * 1.2f, DisappearTime).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask()
                 );
-                Debug.Log("成功");
+                
                 switch (Kind)
                 {
                     case QTEKinds.Attack:
@@ -111,6 +114,7 @@ public class QTEPresenter : ObjectPooler
             }
             else if (endTime - timer < WaitTime && endTime - timer >= GreatSuccessTime)
             {
+                AudioManager.Instance.PlaySe(SeAudioType.QTE_Perfect);
                 // 大成功
                 await UniTask.WhenAll(
                     _backGroundImage.DOFade(0f, DisappearTime).SetUpdate(true).ToUniTask(),
@@ -136,6 +140,7 @@ public class QTEPresenter : ObjectPooler
         }
 
         // 失敗
+        AudioManager.Instance.PlaySe(SeAudioType.QTE_Bad);
         await UniTask.WhenAll(
             _backGroundImage.DOFade(0f,0.2f).SetUpdate(true).ToUniTask(),
             _backGroundImage.rectTransform.DOScale(Vector3.zero, 0.2f).SetUpdate(true).ToUniTask(),

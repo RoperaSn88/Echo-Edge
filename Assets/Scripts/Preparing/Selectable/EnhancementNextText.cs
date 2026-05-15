@@ -27,6 +27,7 @@ namespace UnityEngine.Selectable
 
         public override async UniTask OnDecide()
         {
+            AudioManager.Instance.PlaySe(SeAudioType.Click);
             _group.SetNextSelectableGroup(_selectableGroup);
 
             // 上に移動させる
