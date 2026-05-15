@@ -89,4 +89,18 @@ public static class PlayerSwordParameterSaveManager
         PlayerPrefs.SetInt(StoneKey, stone);
         PlayerPrefs.Save();
     }
+
+    public static void DeleteAllSavedData()
+    {
+        PlayerPrefs.DeleteKey(PlayerHpKey);
+        PlayerPrefs.DeleteKey(PlayerAttackKey);
+        PlayerPrefs.DeleteKey(PlayerDefendKey);
+        PlayerPrefs.DeleteKey(PlayerExperienceKey);
+        PlayerPrefs.DeleteKey(PlayerLevelKey);
+        PlayerPrefs.DeleteKey(SwordHpKey);
+        PlayerPrefs.DeleteKey(SwordAttackKey);
+        PlayerPrefs.DeleteKey(SwordReflectCountKey);
+        PlayerPrefs.DeleteKey(StoneKey);
+        PlayerPrefs.Save();
+    }
 }

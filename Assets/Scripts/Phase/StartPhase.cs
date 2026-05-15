@@ -6,6 +6,7 @@ public class StartPhase : IPhase
 {
     private static StartPhase _instance;
     public static StartPhase Instance => _instance ??= new StartPhase();
+    public const string TutorialCompletedKey = "TutorialCompleted";
 
     public async UniTask<IPhase> WaitPhase()
     {
@@ -35,10 +36,10 @@ public class StartPhase : IPhase
         }
         await UIPresenter.Instance.FadeInAsync();
         
-        var isTutorial = PlayerPrefs.GetInt("TutorialCompleted", 0);
+        var isTutorial = PlayerPrefs.GetInt(TutorialCompletedKey, 0);
         if (isTutorial == 0)
         {
-            PlayerPrefs.SetInt("TutorialCompleted", 1);
+            PlayerPrefs.SetInt(TutorialCompletedKey, 1);
             PlayerPrefs.Save();
             await TutorialActivator.Instance.StartTutorial();
         }

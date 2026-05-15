@@ -43,4 +43,12 @@ public static class AudioVolumeSaveManager
         PlayerPrefs.SetFloat(SeVolumeKey, seVolume);
         PlayerPrefs.Save();
     }
+
+    public static void DeleteAllSavedData()
+    {
+        PlayerPrefs.DeleteKey(MasterVolumeKey);
+        PlayerPrefs.DeleteKey(BgmVolumeKey);
+        PlayerPrefs.DeleteKey(SeVolumeKey);
+        PlayerPrefs.Save();
+    }
 }

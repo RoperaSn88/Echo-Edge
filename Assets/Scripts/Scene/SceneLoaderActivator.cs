@@ -8,7 +8,10 @@ namespace Scene
         private void Start()
         {
             // 大宮祭用にデリートしてから起動
-            PlayerPrefs.DeleteAll();
+            PlayerSwordParameterSaveManager.DeleteAllSavedData();
+            AudioVolumeSaveManager.DeleteAllSavedData();
+            PlayerPrefs.DeleteKey(StartPhase.TutorialCompletedKey);
+            PlayerPrefs.Save();
             SceneLoader.AdditiveLoad(GameScene.Preparing);
         }
     }
