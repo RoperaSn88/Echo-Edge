@@ -6,8 +6,8 @@ namespace Unit.pureC.Unit
 {
     public class Skya: IUnitAction, IFlyingUnit
     {
-        private const float SpecificRate = 0.8f;
-        private const float SpecificDamageRate = 3.5f;
+        private const float SpecificRate = 0.3f;
+        private const float SpecificDamageRate = 2.5f;
         private const float QTETimeScale = 0.001f;
 
         /// <summary>

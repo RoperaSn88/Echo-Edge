@@ -30,8 +30,18 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4ebaa9c5c06a22d4bb7e29536a5219f8
+    m_Address: Assets/Addressables/StageLayout_8.csv
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 507be74afe7fa8e4583396c1ca50c8f7
     m_Address: Assets/Addressables/Audio/SE/Click.wav
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5cca891ffc476c84ea2888d1a1ab9ae6
+    m_Address: Assets/Addressables/StageLayout_10.csv
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -102,6 +112,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: bf9e997dab421104087bcbde87d19579
     m_Address: Assets/Addressables/Animator/Booster.controller
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c14eb6ce10bfb6a4eaa9c72d4aa4d6a9
+    m_Address: Assets/Addressables/StageLayout_9.csv
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

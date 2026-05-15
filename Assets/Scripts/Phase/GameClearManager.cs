@@ -148,6 +148,7 @@ public static class GameClearManager
         playerStatus.AddExperience(_stageEarnedExperience);
         playerStatus.LevelUp();
         PlayerSwordParameterHolder.SetPlayerProgress(playerStatus.Experience, playerStatus.Level);
+        PlayerSwordParameterHolder.SetPlayerStatus(playerStatus);
 
         return (_stageEarnedExperience, playerStatus.Experience, playerStatus.Level);
     }

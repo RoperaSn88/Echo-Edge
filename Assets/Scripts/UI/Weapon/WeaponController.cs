@@ -79,17 +79,17 @@ namespace UI.Weapon
                     switch (actionType)
                     {
                         case WeaponActionType.Press:
-                            Debug.Log("決定");
-                            isSelected = true;
-                            result = WeaponActionType.Press;
+                            if (targetModel.WeaponCost >= BattleManager.PlayerStatus.Energy)
+                            {
+                                isSelected = true;
+                                result = WeaponActionType.Press;
+                            }
                             break;
                         case WeaponActionType.Cancel:
-                            Debug.Log("キャンセル");
                             isSelected = true;
                             result = WeaponActionType.Cancel;
                             break;
                         case WeaponActionType.SelectUp:
-                            Debug.Log("選択上");
                             _selectedWeaponIndex += 1;
                             if(_selectedWeaponIndex >= MaxWeaponNum)
                             {
@@ -99,7 +99,6 @@ namespace UI.Weapon
                             weaponMoveDirection = WeaponMoveDirection.DownToUp;
                             break;
                         case WeaponActionType.SelectDown:
-                            Debug.Log("選択下");
                             _selectedWeaponIndex -= 1;
                             if(_selectedWeaponIndex < 0)
                             {

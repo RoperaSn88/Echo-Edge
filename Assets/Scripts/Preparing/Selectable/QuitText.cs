@@ -23,7 +23,6 @@ namespace UnityEngine.Selectable
 
         public override async UniTask OnDecide()
         {
-            AudioManager.Instance.PlaySe(SeAudioType.Click);
             if (_panel != null)
             {
                 _panel.gameObject.SetActive(true);

@@ -167,14 +167,17 @@ namespace UI
             public void SetPlayerHP(int value, int maxValue)
             {
                 if (maxValue == 0) throw new DivideByZeroException();
-                _playerHpFrame.DOFillAmount((float)value / maxValue, ChangeValueTime).SetEase(Ease.OutQuad);
+                Debug.Log("value: " + (float)(value) / maxValue);
+                _playerHpFrame.DOFillAmount((float)(value) / (float)maxValue, ChangeValueTime).SetEase(Ease.OutQuad);
                 _playerHpText.text = value + " / " + maxValue;
             }
 
             public void SetColorCode(Color color)
             {
-                _playerHpImage.color = color;
-                _playerHpFrame.color = color;
+                _playerHpImage.DOKill();
+                _playerHpFrame.DOKill();
+                _playerHpImage.DOColor(color, ChangeColorTime).SetEase(Ease.OutQuad);
+                _playerHpFrame.DOColor(color, ChangeColorTime).SetEase(Ease.OutQuad);
             }
         }
         
@@ -204,8 +207,10 @@ namespace UI
             
             public void SetColorCode(Color color)
             {
-                _castleHpImage.color = color;
-                _castleHpFrame.color = color;
+                _castleHpImage.DOKill();
+                _castleHpFrame.DOKill();
+                _castleHpImage.DOColor(color, ChangeColorTime).SetEase(Ease.OutQuad);
+                _castleHpFrame.DOColor(color, ChangeColorTime).SetEase(Ease.OutQuad);
             }
         }
         
@@ -254,8 +259,10 @@ namespace UI
             
             public void SetColorCode(Color color)
             {
-                _energyImage.color = color;
-                _energyFrame.color = color;
+                _energyImage.DOKill();
+                _energyFrame.DOKill();
+                _energyImage.DOColor(color, ChangeColorTime).SetEase(Ease.OutQuad);
+                _energyFrame.DOColor(color, ChangeColorTime).SetEase(Ease.OutQuad);
             }
         }
     }

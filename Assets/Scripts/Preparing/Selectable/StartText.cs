@@ -24,7 +24,6 @@ namespace UnityEngine.Selectable
 
         public override async UniTask OnDecide()
         {
-            AudioManager.Instance.PlaySe(SeAudioType.Decide);
             _panel.gameObject.SetActive(true);
             var panelColor = _panel.color;
             panelColor.a = 0f;

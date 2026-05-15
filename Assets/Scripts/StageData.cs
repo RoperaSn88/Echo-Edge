@@ -15,7 +15,7 @@ public static class StageData
     /// </summary>
     public static void IncrementLevel()
     {
-        Level++;
+        if(Level < 10) Level++;
     }
 
     /// <summary>

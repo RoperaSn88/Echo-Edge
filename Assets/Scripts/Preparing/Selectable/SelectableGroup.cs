@@ -82,6 +82,7 @@ public class SelectableGroup : MonoBehaviour, ISelectableManager
         } while (selected == null || IsDecided(selected));
 
         MarkAsDecided(selected);
+        AudioManager.Instance.PlaySe(SeAudioType.Click);
         
         await MoveSelectablesExcept();
         
