@@ -158,6 +158,10 @@ namespace UI
             /// プレイヤーのHPテキスト
             /// </summary>
             [SerializeField] private TextMeshProUGUI _playerHpText;
+
+            private Tween _hpFillTween;
+            private Tween _hpImageColorTween;
+            private Tween _hpFrameColorTween;
             
             /// <summary>
             /// HPスライダーをセットする
@@ -168,16 +172,26 @@ namespace UI
             {
                 if (maxValue == 0) throw new DivideByZeroException();
                 Debug.Log("value: " + (float)(value) / maxValue);
-                _playerHpFrame.DOFillAmount((float)(value) / (float)maxValue, ChangeValueTime).SetEase(Ease.OutQuad);
+                if (_hpFillTween != null && _hpFillTween.active)
+                {
+                    _hpFillTween.Kill();
+                }
+                _hpFillTween = _playerHpFrame.DOFillAmount((float)(value) / (float)maxValue, ChangeValueTime).SetEase(Ease.OutQuad);
                 _playerHpText.text = value + " / " + maxValue;
             }
 
             public void SetColorCode(Color color)
             {
-                _playerHpImage.DOKill();
-                _playerHpFrame.DOKill();
-                _playerHpImage.DOColor(color, ChangeColorTime).SetEase(Ease.OutQuad);
-                _playerHpFrame.DOColor(color, ChangeColorTime).SetEase(Ease.OutQuad);
+                if (_hpImageColorTween != null && _hpImageColorTween.active)
+                {
+                    _hpImageColorTween.Kill();
+                }
+                if (_hpFrameColorTween != null && _hpFrameColorTween.active)
+                {
+                    _hpFrameColorTween.Kill();
+                }
+                _hpImageColorTween = _playerHpImage.DOColor(color, ChangeColorTime).SetEase(Ease.OutQuad);
+                _hpFrameColorTween = _playerHpFrame.DOColor(color, ChangeColorTime).SetEase(Ease.OutQuad);
             }
         }
         
