@@ -111,9 +111,11 @@ public static class GameClearManager
         await UniTask.WhenAll(t1, t2);
         
         Time.timeScale = 1.0f;
+        
+        EnhancementManager.AddStone(1);
 
         // 6. MainGameをアンロードし、Preparingシーンを読み込む
-        SceneLoader.Load(GameScene.Preparing);
+        await SceneLoader.AdditiveLoadAsync(GameScene.Preparing);
         SceneLoader.Unload(GameScene.MainGame);
     }
 
