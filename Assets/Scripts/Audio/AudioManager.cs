@@ -58,6 +58,8 @@ public class AudioManager : MonoBehaviour
             return;
         }
 
+        Instance = this;
+
         // PlayerPrefsから音量を読み込み、各AudioSourceへ反映する
         _masterVolume = AudioVolumeSaveManager.LoadMasterVolume();
         _bgmVolume = AudioVolumeSaveManager.LoadBgmVolume();
@@ -374,7 +376,7 @@ public class AudioManager : MonoBehaviour
 
         while (elapsed < durationSeconds && !cancellationToken.IsCancellationRequested)
         {
-            elapsed += Time.deltaTime;
+            elapsed += Time.unscaledDeltaTime;
             float progress = Mathf.Clamp01(elapsed / durationSeconds);
             source.volume = Mathf.Lerp(from, to, progress);
             await UniTask.Yield(PlayerLoopTiming.Update);
