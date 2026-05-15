@@ -27,6 +27,7 @@ public class AudioManager : MonoBehaviour
     private readonly Dictionary<string, AsyncOperationHandle<AudioClip>> _audioClipHandleCache = new();
 
     private CancellationTokenSource _addBgmFadeCancellation;
+    private UniTask _sePreloadTask = UniTask.CompletedTask;
     private int _nextSeSourceIndex;
 
     private float _masterVolume = 1.0f;
@@ -72,6 +73,8 @@ public class AudioManager : MonoBehaviour
         {
             if (source != null) source.volume = _seVolume;
         }
+
+        _sePreloadTask = PreloadSeAudioClipsAsync().Preserve();
     }
 
     /// <summary>
@@ -240,6 +243,8 @@ public class AudioManager : MonoBehaviour
             return;
         }
 
+        await _sePreloadTask;
+
         var clip = await LoadAudioClipAsync(GetSeAddressablesPath(seType));
         if (clip == null)
         {
@@ -283,6 +288,15 @@ public class AudioManager : MonoBehaviour
 
         _audioClipHandleCache[addressablesPath] = loadHandle;
         return clip;
+    }
+
+    private async UniTask PreloadSeAudioClipsAsync()
+    {
+        var seTypes = (SeAudioType[])System.Enum.GetValues(typeof(SeAudioType));
+        foreach (var seType in seTypes)
+        {
+            await LoadAudioClipAsync(GetSeAddressablesPath(seType));
+        }
     }
 
     private static string GetBgmAddressablesPath(BgmAudioType bgmType)
