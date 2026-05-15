@@ -70,6 +70,16 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a1e3c5b7d9f2048612345678abcd0001
+    m_Address: Assets/Addressables/StageLayout_1.csv
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b2f4d6e8c0a1359721345678abcd0002
+    m_Address: Assets/Addressables/StageLayout_2.csv
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 56be8421adbaf81499fc7d42631ef10d, type: 2}
   m_SchemaSet:

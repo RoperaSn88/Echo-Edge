@@ -1,8 +1,10 @@
 using System;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Actions;
+using UI;
 
 public class PlayerPhase: IPhase
 {
@@ -65,8 +67,23 @@ public class PlayerPhase: IPhase
                 {
                     _attackGuideLine.Destroy();
                     ResetController(playerActions);
-                    SceneLoader.Load(GameScene.Preparing);
-                    return PlayerPhase.Instance;
+                    var t1 = UIPresenter.Instance.FadeOutAsync(0.5f);
+                    
+                    var t2 = GameClearRewardPresenter.Instance.CloseAsync();
+                    var t3 = AudioManager.Instance != null
+                        ? AudioManager.Instance.FadeBGMAsync(0.5f, CancellationToken.None)
+                        : UniTask.CompletedTask;
+                    var t4 = AudioManager.Instance != null
+                        ? AudioManager.Instance.FadeAddedBGMAsync(0.5f, CancellationToken.None)
+                        : UniTask.CompletedTask;
+
+                    await UniTask.WhenAll(t1, t2, t3, t4);
+        
+                    Time.timeScale = 1.0f;
+
+                    // 6. MainGameをアンロードし、Preparingシーンを読み込む
+                    await SceneLoader.AdditiveLoadAsync(GameScene.Preparing);
+                    SceneLoader.Unload(GameScene.MainGame);
                 }
                 continue;
             }
