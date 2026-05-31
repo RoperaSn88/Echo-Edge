@@ -267,6 +267,19 @@ public class CameraManager : MonoBehaviour
     [Button("リセット")]
     public async UniTask ActResetCameraTarget()
     {
+        await ActResetCameraTargetInternal(false);
+    }
+
+    /// <summary>
+    /// カメラを1回転しながらもとの位置に戻し始める。
+    /// </summary>
+    public async UniTask ActResetCameraTargetWithRotate()
+    {
+        await ActResetCameraTargetInternal(true);
+    }
+
+    private async UniTask ActResetCameraTargetInternal(bool withRotate)
+    {
         // カメラが動いている最中ならばキャンセル
         if (_cameraMoving)
         {
@@ -279,7 +292,7 @@ public class CameraManager : MonoBehaviour
 
         try
         {
-            await ResetCameraTarget(_cts.Token);
+            await ResetCameraTarget(_cts.Token, withRotate);
         }
         catch(OperationCanceledException)
         {
@@ -292,7 +305,7 @@ public class CameraManager : MonoBehaviour
     /// </summary>
     /// <param name="ct"></param>
     /// <returns></returns>
-    private async UniTask ResetCameraTarget(CancellationToken ct)
+    private async UniTask ResetCameraTarget(CancellationToken ct, bool withRotate)
     {
         _cameraMoving = true;
         
@@ -319,7 +332,9 @@ public class CameraManager : MonoBehaviour
 
         var rotationTween = DOTween.To(()=>_defaultCameraPos.rotation.eulerAngles,
             pos => _defaultCameraPos.rotation = Quaternion.Euler(pos), 
-            new Vector3(DefaultCameraAngle,0,0), 
+            withRotate
+                ? new Vector3(DefaultCameraAngle,360,0)
+                : new Vector3(DefaultCameraAngle,0,0), 
             TokenTime)
             .SetEase(Ease.OutQuad)
             .SetUpdate(true);
