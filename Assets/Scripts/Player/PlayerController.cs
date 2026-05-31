@@ -56,6 +56,7 @@ public class PlayerController: MonoBehaviour
     bool atatta = false;
 
     private const float Speed = 23;
+    private const float ReflectionDamageCheckRadius = 0.5f;
 
     /// <summary>
     /// 残像オブジェクトプール
@@ -112,6 +113,15 @@ public class PlayerController: MonoBehaviour
 
             _ray.origin = _pos;
             _ray.direction = _direction;
+
+            if (i > 0)
+            {
+                var colliders = Physics.OverlapSphere(_ray.origin, ReflectionDamageCheckRadius);
+                foreach (var collider in colliders)
+                {
+                    TryDamageEnemy(collider);
+                }
+            }
 
             // 始点からdirection方向にrayを飛ばし、当たった位置を新たな_posとする。
             if(Physics.Raycast(_ray, out _hit, math.INFINITY, _layerMask))
@@ -190,10 +200,19 @@ public class PlayerController: MonoBehaviour
     /// <param name="other">相手の当たり判定</param>
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Enemy"))
+        TryDamageEnemy(other);
+    }
+
+    private void TryDamageEnemy(Collider other)
+    {
+        if (!other.CompareTag("Enemy"))
         {
-            PlayerView.Instance.Animator.SetTrigger("AttackT");
-            other.TryGetComponent<IDamageActivator>(out var status);
+            return;
+        }
+
+        PlayerView.Instance.Animator.SetTrigger("AttackT");
+        if (other.TryGetComponent<IDamageActivator>(out var status))
+        {
             status.Damage();
         }
     }
