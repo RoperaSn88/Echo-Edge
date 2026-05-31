@@ -319,7 +319,7 @@ public class CameraManager : MonoBehaviour
 
         var rotationTween = DOTween.To(()=>_defaultCameraPos.rotation.eulerAngles,
             pos => _defaultCameraPos.rotation = Quaternion.Euler(pos), 
-            new Vector3(DefaultCameraAngle,360,0), 
+            new Vector3(DefaultCameraAngle,0,0), 
             TokenTime)
             .SetEase(Ease.OutQuad)
             .SetUpdate(true);
