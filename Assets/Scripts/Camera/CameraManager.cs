@@ -330,23 +330,36 @@ public class CameraManager : MonoBehaviour
             .SetEase(Ease.OutQuad)
             .SetUpdate(true);
 
-        var rotationTween = DOTween.To(()=>_defaultCameraPos.rotation.eulerAngles,
-            pos => _defaultCameraPos.rotation = Quaternion.Euler(pos), 
-            withRotate
-                ? new Vector3(DefaultCameraAngle,360,0)
-                : new Vector3(DefaultCameraAngle,0,0), 
-            TokenTime)
-            .SetEase(Ease.OutQuad)
-            .SetUpdate(true);
+        Tween rotationTween = null;
+        if (withRotate)
+        {
+            rotationTween = DOTween.To(()=>_defaultCameraPos.rotation.eulerAngles,
+                pos => _defaultCameraPos.rotation = Quaternion.Euler(pos), 
+                new Vector3(DefaultCameraAngle,360,0), 
+                TokenTime)
+                .SetEase(Ease.OutQuad)
+                .SetUpdate(true);
+        }
 
         try
         {
-            await UniTask.WhenAll(
-                cameraTween.ToUniTask(cancellationToken: ct),
-                positionTween.ToUniTask(cancellationToken: ct),
-                offsetTween.ToUniTask(cancellationToken: ct),
-                rotationTween.ToUniTask(cancellationToken: ct)
-            );
+            if (rotationTween != null)
+            {
+                await UniTask.WhenAll(
+                    cameraTween.ToUniTask(cancellationToken: ct),
+                    positionTween.ToUniTask(cancellationToken: ct),
+                    offsetTween.ToUniTask(cancellationToken: ct),
+                    rotationTween.ToUniTask(cancellationToken: ct)
+                );
+            }
+            else
+            {
+                await UniTask.WhenAll(
+                    cameraTween.ToUniTask(cancellationToken: ct),
+                    positionTween.ToUniTask(cancellationToken: ct),
+                    offsetTween.ToUniTask(cancellationToken: ct)
+                );
+            }
             _cameraMoving = false;
         }
         catch(Exception)
@@ -354,7 +367,7 @@ public class CameraManager : MonoBehaviour
             cameraTween.Complete();
             positionTween.Complete();
             offsetTween.Complete();
-            rotationTween.Complete();
+            rotationTween?.Complete();
             _cameraMoving = false;
         }
     }
