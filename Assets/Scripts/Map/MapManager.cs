@@ -160,10 +160,9 @@ public class MapManager: MonoBehaviour
         {
             // 上下に動くか、左に進むか計算する。
             // 現在のマスの左が空ならば進む。
-            Debug.Log("現在のマス; h:" + srcH + ", w:" + srcW);
+            
             if(GetUnitAt(srcH, srcW - 1) == null)
             {
-                Debug.Log("左動き");
                 // 一番左なので行動終了
                 if (srcW == 0)
                 {
@@ -179,7 +178,6 @@ public class MapManager: MonoBehaviour
             }
             else if(GetUnitAt(srcH - 1, srcW) == null)
             {
-                Debug.Log("下動き");
                 vector = MoveDirections.MoveDown;
                 _mapGrid[srcH - 1, srcW] = unit;
                 _mapGrid[srcH, srcW] = null;
@@ -189,7 +187,6 @@ public class MapManager: MonoBehaviour
             }
             else if(GetUnitAt(srcH + 1, srcW) == null)
             {
-                Debug.Log("上動き");
                 vector = MoveDirections.MoveUp;
                 _mapGrid[srcH + 1, srcW] = unit;
                 _mapGrid[srcH, srcW] = null;

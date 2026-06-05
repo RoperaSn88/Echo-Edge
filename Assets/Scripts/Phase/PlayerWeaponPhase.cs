@@ -16,7 +16,6 @@ public class PlayerWeaponPhase : IPhase
     public static PlayerWeaponPhase Instance => _instance ??= new PlayerWeaponPhase();
     public async UniTask<IPhase> WaitPhase()
     {
-        PlayerView.Instance.SkillAnim();
         await CameraManager.Instance.ActPlayerWeaponZoom(PlayerView.Instance.Transform.position);
         
         // 武器選びする
