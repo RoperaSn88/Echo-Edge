@@ -37,4 +37,11 @@
         
         return (_currentEnergyGauge / 100f, _currentEnergy);
     }
+    
+    public static (float gaugeValue, int energyCount) RemoveEnergy(int energy)
+    {
+        _currentEnergy -= energy;
+        
+        return (_currentEnergyGauge / 100f, _currentEnergy);
+    }
 }

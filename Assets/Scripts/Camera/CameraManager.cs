@@ -267,6 +267,19 @@ public class CameraManager : MonoBehaviour
     [Button("リセット")]
     public async UniTask ActResetCameraTarget()
     {
+        await ActResetCameraTargetInternal(false);
+    }
+
+    /// <summary>
+    /// カメラを1回転しながらもとの位置に戻し始める。
+    /// </summary>
+    public async UniTask ActResetCameraTargetWithRotate()
+    {
+        await ActResetCameraTargetInternal(true);
+    }
+
+    private async UniTask ActResetCameraTargetInternal(bool withRotate)
+    {
         // カメラが動いている最中ならばキャンセル
         if (_cameraMoving)
         {
@@ -279,7 +292,7 @@ public class CameraManager : MonoBehaviour
 
         try
         {
-            await ResetCameraTarget(_cts.Token);
+            await ResetCameraTarget(_cts.Token, withRotate);
         }
         catch(OperationCanceledException)
         {
@@ -292,7 +305,7 @@ public class CameraManager : MonoBehaviour
     /// </summary>
     /// <param name="ct"></param>
     /// <returns></returns>
-    private async UniTask ResetCameraTarget(CancellationToken ct)
+    private async UniTask ResetCameraTarget(CancellationToken ct, bool withRotate)
     {
         _cameraMoving = true;
         
@@ -317,21 +330,36 @@ public class CameraManager : MonoBehaviour
             .SetEase(Ease.OutQuad)
             .SetUpdate(true);
 
-        var rotationTween = DOTween.To(()=>_defaultCameraPos.rotation.eulerAngles,
-            pos => _defaultCameraPos.rotation = Quaternion.Euler(pos), 
-            new Vector3(DefaultCameraAngle,360,0), 
-            TokenTime)
-            .SetEase(Ease.OutQuad)
-            .SetUpdate(true);
+        Tween rotationTween = null;
+        if (withRotate)
+        {
+            rotationTween = DOTween.To(()=>_defaultCameraPos.rotation.eulerAngles,
+                pos => _defaultCameraPos.rotation = Quaternion.Euler(pos), 
+                new Vector3(DefaultCameraAngle,360,0), 
+                TokenTime)
+                .SetEase(Ease.OutQuad)
+                .SetUpdate(true);
+        }
 
         try
         {
-            await UniTask.WhenAll(
-                cameraTween.ToUniTask(cancellationToken: ct),
-                positionTween.ToUniTask(cancellationToken: ct),
-                offsetTween.ToUniTask(cancellationToken: ct),
-                rotationTween.ToUniTask(cancellationToken: ct)
-            );
+            if (rotationTween != null)
+            {
+                await UniTask.WhenAll(
+                    cameraTween.ToUniTask(cancellationToken: ct),
+                    positionTween.ToUniTask(cancellationToken: ct),
+                    offsetTween.ToUniTask(cancellationToken: ct),
+                    rotationTween.ToUniTask(cancellationToken: ct)
+                );
+            }
+            else
+            {
+                await UniTask.WhenAll(
+                    cameraTween.ToUniTask(cancellationToken: ct),
+                    positionTween.ToUniTask(cancellationToken: ct),
+                    offsetTween.ToUniTask(cancellationToken: ct)
+                );
+            }
             _cameraMoving = false;
         }
         catch(Exception)
@@ -339,7 +367,7 @@ public class CameraManager : MonoBehaviour
             cameraTween.Complete();
             positionTween.Complete();
             offsetTween.Complete();
-            rotationTween.Complete();
+            rotationTween?.Complete();
             _cameraMoving = false;
         }
     }
