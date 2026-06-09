@@ -1,10 +1,8 @@
 using System;
-using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Actions;
-using UI;
 
 public class PlayerPhase: IPhase
 {
@@ -20,12 +18,6 @@ public class PlayerPhase: IPhase
     [SerializeField]
     private ClickKinds _clickKind;
 
-    /// <summary>
-    /// ポーズ操作が行われたか検知するブール
-    /// </summary>
-    private bool _pauseFlug;
-
-    private const int OptionSceneBuildIndex = 3;
     private readonly PlayerAttackGuideLine _attackGuideLine = new PlayerAttackGuideLine();
 
     /// <summary>
@@ -43,7 +35,6 @@ public class PlayerPhase: IPhase
     {
         // 初期条件
         _clickFlug = false;
-        _pauseFlug = false;
         _attackGuideLine.Hide();
         _attackGuideLine.SetMaterial(PlayerController.Instance.LineMaterial);
         PlayerActions playerActions = new PlayerActions();
@@ -51,42 +42,7 @@ public class PlayerPhase: IPhase
 
         while (true)
         {
-            // クリックまたはポーズ操作を待つ
-            await UniTask.WaitUntil(() => _clickFlug || _pauseFlug);
-
-            if (_pauseFlug)
-            {
-                _pauseFlug = false;
-                _clickFlug = false;
-                Time.timeScale = 0;
-                OptionSceneController.CanRetire = true;
-                await SceneLoader.AdditiveLoadAndWait(OptionSceneBuildIndex);
-                OptionSceneController.CanRetire = false;
-                Time.timeScale = 1;
-                if (OptionSceneController.LastResult == OptionResult.Retire)
-                {
-                    _attackGuideLine.Destroy();
-                    ResetController(playerActions);
-                    var t1 = UIPresenter.Instance.FadeOutAsync(0.5f);
-                    
-                    var t2 = GameClearRewardPresenter.Instance.CloseAsync();
-                    var t3 = AudioManager.Instance != null
-                        ? AudioManager.Instance.FadeBGMAsync(0.5f, CancellationToken.None)
-                        : UniTask.CompletedTask;
-                    var t4 = AudioManager.Instance != null
-                        ? AudioManager.Instance.FadeAddedBGMAsync(0.5f, CancellationToken.None)
-                        : UniTask.CompletedTask;
-
-                    await UniTask.WhenAll(t1, t2, t3, t4);
-        
-                    Time.timeScale = 1.0f;
-
-                    // 6. MainGameをアンロードし、Preparingシーンを読み込む
-                    await SceneLoader.AdditiveLoadAsync(GameScene.Preparing);
-                    SceneLoader.Unload(GameScene.MainGame);
-                }
-                continue;
-            }
+            await UniTask.WaitUntil(() => _clickFlug);
 
             // 右クリックか左クリックか識別する。
             _clickFlug = false;
@@ -121,7 +77,6 @@ public class PlayerPhase: IPhase
         playerActions.PlayerPhase.Attack.started += OnPressAttack;
         playerActions.PlayerPhase.Attack.canceled += OnReleaseAttack;
         playerActions.PlayerPhase.Skill.started += OnPressSkill;
-        playerActions.PlayerPhase.Pause.started += OnPressPause;
         playerActions.Enable();
     }
 
@@ -146,12 +101,6 @@ public class PlayerPhase: IPhase
     {
         _attackGuideLine.Hide();
         _clickFlug = true;
-    }
-
-    public void OnPressPause(InputAction.CallbackContext context)
-    {
-        _attackGuideLine.Hide();
-        _pauseFlug = true;
     }
 
     private void UpdateAttackGuideLine()
