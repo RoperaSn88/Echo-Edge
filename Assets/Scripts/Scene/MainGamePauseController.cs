@@ -12,32 +12,25 @@ namespace Scene
         private const int OptionSceneBuildIndex = 3;
         private bool _isPauseOpening;
 
-        private void Update()
+        [SerializeField]
+        private PlayerInput playerInput;
+
+        private void Awake()
+        {
+            playerInput.actions["Pause"].performed += OpenPause;
+        }
+        
+        public void OpenPause(InputAction.CallbackContext context)
         {
             if (_isPauseOpening)
             {
                 return;
             }
-
-            if (Keyboard.current == null || !Keyboard.current.escapeKey.wasPressedThisFrame)
-            {
-                return;
-            }
-
-            if (!SceneManager.GetSceneByBuildIndex((int)GameScene.MainGame).isLoaded)
-            {
-                return;
-            }
-
-            if (SceneManager.GetSceneByBuildIndex((int)GameScene.Option).isLoaded)
-            {
-                return;
-            }
-
-            OpenPauseAsync().Forget();
+            
+            OpenPauseAsync(context).Forget();
         }
 
-        private async UniTaskVoid OpenPauseAsync()
+        private async UniTask OpenPauseAsync(InputAction.CallbackContext context)
         {
             _isPauseOpening = true;
             float previousTimeScale = Time.timeScale;
