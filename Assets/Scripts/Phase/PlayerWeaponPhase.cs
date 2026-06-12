@@ -16,7 +16,6 @@ public class PlayerWeaponPhase : IPhase
     public static PlayerWeaponPhase Instance => _instance ??= new PlayerWeaponPhase();
     public async UniTask<IPhase> WaitPhase()
     {
-        PlayerView.Instance.SkillAnim();
         await CameraManager.Instance.ActPlayerWeaponZoom(PlayerView.Instance.Transform.position);
         
         // 武器選びする
@@ -24,7 +23,7 @@ public class PlayerWeaponPhase : IPhase
         
         // キャンセル時の操作
         PlayerView.Instance.ResetRotateAnim();
-        await CameraManager.Instance.ActResetCameraTarget();
+        await CameraManager.Instance.ActResetCameraTargetWithRotate();
 
         // 武器が選択されたときは装備品使用フェーズへ遷移する
         if (result == WeaponActionType.Press)

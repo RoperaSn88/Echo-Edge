@@ -21,6 +21,9 @@ namespace UI.Weapon
         
         [SerializeField, Tooltip("プレゼンターを突っ込む")]
         private WeaponPresenter[] _presenters= new WeaponPresenter[2];
+        
+        private static WeaponModel _targetModel;
+        public static WeaponModel TargetModel => _targetModel;
 
         private CancellationTokenSource _cancellationTokenSource;
         
@@ -60,16 +63,22 @@ namespace UI.Weapon
             WeaponMoveDirection weaponMoveDirection = WeaponMoveDirection.UpToDown;
             
             // ボタンが押された時はbreak スクロールはプレゼンターを切り替えて再度調べる
+            
+            PlayerView.Instance.Animator.SetBool($"WeaponF", true);
+            
             while (true)
             {
                 // Addressableから武器のモデルを読み込む
-                var targetModel = await Addressables.LoadAssetAsync<WeaponModel>(WeaponModelPath + (_selectedWeaponIndex + 1) + ".asset");
+                _targetModel = await Addressables.LoadAssetAsync<WeaponModel>(WeaponModelPath + (_selectedWeaponIndex + 1) + ".asset");
                 
                 // 見つかればプレゼンターにモデルをセットして、操作を待つ
-                if (targetModel != null)
+                if (_targetModel != null)
                 {
+                    // プレイヤーのアニメーション設定
+                    PlayerView.Instance.Animator.SetInteger($"WeaponInteger", _selectedWeaponIndex + 1);
+                    
                     // ビューにモデルを設定していく
-                    SelectingPresenter.SetWeapon(targetModel);
+                    SelectingPresenter.SetWeapon(_targetModel);
                     
                     SelectingPresenter.AppearUIs(weaponMoveDirection, _cancellationTokenSource.Token).Forget();
                     
@@ -79,7 +88,7 @@ namespace UI.Weapon
                     switch (actionType)
                     {
                         case WeaponActionType.Press:
-                            if (targetModel.WeaponCost >= BattleManager.PlayerStatus.Energy)
+                            if (_targetModel.WeaponCost >= BattleManager.PlayerStatus.Energy)
                             {
                                 isSelected = true;
                                 result = WeaponActionType.Press;
@@ -138,6 +147,7 @@ namespace UI.Weapon
             }
 
             SelectingPresenter.DisappearUIs(weaponMoveDirection, _cancellationTokenSource.Token).Forget();
+            PlayerView.Instance.Animator.SetBool($"WeaponF", false);
 
             return result;
         }

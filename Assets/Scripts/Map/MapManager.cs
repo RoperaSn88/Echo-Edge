@@ -182,6 +182,7 @@ public class MapManager: MonoBehaviour
 
         for (var step = 1; step <= steps; step++)
         {
+
             for (var h = 0; h < MapHeight; h++)
             {
                 for (var w = 0; w < MapWidth; w++)

@@ -23,6 +23,9 @@ public class PlayerWeaponActivePhase : IPhase
         await CameraManager.Instance.ActMoveCameraToDefault();
 
         // 選択された装備品の効果を発揮する
+        var energyResult = EnergyManager.AddEnergy(WeaponController.TargetModel.WeaponCost);
+        UIPresenter.Instance.PlayerStatusPresenter.SetEnergy(energyResult.gaugeValue, energyResult.energyCount);
+        
         IEquipEffect effect = CreateEquipEffect(WeaponController.Instance.SelectedWeaponIndex);
         await effect.Activate();
 
