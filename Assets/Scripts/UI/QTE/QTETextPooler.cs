@@ -31,9 +31,9 @@ public class QTETextPooler : ObjectPooler
         }   
 
         _rectTransform.DOScale(Vector3.one * 1.5f, 0.8f).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask().Forget();
-        await _qteText.DOFade(1f, 0.15f).SetUpdate(true).ToUniTask();
+        await _qteText.DOFade(1f, 0.2f).SetUpdate(true).ToUniTask();
         await UniTask.Delay(TimeSpan.FromSeconds(0.3f));
-        await _qteText.DOFade(0f, 0.15f).SetUpdate(true).ToUniTask();
+        await _qteText.DOFade(0f, 0.2f).SetUpdate(true).ToUniTask();
     }
     
     // 引数なしは使う想定ないんで、空に
