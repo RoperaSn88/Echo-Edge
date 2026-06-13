@@ -6,7 +6,7 @@ using Unit.pureC.Unit;
 
 
 [System.Serializable]
-public　class BaseUnit: IEnemyUnit, IDamagable
+public class BaseUnit: IEnemyUnit, IDamagable
 {
     [SerializeField]
     private int height;
@@ -219,6 +219,9 @@ public　class BaseUnit: IEnemyUnit, IDamagable
     {
         if (count <= 0) return;
 
+        // 一番左ならなし
+        if (Width <= 0) return;
+
         var mapManager = MapManager.Instance;
         var srcH = Height;
         var srcW = Width;
@@ -230,8 +233,11 @@ public　class BaseUnit: IEnemyUnit, IDamagable
         var scoreByStep = new int[count + 1, mapManager.Height, mapManager.Width];
         var prevH = new int[count + 1, mapManager.Height, mapManager.Width];
         var prevW = new int[count + 1, mapManager.Height, mapManager.Width];
-        var offset = Math.Max(0, Math.Min(byte.MaxValue, count));
+        var offset = count;
 
+        // DP テーブルを初期化する。
+        // scoreByStep: 「step 手でそのマスに到達したときの最大スコア」
+        // prevH / prevW: その状態に到達する直前マス（経路復元用）
         for (var step = 0; step <= count; step++)
         {
             for (var h = 0; h < mapManager.Height; h++)
@@ -247,10 +253,15 @@ public　class BaseUnit: IEnemyUnit, IDamagable
 
         scoreByStep[0, srcH, srcW] = 0;
 
+        // 4 方向の移動定義。
+        // 左を強く優先する評価になっており、右移動にはペナルティを与える。
+        // 使うには、dirHとdirWに同じindexでアクセスする。例えば、dirH[0], dirW[0] は「上に移動」を表す。
         var dirH = new[] { 0, -1, 1, 0 };
         var dirW = new[] { -1, 0, 0, 1 };
         var dirScore = new[] { 2, 1, 1, -1 };
 
+        // 手数を 1 ずつ進めながら、到達可能マスの最大スコアを更新する。
+        // 同時に「どこから来たか」を prev 配列に記録し、あとで経路復元できるようにする。
         for (var step = 1; step <= count; step++)
         {
             for (var h = 0; h < mapManager.Height; h++)
@@ -284,6 +295,9 @@ public　class BaseUnit: IEnemyUnit, IDamagable
         var dstW = srcW;
         var bestScore = minScore;
 
+        // 全 step の候補を走査して最終目的地を選ぶ。
+        // 同スコア時は「より左」「縦距離が小さい」位置を優先する。
+        // scoreMap は可視化・デバッグ用のローカル評価マップとして更新する。
         for (var step = 1; step <= count; step++)
         {
             for (var h = 0; h < mapManager.Height; h++)
@@ -318,6 +332,7 @@ public　class BaseUnit: IEnemyUnit, IDamagable
 
         if (!hasDestination) return;
 
+        // 目的地から prev を逆にたどり、実際の移動経路を復元する。
         var path = new List<(int h, int w)>();
         var currentH = dstH;
         var currentW = dstW;
@@ -334,6 +349,7 @@ public　class BaseUnit: IEnemyUnit, IDamagable
             currentStep--;
         }
 
+        // 復元した経路を先頭から順に実行し、途中で失敗したら打ち切る。
         path.Reverse();
         foreach (var waypoint in path)
         {
