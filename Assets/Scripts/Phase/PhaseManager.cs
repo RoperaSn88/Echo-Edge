@@ -21,9 +21,17 @@ public class PhaseManager : MonoBehaviour
     async UniTask Phasing(CancellationToken cancellationToken)
     {
         IPhase phase = StartPhase.Instance;
-        while (true)
+        try
         {
-            phase = await phase.WaitPhase().AttachExternalCancellation(cancellationToken);
+            while (true)
+        {
+            phase = await phase.WaitPhase();
+        }
+        }
+        catch (OperationCanceledException)
+        {
+            // フェーズの待機中にキャンセルされた場合はループを抜ける
+            Debug.Log("PhaseManager: フェーズの待機中にキャンセルされました");
         }
     }
 }

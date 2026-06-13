@@ -85,36 +85,52 @@ namespace CommonUI.Tutorial
             _pageDotPresenter.Initialize(maxPageCount);
             SetBasePosition(_model.Position);
             AdjustPosition(_model);
+            bool isSkip = false;
 
-            while (pageIndex < maxPageCount)
+            try
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                _ = ShowPageAsync(pageIndex);
-
-                PageTurn turn;
-                // 進むか戻るの入力があるまで待ち、前にページがないときは再度入力を待つ.
-                await UniTask.WaitUntil(() => !TextBasePresenter.MouseClick.Mouse.MouseClick.IsPressed());
-                do
+                while (pageIndex < maxPageCount)
                 {
-                    turn = await WaitUntilInputAsync(cancellationToken);
-                } while (turn == PageTurn.Prev && pageIndex == 0);
-                
-                Debug.Log(turn);
-                switch (turn)
-                {
-                    case PageTurn.Next:
-                        pageIndex++;
-                        _pageDotPresenter.Next();
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    _ = ShowPageAsync(pageIndex);
+
+                    PageTurn turn;
+                    // 進むか戻るの入力があるまで待ち、前にページがないときは再度入力を待つ.
+                    await UniTask.WaitUntil(() => !TextBasePresenter.MouseClick.Mouse.MouseClick.IsPressed());
+                    do
+                    {
+                        turn = await WaitUntilInputAsync(cancellationToken);
+                    } while (turn == PageTurn.Prev && pageIndex == 0);
+                    
+                    Debug.Log(turn);
+                    switch (turn)
+                    {
+                        case PageTurn.Next:
+                            pageIndex++;
+                            _pageDotPresenter.Next();
+                            break;
+                        case PageTurn.Prev when pageIndex > 0:
+                            pageIndex--;
+                            _pageDotPresenter.Prev();
+                            break;
+                        default:
+                            isSkip = true;
+                            break;
+                    }
+
+                    if (isSkip)
+                    {
                         break;
-                    case PageTurn.Prev when pageIndex > 0:
-                        pageIndex--;
-                        _pageDotPresenter.Prev();
-                        break;
-                    default:
-                        throw new InvalidOperationException();
+                    }
                 }
+                isSkip = false;
             }
+            finally
+            {
+                
+            }
+            
         }
 
         /// <summary>
@@ -160,9 +176,6 @@ namespace CommonUI.Tutorial
                 {
                     return;
                 }
-
-                // それ以外は例外をログして再スローする
-                Debug.LogException(ex);
                 throw;
             }
         }
