@@ -26,11 +26,6 @@ public class MapManager: MonoBehaviour
     private readonly Dictionary<IUnit, (int h, int w)> _unitPositions = new();
 
     /// <summary>
-    /// キャッシュ用
-    /// </summary>
-    private Vector3 vector;
-
-    /// <summary>
     /// マップ配置のベースとなるオブジェクトのTransform
     /// </summary>
     [SerializeField]
@@ -142,6 +137,14 @@ public class MapManager: MonoBehaviour
     /// </summary>
     public async UniTask<bool> TryMoveUnit(int count, int srcH, int srcW)
     {
+        // 始点チェック
+        if (!IsInBounds(srcH, srcW))
+        {
+            throw new NullReferenceException("始点がおかしいです。");
+        }
+
+        if (count <= 0) return true;
+
         // ユニットゲット
         var unit = _mapGrid[srcH, srcW];
         if(unit == null)
@@ -149,51 +152,129 @@ public class MapManager: MonoBehaviour
             throw new NullReferenceException($"その位置にユニットはいません。h:{srcH}, w:{srcW}");
         }
 
-        // 始点チェック
-        if (srcH < 0 || srcH >= MapHeight || srcW < 0 || srcW >= MapWidth)
+        var mapSize = count * 2 + 1;
+        var scoreMap = new byte[mapSize, mapSize];
+        var steps = count;
+        var minScore = int.MinValue / 4;
+        var scoreByStep = new int[steps + 1, MapHeight, MapWidth];
+        var prevH = new int[steps + 1, MapHeight, MapWidth];
+        var prevW = new int[steps + 1, MapHeight, MapWidth];
+        var offset = Math.Max(0, Math.Min(byte.MaxValue, count));
+
+        for (var step = 0; step <= steps; step++)
         {
-            throw new NullReferenceException("始点がおかしいです。");
+            for (var h = 0; h < MapHeight; h++)
+            {
+                for (var w = 0; w < MapWidth; w++)
+                {
+                    scoreByStep[step, h, w] = minScore;
+                    prevH[step, h, w] = -1;
+                    prevW[step, h, w] = -1;
+                }
+            }
         }
 
-        // count回数分、動くのを繰り返す
-        for(int i = 0; i < count; i++)
+        scoreByStep[0, srcH, srcW] = 0;
+
+        var dirH = new[] { 0, -1, 1, 0 };
+        var dirW = new[] { -1, 0, 0, 1 };
+        var dirScore = new[] { 2, 1, 1, -1 };
+
+        for (var step = 1; step <= steps; step++)
         {
-            // 上下に動くか、左に進むか計算する。
-            // 現在のマスの左が空ならば進む。
-            
-            if(GetUnitAt(srcH, srcW - 1) == null)
+
+            for (var h = 0; h < MapHeight; h++)
             {
-                // 一番左なので行動終了
-                if (srcW == 0)
+                for (var w = 0; w < MapWidth; w++)
                 {
-                    break;
+                    var baseScore = scoreByStep[step - 1, h, w];
+                    if (baseScore == minScore) continue;
+
+                    for (var dir = 0; dir < dirH.Length; dir++)
+                    {
+                        var nextH = h + dirH[dir];
+                        var nextW = w + dirW[dir];
+                        if (!IsInBounds(nextH, nextW)) continue;
+                        if (_mapGrid[nextH, nextW] != null) continue;
+
+                        var candidate = baseScore + dirScore[dir];
+                        if (candidate <= scoreByStep[step, nextH, nextW]) continue;
+
+                        scoreByStep[step, nextH, nextW] = candidate;
+                        prevH[step, nextH, nextW] = h;
+                        prevW[step, nextH, nextW] = w;
+                    }
                 }
-                
-                vector = MoveDirections.MoveLeft;
-                _mapGrid[srcH, srcW - 1] = unit;
-                _mapGrid[srcH, srcW] = null;
-                await unit.Move(srcH, srcW - 1);
-                srcW = srcW - 1;
-                _unitPositions[unit] = (srcH, srcW);
             }
-            else if(GetUnitAt(srcH - 1, srcW) == null)
+        }
+
+        var hasDestination = false;
+        var bestStep = -1;
+        var dstH = srcH;
+        var dstW = srcW;
+        var bestScore = minScore;
+
+        for (var step = 1; step <= steps; step++)
+        {
+            for (var h = 0; h < MapHeight; h++)
             {
-                vector = MoveDirections.MoveDown;
-                _mapGrid[srcH - 1, srcW] = unit;
-                _mapGrid[srcH, srcW] = null;
-                await unit.Move(srcH - 1, srcW);
-                srcH = srcH - 1;
-                _unitPositions[unit] = (srcH, srcW);
+                for (var w = 0; w < MapWidth; w++)
+                {
+                    var score = scoreByStep[step, h, w];
+                    if (score == minScore) continue;
+
+                    var localH = h - srcH + count;
+                    var localW = w - srcW + count;
+                    if (localH >= 0 && localH < mapSize && localW >= 0 && localW < mapSize)
+                    {
+                        var stored = score + offset;
+                        if (stored < 0) stored = 0;
+                        if (stored > byte.MaxValue) stored = byte.MaxValue;
+                        if (scoreMap[localH, localW] < stored) scoreMap[localH, localW] = (byte)stored;
+                    }
+
+                    if (!hasDestination || score > bestScore || (score == bestScore && (w < dstW || (w == dstW && Math.Abs(h - srcH) < Math.Abs(dstH - srcH)))))
+                    {
+                        hasDestination = true;
+                        bestScore = score;
+                        bestStep = step;
+                        dstH = h;
+                        dstW = w;
+                    }
+                }
             }
-            else if(GetUnitAt(srcH + 1, srcW) == null)
-            {
-                vector = MoveDirections.MoveUp;
-                _mapGrid[srcH + 1, srcW] = unit;
-                _mapGrid[srcH, srcW] = null;
-                await unit.Move(srcH + 1, srcW);
-                srcH = srcH + 1;
-                _unitPositions[unit] = (srcH, srcW);
-            }
+        }
+
+        if (!hasDestination) return true;
+
+        var path = new List<(int h, int w)>();
+        var currentH = dstH;
+        var currentW = dstW;
+        var currentStep = bestStep;
+
+        while (currentStep > 0)
+        {
+            path.Add((currentH, currentW));
+            var fromH = prevH[currentStep, currentH, currentW];
+            var fromW = prevW[currentStep, currentH, currentW];
+            if (fromH < 0 || fromW < 0) break;
+            currentH = fromH;
+            currentW = fromW;
+            currentStep--;
+        }
+
+        path.Reverse();
+
+        var moveFromH = srcH;
+        var moveFromW = srcW;
+        foreach (var waypoint in path)
+        {
+            _mapGrid[moveFromH, moveFromW] = null;
+            _mapGrid[waypoint.h, waypoint.w] = unit;
+            await unit.Move(waypoint.h, waypoint.w);
+            moveFromH = waypoint.h;
+            moveFromW = waypoint.w;
+            _unitPositions[unit] = (moveFromH, moveFromW);
         }
 
         return true;

@@ -44,9 +44,14 @@ public class StartPhase : IPhase
         {
             PlayerPrefs.SetInt(TutorialCompletedKey, 1);
             PlayerPrefs.Save();
-            await TutorialActivator.Instance.StartTutorial();
+            try
+            {
+                await TutorialActivator.Instance.StartTutorial();
+            }catch (System.Exception)
+            {
+                Debug.Log("チュートリアルを中止");
+            }
         }
-        Debug.Log(BattleManager.PlayerStatus);
 
         return PlayerPhase.Instance;
     }

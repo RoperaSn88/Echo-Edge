@@ -1,11 +1,12 @@
 using System;
+using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using Unit.pureC.Unit;
 
 
 [System.Serializable]
-public　class BaseUnit: IEnemyUnit, IDamagable
+public class BaseUnit: IEnemyUnit, IDamagable
 {
     [SerializeField]
     private int height;
@@ -193,11 +194,11 @@ public　class BaseUnit: IEnemyUnit, IDamagable
             // もし飛行中ならナシ
             if (_unitAction is IFlyingUnit fly)
             {
-                if(!fly.IsFlying) await MapManager.Instance.TryMoveUnit(_battleStatus.Move, Height, Width);
+                if(!fly.IsFlying) await TryMoveByScoreMap(_battleStatus.Move);
             }
             else
             {
-                await MapManager.Instance.TryMoveUnit(_battleStatus.Move, Height, Width);
+                await TryMoveByScoreMap(_battleStatus.Move);
             }
         }
         catch
@@ -213,6 +214,151 @@ public　class BaseUnit: IEnemyUnit, IDamagable
             await MessageManager.Instance.DisappearMessage();
         }
     } 
+
+    private async UniTask TryMoveByScoreMap(int count)
+    {
+        if (count <= 0) return;
+
+        // 一番左ならなし
+        if (Width <= 0) return;
+
+        var mapManager = MapManager.Instance;
+        var srcH = Height;
+        var srcW = Width;
+        if (!mapManager.IsInBounds(srcH, srcW)) return;
+
+        var mapSize = count * 2 + 1;
+        var scoreMap = new byte[mapSize, mapSize];
+        var minScore = int.MinValue / 4;
+        var scoreByStep = new int[count + 1, mapManager.Height, mapManager.Width];
+        var prevH = new int[count + 1, mapManager.Height, mapManager.Width];
+        var prevW = new int[count + 1, mapManager.Height, mapManager.Width];
+        var offset = count;
+
+        // DP テーブルを初期化する。
+        // scoreByStep: 「step 手でそのマスに到達したときの最大スコア」
+        // prevH / prevW: その状態に到達する直前マス（経路復元用）
+        for (var step = 0; step <= count; step++)
+        {
+            for (var h = 0; h < mapManager.Height; h++)
+            {
+                for (var w = 0; w < mapManager.Width; w++)
+                {
+                    scoreByStep[step, h, w] = minScore;
+                    prevH[step, h, w] = -1;
+                    prevW[step, h, w] = -1;
+                }
+            }
+        }
+
+        scoreByStep[0, srcH, srcW] = 0;
+
+        // 4 方向の移動定義。
+        // 左を強く優先する評価になっており、右移動にはペナルティを与える。
+        // 使うには、dirHとdirWに同じindexでアクセスする。例えば、dirH[0], dirW[0] は「上に移動」を表す。
+        var dirH = new[] { 0, -1, 1, 0 };
+        var dirW = new[] { -1, 0, 0, 1 };
+        var dirScore = new[] { 2, 1, 1, -1 };
+
+        // 手数を 1 ずつ進めながら、到達可能マスの最大スコアを更新する。
+        // 同時に「どこから来たか」を prev 配列に記録し、あとで経路復元できるようにする。
+        for (var step = 1; step <= count; step++)
+        {
+            for (var h = 0; h < mapManager.Height; h++)
+            {
+                for (var w = 0; w < mapManager.Width; w++)
+                {
+                    var baseScore = scoreByStep[step - 1, h, w];
+                    if (baseScore == minScore) continue;
+
+                    for (var dir = 0; dir < dirH.Length; dir++)
+                    {
+                        var nextH = h + dirH[dir];
+                        var nextW = w + dirW[dir];
+                        if (!mapManager.IsInBounds(nextH, nextW)) continue;
+                        if (mapManager.GetUnitAt(nextH, nextW) != null) continue;
+
+                        var candidate = baseScore + dirScore[dir];
+                        if (candidate <= scoreByStep[step, nextH, nextW]) continue;
+
+                        scoreByStep[step, nextH, nextW] = candidate;
+                        prevH[step, nextH, nextW] = h;
+                        prevW[step, nextH, nextW] = w;
+                    }
+                }
+            }
+        }
+
+        var hasDestination = false;
+        var bestStep = -1;
+        var dstH = srcH;
+        var dstW = srcW;
+        var bestScore = minScore;
+
+        // 全 step の候補を走査して最終目的地を選ぶ。
+        // 同スコア時は「より左」「縦距離が小さい」位置を優先する。
+        // scoreMap は可視化・デバッグ用のローカル評価マップとして更新する。
+        for (var step = 1; step <= count; step++)
+        {
+            for (var h = 0; h < mapManager.Height; h++)
+            {
+                for (var w = 0; w < mapManager.Width; w++)
+                {
+                    var score = scoreByStep[step, h, w];
+                    if (score == minScore) continue;
+
+                    var localH = h - srcH + count;
+                    var localW = w - srcW + count;
+                    if (localH >= 0 && localH < mapSize && localW >= 0 && localW < mapSize)
+                    {
+                        var stored = score + offset;
+                        if (stored < 0) stored = 0;
+                        if (stored > byte.MaxValue) stored = byte.MaxValue;
+                        if (scoreMap[localH, localW] < stored) scoreMap[localH, localW] = (byte)stored;
+                    }
+
+                    if (!hasDestination || score > bestScore ||
+                        (score == bestScore && (w < dstW || (w == dstW && Math.Abs(h - srcH) < Math.Abs(dstH - srcH)))))
+                    {
+                        hasDestination = true;
+                        bestScore = score;
+                        bestStep = step;
+                        dstH = h;
+                        dstW = w;
+                    }
+                }
+            }
+        }
+
+        if (!hasDestination) return;
+
+        // 目的地から prev を逆にたどり、実際の移動経路を復元する。
+        var path = new List<(int h, int w)>();
+        var currentH = dstH;
+        var currentW = dstW;
+        var currentStep = bestStep;
+
+        while (currentStep > 0)
+        {
+            path.Add((currentH, currentW));
+            var fromH = prevH[currentStep, currentH, currentW];
+            var fromW = prevW[currentStep, currentH, currentW];
+            if (fromH < 0 || fromW < 0) break;
+            currentH = fromH;
+            currentW = fromW;
+            currentStep--;
+        }
+
+        // 復元した経路を先頭から順に実行し、途中で失敗したら打ち切る。
+        path.Reverse();
+        foreach (var waypoint in path)
+        {
+            if (!await mapManager.TryMoveUnitTo(this, waypoint.h, waypoint.w))
+            {
+                break;
+            }
+        }
+    }
 
     public async UniTask Move(int y, int x)
     {
