@@ -47,7 +47,7 @@ public class StartPhase : IPhase
             try
             {
                 await TutorialActivator.Instance.StartTutorial();
-            }catch (System.Exception ex)
+            }catch (System.Exception)
             {
                 Debug.Log("チュートリアルを中止");
             }
