@@ -17,6 +17,10 @@ public class UIPresenter : MonoBehaviour
     public QTEPool QtePool => _qtePool;
 
     [SerializeField]
+    private QTETextPool _qteTextPool;
+    public QTETextPool QteTextPool => _qteTextPool;
+
+    [SerializeField]
     private DamageTextPool _enemyDamageTextPool;
     public DamageTextPool EnemyDamageTextPool => _enemyDamageTextPool;
     
@@ -27,6 +31,7 @@ public class UIPresenter : MonoBehaviour
     [SerializeField]
     private PlayerStatusPresenter _playerStatusPresenter;
     public PlayerStatusPresenter PlayerStatusPresenter => _playerStatusPresenter;
+
 
     [SerializeField] private RectTransform _destination;
 
@@ -62,6 +67,14 @@ public class UIPresenter : MonoBehaviour
         var result = QTEObject.Result;
         QTEObject.Release();
         return result;
+    }
+
+    public async UniTask AppearQTEResult(QTEResults result)
+    {
+        Instance.QteTextPool.SetResult(result);
+        var textObject = (QTETextPooler) await Instance.QteTextPool.GetPooledObject();
+        await textObject.Appear(result);
+        textObject.Release();
     }
 
     public async UniTask AppearDamageText(string value, Vector3 targetTrans)
