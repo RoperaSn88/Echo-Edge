@@ -5,17 +5,21 @@ using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using System;
 using UI.QTE;
+using TMPro;
 
 public class QTEPresenter : ObjectPooler
 {
     [SerializeField]
-    private Image _backGroundImage;
-
-    [SerializeField]
     private Image _icon;
 
     [SerializeField]
-    private Image _sliderBackGround;
+    private Image _frame;
+
+    [SerializeField]
+    private RectTransform _frameRect;
+
+    [SerializeField]
+    private TextMeshProUGUI _qteText;
 
     private MouseClick _mouseClick;
 
@@ -52,33 +56,31 @@ public class QTEPresenter : ObjectPooler
         _mouseClick.Enable();
 
         // 初期化
-        _sliderBackGround.fillAmount= 0;
-        _backGroundImage.color = SetAlphaColor(_backGroundImage.color, 0f);
+        _frameRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 300f);
+        _frameRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 300f);
+        _frame.color = SetAlphaColor(_frame.color, 0f);
         _icon.color = SetAlphaColor(_icon.color, 0f);
-        _sliderBackGround.color = SetAlphaColor(_sliderBackGround.color, 0f);
-        _backGroundImage.rectTransform.localScale = Vector3.zero;
+        _frameRect.localScale = Vector3.zero;
         _icon.rectTransform.localScale = Vector3.zero;
-        _sliderBackGround.rectTransform.localScale = Vector3.zero;
         _clicked = false;
+        _qteText.alpha = 0f;
 
         // 出現
         AudioManager.Instance.PlaySe(SeAudioType.QTE);
         
         await UniTask.WhenAll(
-            _backGroundImage.DOFade(1f, InitializeTime).SetUpdate(true).ToUniTask(),
-            _backGroundImage.rectTransform.DOScale(Vector3.one, InitializeTime).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask(),
+            _frameRect.DOScale(Vector3.one, InitializeTime).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask(),
             _icon.DOFade(1f,InitializeTime).SetUpdate(true).ToUniTask(),
-            _icon.rectTransform.DOScale(Vector3.one, InitializeTime).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask(),
-            _sliderBackGround.DOFade(1f, InitializeTime).SetUpdate(true).ToUniTask(),
-            _sliderBackGround.rectTransform.DOScale(Vector3.one, InitializeTime).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask()
+            _icon.rectTransform.DOScale(Vector3.one, InitializeTime).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask()
         );
 
         // 待機
         await UniTask.Delay(TimeSpan.FromSeconds(WaitWaitTime), ignoreTimeScale : true);
 
         var timer = Time.unscaledTime;
+        _frame.DOFade(1f, InitializeTime).SetUpdate(true).ToUniTask().Forget();
         await UniTask.WhenAny(
-            _sliderBackGround.DOFillAmount(1f, WaitTime).SetUpdate(true).ToUniTask(),
+            _frameRect.DOSizeDelta(new Vector2(107f, 107f), WaitTime).SetEase(Ease.Linear).SetUpdate(true).ToUniTask(),
             UniTask.WaitUntil(() => _clicked)
         );
 
@@ -89,16 +91,18 @@ public class QTEPresenter : ObjectPooler
             
             if(endTime - timer < GreatSuccessTime && endTime - timer > SuccessTime)
             {
-                AudioManager.Instance.PlaySe(SeAudioType.QTE_Good);
                 // 成功
+                AudioManager.Instance.PlaySe(SeAudioType.QTE_Good);
+                UIPresenter.Instance.AppearQTEResult(QTEResults.Good).Forget();
+                
                 await UniTask.WhenAll(
-                    _backGroundImage.DOFade(0f, DisappearTime).SetUpdate(true).ToUniTask(),
-                    _backGroundImage.rectTransform.DOScale(Vector3.one * 1.2f, DisappearTime).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask(),
+                    _frame.DOFade(0f, DisappearTime).SetUpdate(true).ToUniTask(),
+                    _frameRect.DOScale(Vector3.one * 1.2f, DisappearTime).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask(),
                     _icon.DOFade(0f, DisappearTime).SetUpdate(true).ToUniTask(),
-                    _icon.rectTransform.DOScale(Vector3.one * 1.2f, DisappearTime).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask(),
-                    _sliderBackGround.DOFade(0f, DisappearTime).SetUpdate(true).ToUniTask(),
-                    _sliderBackGround.rectTransform.DOScale(Vector3.one * 1.2f, DisappearTime).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask()
+                    _icon.rectTransform.DOScale(Vector3.one * 1.2f, DisappearTime).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask()
                 );
+
+                
                 
                 switch (Kind)
                 {
@@ -114,17 +118,17 @@ public class QTEPresenter : ObjectPooler
             }
             else if (endTime - timer < WaitTime && endTime - timer >= GreatSuccessTime)
             {
-                AudioManager.Instance.PlaySe(SeAudioType.QTE_Perfect);
                 // 大成功
+                AudioManager.Instance.PlaySe(SeAudioType.QTE_Perfect);
+                UIPresenter.Instance.AppearQTEResult(QTEResults.Perfect).Forget();
+
                 await UniTask.WhenAll(
-                    _backGroundImage.DOFade(0f, DisappearTime).SetUpdate(true).ToUniTask(),
-                    _backGroundImage.rectTransform.DOScale(Vector3.one * 1.5f, DisappearTime).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask(),
+                    _frame.DOFade(0f, DisappearTime).SetUpdate(true).ToUniTask(),
+                    _frameRect.DOScale(Vector3.one * 1.5f, DisappearTime).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask(),
                     _icon.DOFade(0f, DisappearTime).SetUpdate(true).ToUniTask(),
-                    _icon.rectTransform.DOScale(Vector3.one * 1.5f, DisappearTime).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask(),
-                    _sliderBackGround.DOFade(0f, DisappearTime).SetUpdate(true).ToUniTask(),
-                    _sliderBackGround.rectTransform.DOScale(Vector3.one * 1.5f, DisappearTime).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask()
+                    _icon.rectTransform.DOScale(Vector3.one * 1.5f, DisappearTime).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask()
                 );
-                Debug.Log("大成功");
+
                 switch (Kind)
                 {
                     case QTEKinds.Attack:
@@ -141,15 +145,16 @@ public class QTEPresenter : ObjectPooler
 
         // 失敗
         AudioManager.Instance.PlaySe(SeAudioType.QTE_Bad);
+
+        UIPresenter.Instance.AppearQTEResult(QTEResults.Failed).Forget();
         await UniTask.WhenAll(
-            _backGroundImage.DOFade(0f,0.2f).SetUpdate(true).ToUniTask(),
-            _backGroundImage.rectTransform.DOScale(Vector3.zero, 0.2f).SetUpdate(true).ToUniTask(),
+            _frame.DOFade(0f,0.2f).SetUpdate(true).ToUniTask(),
+            _frameRect.DOScale(Vector3.zero, 0.2f).SetUpdate(true).ToUniTask(),
             _icon.DOFade(0f,0.2f).SetUpdate(true).ToUniTask(),
-            _icon.rectTransform.DOScale(Vector3.zero, 0.2f).SetUpdate(true).ToUniTask(),
-            _sliderBackGround.DOFade(0f,0.2f).SetUpdate(true).ToUniTask(),
-            _sliderBackGround.rectTransform.DOScale(Vector3.zero, 0.2f).SetUpdate(true).ToUniTask()
+            _icon.rectTransform.DOScale(Vector3.zero, 0.2f).SetUpdate(true).ToUniTask()
         );
-        Debug.Log("失敗");
+        
+
         switch (Kind)
         {
             case QTEKinds.Attack:
@@ -170,5 +175,10 @@ public class QTEPresenter : ObjectPooler
     private Color SetAlphaColor(Color baseColor, float a)
     {
         return new Color(baseColor.r, baseColor.g, baseColor.b, a);
+    }
+
+    private async UniTask SerializeText()
+    {
+        
     }
 }
