@@ -9,10 +9,7 @@ using UnityEngine;
 /// </summary>
 public static class GameClearManager
 {
-    /// <summary>
-    /// 残り敵ユニット数
-    /// </summary>
-    private static int _enemyCount;
+    private static readonly DefeatAllEnemiesStageClearObjective _stageClearObjective = new();
 
     /// <summary>
     /// 最後に倒した敵の高さ座標
@@ -34,15 +31,22 @@ public static class GameClearManager
     /// </summary>
     private static int _stageEarnedExperience;
 
+    static GameClearManager()
+    {
+        _stageClearObjective.OnGameClearInteraction -= TryStartGameClearSequence;
+        _stageClearObjective.OnGameClearInteraction += TryStartGameClearSequence;
+    }
+
     /// <summary>
     /// 敵の数をキャッシュする。StartPhase から呼ぶ。
     /// </summary>
     /// <param name="count">ステージ開始時の敵ユニット数</param>
     public static void SetEnemyCount(int count)
     {
-        _enemyCount = count;
+        _stageClearObjective.SetEnemyCount(count);
         _isGameClearStarted = false;
         _stageEarnedExperience = 0;
+        GameClearObjectivePresenter.Instance?.SetConditionValue(_stageClearObjective.RemainingEnemyCount);
     }
 
     /// <summary>
@@ -57,13 +61,30 @@ public static class GameClearManager
         _lastEnemyH = h;
         _lastEnemyW = w;
         _stageEarnedExperience += experience;
-        _enemyCount--;
+        _stageClearObjective.NotifyEnemyDefeated();
+        GameClearObjectivePresenter.Instance?.SetConditionValue(_stageClearObjective.RemainingEnemyCount);
+    }
 
-        if (_enemyCount <= 0)
+    public static bool GameClearCondition()
+    {
+        return _stageClearObjective.IsGameClearCondition();
+    }
+
+    public static bool GameClearInteraction()
+    {
+        return _stageClearObjective.GameClearInteraction();
+    }
+
+    private static bool TryStartGameClearSequence()
+    {
+        if (_isGameClearStarted || !_stageClearObjective.IsGameClearCondition())
         {
-            _isGameClearStarted = true;
-            StartGameClearSequenceAsync().Forget();
+            return false;
         }
+
+        _isGameClearStarted = true;
+        StartGameClearSequenceAsync().Forget();
+        return true;
     }
 
     private static async UniTask StartGameClearSequenceAsync()
