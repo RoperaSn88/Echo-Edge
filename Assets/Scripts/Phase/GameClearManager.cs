@@ -33,33 +33,43 @@ public static class GameClearManager
     private static int _stageEarnedExperience;
 
     /// <summary>
-    /// 敵の数をキャッシュする。StartPhase から呼ぶ。
+    /// ステージクリア条件に利用する値をキャッシュする。StartPhase から呼ぶ。
     /// </summary>
-    /// <param name="count">ステージ開始時の敵ユニット数</param>
-    public static void SetEnemyCount(int count)
+    /// <param name="conditionValue">ステージ開始時の条件値</param>
+    public static void SetConditionValue(int conditionValue)
     {
         EnsureObjective();
-        _stageClearObjective.Initialize(count);
+        _stageClearObjective.Initialize(conditionValue);
         _isGameClearStarted = false;
         _stageEarnedExperience = 0;
         GameClearObjectivePresenter.Instance?.SetObjective(_stageClearObjective);
     }
 
     /// <summary>
-    /// 敵が死亡したときに呼ぶ。カウントを減らし、0になればゲームクリア演出を開始する。
+    /// ステージクリア条件の進捗を更新する。
     /// </summary>
-    /// <param name="h">死亡した敵の高さ座標</param>
-    /// <param name="w">死亡した敵の横座標</param>
-    public static void OnEnemyDead(int h, int w, int experience)
+    public static void UpdateCondition()
     {
         EnsureObjective();
         if (_isGameClearStarted) return;
 
+        if (_stageClearConditionType == StageClearConditionType.DefeatAllEnemies)
+        {
+            _stageClearObjective.UpdateCondition();
+        }
+
+        GameClearObjectivePresenter.Instance?.RefreshText();
+    }
+
+    public static void UpdateLastEnemyPosition(int h, int w)
+    {
         _lastEnemyH = h;
         _lastEnemyW = w;
-        _stageEarnedExperience += experience;
-        _stageClearObjective.UpdateCondition();
-        GameClearObjectivePresenter.Instance?.RefreshText();
+    }
+
+    public static void AddStageEarnedExperience(int value)
+    {
+        _stageEarnedExperience += value;
     }
 
     public static bool GameClearCondition()
