@@ -13,11 +13,7 @@ namespace UI
         [SerializeField]
         private TextMeshProUGUI _conditionValueText;
 
-        [SerializeField]
-        private string _baseMessage = "残りの敵はあと";
-
-        [SerializeField]
-        private int _conditionValue;
+        private IStageClearObjective _objective;
 
         public static GameClearObjectivePresenter Instance => _instance;
 
@@ -42,22 +38,22 @@ namespace UI
             RefreshText();
         }
 
-        public void SetConditionValue(int conditionValue)
+        public void SetObjective(IStageClearObjective objective)
         {
-            _conditionValue = Mathf.Max(0, conditionValue);
+            _objective = objective;
             RefreshText();
         }
 
-        private void RefreshText()
+        public void RefreshText()
         {
             if (_baseText != null)
             {
-                _baseText.text = _baseMessage;
+                _baseText.text = _objective?.ObjectiveBaseText ?? string.Empty;
             }
 
             if (_conditionValueText != null)
             {
-                _conditionValueText.text = _conditionValue.ToString();
+                _conditionValueText.text = _objective?.ObjectiveConditionValue ?? string.Empty;
             }
         }
     }

@@ -2,18 +2,21 @@ using System;
 
 public sealed class DefeatAllEnemiesStageClearObjective : IStageClearObjective
 {
+    private const string BaseMessage = "残りの敵はあと";
     private int _remainingEnemyCount;
 
     public event Func<bool> OnGameClearInteraction;
 
-    public int RemainingEnemyCount => _remainingEnemyCount;
+    public string ObjectiveBaseText => BaseMessage;
 
-    public void SetEnemyCount(int enemyCount)
+    public string ObjectiveConditionValue => _remainingEnemyCount.ToString();
+
+    public void Initialize(int enemyCount)
     {
         _remainingEnemyCount = Math.Max(0, enemyCount);
     }
 
-    public void NotifyEnemyDefeated()
+    public void UpdateCondition()
     {
         if (_remainingEnemyCount > 0)
         {

@@ -9,7 +9,8 @@ using UnityEngine;
 /// </summary>
 public static class GameClearManager
 {
-    private static readonly DefeatAllEnemiesStageClearObjective _stageClearObjective = new();
+    private static IStageClearObjective _stageClearObjective;
+    private static StageClearConditionType _stageClearConditionType = StageClearConditionType.DefeatAllEnemies;
 
     /// <summary>
     /// 最後に倒した敵の高さ座標
@@ -31,22 +32,17 @@ public static class GameClearManager
     /// </summary>
     private static int _stageEarnedExperience;
 
-    static GameClearManager()
-    {
-        _stageClearObjective.OnGameClearInteraction -= TryStartGameClearSequence;
-        _stageClearObjective.OnGameClearInteraction += TryStartGameClearSequence;
-    }
-
     /// <summary>
     /// 敵の数をキャッシュする。StartPhase から呼ぶ。
     /// </summary>
     /// <param name="count">ステージ開始時の敵ユニット数</param>
     public static void SetEnemyCount(int count)
     {
-        _stageClearObjective.SetEnemyCount(count);
+        EnsureObjective();
+        _stageClearObjective.Initialize(count);
         _isGameClearStarted = false;
         _stageEarnedExperience = 0;
-        GameClearObjectivePresenter.Instance?.SetConditionValue(_stageClearObjective.RemainingEnemyCount);
+        GameClearObjectivePresenter.Instance?.SetObjective(_stageClearObjective);
     }
 
     /// <summary>
@@ -56,28 +52,45 @@ public static class GameClearManager
     /// <param name="w">死亡した敵の横座標</param>
     public static void OnEnemyDead(int h, int w, int experience)
     {
+        EnsureObjective();
         if (_isGameClearStarted) return;
 
         _lastEnemyH = h;
         _lastEnemyW = w;
         _stageEarnedExperience += experience;
-        _stageClearObjective.NotifyEnemyDefeated();
-        GameClearObjectivePresenter.Instance?.SetConditionValue(_stageClearObjective.RemainingEnemyCount);
+        _stageClearObjective.UpdateCondition();
+        GameClearObjectivePresenter.Instance?.RefreshText();
     }
 
     public static bool GameClearCondition()
     {
+        EnsureObjective();
         return _stageClearObjective.IsGameClearCondition();
     }
 
     public static bool GameClearInteraction()
     {
+        EnsureObjective();
         return _stageClearObjective.GameClearInteraction();
+    }
+
+    public static void SetStageClearConditionType(StageClearConditionType conditionType)
+    {
+        _stageClearConditionType = conditionType;
+
+        if (_stageClearObjective != null)
+        {
+            _stageClearObjective.OnGameClearInteraction -= TryStartGameClearSequence;
+        }
+
+        _stageClearObjective = CreateObjective(_stageClearConditionType);
+        _stageClearObjective.OnGameClearInteraction += TryStartGameClearSequence;
+        GameClearObjectivePresenter.Instance?.SetObjective(_stageClearObjective);
     }
 
     private static bool TryStartGameClearSequence()
     {
-        if (_isGameClearStarted || !_stageClearObjective.IsGameClearCondition())
+        if (_isGameClearStarted || !GameClearCondition())
         {
             return false;
         }
@@ -85,6 +98,24 @@ public static class GameClearManager
         _isGameClearStarted = true;
         StartGameClearSequenceAsync().Forget();
         return true;
+    }
+
+    private static void EnsureObjective()
+    {
+        if (_stageClearObjective == null)
+        {
+            SetStageClearConditionType(_stageClearConditionType);
+        }
+    }
+
+    private static IStageClearObjective CreateObjective(StageClearConditionType conditionType)
+    {
+        switch (conditionType)
+        {
+            case StageClearConditionType.DefeatAllEnemies:
+            default:
+                return new DefeatAllEnemiesStageClearObjective();
+        }
     }
 
     private static async UniTask StartGameClearSequenceAsync()
