@@ -127,7 +127,7 @@ public class BattleStatus : IDamagable
             
             MaxHP += 10; // レベルアップごとに最大HPが10増える
             HP = MaxHP; // レベルアップしたらHPを全回復
-            Attack += 5; // レベルアップごとに攻撃力が2増
+            Attack += 5; // レベルアップごとに攻撃力が5増
             Defend += 1; // レベルアップごとに防御力が1増える
         }
 

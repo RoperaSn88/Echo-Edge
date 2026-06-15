@@ -13,6 +13,7 @@ public class StartPhase : IPhase
         // 1. PlayerStatusPresenterからプレイヤーのデータを取得してBattleManagerにセット
         await UniTask.WaitUntil(() => PlayerStatusPresenter.Instance != null);
         var status = PlayerStatusPresenter.Instance.PlayerBattleStatus;
+        status.Initialize();
         BattleManager.RegisterPlayer(status);
         
         PlayerStatusPresenter.Instance.SetPlayerHP(status.HP, status.MaxHP);
