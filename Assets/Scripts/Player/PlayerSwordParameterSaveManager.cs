@@ -3,7 +3,6 @@ using UnityEngine;
 public static class PlayerSwordParameterSaveManager
 {
     private const string PlayerHpKey = "PlayerStatus.HP";
-    private const string PlayerCurrentHpKey = "PlayerStatus.CurrentHP";
     private const string PlayerAttackKey = "PlayerStatus.Attack";
     private const string PlayerDefendKey = "PlayerStatus.Defend";
     private const string PlayerExperienceKey = "PlayerStatus.Experience";
@@ -30,8 +29,7 @@ public static class PlayerSwordParameterSaveManager
             PlayerPrefs.GetInt(PlayerAttackKey, 20),
             PlayerPrefs.GetInt(PlayerDefendKey, 0),
             PlayerPrefs.GetInt(PlayerExperienceKey, 0),
-            PlayerPrefs.GetInt(PlayerLevelKey, 1),
-            PlayerPrefs.GetInt(PlayerCurrentHpKey, PlayerPrefs.GetInt(PlayerHpKey, 100))
+            PlayerPrefs.GetInt(PlayerLevelKey, 1)
         );
     }
 
@@ -47,7 +45,6 @@ public static class PlayerSwordParameterSaveManager
     public static void SavePlayerStatus(PlayerParameter playerStatus)
     {
         PlayerPrefs.SetInt(PlayerHpKey, playerStatus.HP);
-        PlayerPrefs.SetInt(PlayerCurrentHpKey, playerStatus.CurrentHP);
         PlayerPrefs.SetInt(PlayerAttackKey, playerStatus.Attack);
         PlayerPrefs.SetInt(PlayerDefendKey, playerStatus.Defend);
         PlayerPrefs.SetInt(PlayerExperienceKey, playerStatus.Experience);
@@ -96,7 +93,6 @@ public static class PlayerSwordParameterSaveManager
     public static void DeleteAllSavedData()
     {
         PlayerPrefs.DeleteKey(PlayerHpKey);
-        PlayerPrefs.DeleteKey(PlayerCurrentHpKey);
         PlayerPrefs.DeleteKey(PlayerAttackKey);
         PlayerPrefs.DeleteKey(PlayerDefendKey);
         PlayerPrefs.DeleteKey(PlayerExperienceKey);
