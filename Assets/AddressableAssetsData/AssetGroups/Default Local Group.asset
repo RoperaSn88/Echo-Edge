@@ -65,11 +65,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 8e7bb1e45db8a1f44bdc5008b208f3ae
-    m_Address: Assets/Addressables/Audio/BGM/Battle.wav
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 9cb6074127301604692f33d2b6875d27
     m_Address: Assets/Addressables/Audio/SE/QTE_Good.wav
     m_ReadOnly: 0
@@ -157,6 +152,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: f62f6a2c4db546f882dfcfc4375f9660
     m_Address: Assets/Addressables/StageLayout.csv
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fff9ab474f0f5874a869b14e6de7a377
+    m_Address: Assets/Addressables/Audio/BGM/Battle.wav
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
