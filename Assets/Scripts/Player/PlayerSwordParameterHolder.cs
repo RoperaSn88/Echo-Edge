@@ -1,3 +1,5 @@
+using UnityEngine;
+
 public struct SwordParameter
 {
     public int HP;
@@ -15,14 +17,16 @@ public struct SwordParameter
 public struct PlayerParameter
 {
     public int HP;
+    public int CurrentHP;
     public int Attack;
     public int Defend;
     public int Experience;
     public int Level;
 
-    public PlayerParameter(int hp, int attack, int defend, int experience = 0, int level = 1)
+    public PlayerParameter(int hp, int attack, int defend, int experience = 0, int level = 1, int? currentHp = null)
     {
         HP = hp;
+        CurrentHP = currentHp ?? hp;
         Attack = attack;
         Defend = defend;
         Experience = experience;
@@ -54,12 +58,14 @@ public static class PlayerSwordParameterHolder
             return;
         }
 
+        var maxHpWithoutSword = Mathf.Max(1, playerStatus.MaxHP - SwordStatus.HP);
         PlayerStatus = new PlayerParameter(
-            playerStatus.HP,
+            maxHpWithoutSword,
             playerStatus.Attack,
             playerStatus.Defend,
             playerStatus.Experience,
-            playerStatus.Level
+            playerStatus.Level,
+            playerStatus.HP
         );
         PlayerSwordParameterSaveManager.SavePlayerStatus(PlayerStatus);
     }
@@ -86,16 +92,19 @@ public static class PlayerSwordParameterHolder
             PlayerStatus.Attack,
             PlayerStatus.Defend,
             experience,
-            level
+            level,
+            PlayerStatus.CurrentHP
         );
         PlayerSwordParameterSaveManager.SavePlayerStatus(PlayerStatus);
     }
 
     public static BattleStatus GetBattleStatus()
     {
+        var maxHp = PlayerStatus.HP + SwordStatus.HP;
+        var currentHp = Mathf.Clamp(PlayerStatus.CurrentHP, 0, maxHp);
         var status = new BattleStatus();
         status.SetStatus(
-            PlayerStatus.HP + SwordStatus.HP,
+            currentHp,
             PlayerStatus.Attack + SwordStatus.Attack,
             PlayerStatus.Defend,
             SwordStatus.ReflectCount,
@@ -103,6 +112,7 @@ public static class PlayerSwordParameterHolder
             PlayerStatus.Experience,
             0
         );
+        status.MaxHP = maxHp;
         status.SetLevel(PlayerStatus.Level);
         return status;
     }

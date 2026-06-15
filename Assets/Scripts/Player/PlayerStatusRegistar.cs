@@ -32,6 +32,7 @@ public class PlayerStatusRegistar : MonoBehaviour
             battleParameter.Experience,
             _battleStatus.Energy
         );
+        _battleStatus.MaxHP = battleParameter.MaxHP;
         _battleStatus.SetLevel(battleParameter.Level);
         BattleManager.RegisterPlayer(_battleStatus);
     }
