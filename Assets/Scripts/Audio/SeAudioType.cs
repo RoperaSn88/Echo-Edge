@@ -8,5 +8,6 @@ public enum SeAudioType
     QTE_Good,
     QTE_Perfect,
     EnemyTurn,
-    Decide
+    Decide,
+    TurnChange,
 }

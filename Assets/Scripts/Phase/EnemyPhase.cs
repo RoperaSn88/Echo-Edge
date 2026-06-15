@@ -24,7 +24,7 @@ public class EnemyPhase: IPhase
     public async UniTask<IPhase> WaitPhase()
     {
         _clickFlug = false;
-        Debug.Log("EnemyPhase");
+        await UIPresenter.Instance.TurnChangeView.ShowTurnChange(TurnChangeKinds.EnemyTurn);
         EnemyPhaseStartActionDispatcher.ExecuteEnemyPhaseStartActions();
         BuildingManager.Instance?.ExecuteTurnStartActions();
         await MapManager.Instance.ExecuteTurnStartActions();
