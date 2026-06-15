@@ -37,6 +37,7 @@ public class PlayerPhase: IPhase
         _clickFlug = false;
         _attackGuideLine.Hide();
         _attackGuideLine.SetMaterial(PlayerController.Instance.LineMaterial);
+        await UIPresenter.Instance.TurnChangeView.ShowTurnChange(TurnChangeKinds.PlayerTurn);
         PlayerActions playerActions = new PlayerActions();
         EnableController(playerActions);
 
