@@ -14,7 +14,7 @@ PlayerSettings:
   accelerometerFrequency: 60
   companyName: DefaultCompany
   productName: Echo//Edge
-  defaultCursor: {fileID: 2800000, guid: ade9ece95acb325498d3b32d0b3fd92d, type: 3}
+  defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
   m_SplashScreenBackgroundColor: {r: 0.13725491, g: 0.12156863, b: 0.1254902, a: 1}
   m_ShowUnitySplashScreen: 1
@@ -143,7 +143,7 @@ PlayerSettings:
   loadStoreDebugModeEnabled: 0
   visionOSBundleVersion: 1.0
   tvOSBundleVersion: 1.0
-  bundleVersion: 0.1.0
+  bundleVersion: 0.1.1
   preloadedAssets:
   - {fileID: 11400000, guid: 0ad9858f7a37b9549a82ea7cb0f78998, type: 2}
   - {fileID: 11400000, guid: 271f05b4d6d7dc84f9956d6d5323dc85, type: 2}

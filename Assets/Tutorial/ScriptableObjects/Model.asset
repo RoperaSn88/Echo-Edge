@@ -132,6 +132,17 @@ MonoBehaviour:
       _isFingerIconEnabled: 0
       _fingerIconDirection: 0
       _isEffectEnabled: 0
+    - _text: "\u300E\u4E00\u9583\u300F\u3084\u6575\u306E\u653B\u6483\u306F\n\u5DE6\u30AF\u30EA\u30C3\u30AF\u306E\u30BF\u30A4\u30DF\u30F3\u30B0\u306B\u3088\u3063\u3066\u306F\n\u3053\u3061\u3089\u306B\u6709\u5229\u306B\u306A\u308B\u5834\u5408\u304C\u3042\u308B\u3002"
+      _coachMark:
+        _shape: 0
+        _isGradiate: 0
+        _radius: 100
+        _paddingRadius: 0
+        _gradiateRadius: 0
+        _targetObjectName: Canvas/Tutorial/TextBase
+      _isFingerIconEnabled: 0
+      _fingerIconDirection: 0
+      _isEffectEnabled: 0
     - _text: "\u300E\u4E00\u9583\u300F\u3068\u300E\u88C5\u5099\u54C1\u300F\u3092\u6D3B\u7528\u3057\u308D\u3002\n\u2026\u2026\u304A\u524D\u306A\u3089\u3001\u3084\u308C\u308B\u306F\u305A\u3060\u3002"
       _coachMark:
         _shape: 0
