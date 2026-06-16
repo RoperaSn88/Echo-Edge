@@ -163,6 +163,7 @@ public class BaseUnit: IEnemyUnit, IDamagable
 
     public async UniTask OnTurnStart()
     {
+        _view.FadeGauge(0f).Forget();
         _battleStatus?.TickBuffs();
         if (_unitAction == null) return;
         await _unitAction.OnTurnStart();
@@ -170,6 +171,7 @@ public class BaseUnit: IEnemyUnit, IDamagable
 
     public async UniTask OnTurnEnd()
     {
+        _view.FadeGauge(1f).Forget();
         if (_unitAction == null) return;
         await _unitAction.OnTurnEnd();
     }
