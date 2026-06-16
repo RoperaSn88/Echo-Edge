@@ -197,7 +197,7 @@ public class BattleStatus : IDamagable
         }
 
         HP -= damage;
-        Debug.Log($"ダメージをうけた 残り:{HP}");
+        
         if(HP <= 0)
         {
             return (damage, true);

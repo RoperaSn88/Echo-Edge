@@ -94,7 +94,7 @@ namespace UI.Weapon
                                 // エネルギーが足りない場合は何もしない
                                 break;
                             }
-                            {
+                            else {
                                 isSelected = true;
                                 result = WeaponActionType.Press;
                             }
