@@ -1,8 +1,14 @@
 ﻿public static class EnergyManager
 {
+    /// <summary>
+    /// プレイヤーの所持エナジー 0~10
+    /// </summary>
     private static int _currentEnergy;
     public static int CurrentEnergy => _currentEnergy;
     
+    /// <summary>
+    /// プレイヤーのエナジーゲージ 0~100
+    /// </summary>
     private static int _currentEnergyGauge;
     public static int CurrentEnergyGauge => _currentEnergyGauge;
     

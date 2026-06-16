@@ -88,7 +88,12 @@ namespace UI.Weapon
                     switch (actionType)
                     {
                         case WeaponActionType.Press:
-                            if (_targetModel.WeaponCost >= BattleManager.PlayerStatus.Energy)
+
+                            if (_targetModel.WeaponCost > EnergyManager.CurrentEnergy)
+                            {
+                                // エネルギーが足りない場合は何もしない
+                                break;
+                            }
                             {
                                 isSelected = true;
                                 result = WeaponActionType.Press;
