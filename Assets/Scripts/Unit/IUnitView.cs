@@ -25,4 +25,11 @@ public interface IUnitView
     /// ユニットを指定座標へ移動させる
     /// </summary>
     UniTask Move(int y, int x);
+
+    /// <summary>
+    /// HPゲージの透明度を設定する
+    /// </summary>
+    /// <param name="value">透明度の値（0〜1）</param>
+    /// <returns></returns>
+    UniTask FadeGauge(float value);
 }

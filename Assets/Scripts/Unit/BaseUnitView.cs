@@ -13,6 +13,11 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposab
     private int height;
 
     private int width;
+
+    /// <summary>
+    /// HPゲージのための最大HP
+    /// </summary>
+    private int _maxHP;
     
     [SerializeField]
     private Animator _animator;
@@ -21,6 +26,12 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposab
 
     [SerializeField]
     private SpriteRenderer _renderer;
+
+    [SerializeField]
+    private CanvasGroup _canvasGroup;
+
+    [SerializeField]
+    private Image _healthBar;
 
     /// <summary>
     ///  移動に使用するベクトル
@@ -72,6 +83,9 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposab
             color.a = 1f;
             _renderer.color = color;
         }
+
+        _healthBar.fillAmount = 1f;
+
         transform.localPosition = new Vector3(w, 0, h);
         await SetAnimator(enemyID);
         gameObject.SetActive(true);
@@ -136,6 +150,12 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposab
         
     }
 
+    /// <inheritdoc/>
+    public async UniTask FadeGauge(float value)
+    {
+        _canvasGroup.DOFade(value, 0.5f).SetEase(Ease.OutQuad).ToUniTask().Forget();
+    }
+
     public async UniTask Damage()
     {
         Time.timeScale = 0.001f;
@@ -153,6 +173,7 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposab
         var damageValue = await BattleManager.EnemyDamage();
         
         UIPresenter.Instance.AppearDamageText($"{damageValue.damage}", transform.position).Forget();
+        DOTween.To(() => _healthBar.fillAmount, x => _healthBar.fillAmount = x, (float)targetStatus.HP / targetStatus.MaxHP, 0.5f).SetEase(Ease.OutQuad).ToUniTask().Forget();
 
         if (damageValue.isDeath)
         {
