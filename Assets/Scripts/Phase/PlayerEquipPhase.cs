@@ -55,11 +55,13 @@ public class PlayerEquipPhase : IPhase
         playerActions.PlayerPhase.Attack.started += OnPressAttack;
         playerActions.PlayerPhase.Skill.started += OnPressSkill;
         playerActions.Enable();
+        MessageManager.Instance.AppearMessage("装備品を発動するマスを左クリックしてください").Forget();
 
         // クリックを待つ
         await UniTask.WaitUntil(() => _clickFlug);
         _clickFlug = false;
         playerActions.Dispose();
+        MessageManager.Instance.DisappearMessage().Forget();
 
         // 左クリック時はカーソル位置の床座標を保存する
         if (_clickKind == ClickKinds.Left)

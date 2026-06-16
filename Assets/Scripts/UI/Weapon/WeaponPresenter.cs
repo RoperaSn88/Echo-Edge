@@ -242,7 +242,7 @@ public class WeaponPresenter : MonoBehaviour
             {
                 foreach (var weaponCostImage in WeaponCostImages)
                 {
-                    weaponCostImage.DOFade(1, AppearTime).From(0).ToUniTask(cancellationToken: ct);
+                    weaponCostImage.DOFade(1, AppearTime).From(0).ToUniTask(cancellationToken: ct).Forget();
                 }
             }
             catch
@@ -260,7 +260,7 @@ public class WeaponPresenter : MonoBehaviour
             {
                 foreach (var weaponCostImage in WeaponCostImages)
                 {
-                    weaponCostImage.DOFade(0, AppearTime).From(1).ToUniTask(cancellationToken: ct);
+                    weaponCostImage.DOFade(0, AppearTime).From(1).ToUniTask(cancellationToken: ct).Forget();
                 }
             }
             catch
