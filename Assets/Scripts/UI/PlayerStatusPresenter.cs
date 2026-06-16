@@ -171,7 +171,7 @@ namespace UI
             public void SetPlayerHP(int value, int maxValue)
             {
                 if (maxValue == 0) throw new DivideByZeroException();
-                Debug.Log("value: " + (float)(value) / maxValue);
+                
                 if (_hpFillTween != null && _hpFillTween.active)
                 {
                     _hpFillTween.Kill();
