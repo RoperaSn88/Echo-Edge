@@ -29,7 +29,7 @@ public class TurnChangeView : MonoBehaviour
     {
         AudioManager.Instance.PlaySe(SeAudioType.TurnChange);
         _turnChangeText.gameObject.SetActive(true);
-        _turnChangeText.text = turnChangeKind == TurnChangeKinds.PlayerTurn ? "Player Turn" : "Enemy Turn";
+        _turnChangeText.text = turnChangeKind == TurnChangeKinds.PlayerTurn ? "Player Phase" : "Enemy Phase";
         _turnChangeText.transform.localScale = Vector3.one * 2f;
 
         switch (turnChangeKind)
