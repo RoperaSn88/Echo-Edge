@@ -5,9 +5,9 @@ using DG.Tweening;
 using TMPro;
 using UnityEngine;
 
-public class MessageManager : MonoBehaviour
+public class MessagePresenter : MonoBehaviour
 {
-    public static MessageManager Instance { get; private set; }
+    public static MessagePresenter Instance { get; private set; }
 
     [SerializeField] private RectTransform _messageRectTransform;
     [SerializeField] private TextMeshProUGUI _messageText;

@@ -20,17 +20,17 @@ namespace Unit.pureC.Unit
 
         public async UniTask BeforeAttack()
         {
-            await MessageManager.Instance.AppearMessage("スカイアの攻撃");
+            await MessagePresenter.Instance.AppearMessage("スカイアの攻撃");
         }
         
         public async UniTask WaitToFlyMessage()
         {
-            await MessageManager.Instance.AppearMessage("スカイアは飛び始める");
+            await MessagePresenter.Instance.AppearMessage("スカイアは飛び始める");
         }
 
         public async UniTask WaitFlyingMessage()
         {
-            await MessageManager.Instance.AppearMessage("スカイアはビームを放つ");
+            await MessagePresenter.Instance.AppearMessage("スカイアはビームを放つ");
         }
         
         /// <inheritdoc/>
@@ -73,7 +73,7 @@ namespace Unit.pureC.Unit
         
         public async UniTask BeforeSpecific()
         {
-            await MessageManager.Instance.AppearMessage("スカイアは空を飛び始めた");
+            await MessagePresenter.Instance.AppearMessage("スカイアは空を飛び始めた");
         }
         
         /// <inheritdoc/>

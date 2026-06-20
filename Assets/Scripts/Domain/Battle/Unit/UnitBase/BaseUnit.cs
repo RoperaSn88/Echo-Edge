@@ -187,7 +187,7 @@ public class BaseUnit: IEnemyUnit, IDamagable
         {
             // 攻撃をするが、遠距離か近距離かで攻撃するか変更する
             await Act();
-            await MessageManager.Instance.DisappearMessage();
+            await MessagePresenter.Instance.DisappearMessage();
         }
         
         // 移動
@@ -213,7 +213,7 @@ public class BaseUnit: IEnemyUnit, IDamagable
             // 行動をする
             // いったん攻撃か
             await Act();
-            await MessageManager.Instance.DisappearMessage();
+            await MessagePresenter.Instance.DisappearMessage();
         }
     } 
 

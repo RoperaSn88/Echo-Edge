@@ -12,13 +12,13 @@ public class DefaultUnitAction : IUnitAction
     
     public async UniTask BeforeAttack()
     {
-        await MessageManager.Instance.AppearMessage("敵の攻撃");
+        await MessagePresenter.Instance.AppearMessage("敵の攻撃");
     }
     
     /// <inheritdoc/>
     public async UniTask Attack()
     {
-        var messageManager = MessageManager.Instance;
+        var messageManager = MessagePresenter.Instance;
         if (messageManager != null)
         {
             await messageManager.AppearMessage(EnemyAttackMessage);
@@ -66,7 +66,7 @@ public class DefaultUnitAction : IUnitAction
     
     public async UniTask BeforeSpecific()
     {
-        await MessageManager.Instance.AppearMessage("特殊行動");
+        await MessagePresenter.Instance.AppearMessage("特殊行動");
     }
     
     /// <inheritdoc/>

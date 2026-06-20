@@ -29,7 +29,7 @@ namespace Unit.pureC.Unit
         
         public async UniTask BeforeAttack()
         {
-            await MessageManager.Instance.AppearMessage("ブースターの攻撃");
+            await MessagePresenter.Instance.AppearMessage("ブースターの攻撃");
         }
         
         /// <inheritdoc/>
@@ -73,7 +73,7 @@ namespace Unit.pureC.Unit
         
         public async UniTask BeforeSpecific()
         {
-            await MessageManager.Instance.AppearMessage("ブースターが加速バフを与える");
+            await MessagePresenter.Instance.AppearMessage("ブースターが加速バフを与える");
         }
 
         /// <inheritdoc/>

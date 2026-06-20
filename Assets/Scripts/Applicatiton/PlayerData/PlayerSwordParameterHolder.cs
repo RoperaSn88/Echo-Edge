@@ -1,35 +1,3 @@
-public struct SwordParameter
-{
-    public int HP;
-    public int Attack;
-    public byte ReflectCount;
-
-    public SwordParameter(int hp, int attack, byte reflectCount)
-    {
-        HP = hp;
-        Attack = attack;
-        ReflectCount = reflectCount;
-    }
-}
-
-public struct PlayerParameter
-{
-    public int HP;
-    public int Attack;
-    public int Defend;
-    public int Experience;
-    public int Level;
-
-    public PlayerParameter(int hp, int attack, int defend, int experience = 0, int level = 1)
-    {
-        HP = hp;
-        Attack = attack;
-        Defend = defend;
-        Experience = experience;
-        Level = level;
-    }
-}
-
 public static class PlayerSwordParameterHolder
 {
     public static PlayerParameter PlayerStatus { get; private set; }

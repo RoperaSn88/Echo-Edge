@@ -14,7 +14,7 @@ namespace Unit.pureC.Unit
         
         public async UniTask BeforeAttack()
         {
-            await MessageManager.Instance.AppearMessage("ビルダーの攻撃");
+            await MessagePresenter.Instance.AppearMessage("ビルダーの攻撃");
         }
         
         /// <inheritdoc/>
@@ -61,7 +61,7 @@ namespace Unit.pureC.Unit
         
         public async UniTask BeforeSpecific()
         {
-            await MessageManager.Instance.AppearMessage("ビルダーは壁を建設し始めた");
+            await MessagePresenter.Instance.AppearMessage("ビルダーは壁を建設し始めた");
         }
 
         /// <inheritdoc/>
