@@ -48,16 +48,15 @@ public static class EnemyStatusLoader
     /// 指定した ID に対応するパラメータを EnemyInfo.csv から読み取り、BattleStatus に反映する
     /// </summary>
     /// <param name="id">読み取る行の ID</param>
-    /// <param name="status">更新対象の BattleStatus</param>
     /// <returns>読み取りに成功した場合は true</returns>
-    public static async UniTask<bool> TryLoad(int id, BattleStatus status)
+    public static async UniTask<BattleStatus> TryLoad(int id)
     {
         var cache = await GetCacheAsync();
 
         if (!cache.TryGetValue(id, out var cols))
         {
             Debug.LogWarning($"ID {id} のエネミーが EnemyInfo.csv に見つかりません");
-            return false;
+            return null;
         }
 
         try
@@ -71,13 +70,13 @@ public static class EnemyStatusLoader
             int experience  = int.Parse(cols[6].Trim());
             int energy      = int.Parse(cols[7].Trim());
 
-            status.SetStatus(hp, attack, defend, move, movePattern, experience, energy);
-            return true;
+            var status = new BattleStatus(hp, attack, defend, move, movePattern, experience, energy);
+            return status;
         }
         catch (Exception e)
         {
             Debug.LogError($"EnemyInfo.csv の ID {id} の行を解析できませんでした: {e.Message}");
-            return false;
+            return null;
         }
     }
 }

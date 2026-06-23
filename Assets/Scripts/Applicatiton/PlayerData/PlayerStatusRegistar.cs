@@ -1,38 +1,35 @@
 using Unity.VisualScripting;
 using UnityEngine;
 
-public class PlayerStatusRegistar : MonoBehaviour
+public static class PlayerStatusRegistar
 {
-    [SerializeField]
-    private BattleStatus _battleStatus;
+    
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public static BattleStatus SetPlayerStatus()
     {
-        if (_battleStatus == null)
-        {
-            _battleStatus = new BattleStatus();
-        }
+        BattleStatus battleStatus = new BattleStatus(100,20,0,0,MovePattern.Invalid,0,0);
 
-        if (!PlayerSwordParameterSaveManager.HasPlayerStatusData())
+        // 初回起動の時のステータス設定
+        if(!PlayerSwordParameterSaveManager.HasPlayerStatusData())
         {
-            PlayerSwordParameterHolder.SetPlayerStatus(_battleStatus);
+            PlayerSwordParameterHolder.SetPlayerStatus(battleStatus);
         }
         if (!PlayerSwordParameterSaveManager.HasSwordStatusData())
         {
-            PlayerSwordParameterHolder.SetSwordStatus(0, 0, _battleStatus.Move);
+            PlayerSwordParameterHolder.SetSwordStatus(0, 0, battleStatus.Move);
         }
         var battleParameter = PlayerSwordParameterHolder.GetBattleStatus();
-        _battleStatus.SetStatus(
-            battleParameter.HP,
-            battleParameter.Attack,
+        battleStatus.SetStatus(
+            battleParameter.HP + PlayerSwordParameterHolder.SwordStatus.HP,
+            battleParameter.Attack + PlayerSwordParameterHolder.SwordStatus.Attack,
             battleParameter.Defend,
             battleParameter.Move,
-            _battleStatus.MovePattern,
+            battleStatus.MovePattern,
             battleParameter.Experience,
-            _battleStatus.Energy
+            battleStatus.Energy
         );
-        _battleStatus.SetLevel(battleParameter.Level);
-        BattleManager.RegisterPlayer(_battleStatus);
+        battleStatus.SetLevel(battleParameter.Level);
+        return battleStatus;
     }
 }

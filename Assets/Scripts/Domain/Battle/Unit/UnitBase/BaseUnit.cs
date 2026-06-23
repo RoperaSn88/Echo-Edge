@@ -40,12 +40,13 @@ public class BaseUnit: IEnemyUnit, IDamagable
     /// <param name="enemyId">EnemyInfo.csv の ID</param>
     public async UniTask LoadStatus(EnemyKinds enemyId)
     {
-        var status = new BattleStatus();
-        bool loaded = await EnemyStatusLoader.TryLoad((int)enemyId, status);
-        if (!loaded)
+        var status = await EnemyStatusLoader.TryLoad((int)enemyId);
+        if (status == null)
         {
             Debug.LogWarning($"enemyId {(int)enemyId} のステータスを読み込めませんでした。デフォルトステータスで起動します。");
+            return;
         }
+
         status.Initialize();
         _battleStatus = status;
         

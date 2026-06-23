@@ -201,7 +201,7 @@ public static class GameClearManager
 
     private static (int gainedExperience, int currentExperience, int level) ApplyStageClearReward()
     {
-        var playerStatus = PlayerStatusPresenter.Instance?.PlayerBattleStatus;
+        var playerStatus = BattleManager.PlayerStatus;
         if (playerStatus == null)
         {
             return (_stageEarnedExperience, 0, 1);

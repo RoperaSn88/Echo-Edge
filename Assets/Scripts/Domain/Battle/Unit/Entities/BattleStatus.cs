@@ -11,32 +11,39 @@ public class BattleStatus : IDamagable
     /// 最大HP
     /// </summary>
     [NonSerialized]
-    public int MaxHP;
+    private int _maxHP;
+
+    public int MaxHP => _maxHP;
     
     /// <summary>
     /// 体力
     /// </summary>
-    public int HP;
+    private int _hp;
+    public int HP => _hp;
 
     /// <summary>
     /// 攻撃力
     /// </summary>
-    public int Attack;
+    private int _attack;
+    public int Attack => _attack;
 
     /// <summary>
     /// 防御力
     /// </summary>
-    public int Defend;
+    private int _defend;
+    public int Defend => _defend;
     
     /// <summary>
     /// 1ターンの移動回数
     /// </summary>
-    public byte Move;
+    private byte _move;
+    public byte Move => _move;
     
     /// <summary>
     /// 攻撃をいつやるか
     /// </summary>
-    public MovePattern MovePattern;
+    private MovePattern _movePattern;
+    public MovePattern MovePattern => _movePattern;
     
     [SerializeField]
     private int _experience;
@@ -75,8 +82,13 @@ public class BattleStatus : IDamagable
 
     public void Initialize()
     {
-        MaxHP = HP;
+        _maxHP = _hp;
         _activeBuffs = new List<(IBuff, int)>();
+    }
+
+    public BattleStatus(int hp, int attack, int defend, byte move, MovePattern movePattern, int experience, int energy)
+    {
+        SetStatus(hp, attack, defend, move, movePattern, experience, energy);
     }
 
     /// <summary>
@@ -84,12 +96,12 @@ public class BattleStatus : IDamagable
     /// </summary>
     public void SetStatus(int hp, int attack, int defend, byte move, MovePattern movePattern, int experience, int energy)
     {
-        HP = hp;
-        MaxHP = hp;
-        Attack = attack;
-        Defend = defend;
-        Move = move;
-        MovePattern = movePattern;
+        _hp = hp;
+        _maxHP = hp;
+        _attack = attack;
+        _defend = defend;
+        _move = move;
+        _movePattern = movePattern;
         _experience = experience;
         _energy = energy;
     }
@@ -125,10 +137,10 @@ public class BattleStatus : IDamagable
             _level++;
             levelUpCount++;
             
-            MaxHP += 10; // レベルアップごとに最大HPが10増える
-            HP = MaxHP; // レベルアップしたらHPを全回復
-            Attack += 5; // レベルアップごとに攻撃力が5増
-            Defend += 1; // レベルアップごとに防御力が1増える
+            _maxHP += 10; // レベルアップごとに最大HPが10増える
+            _hp = _maxHP; // レベルアップしたらHPを全回復
+            _attack += 5; // レベルアップごとに攻撃力が5増
+            _defend += 1; // レベルアップごとに防御力が1増える
         }
 
         return levelUpCount;
@@ -153,6 +165,11 @@ public class BattleStatus : IDamagable
         if (HasBuff(buff.GetBuffKinds())) return;
         buff.Buff(this);
         _activeBuffs.Add((buff, durationTurns));
+    }
+
+    private void CalcurateBuffs()
+    {
+        
     }
 
     /// <summary>
@@ -196,9 +213,9 @@ public class BattleStatus : IDamagable
             damage = 0;
         }
 
-        HP -= damage;
+        _hp -= damage;
         
-        if(HP <= 0)
+        if(_hp <= 0)
         {
             return (damage, true);
         }

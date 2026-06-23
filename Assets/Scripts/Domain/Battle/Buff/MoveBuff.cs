@@ -1,14 +1,14 @@
 public class MoveBuff : IBuff
 {
     private readonly BuffKinds _kind = BuffKinds.Move;
-    private const int MoveIncrease = 1;
+    private readonly BattleStatus IncreaseStatus = new BattleStatus(0, 0, 0, 1, MovePattern.Invalid, 0, 0);
 
     /// <summary>
     /// 移動速度を1上昇させる
     /// </summary>
     public void Buff(BattleStatus targetStatus)
     {
-        targetStatus.Move += MoveIncrease;
+        
     }
 
     /// <summary>
@@ -16,7 +16,7 @@ public class MoveBuff : IBuff
     /// </summary>
     public void RemoveBuff(BattleStatus targetStatus)
     {
-        targetStatus.Move -= MoveIncrease;
+        
     }
 
     public BuffKinds GetBuffKinds()

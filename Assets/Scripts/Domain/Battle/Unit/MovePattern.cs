@@ -8,5 +8,7 @@ public enum MovePattern
     /// <summary>
     /// 攻撃後
     /// </summary>
-    After
+    After,
+
+    Invalid
 }
