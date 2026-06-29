@@ -13,6 +13,7 @@ public static class PlayerSwordParameterHolder
             : new SwordParameter(0, 0, 0);
     }
 
+
     public static void SetPlayerStatus(BattleStatus playerStatus)
     {
         if (playerStatus == null)
@@ -23,7 +24,7 @@ public static class PlayerSwordParameterHolder
         }
 
         PlayerStatus = new PlayerParameter(
-            playerStatus.HP,
+            playerStatus.MaxHP,
             playerStatus.Attack,
             playerStatus.Defend,
             playerStatus.Experience,
@@ -61,16 +62,13 @@ public static class PlayerSwordParameterHolder
 
     public static BattleStatus GetBattleStatus()
     {
-        var status = new BattleStatus();
-        status.SetStatus(
-            PlayerStatus.HP + SwordStatus.HP,
+        var status = new BattleStatus(PlayerStatus.HP + SwordStatus.HP,
             PlayerStatus.Attack + SwordStatus.Attack,
             PlayerStatus.Defend,
             SwordStatus.ReflectCount,
             default,
             PlayerStatus.Experience,
-            0
-        );
+            0);
         status.SetLevel(PlayerStatus.Level);
         return status;
     }

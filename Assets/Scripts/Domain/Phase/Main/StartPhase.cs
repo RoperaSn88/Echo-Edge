@@ -7,12 +7,14 @@ public class StartPhase : IPhase
     private static StartPhase _instance;
     public static StartPhase Instance => _instance ??= new StartPhase();
     public const string TutorialCompletedKey = "TutorialCompleted";
+    
 
     public async UniTask<IPhase> WaitPhase()
     {
         // 1. PlayerStatusPresenterからプレイヤーのデータを取得してBattleManagerにセット
+
         await UniTask.WaitUntil(() => PlayerStatusPresenter.Instance != null);
-        var status = PlayerStatusPresenter.Instance.PlayerBattleStatus;
+        var status = PlayerStatusRegistar.SetPlayerStatus();
         status.Initialize();
         BattleManager.RegisterPlayer(status);
         
