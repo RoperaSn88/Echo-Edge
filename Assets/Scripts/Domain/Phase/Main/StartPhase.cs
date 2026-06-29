@@ -11,6 +11,10 @@ public class StartPhase : IPhase
 
     public async UniTask<IPhase> WaitPhase()
     {
+        // ドメインイベントハンドラーをリセットして登録する
+        DomainEventDispatcher.Clear();
+        DefeatAllEnemiesStageClearTask.Subscribe();
+
         // 1. PlayerStatusPresenterからプレイヤーのデータを取得してBattleManagerにセット
 
         await UniTask.WaitUntil(() => PlayerStatusPresenter.Instance != null);

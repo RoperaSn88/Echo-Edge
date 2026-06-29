@@ -4,6 +4,7 @@ using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
+
 [Serializable]
 public class BattleStatus : IDamagable
 {
@@ -167,11 +168,6 @@ public class BattleStatus : IDamagable
         _activeBuffs.Add((buff, durationTurns));
     }
 
-    private void CalcurateBuffs()
-    {
-        
-    }
-
     /// <summary>
     /// EnemyPhase開始時に呼び出し、バフの残りターンを減らして期限切れのバフを消す
     /// </summary>
@@ -197,28 +193,17 @@ public class BattleStatus : IDamagable
     /// ダメージを反映させる
     /// </summary>
     /// <param name="targetAttack">相手の攻撃力</param>
-    /// <returns>死んだかどうか</returns>
-    public async UniTask<(int damage, bool isDeath)> Damage(int targetAttack)
+    /// <returns>(与えたダメージ量, 死亡したか)</returns>
+    public UniTask<(int damage, bool isDeath)> Damage(int targetAttack)
     {
-        // 無敵状態ならダメージを受けない
         if (IsInvincible)
         {
-            return (0, false);
+            return UniTask.FromResult((0, false));
         }
 
-        // ダメージ計算式
-        int damage = targetAttack - Defend / 2;
-        if (damage < 0)
-        {
-            damage = 0;
-        }
-
+        int damage = DamageCalculationService.Calculate(targetAttack, _defend);
         _hp -= damage;
-        
-        if(_hp <= 0)
-        {
-            return (damage, true);
-        }
-        return (damage, false);
+
+        return UniTask.FromResult((damage, _hp <= 0));
     }
 }

@@ -24,6 +24,8 @@ public class BaseUnit: IEnemyUnit, IDamagable
     private int moveWidth;
     public int MoveWidth => moveWidth;
 
+    public UnitPosition Position => new UnitPosition(height, width);
+
     private IUnitView _view;
 
     private BattleStatus _battleStatus;
@@ -74,13 +76,14 @@ public class BaseUnit: IEnemyUnit, IDamagable
     public async UniTask Dead()
     {
         await _unitAction.Dead();
-        
-        var h = Height;
-        var w = Width;
+
+        var position = Position;
         // 死んだら自身のいるマスを空にする
-        MapManager.Instance.RemoveUnitAt(h, w);
-        // ゲームクリア判定
-        DefeatAllEnemiesStageClearTask.OnEnemyDead(h, w, _battleStatus.Experience);
+        MapManager.Instance.RemoveUnitAt(position.Height, position.Width);
+
+        // ドメインイベントをディスパッチして、アプリケーション層のハンドラーに通知する
+        // (直接 DefeatAllEnemiesStageClearTask を呼ぶのではなく、イベント経由で疎結合にする)
+        DomainEventDispatcher.Dispatch(new EnemyDefeatedEvent(position, _battleStatus.Experience));
     }
 
     public async UniTask Attack()
