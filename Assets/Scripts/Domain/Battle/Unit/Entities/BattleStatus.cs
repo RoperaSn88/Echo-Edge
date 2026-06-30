@@ -4,22 +4,18 @@ using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
+
 [Serializable]
 public class BattleStatus : IDamagable
 {
     /// <summary>
-    /// 最大HP
+    /// HP（現在値と最大値を HitPoint Value Object で管理する）
     /// </summary>
     [NonSerialized]
-    private int _maxHP;
+    private HitPoint _hp;
 
-    public int MaxHP => _maxHP;
-    
-    /// <summary>
-    /// 体力
-    /// </summary>
-    private int _hp;
-    public int HP => _hp;
+    public int HP => _hp.Current;
+    public int MaxHP => _hp.Max;
 
     /// <summary>
     /// 攻撃力
@@ -82,7 +78,7 @@ public class BattleStatus : IDamagable
 
     public void Initialize()
     {
-        _maxHP = _hp;
+        // HitPoint は SetStatus で (current=max) として生成済みのため再設定不要
         _activeBuffs = new List<(IBuff, int)>();
     }
 
@@ -96,8 +92,7 @@ public class BattleStatus : IDamagable
     /// </summary>
     public void SetStatus(int hp, int attack, int defend, byte move, MovePattern movePattern, int experience, int energy)
     {
-        _hp = hp;
-        _maxHP = hp;
+        _hp = new HitPoint(hp, hp);
         _attack = attack;
         _defend = defend;
         _move = move;
@@ -137,10 +132,9 @@ public class BattleStatus : IDamagable
             _level++;
             levelUpCount++;
             
-            _maxHP += 10; // レベルアップごとに最大HPが10増える
-            _hp = _maxHP; // レベルアップしたらHPを全回復
-            _attack += 5; // レベルアップごとに攻撃力が5増
-            _defend += 1; // レベルアップごとに防御力が1増える
+            _hp = _hp.ExpandMax(10).FullRestore(); // 最大HP+10 & 全回復
+            _attack += 5;
+            _defend += 1;
         }
 
         return levelUpCount;
@@ -165,11 +159,6 @@ public class BattleStatus : IDamagable
         if (HasBuff(buff.GetBuffKinds())) return;
         buff.Buff(this);
         _activeBuffs.Add((buff, durationTurns));
-    }
-
-    private void CalcurateBuffs()
-    {
-        
     }
 
     /// <summary>
@@ -197,28 +186,17 @@ public class BattleStatus : IDamagable
     /// ダメージを反映させる
     /// </summary>
     /// <param name="targetAttack">相手の攻撃力</param>
-    /// <returns>死んだかどうか</returns>
-    public async UniTask<(int damage, bool isDeath)> Damage(int targetAttack)
+    /// <returns>(与えたダメージ量, 死亡したか)</returns>
+    public UniTask<(int damage, bool isDeath)> Damage(int targetAttack)
     {
-        // 無敵状態ならダメージを受けない
         if (IsInvincible)
         {
-            return (0, false);
+            return UniTask.FromResult((0, false));
         }
 
-        // ダメージ計算式
-        int damage = targetAttack - Defend / 2;
-        if (damage < 0)
-        {
-            damage = 0;
-        }
+        int damage = DamageCalculationService.Calculate(targetAttack, _defend);
+        _hp = _hp.TakeDamage(damage);
 
-        _hp -= damage;
-        
-        if(_hp <= 0)
-        {
-            return (damage, true);
-        }
-        return (damage, false);
+        return UniTask.FromResult((damage, _hp.IsDead));
     }
 }
