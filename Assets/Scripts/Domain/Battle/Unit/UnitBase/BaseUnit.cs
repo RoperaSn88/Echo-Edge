@@ -9,22 +9,11 @@ using Unit.pureC.Unit;
 public class BaseUnit: IEnemyUnit, IDamagable
 {
     [SerializeField]
-    private int height;
-    public int Height => height;
+    private UnitPosition _position;
 
-    [SerializeField]
-    private int width;
-    public int Width => width;
-
-    [SerializeField]
-    private int moveHeight;
-    public int MoveHeight => moveHeight;
-
-    [SerializeField]
-    private int moveWidth;
-    public int MoveWidth => moveWidth;
-
-    public UnitPosition Position => new UnitPosition(height, width);
+    public int Height => _position.Height;
+    public int Width => _position.Width;
+    public UnitPosition Position => _position;
 
     private IUnitView _view;
 
@@ -67,10 +56,9 @@ public class BaseUnit: IEnemyUnit, IDamagable
 
     public async void Initialize(int h, int w)
     {
-        height = h;
-        width = w;
-        await UniTask.WaitUntil(()=> MapManager.Instance);
-        MapManager.Instance.RegisterUnit(this,h,w);
+        _position = new UnitPosition(h, w);
+        await UniTask.WaitUntil(() => MapManager.Instance);
+        MapManager.Instance.RegisterUnit(this, h, w);
     }
 
     public async UniTask Dead()
@@ -226,7 +214,7 @@ public class BaseUnit: IEnemyUnit, IDamagable
         if (count <= 0) return;
 
         // 一番左ならなし
-        if (Width <= 0) return;
+        if (Position.IsLeftmost) return;
 
         var mapManager = MapManager.Instance;
         var srcH = Height;
@@ -368,30 +356,14 @@ public class BaseUnit: IEnemyUnit, IDamagable
 
     public async UniTask Move(int y, int x)
     {
-        height = y;
-        width = x;
+        _position = new UnitPosition(y, x);
         await _view.Move(y, x);
     }
 
-    public int GetMoveHeight()
-    {
-        return Height;
-    }
-
-    public int GetMoveWidth()
-    {
-        return Width;
-    }
-
-    public int GetHeight()
-    {
-        return Height;
-    }
-
-    public int GetWidth()
-    {
-        return Width;
-    }
+    public int GetMoveHeight() => Height;
+    public int GetMoveWidth() => Width;
+    public int GetHeight() => Height;
+    public int GetWidth() => Width;
 
     public BattleStatus GetStatus()
     {

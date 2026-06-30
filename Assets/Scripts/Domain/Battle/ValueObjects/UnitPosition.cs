@@ -1,8 +1,10 @@
 using System;
+using UnityEngine;
 
 /// <summary>
 /// マップ上のグリッド座標を表す Value Object。
 /// </summary>
+[Serializable]
 public readonly struct UnitPosition : IEquatable<UnitPosition>
 {
     public int Height { get; }
