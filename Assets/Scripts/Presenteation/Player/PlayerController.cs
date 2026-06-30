@@ -107,12 +107,18 @@ public class PlayerController: MonoBehaviour
         
         byte reflectCount = BattleManager.PlayerStatus.Move;
 
+        BattleManager.ResetReflectionCount();
+
         for(int i = 0; i <= reflectCount; i++)
         {
             await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
 
             _ray.origin = _pos;
             _ray.direction = _direction;
+
+            // このセグメントに到達するまでに発生した反射回数を記録する。
+            // OverlapSphere・移動中の OnTriggerEnter によるダメージ計算で参照される。
+            BattleManager.SetReflectionCount(i);
 
             if (i > 0)
             {
@@ -149,6 +155,7 @@ public class PlayerController: MonoBehaviour
 
         BattleManager.ResetQTE();
         BattleManager.ResetCombo();
+        BattleManager.ResetReflectionCount();
         UIPresenter.Instance.FadeTexts();
         
         PlayerView.Instance.Animator.SetBool("AttackingF", false);
