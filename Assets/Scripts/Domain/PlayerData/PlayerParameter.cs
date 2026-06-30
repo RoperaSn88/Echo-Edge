@@ -17,6 +17,7 @@ public readonly struct PlayerParameter
         if (hp < 0) throw new ArgumentOutOfRangeException(nameof(hp), "HPは0以上でなければなりません。");
         if (attack < 0) throw new ArgumentOutOfRangeException(nameof(attack), "攻撃力は0以上でなければなりません。");
         if (defend < 0) throw new ArgumentOutOfRangeException(nameof(defend), "防御力は0以上でなければなりません。");
+        if (experience < 0) throw new ArgumentOutOfRangeException(nameof(experience), "経験値は0以上でなければなりません。");
         HP = hp;
         Attack = attack;
         Defend = defend;

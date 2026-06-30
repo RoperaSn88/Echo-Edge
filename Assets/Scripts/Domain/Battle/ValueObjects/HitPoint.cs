@@ -24,9 +24,17 @@ public readonly struct HitPoint : IEquatable<HitPoint>
         return new HitPoint(Current - actualDamage, Max);
     }
 
-    public HitPoint Restore(int amount) => new HitPoint(Current + amount, Max);
+    public HitPoint Restore(int amount)
+    {
+        if (amount < 0) throw new ArgumentOutOfRangeException(nameof(amount), "回復量は0以上でなければなりません。");
+        return new HitPoint(Current + amount, Max);
+    }
 
-    public HitPoint ExpandMax(int amount) => new HitPoint(Current, Max + amount);
+    public HitPoint ExpandMax(int amount)
+    {
+        if (amount < 0) throw new ArgumentOutOfRangeException(nameof(amount), "最大HP増加量は0以上でなければなりません。");
+        return new HitPoint(Current, Max + amount);
+    }
 
     public HitPoint FullRestore() => new HitPoint(Max, Max);
 

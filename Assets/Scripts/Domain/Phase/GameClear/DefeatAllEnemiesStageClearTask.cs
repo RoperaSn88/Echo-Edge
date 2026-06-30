@@ -28,4 +28,14 @@ public static class DefeatAllEnemiesStageClearTask
         GameClearManager.AddStageEarnedExperience(e.ExperienceReward);
         GameClearManager.UpdateCondition();
     }
+
+    /// <summary>
+    /// 後方互換ラッパー。BaseUnitView など View 層の既存呼び出しに対応する。
+    /// 新規コードでは DomainEventDispatcher.Dispatch(new EnemyDefeatedEvent(...)) を使うこと。
+    /// </summary>
+    [System.Obsolete("DomainEventDispatcher.Dispatch(new EnemyDefeatedEvent(...)) を使ってください。")]
+    public static void OnEnemyDead(int h, int w, int experience)
+    {
+        DomainEventDispatcher.Dispatch(new EnemyDefeatedEvent(new UnitPosition(h, w), experience));
+    }
 }
