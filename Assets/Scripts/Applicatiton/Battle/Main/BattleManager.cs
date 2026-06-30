@@ -31,6 +31,17 @@ public class BattleManager : MonoBehaviour
     /// </summary>
     private static int _combo = 0;
 
+    /// <summary>
+    /// このターンの攻撃時点までに発生した反射回数。
+    /// 履歴ではなく、現在の攻撃で何回反射したかを表す。
+    /// </summary>
+    private static int _reflectionCount = 0;
+
+    /// <summary>
+    /// 反射1回あたりに加算されるダメージ倍率。(1.0 + 0.10 * n)
+    /// </summary>
+    private const float ReflectionDamageBonusPerCount = 0.10f;
+
     private const float PlayerDeathHitStopTimeScale = 0.05f;
     private const float PlayerDeathHitStopDurationSeconds = 0.2f;
     private const float PlayerDeathFadeDurationSeconds = 2.0f;
@@ -38,6 +49,11 @@ public class BattleManager : MonoBehaviour
     private static bool _isPlayerDeathStarted;
 
     public static int Combo => _combo;
+
+    /// <summary>
+    /// このターンの攻撃時点までに発生した反射回数。
+    /// </summary>
+    public static int ReflectionCount => _reflectionCount;
 
     public static void RegisterEnemy(BattleStatus targetStatus)
     {
@@ -64,6 +80,24 @@ public class BattleManager : MonoBehaviour
         ComboPresenter.Instance?.ResetCombo();
     }
 
+    /// <summary>
+    /// 現在の攻撃で発生した反射回数を設定する。
+    /// プレイヤーの移動ループから、反射段階ごとに呼び出す。
+    /// </summary>
+    /// <param name="count">攻撃時点までに発生した反射回数 (0以上)</param>
+    public static void SetReflectionCount(int count)
+    {
+        _reflectionCount = count < 0 ? 0 : count;
+    }
+
+    /// <summary>
+    /// 反射回数をリセットする。
+    /// </summary>
+    public static void ResetReflectionCount()
+    {
+        _reflectionCount = 0;
+    }
+
     public async static UniTask<(int damage, bool isDeath)> EnemyDamage()
     {
         if (!_QTEFlug)
@@ -77,7 +111,10 @@ public class BattleManager : MonoBehaviour
         float comboValue = 1.0f + (_combo - 1) * 0.1f;
         ComboPresenter.Instance?.SetCombo(_combo);
 
-        return await _enemyStatus.Damage((int)(_playerStatus.Attack * (comboValue * comboValue) * _qteResult));
+        // 反射回数に応じて基礎攻撃へ倍率を掛ける (1.0 + 0.10 * n)
+        float reflectionValue = 1.0f + ReflectionDamageBonusPerCount * _reflectionCount;
+
+        return await _enemyStatus.Damage((int)(_playerStatus.Attack * (comboValue * comboValue) * reflectionValue * _qteResult));
     }
 
     public async static UniTask<(int damage, bool isDeath)> PlayerDamage(float rate)
