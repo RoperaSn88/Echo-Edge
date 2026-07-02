@@ -31,10 +31,16 @@ public class PlayerAttackPreparationPhase : IPhase
     /// </summary>
     private ClickKinds _clickKind;
 
+    /// <summary>
+    /// マウスホイールで切り替える、めちゃくちゃ早い一閃モードかどうか
+    /// </summary>
+    private bool _isFlashAttackMode;
+
     public async UniTask<IPhase> WaitPhase()
     {
         // 初期条件
         _clickFlug = false;
+        _isFlashAttackMode = false;
         _attackGuideLine.SetMaterial(PlayerController.Instance.LineMaterial);
         CameraManager.Instance.ActMoveCameraToTopAngle();
 
@@ -54,7 +60,7 @@ public class PlayerAttackPreparationPhase : IPhase
         switch (_clickKind)
         {
             case ClickKinds.Left:
-                return PlayerAttackPhase.Instance;
+                return _isFlashAttackMode ? PlayerFlashAttackPhase.Instance : PlayerAttackPhase.Instance;
             case ClickKinds.Right:
                 return PlayerPhase.Instance;
         }
@@ -89,7 +95,8 @@ public class PlayerAttackPreparationPhase : IPhase
 
     private void OnScroll(InputAction.CallbackContext context)
     {
-        // マウスホイール操作。後ほど実装する。
+        // マウスホイールで通常の一閃と、めちゃくちゃ早い一閃を切り替える。
+        _isFlashAttackMode = !_isFlashAttackMode;
     }
 
     private void UpdateAttackGuideLine()
