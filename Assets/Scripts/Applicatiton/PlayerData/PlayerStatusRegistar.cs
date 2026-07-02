@@ -8,7 +8,7 @@ public static class PlayerStatusRegistar
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     public static BattleStatus SetPlayerStatus()
     {
-        BattleStatus battleStatus = new BattleStatus(100,20,0,0,MovePattern.Invalid,0,0);
+        BattleStatus battleStatus = new BattleStatus(100,20,0,1,MovePattern.Invalid,0,0);
 
         // 初回起動の時のステータス設定
         if(!PlayerSwordParameterSaveManager.HasPlayerStatusData())

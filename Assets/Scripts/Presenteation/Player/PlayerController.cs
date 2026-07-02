@@ -2,7 +2,6 @@ using System;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using Unity.Mathematics;
-using UnityEditor.Callbacks;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
