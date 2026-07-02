@@ -42,6 +42,11 @@ public class BattleManager : MonoBehaviour
     /// </summary>
     private const float ReflectionDamageBonusPerCount = 0.10f;
 
+    /// <summary>
+    /// めちゃくちゃ早い一閃のダメージ倍率。プレイヤーの攻撃力の何倍を基礎ダメージとするか。
+    /// </summary>
+    private const float FlashAttackDamageMultiplier = 2.5f;
+
     private const float PlayerDeathHitStopTimeScale = 0.05f;
     private const float PlayerDeathHitStopDurationSeconds = 0.2f;
     private const float PlayerDeathFadeDurationSeconds = 2.0f;
@@ -115,6 +120,15 @@ public class BattleManager : MonoBehaviour
         float reflectionValue = 1.0f + ReflectionDamageBonusPerCount * _reflectionCount;
 
         return await _enemyStatus.Damage((int)(_playerStatus.Attack * (comboValue * comboValue) * reflectionValue * _qteResult));
+    }
+
+    /// <summary>
+    /// めちゃくちゃ早い一閃によるダメージを反映する。
+    /// プレイヤーの攻撃パラメータの2.5倍を基礎ダメージとし、QTEやコンボ・反射倍率は乗算しない。
+    /// </summary>
+    public async static UniTask<(int damage, bool isDeath)> FlashAttackDamage()
+    {
+        return await _enemyStatus.Damage((int)(_playerStatus.Attack * FlashAttackDamageMultiplier));
     }
 
     public async static UniTask<(int damage, bool isDeath)> PlayerDamage(float rate)

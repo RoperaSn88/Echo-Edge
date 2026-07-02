@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using Unity.Mathematics;
@@ -57,6 +58,11 @@ public class PlayerController: MonoBehaviour
 
     private const float Speed = 23;
     private const float ReflectionDamageCheckRadius = 0.5f;
+
+    /// <summary>
+    /// めちゃくちゃ早い一閃で、敵を斬り抜ける際のトゥイーン時間
+    /// </summary>
+    private const float FlashAttackSlashDuration = 0.05f;
 
     /// <summary>
     /// 残像オブジェクトプール
@@ -162,6 +168,67 @@ public class PlayerController: MonoBehaviour
 
         _playerTransform.position = _vec;
         await UniTask.Delay(TimeSpan.FromSeconds(0.6f));
+    }
+
+    /// <summary>
+    /// めちゃくちゃ早い一閃。
+    /// プレイヤーからポインター方向へ光線を飛ばし、当たった壁の位置へ瞬時に移動する。
+    /// 光線上に敵がいる場合はプレイヤーに近い順に斬りつけたのち、壁の位置まで瞬時に移動する。
+    /// 反射回数の分だけ壁の法線で反射しながら繰り返し、最後に元の位置へ戻る。
+    /// </summary>
+    /// <param name="targetPos">ポインターの先の位置</param>
+    public async UniTask FlashMove(Vector3 targetPos)
+    {
+        Vector3 originalPosition = _playerTransform.position;
+        Vector3 pos = originalPosition;
+        Vector3 direction = new Vector3(targetPos.x - pos.x, 0, targetPos.z - pos.z).normalized;
+
+        PlayerView.Instance.Animator.SetBool("AttackingF", true);
+
+        byte reflectCount = BattleManager.PlayerStatus.Move;
+
+        for (int i = 0; i <= reflectCount; i++)
+        {
+            Ray ray = new Ray(pos, direction);
+            if (!Physics.Raycast(ray, out RaycastHit wallHit, math.INFINITY, _layerMask))
+            {
+                throw new System.Exception("当たってない...だと");
+            }
+
+            float wallDistance = Vector3.Distance(pos, wallHit.point);
+
+            // 光線に触れた敵を、プレイヤーから近い順に並べる
+            var enemyHits = Physics.RaycastAll(ray, wallDistance, ~0, QueryTriggerInteraction.Collide)
+                .Where(hit => hit.collider.CompareTag("Enemy"))
+                .OrderBy(hit => hit.distance)
+                .ToArray();
+
+            foreach (var enemyHit in enemyHits)
+            {
+                Vector3 enemyPos = enemyHit.collider.transform.position;
+
+                // 敵の位置から光線の単位ベクトル分マイナスした位置へ瞬時に移動し、プラスした位置へ斬り抜ける
+                _playerTransform.position = enemyPos - direction;
+                await _playerTransform.DOMove(enemyPos + direction, FlashAttackSlashDuration);
+
+                if (enemyHit.collider.TryGetComponent<IDamageActivator>(out var damageActivator))
+                {
+                    PlayerView.Instance.Animator.SetTrigger("AttackT");
+                    await damageActivator.FlashDamage();
+                }
+            }
+
+            // 壁の位置まで瞬時に移動する
+            _playerTransform.position = wallHit.point;
+
+            pos = wallHit.point;
+            direction = Vector3.Reflect(direction, wallHit.normal);
+        }
+
+        PlayerView.Instance.Animator.SetBool("AttackingF", false);
+
+        // z軸を含めて元の位置へ戻す
+        _playerTransform.position = originalPosition;
     }
 
     void OnCollisionEnter(Collision collision)
