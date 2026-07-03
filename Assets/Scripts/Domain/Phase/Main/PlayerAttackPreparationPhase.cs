@@ -97,6 +97,7 @@ public class PlayerAttackPreparationPhase : IPhase
     {
         // マウスホイールで通常の一閃と、めちゃくちゃ早い一閃を切り替える。
         _isFlashAttackMode = !_isFlashAttackMode;
+        Debug.Log("isFlash: " + _isFlashAttackMode);
     }
 
     private void UpdateAttackGuideLine()

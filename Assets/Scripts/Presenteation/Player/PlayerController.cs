@@ -62,7 +62,7 @@ public class PlayerController: MonoBehaviour
     /// <summary>
     /// めちゃくちゃ早い一閃で、敵を斬り抜ける際のトゥイーン時間
     /// </summary>
-    private const float FlashAttackSlashDuration = 0.05f;
+    private const float FlashAttackSlashDuration = 1f;
 
     /// <summary>
     /// 残像オブジェクトプール
@@ -180,8 +180,8 @@ public class PlayerController: MonoBehaviour
     public async UniTask FlashMove(Vector3 targetPos)
     {
         Vector3 originalPosition = _playerTransform.position;
-        Vector3 pos = originalPosition;
-        Vector3 direction = new Vector3(targetPos.x - pos.x, 0, targetPos.z - pos.z).normalized;
+        _pos = originalPosition;
+        _direction = new Vector3(targetPos.x - _pos.x, 0, targetPos.z - _pos.z).normalized;
 
         PlayerView.Instance.Animator.SetBool("AttackingF", true);
 
@@ -189,13 +189,13 @@ public class PlayerController: MonoBehaviour
 
         for (int i = 0; i <= reflectCount; i++)
         {
-            Ray ray = new Ray(pos, direction);
+            Ray ray = new Ray(_pos, _direction);
             if (!Physics.Raycast(ray, out RaycastHit wallHit, math.INFINITY, _layerMask))
             {
                 throw new System.Exception("当たってない...だと");
             }
 
-            float wallDistance = Vector3.Distance(pos, wallHit.point);
+            float wallDistance = Vector3.Distance(_pos, wallHit.point);
 
             // 光線に触れた敵を、プレイヤーから近い順に並べる
             var enemyHits = Physics.RaycastAll(ray, wallDistance, ~0, QueryTriggerInteraction.Collide)
@@ -206,10 +206,11 @@ public class PlayerController: MonoBehaviour
             foreach (var enemyHit in enemyHits)
             {
                 Vector3 enemyPos = enemyHit.collider.transform.position;
+                targetPos = new Vector3(enemyPos.x, _playerTransform.position.y, enemyPos.z);
 
                 // 敵の位置から光線の単位ベクトル分マイナスした位置へ瞬時に移動し、プラスした位置へ斬り抜ける
-                _playerTransform.position = enemyPos - direction;
-                await _playerTransform.DOMove(enemyPos + direction, FlashAttackSlashDuration);
+                _playerTransform.position = targetPos - _direction;
+                await _playerTransform.DOMove(targetPos, FlashAttackSlashDuration);
 
                 if (enemyHit.collider.TryGetComponent<IDamageActivator>(out var damageActivator))
                 {
@@ -221,14 +222,26 @@ public class PlayerController: MonoBehaviour
             // 壁の位置まで瞬時に移動する
             _playerTransform.position = wallHit.point;
 
-            pos = wallHit.point;
-            direction = Vector3.Reflect(direction, wallHit.normal);
+            _pos = wallHit.point;
+            _direction = Vector3.Reflect(_direction, wallHit.normal);
+            
+            await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
         }
+        
+        BattleManager.ResetQTE();
+        BattleManager.ResetCombo();
+        BattleManager.ResetReflectionCount();
+        UIPresenter.Instance.FadeTexts();
 
         PlayerView.Instance.Animator.SetBool("AttackingF", false);
 
         // z軸を含めて元の位置へ戻す
         _playerTransform.position = originalPosition;
+    }
+
+    void Update()
+    {
+        Debug.DrawLine(_ray.origin, _ray.origin + _direction * 100, Color.yellow);
     }
 
     void OnCollisionEnter(Collision collision)
