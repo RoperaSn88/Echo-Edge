@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using Unity.Mathematics;
@@ -58,6 +61,11 @@ public class PlayerController: MonoBehaviour
     private const float ReflectionDamageCheckRadius = 0.5f;
 
     /// <summary>
+    /// めちゃくちゃ早い一閃で、敵を斬り抜ける際のトゥイーン時間
+    /// </summary>
+    private const float FlashAttackSlashDuration = 0.1f;
+
+    /// <summary>
     /// 残像オブジェクトプール
     /// </summary>
     [SerializeField]
@@ -79,6 +87,14 @@ public class PlayerController: MonoBehaviour
     /// </summary>
     private Vector3 _lastAfterimagePosition;
 
+    /// <summary>
+    /// ダメージを与えたことのある敵のリスト。反射中に同じ敵に複数回ダメージを与えないようにするためのもの。
+    /// </summary>
+    /// <returns></returns>
+    private List<IDamageActivator> _damagedEnemies = new();
+
+    private PlayerAttackKind _attackKind;
+
     public void Start()
     {
         Instance = this;
@@ -94,6 +110,9 @@ public class PlayerController: MonoBehaviour
     /// <param name="targetPos">ポインターの先の位置</param>
     public async UniTask Move(Vector3 targetPos)
     {
+        // 通常の反射攻撃
+        _attackKind = PlayerAttackKind.ReflectAttack;
+
         UIPresenter.Instance.ResetFade();
         
         _pos = _playerTransform.position;
@@ -124,7 +143,7 @@ public class PlayerController: MonoBehaviour
                 var colliders = Physics.OverlapSphere(_ray.origin, ReflectionDamageCheckRadius);
                 foreach (var collider in colliders)
                 {
-                    TryDamageEnemy(collider);
+                    TryDamageEnemy(collider).Forget();
                 }
             }
 
@@ -163,6 +182,89 @@ public class PlayerController: MonoBehaviour
         await UniTask.Delay(TimeSpan.FromSeconds(0.6f));
     }
 
+    /// <summary>
+    /// めちゃくちゃ早い一閃。
+    /// プレイヤーからポインター方向へ光線を飛ばし、当たった壁の位置へ瞬時に移動する。
+    /// 光線上に敵がいる場合はプレイヤーに近い順に斬りつけたのち、壁の位置まで瞬時に移動する。
+    /// 反射回数の分だけ壁の法線で反射しながら繰り返し、最後に元の位置へ戻る。
+    /// </summary>
+    /// <param name="targetPos">ポインターの先の位置</param>
+    public async UniTask FlashMove(Vector3 targetPos)
+    {
+        _attackKind = PlayerAttackKind.FlashReflectAttack;
+        byte reflectCount = BattleManager.PlayerStatus.Move;
+        PlayerView.Instance.Animator.SetBool("AttackingF", true);
+        
+        // CameraManager.Instance.ActSetCameraTarget(transform.position).Forget();
+
+        Vector3 originalPosition = _playerTransform.position;
+        _pos = originalPosition;
+        _direction = new Vector3(targetPos.x - _pos.x, 0, targetPos.z - _pos.z).normalized;
+
+        await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
+
+        for (int i = 0; i <= reflectCount; i++)
+        {
+            // 反射するたびに敵のリストをクリアする。
+            _damagedEnemies.Clear();
+
+            Ray ray = new Ray(_pos, _direction);
+            if (!Physics.Raycast(ray, out RaycastHit wallHit, math.INFINITY, _layerMask))
+            {
+                throw new System.Exception("当たってない...だと");
+            }
+
+            float wallDistance = Vector3.Distance(_pos, wallHit.point);
+
+            // 光線に触れた敵を、プレイヤーから近い順に並べる
+            var enemyHits = Physics.RaycastAll(ray, wallDistance, ~0, QueryTriggerInteraction.Collide)
+                .Where(hit => hit.collider.CompareTag("Enemy"))
+                .OrderBy(hit => hit.distance)
+                .ToArray();
+
+            foreach (var enemyHit in enemyHits)
+            {
+                Vector3 enemyPos = enemyHit.collider.transform.position;
+                targetPos = new Vector3(enemyPos.x, _playerTransform.position.y, enemyPos.z);
+
+                // 敵の位置から光線の単位ベクトル分マイナスした位置へ瞬時に移動し、プラスした位置へ斬り抜ける
+                // 疑似的にダメージ与える
+                _playerTransform.position = targetPos - _direction * 0.5f;
+
+                // 移動はするが、攻撃が終了したタイミングで次の敵の位置に移動するように
+                CancellationTokenSource cts = new CancellationTokenSource();
+                var tween = _playerTransform.DOMove(targetPos, FlashAttackSlashDuration).ToUniTask(cancellationToken: cts.Token);
+                PlayerView.Instance.Animator.SetTrigger("AttackT");
+                await TryFlashDamageEnemy(enemyHit.collider);
+                cts.Cancel();
+            }
+
+            // 壁の位置まで瞬時に移動する
+            _playerTransform.position = wallHit.point - _direction * 0.5f;
+            await _playerTransform.DOMove(wallHit.point, FlashAttackSlashDuration);
+
+            _pos = wallHit.point;
+            _direction = Vector3.Reflect(_direction, wallHit.normal);
+            
+            await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
+        }
+        
+        BattleManager.ResetQTE();
+        BattleManager.ResetCombo();
+        BattleManager.ResetReflectionCount();
+        UIPresenter.Instance.FadeTexts();
+
+        PlayerView.Instance.Animator.SetBool("AttackingF", false);
+
+        // z軸を含めて元の位置へ戻す
+        _playerTransform.position = originalPosition;
+    }
+
+    void Update()
+    {
+        Debug.DrawLine(_ray.origin, _ray.origin + _direction * 100, Color.yellow);
+    }
+
     void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.CompareTag("Wall"))
@@ -180,7 +282,7 @@ public class PlayerController: MonoBehaviour
         if (Vector3.Distance(transform.position, _lastAfterimagePosition) >= _afterimageInterval)
         {
             _lastAfterimagePosition = transform.position;
-            SpawnAfterimage(transform.position, transform.rotation);
+            SpawnAfterimage(transform.position, transform.rotation).Forget();
         }
     }
 
@@ -206,11 +308,37 @@ public class PlayerController: MonoBehaviour
     /// <param name="other">相手の当たり判定</param>
     private void OnTriggerEnter(Collider other)
     {
-        TryDamageEnemy(other);
+        TryDamageEnemy(other).Forget();
     }
 
-    private void TryDamageEnemy(Collider other)
+    private async UniTask TryFlashDamageEnemy(Collider other)
     {
+        if (!other.CompareTag("Enemy"))
+        {
+            return;
+        }
+
+        if (_damagedEnemies.Contains(other.GetComponent<IDamageActivator>()))
+        {
+            return;
+        }
+
+        PlayerView.Instance.Animator.SetTrigger("AttackT");
+        if (other.TryGetComponent<IDamageActivator>(out var status))
+        {
+            _damagedEnemies.Add(status);
+            await status.FlashDamage();
+        }
+    }   
+
+    private async UniTask TryDamageEnemy(Collider other)
+    {
+        // 高速な一閃の場合、TryFlashDamageEnemyで処理するため、ここでは処理しない
+        if(_attackKind == PlayerAttackKind.FlashReflectAttack)
+        {
+            return;
+        }
+
         if (!other.CompareTag("Enemy"))
         {
             return;
@@ -219,7 +347,7 @@ public class PlayerController: MonoBehaviour
         PlayerView.Instance.Animator.SetTrigger("AttackT");
         if (other.TryGetComponent<IDamageActivator>(out var status))
         {
-            status.Damage();
+            status.Damage().Forget();
         }
     }
 }

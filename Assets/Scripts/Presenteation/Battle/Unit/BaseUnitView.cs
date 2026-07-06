@@ -158,6 +158,19 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposab
 
     public async UniTask Damage()
     {
+        await ApplyDamage(BattleManager.EnemyDamage);
+    }
+
+    /// <summary>
+    /// めちゃくちゃ早い一閃によるダメージ処理
+    /// </summary>
+    public async UniTask FlashDamage()
+    {
+        await ApplyDamage(BattleManager.FlashAttackDamage);
+    }
+
+    private async UniTask ApplyDamage(Func<UniTask<(int damage, bool isDeath)>> calculateDamage)
+    {
         Time.timeScale = 0.001f;
         CameraManager.Instance.ActSetCameraTarget(transform.position).Forget();
 
@@ -170,8 +183,8 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposab
 
         var targetStatus = targetUnit.GetStatus();
         BattleManager.RegisterEnemy(targetStatus);
-        var damageValue = await BattleManager.EnemyDamage();
-        
+        var damageValue = await calculateDamage();
+
         UIPresenter.Instance.AppearDamageText($"{damageValue.damage}", transform.position).Forget();
         DOTween.To(() => _healthBar.fillAmount, x => _healthBar.fillAmount = x, (float)targetStatus.HP / targetStatus.MaxHP, 0.5f).SetEase(Ease.OutQuad).ToUniTask().Forget();
 
