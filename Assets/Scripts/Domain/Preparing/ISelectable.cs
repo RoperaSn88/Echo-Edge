@@ -18,5 +18,7 @@ namespace UnityEngine
         /// カーソルの選択が外れた場合の処理
         /// </summary>
         public void OnDeselect();
+
+        public void ResetToDeselected();
     }
 }

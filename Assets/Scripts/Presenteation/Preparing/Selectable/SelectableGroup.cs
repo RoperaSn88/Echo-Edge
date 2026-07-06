@@ -75,6 +75,16 @@ public class SelectableGroup : MonoBehaviour, ISelectableManager
     /// </summary>
     public async UniTask<ISelectableManager> Selecting()
     {
+        foreach (var selectable in _children)
+        {
+            selectable.TryGetComponent<ISelectable>(out var item);
+            if(item == null) continue;
+            if (item == _decidedItem) continue;
+            if (SelectManager.Instance.IsPlacedAtTop(selectable)) continue;
+
+            item.ResetToDeselected();
+        }
+
         ISelectable selected;
         do
         {

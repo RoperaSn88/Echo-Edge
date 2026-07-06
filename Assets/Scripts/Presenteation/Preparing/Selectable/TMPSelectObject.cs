@@ -3,7 +3,6 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 
 /// <summary>
@@ -35,10 +34,16 @@ public abstract class TMPSelectObject : MonoBehaviour, ISelectable
     public void SetDecided(bool decided)
     {
         _isDecided = decided;
-        if (!decided)
-        {
-            AnimateToDeselected().Forget();
-        }
+        // if (!decided)
+        // {
+        //     AnimateToDeselected().Forget();
+        // }
+    }
+
+    public void ResetToDeselected()
+    {
+        _isDecided = false;
+        AnimateToDeselected().Forget();
     }
 
     private void Awake()
