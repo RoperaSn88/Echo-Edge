@@ -179,6 +179,10 @@ public class PlayerController: MonoBehaviour
     /// <param name="targetPos">ポインターの先の位置</param>
     public async UniTask FlashMove(Vector3 targetPos)
     {
+        // プレイヤーの攻撃開始時に追尾を開始する
+        
+        // CameraManager.Instance.ActSetCameraTarget(transform.position).Forget();
+
         Vector3 originalPosition = _playerTransform.position;
         _pos = originalPosition;
         _direction = new Vector3(targetPos.x - _pos.x, 0, targetPos.z - _pos.z).normalized;
@@ -186,6 +190,8 @@ public class PlayerController: MonoBehaviour
         PlayerView.Instance.Animator.SetBool("AttackingF", true);
 
         byte reflectCount = BattleManager.PlayerStatus.Move;
+
+        await UniTask.Delay(TimeSpan.FromSeconds(2f));
 
         for (int i = 0; i <= reflectCount; i++)
         {
@@ -220,7 +226,8 @@ public class PlayerController: MonoBehaviour
             }
 
             // 壁の位置まで瞬時に移動する
-            _playerTransform.position = wallHit.point;
+            _playerTransform.position = wallHit.point - _direction;
+            await _playerTransform.DOMove(wallHit.point, FlashAttackSlashDuration);
 
             _pos = wallHit.point;
             _direction = Vector3.Reflect(_direction, wallHit.normal);

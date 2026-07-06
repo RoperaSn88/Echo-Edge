@@ -24,7 +24,6 @@ public class PlayerFlashAttackPhase: IPhase
         Ray ray = Camera.main.ScreenPointToRay(CameraManager.Instance.GetMousePosition());
         Physics.Raycast(ray, out RaycastHit rch, math.INFINITY, PlayerAttackPhase.LayerNumber);
 
-        // プレイヤーの攻撃開始時に追尾を開始する
         CameraManager.Instance.StartTracking(PlayerController.Instance.transform);
 
         await PlayerController.Instance.FlashMove(rch.point);

@@ -30,10 +30,15 @@ public abstract class TMPSelectObject : MonoBehaviour, ISelectable
 
     /// <summary>
     /// 決定済みフラグを設定する。trueの場合はDeSelectによるサイズリセットを行わない。
+    /// falseに戻す際(移動完了時など)は、そのタイミングで文字サイズを即座にリセットする。
     /// </summary>
     public void SetDecided(bool decided)
     {
         _isDecided = decided;
+        if (!decided)
+        {
+            AnimateToDeselected().Forget();
+        }
     }
 
     private void Awake()
@@ -87,6 +92,14 @@ public abstract class TMPSelectObject : MonoBehaviour, ISelectable
     public async void OnDeselect()
     {
         if (_isDecided) return;
+        await AnimateToDeselected();
+    }
+
+    /// <summary>
+    /// 文字サイズ・rectサイズを非選択状態(90 / DefaultSize)へアニメーションさせる。
+    /// </summary>
+    private async UniTask AnimateToDeselected()
+    {
         var ct = ResetCancellationToken();
         await UniTask.WhenAll(
             DOTween.To(() => _text.fontSize, x => _text.fontSize = x, DeselectedFontSize, TweenDuration).ToUniTask(cancellationToken: ct),
