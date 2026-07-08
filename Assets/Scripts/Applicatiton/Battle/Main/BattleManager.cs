@@ -145,8 +145,9 @@ public class BattleManager : MonoBehaviour
         } 
 
         var result = await _playerStatus.Damage((int)(_enemyStatus.Attack * rate * _qteResult));
-        
+
         PlayerStatusPresenter.Instance.SetPlayerHP(_playerStatus.HP, _playerStatus.MaxHP);
+        PlayerView.Instance.Animator.SetTrigger("DamageT");
 
         if (result.isDeath)
         {
