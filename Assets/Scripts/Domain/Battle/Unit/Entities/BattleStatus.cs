@@ -107,6 +107,14 @@ public class BattleStatus : IDamagable
     }
 
     /// <summary>
+    /// 1ターンの移動回数を増減させる（バフ・デバフ用）
+    /// </summary>
+    public void ChangeMove(int delta)
+    {
+        _move = (byte)Mathf.Max(0, _move + delta);
+    }
+
+    /// <summary>
     /// 経験値を加算する。
     /// </summary>
     public void AddExperience(int experience)
