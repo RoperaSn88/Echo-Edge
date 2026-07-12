@@ -30,6 +30,7 @@ public class EnemyPhase: IPhase
         await MapManager.Instance.ExecuteTurnStartActions();
         await MapManager.Instance.MoveUnit();
         await MapManager.Instance.ExecuteTurnEndActions();
+        DomainEventDispatcher.Dispatch(new TurnEndedEvent());
         await CameraManager.Instance.ActResetCameraTarget();
 
         return PlayerPhase.Instance;

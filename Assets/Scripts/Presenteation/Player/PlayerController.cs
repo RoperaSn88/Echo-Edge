@@ -203,6 +203,9 @@ public class PlayerController: MonoBehaviour
 
         await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
 
+        // この一閃(FlashMove 1回)で撃破した敵の数。特殊条件(IssenMultiKill)のクリア判定に使う。
+        int defeatedCountInThisFlash = 0;
+
         for (int i = 0; i <= reflectCount; i++)
         {
             // 反射するたびに敵のリストをクリアする。
@@ -235,7 +238,10 @@ public class PlayerController: MonoBehaviour
                 CancellationTokenSource cts = new CancellationTokenSource();
                 var tween = _playerTransform.DOMove(targetPos, FlashAttackSlashDuration).ToUniTask(cancellationToken: cts.Token);
                 PlayerView.Instance.Animator.SetTrigger("AttackT");
-                await TryFlashDamageEnemy(enemyHit.collider);
+                if (await TryFlashDamageEnemy(enemyHit.collider))
+                {
+                    defeatedCountInThisFlash++;
+                }
                 cts.Cancel();
             }
 
@@ -245,10 +251,13 @@ public class PlayerController: MonoBehaviour
 
             _pos = wallHit.point;
             _direction = Vector3.Reflect(_direction, wallHit.normal);
-            
+
             await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
         }
-        
+
+        // 一閃1回で同時に撃破した敵の数をドメインイベントとして発行する
+        DomainEventDispatcher.Dispatch(new IssenMultiKillEvent(defeatedCountInThisFlash));
+
         BattleManager.ResetQTE();
         BattleManager.ResetCombo();
         BattleManager.ResetReflectionCount();
@@ -311,25 +320,28 @@ public class PlayerController: MonoBehaviour
         TryDamageEnemy(other).Forget();
     }
 
-    private async UniTask TryFlashDamageEnemy(Collider other)
+    /// <returns>この攻撃で対象を撃破したかどうか</returns>
+    private async UniTask<bool> TryFlashDamageEnemy(Collider other)
     {
         if (!other.CompareTag("Enemy"))
         {
-            return;
+            return false;
         }
 
         if (_damagedEnemies.Contains(other.GetComponent<IDamageActivator>()))
         {
-            return;
+            return false;
         }
 
         PlayerView.Instance.Animator.SetTrigger("AttackT");
         if (other.TryGetComponent<IDamageActivator>(out var status))
         {
             _damagedEnemies.Add(status);
-            await status.FlashDamage();
+            return await status.FlashDamage();
         }
-    }   
+
+        return false;
+    }
 
     private async UniTask TryDamageEnemy(Collider other)
     {

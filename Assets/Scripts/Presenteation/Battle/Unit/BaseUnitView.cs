@@ -50,6 +50,11 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposab
     /// </summary>
     private bool _isDeath;
 
+    /// <summary>
+    /// このユニットの敵種別。撃破イベントのディスパッチに使用する。
+    /// </summary>
+    private EnemyKinds _enemyKind = EnemyKinds.Invalid;
+
     private const float MoveTime = 0.15f;
     private const float DeadFadeTime = 0.5f;
 
@@ -77,6 +82,7 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposab
         width = w;
         _isDeath = false;
         _animationFlag = false;
+        _enemyKind = enemyID;
         if (_renderer != null)
         {
             var color = _renderer.color;
@@ -164,12 +170,13 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposab
     /// <summary>
     /// めちゃくちゃ早い一閃によるダメージ処理
     /// </summary>
-    public async UniTask FlashDamage()
+    /// <returns>この攻撃で対象を撃破したかどうか</returns>
+    public async UniTask<bool> FlashDamage()
     {
-        await ApplyDamage(BattleManager.FlashAttackDamage);
+        return await ApplyDamage(BattleManager.FlashAttackDamage);
     }
 
-    private async UniTask ApplyDamage(Func<UniTask<(int damage, bool isDeath)>> calculateDamage)
+    private async UniTask<bool> ApplyDamage(Func<UniTask<(int damage, bool isDeath)>> calculateDamage)
     {
         Time.timeScale = 0.001f;
         CameraManager.Instance.ActSetCameraTarget(transform.position).Forget();
@@ -178,7 +185,7 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposab
         if (targetUnit == null)
         {
             Time.timeScale = 1.0f;
-            return;
+            return false;
         }
 
         var targetStatus = targetUnit.GetStatus();
@@ -213,7 +220,7 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposab
             MapManager.Instance.RemoveUnitAt(height, width);
             if (targetUnit is IEnemyUnit)
             {
-                DefeatAllEnemiesStageClearTask.OnEnemyDead(height, width, targetStatus.Experience);
+                DomainEventDispatcher.Dispatch(new EnemyDefeatedEvent(new UnitPosition(height, width), targetStatus.Experience, _enemyKind));
             }
             //Destroyするが、後でオブジェクトプールにする
             Dispose();
@@ -226,6 +233,8 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposab
                 gameObject.SetActive(false);
             }
         }
+
+        return damageValue.isDeath;
     }
 
     public void Dead()

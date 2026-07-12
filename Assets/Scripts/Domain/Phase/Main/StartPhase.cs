@@ -13,7 +13,9 @@ public class StartPhase : IPhase
     {
         // ドメインイベントハンドラーをリセットして登録する
         DomainEventDispatcher.Clear();
-        DefeatAllEnemiesStageClearTask.Subscribe();
+        EnemyDefeatedStageClearTask.Subscribe();
+        EnduranceStageClearTask.Subscribe();
+        IssenMultiKillStageClearTask.Subscribe();
 
         // 1. PlayerStatusPresenterからプレイヤーのデータを取得してBattleManagerにセット
 

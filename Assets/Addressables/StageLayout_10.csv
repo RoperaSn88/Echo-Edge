@@ -1,3 +1,4 @@
+DefeatAllEnemies,0
 ObjectKind,Height(0~8),Width(0~15),EnemyKind
 Wall,8,13,
 Wall,7,13,

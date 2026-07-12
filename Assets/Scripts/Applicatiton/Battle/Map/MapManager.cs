@@ -49,16 +49,27 @@ public class MapManager: MonoBehaviour
         Instance = this;
     }
 
+    /// <summary>
+    /// ステージ（ウェーブ制）を構築する。WaveManager が配列0番目のウェーブから順に呼び出す。
+    /// </summary>
     public async UniTask BuildStageFromCsv()
+    {
+        await WaveManager.BuildStageAsync();
+    }
+
+    /// <summary>
+    /// 1ウェーブ分のマップ配置を構築する。
+    /// </summary>
+    /// <returns>配置された敵ユニット数</returns>
+    public async UniTask<int> BuildWave(WaveLayoutData wave)
     {
         ResetMap();
 
-        var placements = await StageLayoutLoader.GetPlacementsAsync(MapHeight, MapWidth);
         var initialEnemyCount = 0;
         await UniTask.WaitUntil(() => BuildingManager.Instance != null);
         await UniTask.WaitUntil(() => UnitSpawner.Instance != null);
 
-        foreach (var placement in placements)
+        foreach (var placement in wave.Placements)
         {
             if (placement.objectKind == StageObjectKind.Wall)
             {
@@ -77,7 +88,7 @@ public class MapManager: MonoBehaviour
             }
         }
 
-        GameClearManager.SetConditionValue(initialEnemyCount);
+        return initialEnemyCount;
     }
 
     private void RegisterWall(IUnit wall, int h, int w)

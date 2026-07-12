@@ -9,9 +9,13 @@ public sealed class EnemyDefeatedEvent : IDomainEvent
     /// <summary>撃破によって得られる経験値</summary>
     public int ExperienceReward { get; }
 
-    public EnemyDefeatedEvent(UnitPosition position, int experienceReward)
+    /// <summary>撃破された敵の種別</summary>
+    public EnemyKinds EnemyKind { get; }
+
+    public EnemyDefeatedEvent(UnitPosition position, int experienceReward, EnemyKinds enemyKind = EnemyKinds.Invalid)
     {
         Position = position;
         ExperienceReward = experienceReward;
+        EnemyKind = enemyKind;
     }
 }

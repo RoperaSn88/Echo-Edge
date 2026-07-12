@@ -1,26 +1,29 @@
 using System;
 
-public sealed class DefeatAllEnemiesStageClearObjective : IStageClearObjective
+/// <summary>
+/// 耐久型のクリア条件。開始からkターン経過するまでプレイヤーが生存していればクリアとなる。
+/// </summary>
+public sealed class EnduranceStageClearObjective : IStageClearObjective
 {
-    private const string BaseMessage = "残りの敵はあと";
-    private int _remainingEnemyCount;
+    private const string BaseMessage = "生存まであと";
+    private int _remainingTurns;
 
     public event Func<bool> OnGameClearInteraction;
 
     public string ObjectiveBaseText => BaseMessage;
 
-    public string ObjectiveConditionValue => _remainingEnemyCount.ToString();
+    public string ObjectiveConditionValue => _remainingTurns.ToString();
 
-    public void Initialize(int enemyCount)
+    public void Initialize(int requiredTurns)
     {
-        _remainingEnemyCount = Math.Max(0, enemyCount);
+        _remainingTurns = Math.Max(0, requiredTurns);
     }
 
     public void UpdateCondition(int progressValue = 0)
     {
-        if (_remainingEnemyCount > 0)
+        if (_remainingTurns > 0)
         {
-            _remainingEnemyCount--;
+            _remainingTurns--;
         }
 
         if (IsGameClearCondition())
@@ -31,7 +34,7 @@ public sealed class DefeatAllEnemiesStageClearObjective : IStageClearObjective
 
     public bool IsGameClearCondition()
     {
-        return _remainingEnemyCount <= 0;
+        return _remainingTurns <= 0;
     }
 
     public bool GameClearInteraction()

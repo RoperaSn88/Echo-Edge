@@ -19,6 +19,7 @@ public class BaseUnit: IEnemyUnit, IDamagable
 
     private BattleStatus _battleStatus;
     private IUnitAction _unitAction;
+    private EnemyKinds _enemyKind = EnemyKinds.Invalid;
 
     public BaseUnit(int h, int w)
     {
@@ -31,6 +32,7 @@ public class BaseUnit: IEnemyUnit, IDamagable
     /// <param name="enemyId">EnemyInfo.csv の ID</param>
     public async UniTask LoadStatus(EnemyKinds enemyId)
     {
+        _enemyKind = enemyId;
         var status = await EnemyStatusLoader.TryLoad((int)enemyId);
         if (status == null)
         {
@@ -70,8 +72,8 @@ public class BaseUnit: IEnemyUnit, IDamagable
         MapManager.Instance.RemoveUnitAt(position.Height, position.Width);
 
         // ドメインイベントをディスパッチして、アプリケーション層のハンドラーに通知する
-        // (直接 DefeatAllEnemiesStageClearTask を呼ぶのではなく、イベント経由で疎結合にする)
-        DomainEventDispatcher.Dispatch(new EnemyDefeatedEvent(position, _battleStatus.Experience));
+        // (直接 EnemyDefeatedStageClearTask を呼ぶのではなく、イベント経由で疎結合にする)
+        DomainEventDispatcher.Dispatch(new EnemyDefeatedEvent(position, _battleStatus.Experience, _enemyKind));
     }
 
     public async UniTask Attack()

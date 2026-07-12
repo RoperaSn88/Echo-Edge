@@ -7,5 +7,6 @@ public interface IDamageActivator
     /// <summary>
     /// めちゃくちゃ早い一閃によるダメージ処理
     /// </summary>
-    public UniTask FlashDamage();
+    /// <returns>この攻撃で対象を撃破したかどうか</returns>
+    public UniTask<bool> FlashDamage();
 }

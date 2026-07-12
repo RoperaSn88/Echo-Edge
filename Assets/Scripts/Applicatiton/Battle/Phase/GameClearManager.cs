@@ -33,22 +33,49 @@ public static class GameClearManager
     private static int _stageEarnedExperience;
 
     /// <summary>
-    /// ステージクリア条件に利用する値をキャッシュする。StartPhase から呼ぶ。
+    /// 現在構築中のウェーブが、ステージ内で最後のウェーブかどうか。
+    /// false の間はクリア条件達成時にゲームクリア演出ではなく OnWaveCleared を発火する。
     /// </summary>
-    /// <param name="conditionValue">ステージ開始時の条件値</param>
+    private static bool _isLastWave = true;
+
+    /// <summary>
+    /// 最終ウェーブでない状態でクリア条件を満たしたときに発火する。WaveManager が購読し、次のウェーブへ進行する。
+    /// </summary>
+    public static event Action OnWaveCleared;
+
+    /// <summary>
+    /// ステージクリア条件に利用する値をキャッシュする。WaveManager から各ウェーブ構築時に呼ぶ。
+    /// </summary>
+    /// <param name="conditionValue">ウェーブ開始時の条件値</param>
     public static void SetConditionValue(int conditionValue)
     {
         EnsureObjective();
         _stageClearObjective.Initialize(conditionValue);
         _isGameClearStarted = false;
-        _stageEarnedExperience = 0;
         GameClearObjectivePresenter.Instance?.SetObjective(_stageClearObjective);
     }
 
     /// <summary>
-    /// ステージクリア条件の進捗を更新する。
+    /// ステージ（全ウェーブ）を通しての進捗をリセットする。WaveManager からステージ開始時（最初のウェーブ構築前）に1度だけ呼ぶ。
     /// </summary>
-    public static void UpdateCondition()
+    public static void ResetStageProgress()
+    {
+        _stageEarnedExperience = 0;
+    }
+
+    /// <summary>
+    /// 現在構築中のウェーブが、ステージ内で最後のウェーブかどうかを設定する。WaveManager から呼ぶ。
+    /// </summary>
+    public static void SetIsLastWave(bool isLastWave)
+    {
+        _isLastWave = isLastWave;
+    }
+
+    /// <summary>
+    /// 敵撃破イベントを受けてクリア条件の進捗を更新する。「通常」「ボス」条件タイプでのみ反映される。
+    /// </summary>
+    /// <param name="enemyKind">撃破された敵の種別</param>
+    public static void NotifyEnemyDefeated(EnemyKinds enemyKind)
     {
         EnsureObjective();
         if (_isGameClearStarted) return;
@@ -56,6 +83,43 @@ public static class GameClearManager
         if (_stageClearConditionType == StageClearConditionType.DefeatAllEnemies)
         {
             _stageClearObjective.UpdateCondition();
+        }
+        else if (_stageClearConditionType == StageClearConditionType.Boss)
+        {
+            _stageClearObjective.UpdateCondition((int)enemyKind);
+        }
+
+        GameClearObjectivePresenter.Instance?.RefreshText();
+    }
+
+    /// <summary>
+    /// ターン終了イベントを受けてクリア条件の進捗を更新する。「耐久型」条件タイプでのみ反映される。
+    /// </summary>
+    public static void NotifyTurnEnded()
+    {
+        EnsureObjective();
+        if (_isGameClearStarted) return;
+
+        if (_stageClearConditionType == StageClearConditionType.Endurance)
+        {
+            _stageClearObjective.UpdateCondition();
+        }
+
+        GameClearObjectivePresenter.Instance?.RefreshText();
+    }
+
+    /// <summary>
+    /// 一閃の多重撃破イベントを受けてクリア条件の進捗を更新する。「特殊条件」条件タイプでのみ反映される。
+    /// </summary>
+    /// <param name="defeatedCount">一閃1回で同時に撃破した敵の数</param>
+    public static void NotifyIssenMultiKill(int defeatedCount)
+    {
+        EnsureObjective();
+        if (_isGameClearStarted) return;
+
+        if (_stageClearConditionType == StageClearConditionType.IssenMultiKill)
+        {
+            _stageClearObjective.UpdateCondition(defeatedCount);
         }
 
         GameClearObjectivePresenter.Instance?.RefreshText();
@@ -106,6 +170,13 @@ public static class GameClearManager
         }
 
         _isGameClearStarted = true;
+
+        if (!_isLastWave)
+        {
+            OnWaveCleared?.Invoke();
+            return true;
+        }
+
         StartGameClearSequenceAsync().Forget();
         return true;
     }
@@ -122,6 +193,12 @@ public static class GameClearManager
     {
         switch (conditionType)
         {
+            case StageClearConditionType.Endurance:
+                return new EnduranceStageClearObjective();
+            case StageClearConditionType.IssenMultiKill:
+                return new IssenMultiKillStageClearObjective();
+            case StageClearConditionType.Boss:
+                return new BossStageClearObjective();
             case StageClearConditionType.DefeatAllEnemies:
             default:
                 return new DefeatAllEnemiesStageClearObjective();
