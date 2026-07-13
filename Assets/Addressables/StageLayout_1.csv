@@ -8,7 +8,4 @@ Wall,6,12,
 Wall,2,12,
 Wall,1,12,
 Wall,0,12,
-Unit,3,7,Booster
-Unit,3,8,Booster
-Unit,3,9,Booster
-Unit,3,10,Booster
+Unit,4,10,Booster

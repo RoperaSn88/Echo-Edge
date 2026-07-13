@@ -198,6 +198,7 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposab
         }
         else
         {
+            _animator.SetTrigger("DamageT");
             UIPresenter.Instance.AppearEnergy(transform.position, targetStatus.Energy / 2).Forget();
             AudioManager.Instance.PlaySe(SeAudioType.Kill);
             VFXEmitter.Instance.Emit(VFXKinds.Defeat, transform.position);

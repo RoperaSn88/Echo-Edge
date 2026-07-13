@@ -44,6 +44,8 @@ public class AudioManager : MonoBehaviour
     /// </summary>
     public float BgmVolume => _bgmVolume;
 
+    private const float WeightBGMSound = 0.3f;
+
     /// <summary>
     /// SE音量 (0〜1)
     /// </summary>
@@ -67,7 +69,7 @@ public class AudioManager : MonoBehaviour
         _seVolume = AudioVolumeSaveManager.LoadSeVolume();
 
         AudioListener.volume = _masterVolume;
-        if (_bgmSource != null) _bgmSource.volume = _bgmVolume;
+        if (_bgmSource != null) _bgmSource.volume = _bgmVolume * WeightBGMSound;
         if (_additionalBgmSource != null) _additionalBgmSource.volume = _bgmVolume;
         foreach (var source in _seSources)
         {
@@ -93,7 +95,7 @@ public class AudioManager : MonoBehaviour
     public void SetBgmVolume(float volume)
     {
         _bgmVolume = Mathf.Clamp01(volume);
-        if (_bgmSource != null) _bgmSource.volume = _bgmVolume;
+        if (_bgmSource != null) _bgmSource.volume = _bgmVolume * WeightBGMSound;
         if (_additionalBgmSource != null) _additionalBgmSource.volume = _bgmVolume;
         AudioVolumeSaveManager.SaveVolumes(_masterVolume, _bgmVolume, _seVolume);
     }
@@ -114,24 +116,6 @@ public class AudioManager : MonoBehaviour
     public async UniTask PlayBgm(BgmAudioType bgmType, bool isLoop)
     {
         await PlayBgmAsync(bgmType, isLoop);
-    }
-
-    public void AddPlayBgm(BgmAudioType bgmType, bool isLoop)
-    {
-        _addBgmFadeCancellation?.Cancel();
-        _addBgmFadeCancellation?.Dispose();
-        _addBgmFadeCancellation = new CancellationTokenSource();
-
-        AddPlayBgmAsync(bgmType, isLoop, _addBgmFadeCancellation.Token).Forget();
-    }
-
-    public void StopAddedBgm()
-    {
-        _addBgmFadeCancellation?.Cancel();
-        _addBgmFadeCancellation?.Dispose();
-        _addBgmFadeCancellation = new CancellationTokenSource();
-
-        StopAddedBgmAsync(_addBgmFadeCancellation.Token).Forget();
     }
 
     public void PlaySe(SeAudioType seType)
@@ -158,12 +142,12 @@ public class AudioManager : MonoBehaviour
         }
 
         _bgmSource.loop = isLoop;
-        _bgmSource.volume = 1.0f;
+        _bgmSource.volume = 1.0f * WeightBGMSound;
         _bgmSource.clip = clip;
         _bgmSource.Play();
     }
 
-    private async UniTaskVoid AddPlayBgmAsync(BgmAudioType bgmType, bool isLoop, CancellationToken cancellationToken)
+    public async UniTaskVoid AddPlayBgmAsync(BgmAudioType bgmType, bool isLoop, CancellationToken cancellationToken)
     {
         if (_additionalBgmSource == null)
         {

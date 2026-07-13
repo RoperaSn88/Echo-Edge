@@ -59,6 +59,8 @@ public class BattleManager : MonoBehaviour
     /// このターンの攻撃時点までに発生した反射回数。
     /// </summary>
     public static int ReflectionCount => _reflectionCount;
+    
+    private static CancellationTokenSource _cancellationTokenSource;
 
     public static void RegisterEnemy(BattleStatus targetStatus)
     {
@@ -133,6 +135,9 @@ public class BattleManager : MonoBehaviour
 
     public async static UniTask<(int damage, bool isDeath)> PlayerDamage(float rate)
     {
+        _cancellationTokenSource?.Cancel();
+        _cancellationTokenSource = new();
+        
         if (_isPlayerDeathStarted)
         {
             return (0, true);
@@ -146,7 +151,19 @@ public class BattleManager : MonoBehaviour
 
         var result = await _playerStatus.Damage((int)(_enemyStatus.Attack * rate * _qteResult));
         
+        var playerHpRate = (float)_playerStatus.HP / _playerStatus.MaxHP;
+        if (playerHpRate < 0.3f)
+        {
+            AudioManager.Instance.AddPlayBgmAsync(BgmAudioType.Pinch, true, _cancellationTokenSource.Token).Forget();
+        }
+        else
+        {
+            AudioManager.Instance.FadeAddedBGMAsync(0.5f, _cancellationTokenSource.Token).Forget();
+        }
+        
+
         PlayerStatusPresenter.Instance.SetPlayerHP(_playerStatus.HP, _playerStatus.MaxHP);
+        PlayerView.Instance.Animator.SetTrigger("DamageT");
 
         if (result.isDeath)
         {
