@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -64,10 +65,9 @@ namespace UI
             _playerHp.SetPlayerHP(value, maxValue);
             
             // HPが2割未満ならば赤色にする
-            if(value < maxValue * 0.2f)
+            if(value < maxValue * 0.3f)
             {
                 _playerHp.SetColorCode(RedColor);
-                // _castleHp.SetColorCode(RedColor);
                 _energy.SetColorCode(RedColor);
                 ShowAttentionGradiate(AttentionKinds.Red);
             }
@@ -119,7 +119,7 @@ namespace UI
             }
             _attentionGradiate.gameObject.SetActive(true);
             _attentionGradiate.color = new Color(_attentionGradiate.color.r, _attentionGradiate.color.g, _attentionGradiate.color.b, 0);
-            _attentionGradiate.DOFade((10/255), ChangeColorTime).SetEase(Ease.OutQuad);
+            _attentionGradiate.DOFade((10f/255), ChangeColorTime).SetEase(Ease.OutQuad);
         }
 
         public void HideAttentionGradiate()
