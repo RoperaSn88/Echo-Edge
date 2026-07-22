@@ -47695,6 +47695,7 @@ GameObject:
   - component: {fileID: 589817758}
   - component: {fileID: 589817757}
   - component: {fileID: 589817759}
+  - component: {fileID: 589817760}
   m_Layer: 0
   m_Name: buildingManager
   m_TagString: Untagged
@@ -47715,7 +47716,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BuildingManager
   wallStack: {fileID: 589817759}
-  builderWallStack: {fileID: 589817759}
+  builderWallStack: {fileID: 589817760}
 --- !u!4 &589817758
 Transform:
   m_ObjectHideFlags: 0
@@ -47747,6 +47748,22 @@ MonoBehaviour:
   wallsParent: {fileID: 1076311551}
   initialPoolSize: 16
   builderInitialPoolSize: 3
+--- !u!114 &589817760
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 589817756}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5dfef8a9cf386ec429ecad17d6d849a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WallStack
+  wallPrefab: {fileID: -6328402260199889515, guid: 05cf9beb108a3594fb82a7572e521ee8, type: 3}
+  wallsParent: {fileID: 1076311551}
+  initialPoolSize: 16
+  builderInitialPoolSize: 8
 --- !u!1001 &591410220
 PrefabInstance:
   m_ObjectHideFlags: 0
