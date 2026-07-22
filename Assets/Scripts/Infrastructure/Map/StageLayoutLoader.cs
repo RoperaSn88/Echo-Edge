@@ -1,26 +1,20 @@
 using System;
 using System.Collections.Generic;
-using Cysharp.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 
 /// <summary>
 /// ステージ構築用 CSV の読み込み
 /// </summary>
 public static class StageLayoutLoader
 {
-    private const string CsvAddressFormat = "Assets/Addressables/StageLayout_{0}.csv";
-
-    public static async UniTask<IReadOnlyList<StagePlacementData>> GetPlacementsAsync(int mapHeight, int mapWidth)
+    public static IReadOnlyList<StagePlacementData> GetPlacements(TextAsset csv, int mapHeight, int mapWidth)
     {
         var placements = new List<StagePlacementData>();
         var occupied = new HashSet<(int height, int width)>();
 
-        var csvAddress = string.Format(CsvAddressFormat, StageData.Level);
-        var csv = await Addressables.LoadAssetAsync<TextAsset>(csvAddress);
         if (csv == null)
         {
-            Debug.LogError($"ステージ {StageData.Level} の CSV が見つかりません (address: {csvAddress})");
+            Debug.LogError($"ステージ {StageData.Level} のウェーブ {WaveManager.CurrentWaveIndex} の CSV が見つかりません");
             return placements;
         }
 

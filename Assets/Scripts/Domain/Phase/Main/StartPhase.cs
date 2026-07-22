@@ -34,9 +34,11 @@ public class StartPhase : IPhase
         EnergyWallManager.Reset();
         BattleManager.ResetQTE();
         BattleManager.ResetCombo();
+        GameClearManager.ResetStageExperience();
 
-        // 2. 敵や壁の配置が完了するまでawait
+        // 2. ウェーブ定義を読み込み、0番目のウェーブから敵や壁の配置が完了するまでawait
         await UniTask.WaitUntil(() => MapManager.Instance != null);
+        await WaveManager.LoadStageWavesAsync();
         await MapManager.Instance.BuildStageFromCsv();
 
         // 3. Panelをフェードイン

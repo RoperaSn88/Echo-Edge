@@ -31,6 +31,6 @@ public class PlayerFlashAttackPhase: IPhase
         // 追尾を終了する
         CameraManager.Instance.StopTracking();
 
-        return EnemyPhase.Instance;
+        return await WaveManager.ResolvePhaseAfterAttackAsync();
     }
 }
