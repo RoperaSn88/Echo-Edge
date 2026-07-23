@@ -32,10 +32,11 @@ public class NextWaveView: MonoBehaviour
         AudioManager.Instance.PlaySe(SeAudioType.NextWave);
         _particleSystem.Play();
         _canvasGroup.gameObject.SetActive(true);
+        _textRect.anchoredPosition = new Vector2(TextMoveDistance * 1.5f, _textRect.anchoredPosition.y);
         
         await UniTask.WhenAll(
             _canvasGroup.DOFade(1f, 0.5f).ToUniTask(),
-            _textRect.DOLocalMoveX(TextMoveDistance, ShowTime).SetEase(Ease.OutQuad).ToUniTask()
+            _textRect.DOAnchorPosX(TextMoveDistance, ShowTime).SetEase(Ease.OutQuad).ToUniTask()
         );
     }
     
@@ -43,7 +44,7 @@ public class NextWaveView: MonoBehaviour
     {
         await UniTask.WhenAll(
             _canvasGroup.DOFade(0f, 0.5f).ToUniTask(),
-            _textRect.DOScale(0.5f, 0.5f).SetEase(Ease.InQuad).ToUniTask()
+            _textRect.DOAnchorPosX(TextMoveDistance/2, ShowTime).SetEase(Ease.InQuad).ToUniTask()
         );
         _canvasGroup.gameObject.SetActive(false);
         _particleSystem.Stop();

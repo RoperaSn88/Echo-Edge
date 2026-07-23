@@ -62,7 +62,7 @@ public class PlayerAttackPreparationPhase : IPhase
             case ClickKinds.Left:
                 return _isFlashAttackMode ? PlayerFlashAttackPhase.Instance : PlayerAttackPhase.Instance;
             case ClickKinds.Right:
-                await CameraManager.Instance.ActResetCameraTarget();
+                await CameraManager.Instance.ActMoveCameraToDefault();
                 return PlayerPhase.Instance;
         }
 
