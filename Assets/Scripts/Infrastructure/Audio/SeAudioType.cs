@@ -10,4 +10,5 @@ public enum SeAudioType
     EnemyTurn,
     Decide,
     TurnChange,
+    NextWave,
 }

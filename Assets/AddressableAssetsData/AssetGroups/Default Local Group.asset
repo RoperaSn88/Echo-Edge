@@ -20,6 +20,21 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1218d68554e14d139be3fc08ef0c4565
+    m_Address: Assets/Addressables/StageWaves/WaveSet/StageWaveSet_9.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 139496ff95334c3e8d4520705201ca89
+    m_Address: Assets/Addressables/StageWaves/WaveSet/StageWaveSet_10.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 16e55137533941339b7ae6413565df74
+    m_Address: Assets/Addressables/StageWaves/WaveSet/StageWaveSet_3.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 1f118d5e95b62574eb426102960b9294
     m_Address: Assets/Addressables/Audio/BGM/Title.wav
     m_ReadOnly: 0
@@ -27,6 +42,16 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 28f71623dea101146b65d1378caeb306
     m_Address: Assets/Addressables/StageWaves/StageLayout_4.csv
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3680a95fec21440db6d0c6a73bff80d1
+    m_Address: Assets/Addressables/StageWaves/WaveSet/StageWaveSet_7.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 46a2bb1a910b4ba9ad1050a72c83349c
+    m_Address: Assets/Addressables/StageWaves/WaveSet/StageWaveSet_2.asset
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -42,6 +67,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 5cca891ffc476c84ea2888d1a1ab9ae6
     m_Address: Assets/Addressables/StageWaves/StageLayout_10.csv
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 628d757cf9124d8f857d16610be92d71
+    m_Address: Assets/Addressables/StageWaves/WaveSet/StageWaveSet_6.asset
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -70,8 +100,18 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8fc8f33b102d4103aa7a1e27b832be74
+    m_Address: Assets/Addressables/StageWaves/WaveSet/StageWaveSet_4.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 9cb6074127301604692f33d2b6875d27
     m_Address: Assets/Addressables/Audio/SE/QTE_Good.wav
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9f1c5d68e3cf4054829effa7c1e30237
+    m_Address: Assets/Addressables/StageWaves/WaveSet/StageWaveSet_5.asset
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -135,6 +175,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d00de0979fbf452ebbb8dc71fae8d9b7
+    m_Address: Assets/Addressables/StageWaves/WaveSet/StageWaveSet_8.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: de59da08bd7212d4dab62e142014941c
     m_Address: Assets/Addressables/Audio/SE/Attack.wav
     m_ReadOnly: 0
@@ -142,6 +187,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: e20284c36052d1e499b65362a4fbc21f
     m_Address: Assets/Addressables/EnemyInfo.csv
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e357f78e625a44b6867df0c13c5e8076
+    m_Address: Assets/Addressables/StageWaves/WaveSet/StageWaveSet_1.asset
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -162,56 +212,6 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: fff9ab474f0f5874a869b14e6de7a377
     m_Address: Assets/Addressables/Audio/BGM/Battle.wav
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: e357f78e625a44b6867df0c13c5e8076
-    m_Address: Assets/Addressables/StageWaves/StageWaveSet_1.asset
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 46a2bb1a910b4ba9ad1050a72c83349c
-    m_Address: Assets/Addressables/StageWaves/StageWaveSet_2.asset
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 16e55137533941339b7ae6413565df74
-    m_Address: Assets/Addressables/StageWaves/StageWaveSet_3.asset
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 8fc8f33b102d4103aa7a1e27b832be74
-    m_Address: Assets/Addressables/StageWaves/StageWaveSet_4.asset
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 9f1c5d68e3cf4054829effa7c1e30237
-    m_Address: Assets/Addressables/StageWaves/StageWaveSet_5.asset
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 628d757cf9124d8f857d16610be92d71
-    m_Address: Assets/Addressables/StageWaves/StageWaveSet_6.asset
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 3680a95fec21440db6d0c6a73bff80d1
-    m_Address: Assets/Addressables/StageWaves/StageWaveSet_7.asset
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: d00de0979fbf452ebbb8dc71fae8d9b7
-    m_Address: Assets/Addressables/StageWaves/StageWaveSet_8.asset
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 1218d68554e14d139be3fc08ef0c4565
-    m_Address: Assets/Addressables/StageWaves/StageWaveSet_9.asset
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 139496ff95334c3e8d4520705201ca89
-    m_Address: Assets/Addressables/StageWaves/StageWaveSet_10.asset
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

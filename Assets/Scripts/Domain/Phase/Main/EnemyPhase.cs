@@ -1,7 +1,5 @@
 using Cysharp.Threading.Tasks;
-using System.Threading;
 using UnityEngine;
-using System;
 
 public class EnemyPhase: IPhase
 {
@@ -24,7 +22,7 @@ public class EnemyPhase: IPhase
     public async UniTask<IPhase> WaitPhase()
     {
         _clickFlug = false;
-        await UIPresenter.Instance.TurnChangeView.ShowTurnChange(TurnChangeKinds.EnemyTurn);
+        await TurnChangeView.Instance.ShowTurnChange(TurnChangeKinds.EnemyTurn);
         EnemyPhaseStartActivator.ExecuteEnemyPhaseStartActions();
         BuildingManager.Instance?.ExecuteTurnStartActions();
         await MapManager.Instance.ExecuteTurnStartActions();

@@ -7,7 +7,7 @@ using UnityEngine.AddressableAssets;
 /// </summary>
 public static class WaveManager
 {
-    private const string WaveSetAddressFormat = "Assets/Addressables/StageWaves/StageWaveSet_{0}.asset";
+    private const string WaveSetAddressFormat = "Assets/Addressables/StageWaves/WaveSet/StageWaveSet_{0}.asset";
 
     private static TextAsset[] _waveCsvList = System.Array.Empty<TextAsset>();
 
@@ -57,8 +57,7 @@ public static class WaveManager
         if (GameClearManager.GameClearCondition() && HasNextWave)
         {
             CurrentWaveIndex++;
-            await MapManager.Instance.BuildStageFromCsv();
-            return PlayerPhase.Instance;
+            return NextWavePhase.Instance;
         }
 
         return EnemyPhase.Instance;
