@@ -30,7 +30,7 @@ public class PlayerPhase: IPhase
     {
         // 初期条件
         _clickFlug = false;
-        await UIPresenter.Instance.TurnChangeView.ShowTurnChange(TurnChangeKinds.PlayerTurn);
+        await TurnChangeView.Instance.ShowTurnChange(TurnChangeKinds.PlayerTurn);
         PlayerActions playerActions = new PlayerActions();
         EnableController(playerActions);
 

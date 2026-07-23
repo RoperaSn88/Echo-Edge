@@ -38,10 +38,6 @@ public class UIPresenter : MonoBehaviour
     [SerializeField, Tooltip("シーン開始時のフェードに使用するパネル")]
     private Image _fadePanel;
 
-    [SerializeField]
-    private TurnChangeView _turnChangeView;
-    public TurnChangeView TurnChangeView => _turnChangeView;
-
     [SerializeField, Tooltip("フェード時間")]
     private float _fadeDuration = 1.0f;
 

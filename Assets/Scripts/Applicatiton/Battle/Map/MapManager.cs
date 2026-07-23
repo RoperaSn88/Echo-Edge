@@ -52,8 +52,9 @@ public class MapManager: MonoBehaviour
     public async UniTask BuildStageFromCsv()
     {
         ResetMap();
+        BuildingManager.Instance?.ResetWalls();
 
-        var placements = await StageLayoutLoader.GetPlacementsAsync(MapHeight, MapWidth);
+        var placements = StageLayoutLoader.GetPlacements(WaveManager.CurrentWaveCsv, MapHeight, MapWidth);
         var initialEnemyCount = 0;
         await UniTask.WaitUntil(() => BuildingManager.Instance != null);
         await UniTask.WaitUntil(() => UnitSpawner.Instance != null);

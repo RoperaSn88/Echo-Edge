@@ -75,6 +75,21 @@ public class BuildingManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 現在配置されている壁をすべてプールに返却します（ウェーブ切り替え時に使用）。
+    /// </summary>
+    public void ResetWalls()
+    {
+        if (wallStack != null)
+        {
+            foreach (var wall in _activeWalls)
+            {
+                wallStack.ReturnWall(wall.view);
+            }
+        }
+        _activeWalls.Clear();
+    }
+
     public bool TrySetBuilderWall(int h, int w)
     {
         if (builderWallStack == null || MapManager.Instance == null)

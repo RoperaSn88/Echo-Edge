@@ -41,8 +41,16 @@ public static class GameClearManager
         EnsureObjective();
         _stageClearObjective.Initialize(conditionValue);
         _isGameClearStarted = false;
-        _stageEarnedExperience = 0;
         GameClearObjectivePresenter.Instance?.SetObjective(_stageClearObjective);
+    }
+
+    /// <summary>
+    /// ステージで獲得した経験値をリセットする。ステージ開始時（StartPhase）から呼ぶ。
+    /// ウェーブが切り替わっても経験値は引き継ぐため、ウェーブ切り替え時には呼ばない。
+    /// </summary>
+    public static void ResetStageExperience()
+    {
+        _stageEarnedExperience = 0;
     }
 
     /// <summary>
@@ -100,7 +108,7 @@ public static class GameClearManager
 
     private static bool TryStartGameClearSequence()
     {
-        if (_isGameClearStarted || !GameClearCondition())
+        if (_isGameClearStarted || !GameClearCondition() || WaveManager.HasNextWave)
         {
             return false;
         }
