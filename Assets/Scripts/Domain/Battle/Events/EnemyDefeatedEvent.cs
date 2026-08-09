@@ -1,7 +1,7 @@
 /// <summary>
 /// 敵ユニットが撃破されたときに発行されるドメインイベント。
 /// </summary>
-public sealed class EnemyDefeatedEvent : IDomainEvent
+public struct EnemyDefeatedEvent : IDomainEvent
 {
     /// <summary>撃破された敵の座標</summary>
     public UnitPosition Position { get; }

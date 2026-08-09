@@ -1,4 +1,5 @@
 using Cysharp.Threading.Tasks;
+using Domain.Phase.GameClear;
 using UnityEngine;
 
 public class EnemyPhase: IPhase
@@ -29,6 +30,8 @@ public class EnemyPhase: IPhase
         await MapManager.Instance.MoveUnit();
         await MapManager.Instance.ExecuteTurnEndActions();
         await CameraManager.Instance.ActResetCameraTarget();
+
+        DomainEventDispatcher.Dispatch(new TurnEndEvent());
 
         return PlayerPhase.Instance;
     }

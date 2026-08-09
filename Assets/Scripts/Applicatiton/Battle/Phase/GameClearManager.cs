@@ -1,6 +1,8 @@
 using System;
 using System.Threading;
+using Applicatiton.Battle.Phase;
 using Cysharp.Threading.Tasks;
+using Domain.Phase.GameClear;
 using UI;
 using UnityEngine;
 
@@ -9,135 +11,68 @@ using UnityEngine;
 /// </summary>
 public static class GameClearManager
 {
-    private static IStageClearObjective _stageClearObjective;
-    private static StageClearConditionType _stageClearConditionType = StageClearConditionType.DefeatAllEnemies;
+    private static IStageClearTask _currentTask;
+    private static bool _isClear;
+    public static bool IsClear => _isClear;
+    
+    private static bool _gameClearAsyncStarted;
 
     /// <summary>
-    /// 最後に倒した敵の高さ座標
+    /// このステージで使うクリア条件タスクを切り替える。ステージ開始時（StartPhase）から呼ぶ。
+    /// 直前のタスクの購読を解除し、新しいタスクの購読を開始する。
     /// </summary>
-    private static int _lastEnemyH;
-
-    /// <summary>
-    /// 最後に倒した敵の横座標
-    /// </summary>
-    private static int _lastEnemyW;
-
-    /// <summary>
-    /// ゲームクリア演出が開始済みか
-    /// </summary>
-    private static bool _isGameClearStarted;
-
-    /// <summary>
-    /// ステージで獲得した経験値
-    /// </summary>
-    private static int _stageEarnedExperience;
-
-    /// <summary>
-    /// ステージクリア条件に利用する値をキャッシュする。StartPhase から呼ぶ。
-    /// </summary>
-    /// <param name="conditionValue">ステージ開始時の条件値</param>
-    public static void SetConditionValue(int conditionValue)
+    public static void SetStageClearConditionType(StageClearConditionType conditionType)
     {
-        EnsureObjective();
-        _stageClearObjective.Initialize(conditionValue);
-        _isGameClearStarted = false;
-        GameClearObjectivePresenter.Instance?.SetObjective(_stageClearObjective);
+        _currentTask?.Unsubscribe();
+        _currentTask = CreateTask(conditionType);
+        _currentTask.Subscribe();
+        _isClear = false;
     }
 
     /// <summary>
-    /// ステージで獲得した経験値をリセットする。ステージ開始時（StartPhase）から呼ぶ。
-    /// ウェーブが切り替わっても経験値は引き継ぐため、ウェーブ切り替え時には呼ばない。
+    /// ステージ（ウェーブ）開始時に、現在アクティブなタスクへ条件の初期値を渡す。
     /// </summary>
-    public static void ResetStageExperience()
+    public static void Initialize(int conditionValue)
     {
-        _stageEarnedExperience = 0;
+        _currentTask?.Initialize(conditionValue);
     }
 
-    /// <summary>
-    /// ステージクリア条件の進捗を更新する。
-    /// </summary>
-    public static void UpdateCondition()
+    private static IStageClearTask CreateTask(StageClearConditionType conditionType)
     {
-        EnsureObjective();
-        if (_isGameClearStarted) return;
-
-        if (_stageClearConditionType == StageClearConditionType.DefeatAllEnemies)
+        switch (conditionType)
         {
-            _stageClearObjective.UpdateCondition();
+            case StageClearConditionType.Endurance:
+                return new EndureStageClearTask();
+            case StageClearConditionType.DefeatAllEnemies:
+            default:
+                return new DefeatAllEnemiesStageClearTask();
         }
-
-        GameClearObjectivePresenter.Instance?.RefreshText();
     }
 
-    public static void UpdateLastEnemyPosition(int h, int w)
+    /// <summary>
+    /// ステージクリア条件の進捗表示を更新する。
+    /// </summary>
+    public static void UpdateText(string context, int value)
     {
-        _lastEnemyH = h;
-        _lastEnemyW = w;
+        GameClearConditionView.Instance.RefreshText(context, value);
     }
 
-    public static void AddStageEarnedExperience(int value)
+    public static void SetStageClearCondition(bool isClear)
     {
-        _stageEarnedExperience += value;
+        _isClear = isClear;
     }
 
     public static bool GameClearCondition()
     {
-        EnsureObjective();
-        return _stageClearObjective.IsGameClearCondition();
+        if (IsClear && WaveManager.HasNextWave) return true;
+        return false;
     }
 
-    public static bool GameClearInteraction()
+    public static async UniTask StartGameClearSequenceAsync()
     {
-        EnsureObjective();
-        return _stageClearObjective.GameClearInteraction();
-    }
-
-    public static void SetStageClearConditionType(StageClearConditionType conditionType)
-    {
-        _stageClearConditionType = conditionType;
-
-        if (_stageClearObjective != null)
-        {
-            _stageClearObjective.OnGameClearInteraction -= TryStartGameClearSequence;
-        }
-
-        _stageClearObjective = CreateObjective(_stageClearConditionType);
-        _stageClearObjective.OnGameClearInteraction += TryStartGameClearSequence;
-        GameClearObjectivePresenter.Instance?.SetObjective(_stageClearObjective);
-    }
-
-    private static bool TryStartGameClearSequence()
-    {
-        if (_isGameClearStarted || !GameClearCondition() || WaveManager.HasNextWave)
-        {
-            return false;
-        }
-
-        _isGameClearStarted = true;
-        StartGameClearSequenceAsync().Forget();
-        return true;
-    }
-
-    private static void EnsureObjective()
-    {
-        if (_stageClearObjective == null)
-        {
-            SetStageClearConditionType(_stageClearConditionType);
-        }
-    }
-
-    private static IStageClearObjective CreateObjective(StageClearConditionType conditionType)
-    {
-        switch (conditionType)
-        {
-            case StageClearConditionType.DefeatAllEnemies:
-            default:
-                return new DefeatAllEnemiesStageClearObjective();
-        }
-    }
-
-    private static async UniTask StartGameClearSequenceAsync()
-    {
+        if(_gameClearAsyncStarted) return;  
+        _gameClearAsyncStarted = true;
+        
         // 1. 暗転する
         await UIPresenter.Instance.FadeOutAsync(0.01f);
 
@@ -158,7 +93,7 @@ public static class GameClearManager
 
         // 4. 暗転をやめて表示する
         await UIPresenter.Instance.FadeInAsync(0.01f);
-        var reward = ApplyStageClearReward();
+        var reward = GameReward.ApplyStageClearReward();
         Time.timeScale = 0.0f;
         await GameClearRewardPresenter.Instance.ShowAsync(reward.level, reward.gainedExperience, reward.currentExperience);
 
@@ -203,23 +138,7 @@ public static class GameClearManager
         // 最後に倒した敵から下1マス、横3マスの壁を削除する
         for (int offsetW = -1; offsetW <= 1; offsetW++)
         {
-            BuildingManager.Instance.TryRemoveWallAt(_lastEnemyH - 1, _lastEnemyW + offsetW);
+            BuildingManager.Instance.TryRemoveWallAt(GameReward.LastEnemyH - 1, GameReward.LastEnemyW + offsetW);
         }
-    }
-
-    private static (int gainedExperience, int currentExperience, int level) ApplyStageClearReward()
-    {
-        var playerStatus = BattleManager.PlayerStatus;
-        if (playerStatus == null)
-        {
-            return (_stageEarnedExperience, 0, 1);
-        }
-
-        playerStatus.AddExperience(_stageEarnedExperience);
-        playerStatus.LevelUp();
-        PlayerSwordParameterHolder.SetPlayerProgress(playerStatus.Experience, playerStatus.Level);
-        PlayerSwordParameterHolder.SetPlayerStatus(playerStatus);
-
-        return (_stageEarnedExperience, playerStatus.Experience, playerStatus.Level);
     }
 }

@@ -7,6 +7,58 @@ using UnityEngine;
 /// </summary>
 public static class StageLayoutLoader
 {
+    /// <summary>
+    /// CSV の1行目（クリア条件行）と2行目（ヘッダー行）を除いた、配置データが始まる行番号
+    /// </summary>
+    private const int PlacementStartLine = 2;
+
+    /// <summary>
+    /// CSV の1行目から、ステージクリア条件（種類と値）を読み取ります。
+    /// 1列目が条件種別ID、2列目が条件に必要な値です（種類によっては未使用）。
+    /// 形式が不正な場合は DefeatAllEnemies（値0）を返します。
+    /// </summary>
+    public static StageClearConditionData GetClearCondition(TextAsset csv)
+    {
+        var fallback = new StageClearConditionData
+        {
+            conditionType = StageClearConditionType.DefeatAllEnemies,
+            conditionValue = 0
+        };
+
+        if (csv == null)
+        {
+            Debug.LogError($"ステージ {StageData.Level} のウェーブ {WaveManager.CurrentWaveIndex} の CSV が見つかりません");
+            return fallback;
+        }
+
+        var lines = csv.text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        if (lines.Length == 0)
+        {
+            Debug.LogWarning("StageLayout.csv の1行目（クリア条件）が見つかりません");
+            return fallback;
+        }
+
+        var cols = lines[0].Split(',');
+        if (cols.Length < 1 || !int.TryParse(cols[0].Trim(), out var typeId) ||
+            !Enum.IsDefined(typeof(StageClearConditionType), typeId))
+        {
+            Debug.LogWarning($"StageLayout.csv の1行目のクリア条件種別が不正です: {lines[0]}");
+            return fallback;
+        }
+
+        var conditionValue = 0;
+        if (cols.Length >= 2)
+        {
+            int.TryParse(cols[1].Trim(), out conditionValue);
+        }
+
+        return new StageClearConditionData
+        {
+            conditionType = (StageClearConditionType)typeId,
+            conditionValue = conditionValue
+        };
+    }
+
     public static IReadOnlyList<StagePlacementData> GetPlacements(TextAsset csv, int mapHeight, int mapWidth)
     {
         var placements = new List<StagePlacementData>();
@@ -19,7 +71,7 @@ public static class StageLayoutLoader
         }
 
         var lines = csv.text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-        for (int i = 1; i < lines.Length; i++)
+        for (int i = PlacementStartLine; i < lines.Length; i++)
         {
             var cols = lines[i].Split(',');
             if (cols.Length < 3)

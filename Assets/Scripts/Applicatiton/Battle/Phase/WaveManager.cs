@@ -54,7 +54,7 @@ public static class WaveManager
     /// </summary>
     public static async UniTask<IPhase> ResolvePhaseAfterAttackAsync()
     {
-        if (GameClearManager.GameClearCondition() && HasNextWave)
+        if (GameClearManager.GameClearCondition())
         {
             CurrentWaveIndex++;
             return NextWavePhase.Instance;

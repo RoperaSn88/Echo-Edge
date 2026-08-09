@@ -1,41 +1,63 @@
+using System;
+using Applicatiton.Battle.Phase;
+using Cysharp.Threading.Tasks;
+
 /// <summary>
-/// 敵撃破イベントを受け取り、ゲームクリア条件を更新するイベントハンドラー。
-/// DomainEventDispatcher に購読登録することで、ドメイン層とアプリケーション層を疎結合に保つ。
+/// 「敵を全滅させる」をクリア条件とするタスク。
+/// EnemyDefeatedEvent を自ら購読し、進捗の更新から満了判定・GameClearManagerへの通知までを完結させる。
 /// </summary>
-public static class DefeatAllEnemiesStageClearTask
+public sealed class DefeatAllEnemiesStageClearTask : IStageClearTask
 {
-    /// <summary>
-    /// EnemyDefeatedEvent のハンドラーを DomainEventDispatcher に登録する。
-    /// ステージ開始時（StartPhase）に呼び出す。
-    /// </summary>
-    public static void Subscribe()
+    public const StageClearConditionType ConditionType = StageClearConditionType.DefeatAllEnemies;
+
+    private const string BaseMessage = "残りの敵はあと";
+    private int _remainingEnemyCount;
+
+    public string ObjectiveBaseText => BaseMessage;
+
+    public string ObjectiveConditionValue => _remainingEnemyCount.ToString();
+
+    public bool IsGameClearCondition => _remainingEnemyCount == 0;
+
+    public void Initialize(int conditionValue)
+    {
+        _remainingEnemyCount = Math.Max(0, conditionValue);
+        GameClearManager.UpdateText(ObjectiveBaseText, _remainingEnemyCount);
+    }
+
+    public void Subscribe()
     {
         DomainEventDispatcher.Register<EnemyDefeatedEvent>(OnEnemyDefeated);
     }
 
-    /// <summary>
-    /// EnemyDefeatedEvent のハンドラーを DomainEventDispatcher から解除する。
-    /// ステージ終了時に呼び出す。
-    /// </summary>
-    public static void Unsubscribe()
+    public void Unsubscribe()
     {
         DomainEventDispatcher.Unregister<EnemyDefeatedEvent>(OnEnemyDefeated);
     }
 
-    private static void OnEnemyDefeated(EnemyDefeatedEvent e)
+    private void OnEnemyDefeated(EnemyDefeatedEvent e)
     {
-        GameClearManager.UpdateLastEnemyPosition(e.Position.Height, e.Position.Width);
-        GameClearManager.AddStageEarnedExperience(e.ExperienceReward);
-        GameClearManager.UpdateCondition();
+        GameReward.UpdateLastEnemyPosition(e.Position.Height, e.Position.Width);
+        GameReward.AddStageEarnedExperience(e.ExperienceReward);
+        UpdateCondition();
     }
 
-    /// <summary>
-    /// 後方互換ラッパー。BaseUnitView など View 層の既存呼び出しに対応する。
-    /// 新規コードでは DomainEventDispatcher.Dispatch(new EnemyDefeatedEvent(...)) を使うこと。
-    /// </summary>
-    [System.Obsolete("DomainEventDispatcher.Dispatch(new EnemyDefeatedEvent(...)) を使ってください。")]
-    public static void OnEnemyDead(int h, int w, int experience)
+    private void UpdateCondition()
     {
-        DomainEventDispatcher.Dispatch(new EnemyDefeatedEvent(new UnitPosition(h, w), experience));
+        if (_remainingEnemyCount > 0)
+        {
+            _remainingEnemyCount--;
+        }
+
+        GameClearManager.UpdateText(ObjectiveBaseText, _remainingEnemyCount);
+
+        if (!IsGameClearCondition) return;
+
+        GameClearManager.SetStageClearCondition(true);
+
+        if (!WaveManager.HasNextWave)
+        {
+            GameClearManager.StartGameClearSequenceAsync().Forget();
+        }
     }
 }
