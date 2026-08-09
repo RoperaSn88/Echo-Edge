@@ -1,54 +1,63 @@
 using System;
 using Applicatiton.Battle.Phase;
 using Cysharp.Threading.Tasks;
-using UI;
 
 /// <summary>
-/// 敵撃破イベントを受け取り、ゲームクリア条件を更新するイベントハンドラー。
-/// DomainEventDispatcher に購読登録することで、ドメイン層とアプリケーション層を疎結合に保つ。
+/// 「敵を全滅させる」をクリア条件とするタスク。
+/// EnemyDefeatedEvent を自ら購読し、進捗の更新から満了判定・GameClearManagerへの通知までを完結させる。
 /// </summary>
-public static class DefeatAllEnemiesStageClearTask
+public sealed class DefeatAllEnemiesStageClearTask : IStageClearTask
 {
     public const StageClearConditionType ConditionType = StageClearConditionType.DefeatAllEnemies;
-    
+
     private const string BaseMessage = "残りの敵はあと";
-    private static int _remainingEnemyCount;
+    private int _remainingEnemyCount;
 
-    public static string ObjectiveBaseText => BaseMessage;
+    public string ObjectiveBaseText => BaseMessage;
 
-    public static string ObjectiveConditionValue => _remainingEnemyCount.ToString();
-    
-    public static void Initialize(int enemyCount)
+    public string ObjectiveConditionValue => _remainingEnemyCount.ToString();
+
+    public bool IsGameClearCondition => _remainingEnemyCount == 0;
+
+    public void Initialize(int conditionValue)
     {
-        _remainingEnemyCount = Math.Max(0, enemyCount);
-        GameClearManager.UpdateText(BaseMessage, _remainingEnemyCount);
+        _remainingEnemyCount = Math.Max(0, conditionValue);
+        GameClearManager.UpdateText(ObjectiveBaseText, _remainingEnemyCount);
     }
-    
-    public static void UpdateCondition()
+
+    public void Subscribe()
+    {
+        DomainEventDispatcher.Register<EnemyDefeatedEvent>(OnEnemyDefeated);
+    }
+
+    public void Unsubscribe()
+    {
+        DomainEventDispatcher.Unregister<EnemyDefeatedEvent>(OnEnemyDefeated);
+    }
+
+    private void OnEnemyDefeated(EnemyDefeatedEvent e)
+    {
+        GameReward.UpdateLastEnemyPosition(e.Position.Height, e.Position.Width);
+        GameReward.AddStageEarnedExperience(e.ExperienceReward);
+        UpdateCondition();
+    }
+
+    private void UpdateCondition()
     {
         if (_remainingEnemyCount > 0)
         {
             _remainingEnemyCount--;
         }
-        
-        GameClearManager.UpdateText(BaseMessage, _remainingEnemyCount);
 
-        if (IsGameClearCondition && WaveManager.HasNextWave)
-        {
-            GameClearManager.SetStageClearCondition(true);
-        }
-        else if (IsGameClearCondition && !WaveManager.HasNextWave)
+        GameClearManager.UpdateText(ObjectiveBaseText, _remainingEnemyCount);
+
+        if (!IsGameClearCondition) return;
+
+        GameClearManager.SetStageClearCondition(true);
+
+        if (!WaveManager.HasNextWave)
         {
             GameClearManager.StartGameClearSequenceAsync().Forget();
-            GameClearManager.SetStageClearCondition(true);
         }
-    }
-    
-    private static bool IsGameClearCondition => _remainingEnemyCount == 0;
-    
-    private static void OnEnemyDefeated(EnemyDefeatedEvent e)
-    {
-        GameReward.UpdateLastEnemyPosition(e.Position.Height, e.Position.Width);
-        GameReward.AddStageEarnedExperience(e.ExperienceReward);
     }
 }

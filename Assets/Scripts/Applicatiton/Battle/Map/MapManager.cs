@@ -78,7 +78,7 @@ public class MapManager: MonoBehaviour
             }
         }
         
-        DefeatAllEnemiesStageClearTask.Initialize(initialEnemyCount);
+        GameClearManager.Initialize(initialEnemyCount);
     }
 
     private void RegisterWall(IUnit wall, int h, int w)

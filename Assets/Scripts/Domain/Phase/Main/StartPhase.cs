@@ -25,7 +25,6 @@ public class StartPhase : IPhase
         BattleManager.RegisterPlayer(status);
         
         PlayerStatusPresenter.Instance.SetPlayerHP(status.HP, status.MaxHP);
-        Debug.Log("Move: " + status.Move);
 
         // エナジーをリセットしてから表示する
         EnergyManager.Reset();
@@ -37,6 +36,8 @@ public class StartPhase : IPhase
         BattleManager.ResetQTE();
         BattleManager.ResetCombo();
         GameReward.ResetStageExperience();
+        // TODO: ステージごとに条件種別を切り替えられるようになったら、ここをステージ設定値に差し替える
+        GameClearManager.SetStageClearConditionType(StageClearConditionType.DefeatAllEnemies);
 
         // 2. ウェーブ定義を読み込み、0番目のウェーブから敵や壁の配置が完了するまでawait
         await UniTask.WaitUntil(() => MapManager.Instance != null);

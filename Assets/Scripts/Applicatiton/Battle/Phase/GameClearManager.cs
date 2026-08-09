@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using Applicatiton.Battle.Phase;
 using Cysharp.Threading.Tasks;
+using Domain.Phase.GameClear;
 using UI;
 using UnityEngine;
 
@@ -10,22 +11,50 @@ using UnityEngine;
 /// </summary>
 public static class GameClearManager
 {
+    private static IStageClearTask _currentTask;
     private static bool _isClear;
     public static bool IsClear => _isClear;
 
     /// <summary>
-    /// ゲームクリア演出が開始済みか
+    /// このステージで使うクリア条件タスクを切り替える。ステージ開始時（StartPhase）から呼ぶ。
+    /// 直前のタスクの購読を解除し、新しいタスクの購読を開始する。
     /// </summary>
-    private static bool _isGameClearStarted;
+    public static void SetStageClearConditionType(StageClearConditionType conditionType)
+    {
+        _currentTask?.Unsubscribe();
+        _currentTask = CreateTask(conditionType);
+        _currentTask.Subscribe();
+        _isClear = false;
+    }
 
     /// <summary>
-    /// ステージクリア条件の進捗を更新する。
+    /// ステージ（ウェーブ）開始時に、現在アクティブなタスクへ条件の初期値を渡す。
+    /// </summary>
+    public static void Initialize(int conditionValue)
+    {
+        _currentTask?.Initialize(conditionValue);
+    }
+
+    private static IStageClearTask CreateTask(StageClearConditionType conditionType)
+    {
+        switch (conditionType)
+        {
+            case StageClearConditionType.Endurance:
+                return new EndureStageClearTask();
+            case StageClearConditionType.DefeatAllEnemies:
+            default:
+                return new DefeatAllEnemiesStageClearTask();
+        }
+    }
+
+    /// <summary>
+    /// ステージクリア条件の進捗表示を更新する。
     /// </summary>
     public static void UpdateText(string context, int value)
     {
         GameClearConditionView.Instance.RefreshText(context, value);
     }
-    
+
     public static void SetStageClearCondition(bool isClear)
     {
         _isClear = isClear;
