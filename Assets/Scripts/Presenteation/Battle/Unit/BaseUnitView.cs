@@ -214,7 +214,7 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposab
             MapManager.Instance.RemoveUnitAt(height, width);
             if (targetUnit is IEnemyUnit)
             {
-                DefeatAllEnemiesStageClearTask.OnEnemyDead(height, width, targetStatus.Experience);
+                DefeatAllEnemiesStageClearTask.UpdateCondition();
             }
             //Destroyするが、後でオブジェクトプールにする
             Dispose();

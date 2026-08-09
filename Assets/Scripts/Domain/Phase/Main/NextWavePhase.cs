@@ -14,6 +14,8 @@ public class NextWavePhase: IPhase
             NextWaveView.Instance.ShowNextWave(),
             MapManager.Instance.BuildStageFromCsv()
         );
+
+        GameClearManager.SetStageClearCondition(false);
         
         await UniTask.Delay(1000);
         

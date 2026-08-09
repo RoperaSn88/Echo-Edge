@@ -1,19 +1,21 @@
+using Applicatiton.Battle.Phase;
 using Cysharp.Threading.Tasks;
 using UI;
 using UnityEngine;
 
+/// <summary>
+/// メインゲーム開始時の操作フェーズ
+/// </summary>
 public class StartPhase : IPhase
 {
     private static StartPhase _instance;
     public static StartPhase Instance => _instance ??= new StartPhase();
     public const string TutorialCompletedKey = "TutorialCompleted";
     
-
     public async UniTask<IPhase> WaitPhase()
     {
         // ドメインイベントハンドラーをリセットして登録する
         DomainEventDispatcher.Clear();
-        DefeatAllEnemiesStageClearTask.Subscribe();
 
         // 1. PlayerStatusPresenterからプレイヤーのデータを取得してBattleManagerにセット
 
@@ -34,7 +36,7 @@ public class StartPhase : IPhase
         EnergyWallManager.Reset();
         BattleManager.ResetQTE();
         BattleManager.ResetCombo();
-        GameClearManager.ResetStageExperience();
+        GameReward.ResetStageExperience();
 
         // 2. ウェーブ定義を読み込み、0番目のウェーブから敵や壁の配置が完了するまでawait
         await UniTask.WaitUntil(() => MapManager.Instance != null);
@@ -48,6 +50,7 @@ public class StartPhase : IPhase
         }
         await UIPresenter.Instance.FadeInAsync();
         
+        // 4. チュートリアルが未完了の場合はチュートリアルを開始する
         var isTutorial = PlayerPrefs.GetInt(TutorialCompletedKey, 0);
         if (isTutorial == 0)
         {

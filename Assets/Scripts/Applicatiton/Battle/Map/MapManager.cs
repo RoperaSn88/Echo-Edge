@@ -77,8 +77,8 @@ public class MapManager: MonoBehaviour
                 UnitSpawner.Instance.SpawnView(unit, placement.enemyKind);
             }
         }
-
-        GameClearManager.SetConditionValue(initialEnemyCount);
+        
+        DefeatAllEnemiesStageClearTask.Initialize(initialEnemyCount);
     }
 
     private void RegisterWall(IUnit wall, int h, int w)
