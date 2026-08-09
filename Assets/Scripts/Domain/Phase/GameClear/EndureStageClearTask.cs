@@ -4,7 +4,7 @@ namespace Domain.Phase.GameClear
 {
     public class EndureStageClearTask: IStageClearTask
     {
-        private const string BaseMessage = "クリアまであと";
+        private const string BaseMessage = "残りターンはあと";
         
         private int _remainingTurns;
 
@@ -14,6 +14,7 @@ namespace Domain.Phase.GameClear
         public void Initialize(int conditionValue)
         {
             _remainingTurns = conditionValue;
+            GameClearManager.UpdateText(ObjectiveBaseText, _remainingTurns);
         }
 
         public void Subscribe()

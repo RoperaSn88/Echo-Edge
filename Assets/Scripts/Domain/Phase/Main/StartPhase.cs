@@ -36,10 +36,9 @@ public class StartPhase : IPhase
         BattleManager.ResetQTE();
         BattleManager.ResetCombo();
         GameReward.ResetStageExperience();
-        // TODO: ステージごとに条件種別を切り替えられるようになったら、ここをステージ設定値に差し替える
-        GameClearManager.SetStageClearConditionType(StageClearConditionType.DefeatAllEnemies);
 
         // 2. ウェーブ定義を読み込み、0番目のウェーブから敵や壁の配置が完了するまでawait
+        // (クリア条件種別は各ウェーブのCSV1行目から MapManager.BuildStageFromCsv 内で設定される)
         await UniTask.WaitUntil(() => MapManager.Instance != null);
         await WaveManager.LoadStageWavesAsync();
         await MapManager.Instance.BuildStageFromCsv();

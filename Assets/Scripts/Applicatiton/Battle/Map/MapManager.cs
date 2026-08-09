@@ -54,6 +54,9 @@ public class MapManager: MonoBehaviour
         ResetMap();
         BuildingManager.Instance?.ResetWalls();
 
+        var clearCondition = StageLayoutLoader.GetClearCondition(WaveManager.CurrentWaveCsv);
+        GameClearManager.SetStageClearConditionType(clearCondition.conditionType);
+
         var placements = StageLayoutLoader.GetPlacements(WaveManager.CurrentWaveCsv, MapHeight, MapWidth);
         var initialEnemyCount = 0;
         await UniTask.WaitUntil(() => BuildingManager.Instance != null);
@@ -78,7 +81,10 @@ public class MapManager: MonoBehaviour
             }
         }
         
-        GameClearManager.Initialize(initialEnemyCount);
+        // 敵撃破数以外の値（耐久ターン数、連続攻撃回数）を必要とする条件はCSVの値を使う
+        var needsConditionValueFromCsv = clearCondition.conditionType == StageClearConditionType.Endurance
+            || clearCondition.conditionType == StageClearConditionType.DefeatInALow;
+        GameClearManager.Initialize(needsConditionValueFromCsv ? clearCondition.conditionValue : initialEnemyCount);
     }
 
     private void RegisterWall(IUnit wall, int h, int w)
