@@ -2,6 +2,6 @@ public enum StageClearConditionType
 {
     DefeatAllEnemies,
     Endurance,
-    DefeatInALow,
+    DefeatInARow,
     DefeatBoss,
 }

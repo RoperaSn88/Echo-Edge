@@ -14,6 +14,8 @@ public static class GameClearManager
     private static IStageClearTask _currentTask;
     private static bool _isClear;
     public static bool IsClear => _isClear;
+    
+    private static bool _gameClearAsyncStarted;
 
     /// <summary>
     /// このステージで使うクリア条件タスクを切り替える。ステージ開始時（StartPhase）から呼ぶ。
@@ -68,6 +70,9 @@ public static class GameClearManager
 
     public static async UniTask StartGameClearSequenceAsync()
     {
+        if(_gameClearAsyncStarted) return;  
+        _gameClearAsyncStarted = true;
+        
         // 1. 暗転する
         await UIPresenter.Instance.FadeOutAsync(0.01f);
 
