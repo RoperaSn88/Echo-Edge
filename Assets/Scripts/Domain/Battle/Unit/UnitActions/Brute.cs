@@ -13,16 +13,24 @@ namespace Unit.pureC.Unit
         
         public async UniTask Attack()
         {
+            var previousTimeScale = Time.timeScale;
             Time.timeScale = QTETimeScale;
-            var damageValue = await BattleManager.PlayerDamage(PlayerDamageRate);
-            Time.timeScale = 1.0f;
+            try
+            {
+                var damageValue = await BattleManager.PlayerDamage(PlayerDamageRate);
+                Time.timeScale = previousTimeScale;
 
-            UIPresenter.Instance.AppearDamageText($"{damageValue.damage}", PlayerController.Instance.transform.position).Forget();
+                UIPresenter.Instance.AppearDamageText($"{damageValue.damage}", PlayerController.Instance.transform.position).Forget();
 
-            await UniTask.Delay(TimeSpan.FromSeconds(1.0f));
+                await UniTask.Delay(TimeSpan.FromSeconds(1.0f));
 
-            BattleManager.ResetQTE();
-            await CameraManager.Instance.ActResetCameraTarget();
+                BattleManager.ResetQTE();
+                await CameraManager.Instance.ActResetCameraTarget();
+            }
+            finally
+            {
+                Time.timeScale = previousTimeScale;
+            }
         }
 
         public async UniTask BeforeAttack()
