@@ -4,4 +4,5 @@ public enum EnemyKinds : byte
     Skya,
     Builder,
     Booster,
+    Brute
 }

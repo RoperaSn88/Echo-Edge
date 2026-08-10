@@ -18,6 +18,9 @@
                     return new Skya();
                 case EnemyKinds.Booster:
                     return new Booster();
+                case EnemyKinds.Brute:
+                    return new Brute();
+                    
                 
                 default:
                     throw new System.ArgumentException($"Invalid UnitType: {enemyType}");
