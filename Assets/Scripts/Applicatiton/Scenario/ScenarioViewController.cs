@@ -1,0 +1,74 @@
+using System.Collections.Generic;
+using Domain.Scenario;
+using Domain.Scenario.Controller;
+using UnityEngine;
+
+namespace Applicatiton.Scenario
+{
+    /// <summary>
+    /// ビューにモデルの状態を反映させるコントローラークラス。
+    /// <see cref="ScenarioViewModel"/> の状態を監視し、状態が変化した場合に <see cref="ScenarioView"/> に通知する。
+    /// シナリオイベントの種類に応じた表示内容の判断（分岐）はこのクラスが担い、View は渡された値を表示するだけにする。
+    /// </summary>
+    public class ScenarioViewController : MonoBehaviour
+    {
+        [SerializeField] private ScenarioView _view;
+
+        // CharacterExpressionChangeEvent は表示位置を持たないため、
+        // 直近の CharacterAppearEvent から「どのキャラクターがどの位置にいるか」を覚えておく。
+        private readonly Dictionary<string, CharacterPosition> _characterPositions = new();
+
+        private ScenarioViewModel _viewModel;
+
+        /// <summary>
+        /// 監視対象の <see cref="ScenarioViewModel"/> を登録し、状態変化の購読を開始する。
+        /// </summary>
+        public void Initialize(ScenarioViewModel viewModel)
+        {
+            if (_viewModel != null)
+            {
+                _viewModel.CurrentEventChanged -= OnCurrentEventChanged;
+            }
+
+            _viewModel = viewModel;
+            _characterPositions.Clear();
+
+            _viewModel.CurrentEventChanged += OnCurrentEventChanged;
+
+            if (_viewModel.CurrentEvent != null)
+            {
+                OnCurrentEventChanged(_viewModel.CurrentEvent);
+            }
+        }
+
+        private void OnCurrentEventChanged(IScenarioEvent scenarioEvent)
+        {
+            switch (scenarioEvent)
+            {
+                case Phrase phrase:
+                    _view.ShowPhrase(phrase.CharaText, phrase.Text);
+                    break;
+
+                case CharacterAppearEvent appear:
+                    _characterPositions[appear.Character.CharacterId] = appear.Position;
+                    _view.ShowCharacter(appear.Position, appear.Character.GetSprite(appear.Emotion), destroyCancellationToken);
+                    break;
+
+                case CharacterExpressionChangeEvent expression:
+                    if (_characterPositions.TryGetValue(expression.Character.CharacterId, out var position))
+                    {
+                        _view.ShowCharacter(position, expression.Character.GetSprite(expression.Emotion), destroyCancellationToken);
+                    }
+                    break;
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (_viewModel != null)
+            {
+                _viewModel.CurrentEventChanged -= OnCurrentEventChanged;
+            }
+        }
+    }
+}
