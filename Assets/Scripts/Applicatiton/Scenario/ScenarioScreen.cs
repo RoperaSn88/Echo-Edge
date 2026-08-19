@@ -1,20 +1,24 @@
+using System;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using Domain.Scenario.Controller;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace Applicatiton.Scenario
 {
     /// <summary>
-    /// ビューコントローラーを Initialize, Show, Update するクラス。
+    /// ビューコントローラーを Initialize, Show するクラス。
     /// <see cref="ScenarioScreenModel"/> と <see cref="ScenarioViewController"/> を保持し、
-    /// ScreenModel の状態（入力による判断結果）に応じて ViewController の表示を制御する。
+    /// ScreenModel がクリック用の InputAction で入力待機を行いページを進める。
+    /// Update での毎フレームポーリングは行わない。
     /// </summary>
     public class ScenarioScreen : MonoBehaviour
     {
         [SerializeField] private ScenarioViewController _viewController;
 
         private readonly ScenarioScreenModel _screenModel = new();
+
+        private CancellationTokenSource _cts;
 
         /// <summary>
         /// 画面を初期化し、指定したシナリオデータを Addressables から読み込んで先頭ページを表示する。
@@ -23,15 +27,20 @@ namespace Applicatiton.Scenario
         public async UniTask Initialize(string scenarioAddress)
         {
             _viewController.Initialize(_screenModel.ScenarioViewModel);
-            await _screenModel.ScenarioViewModel.OnInitializeAsync(scenarioAddress);
+            await _screenModel.InitializeAsync(scenarioAddress);
         }
 
         /// <summary>
-        /// シナリオ画面を表示する。
+        /// シナリオ画面を表示し、クリック待機によるページ送りを開始する。
         /// </summary>
         public void Show()
         {
             gameObject.SetActive(true);
+
+            _cts?.Cancel();
+            _cts?.Dispose();
+            _cts = new CancellationTokenSource();
+            RunAsync(_cts.Token).Forget();
         }
 
         /// <summary>
@@ -40,19 +49,33 @@ namespace Applicatiton.Scenario
         public void Hide()
         {
             gameObject.SetActive(false);
+
+            _cts?.Cancel();
+            _cts?.Dispose();
+            _cts = null;
         }
 
-        private void Update()
+        /// <summary>
+        /// ScreenModel の入力待機ループを実行し、シナリオが完了したら画面を隠す。
+        /// </summary>
+        private async UniTaskVoid RunAsync(CancellationToken cancellationToken)
         {
-            if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+            try
             {
-                _screenModel.OnInputReceived();
+                await _screenModel.RunAsync(cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
             }
 
-            if (_screenModel.ScenarioViewModel.IsFinished)
-            {
-                Hide();
-            }
+            Hide();
+        }
+
+        private void OnDestroy()
+        {
+            _cts?.Cancel();
+            _cts?.Dispose();
         }
     }
 }
