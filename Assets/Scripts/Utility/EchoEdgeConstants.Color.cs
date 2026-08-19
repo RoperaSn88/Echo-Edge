@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace EchoEdge.Utility
 {
-    public static class EchoEdgeConstants
+    public static partial class EchoEdgeConstants
     {
         public static Color RedColor()
         {
