@@ -1,4 +1,5 @@
 using System.Threading;
+using Applicatiton.Scenario;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine.UI;
@@ -34,6 +35,9 @@ namespace UnityEngine.Selectable
                 _panel.DOFade(1f, _fadeDuration).ToUniTask(),
                 AudioManager.Instance.FadeBGMAsync(_fadeDuration, CancellationToken.None)
             );
+
+            // 選択したステージに対応するシナリオを読み込んで再生し、見終わってからメインゲームへ移行する
+            await ScenarioStageLoader.PlayCurrentStageScenarioAsync();
 
             await SceneLoader.AdditiveLoadAsync(GameScene.MainGame);
             SceneLoader.Unload(GameScene.Preparing);
