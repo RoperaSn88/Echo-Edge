@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using Domain.Scenario;
 using Domain.Scenario.Controller;
@@ -20,6 +21,16 @@ namespace Applicatiton.Scenario
         private readonly Dictionary<string, CharacterPosition> _characterPositions = new();
 
         private ScenarioViewModel _viewModel;
+
+        /// <summary>
+        /// シナリオ画面全体のフェードインを行う。シナリオ起動時に呼び出す。
+        /// </summary>
+        public UniTask FadeInAsync(CancellationToken token) => _view.FadeInAsync(token);
+
+        /// <summary>
+        /// シナリオ画面全体のフェードアウトを行う。シナリオ終了時に呼び出す。
+        /// </summary>
+        public UniTask FadeOutAsync(CancellationToken token) => _view.FadeOutAsync(token);
 
         /// <summary>
         /// 監視対象の <see cref="ScenarioViewModel"/> を登録し、状態変化の購読を開始する。
@@ -68,7 +79,7 @@ namespace Applicatiton.Scenario
             switch (scenarioEvent)
             {
                 case Phrase phrase:
-                    _view.ShowPhrase(phrase.CharaText, phrase.Text);
+                    _view.ShowPhrase(phrase.CharaText, phrase.Text, destroyCancellationToken);
                     break;
 
                 case CharacterAppearEvent appear:
