@@ -12,12 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6031c4769b4c8e4478bcc48643e7e483, type: 3}
   m_Name: NewScenarioData
   m_EditorClassIdentifier: Assembly-CSharp::Domain.Scenario.ScenarioData
-  _events:
-  - rid: 8208257029329911898
-  - rid: 8208257029329911899
-  - rid: 8208257029329911900
-  - rid: 8208257029329911903
-  - rid: 8208257029329911902
+  _rows:
+  - _events:
+    - rid: 8208257029329911898
+  - _events:
+    - rid: 8208257029329911899
+  - _events:
+    - rid: 8208257029329911900
+  - _events:
+    - rid: 8208257029329911903
+  - _events:
+    - rid: 8208257029329911902
   references:
     version: 2
     RefIds:
@@ -35,8 +40,8 @@ MonoBehaviour:
     - rid: 8208257029329911900
       type: {class: Phrase, ns: Domain.Scenario, asm: Assembly-CSharp}
       data:
-        _charaText: 
-        _text: 
+        _charaText:
+        _text:
     - rid: 8208257029329911902
       type: {class: CharacterExpressionChangeEvent, ns: Domain.Scenario, asm: Assembly-CSharp}
       data:
@@ -45,5 +50,5 @@ MonoBehaviour:
     - rid: 8208257029329911903
       type: {class: Phrase, ns: Domain.Scenario, asm: Assembly-CSharp}
       data:
-        _charaText: 
-        _text: 
+        _charaText:
+        _text:

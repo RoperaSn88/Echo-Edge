@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using Domain.Scenario;
 using Domain.Scenario.Controller;
 using UnityEngine;
@@ -35,13 +36,34 @@ namespace Applicatiton.Scenario
 
             _viewModel.CurrentEventChanged += OnCurrentEventChanged;
 
-            if (_viewModel.CurrentEvent != null)
+            if (_viewModel.CurrentEvents != null)
             {
-                OnCurrentEventChanged(_viewModel.CurrentEvent);
+                OnCurrentEventChanged(_viewModel.CurrentEvents);
             }
         }
 
-        private void OnCurrentEventChanged(IScenarioEvent scenarioEvent)
+        /// <summary>
+        /// 同じタイミングで実行するシナリオイベント群を受け取り、すべて同時に実行する。
+        /// </summary>
+        private void OnCurrentEventChanged(List<IScenarioEvent> scenarioEvents)
+        {
+            HandleEventsAsync(scenarioEvents).Forget();
+        }
+
+        private async UniTask HandleEventsAsync(List<IScenarioEvent> scenarioEvents)
+        {
+            if (scenarioEvents == null) return;
+
+            var tasks = new List<UniTask>(scenarioEvents.Count);
+            foreach (var scenarioEvent in scenarioEvents)
+            {
+                tasks.Add(HandleEventAsync(scenarioEvent));
+            }
+
+            await UniTask.WhenAll(tasks);
+        }
+
+        private async UniTask HandleEventAsync(IScenarioEvent scenarioEvent)
         {
             switch (scenarioEvent)
             {
@@ -51,13 +73,13 @@ namespace Applicatiton.Scenario
 
                 case CharacterAppearEvent appear:
                     _characterPositions[appear.Character.CharacterId] = appear.Position;
-                    _view.ShowCharacter(appear.Position, appear.Character.GetSprite(appear.Emotion), destroyCancellationToken);
+                    await _view.ShowCharacter(appear.Position, appear.Character.GetSprite(appear.Emotion), destroyCancellationToken);
                     break;
 
                 case CharacterExpressionChangeEvent expression:
                     if (_characterPositions.TryGetValue(expression.Character.CharacterId, out var position))
                     {
-                        _view.ShowCharacter(position, expression.Character.GetSprite(expression.Emotion), destroyCancellationToken);
+                        await _view.ShowCharacter(position, expression.Character.GetSprite(expression.Emotion), destroyCancellationToken);
                     }
                     break;
             }

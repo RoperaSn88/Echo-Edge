@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6031c4769b4c8e4478bcc48643e7e483, type: 3}
   m_Name: NewScenarioData 1
   m_EditorClassIdentifier: Assembly-CSharp::Domain.Scenario.ScenarioData
-  _events: []
+  _rows: []
   references:
     version: 2
     RefIds: []

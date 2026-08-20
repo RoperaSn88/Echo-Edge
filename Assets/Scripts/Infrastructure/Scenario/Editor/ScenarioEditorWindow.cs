@@ -2,13 +2,14 @@ using System;
 using System.Collections.Generic;
 using Domain.Scenario;
 using UnityEditor;
-using UnityEditorInternal;
 using UnityEngine;
 
 namespace Infrastructure.Scenario.Editor
 {
     /// <summary>
-    /// ScenarioData が持つ IScenarioEvent の配列を、具象型を選んで追加・削除・並び替えできる編集ツール。
+    /// ScenarioData が持つイベント一覧を、具象型を選んで追加・削除・並び替えできる編集ツール。
+    /// イベント一覧は二次元のグリッドとして表示する。
+    /// 行はシナリオの時間軸を表し、同じ行（列方向）に並べたイベントは同時に実行される。
     /// </summary>
     public class ScenarioEditorWindow : EditorWindow
     {
@@ -19,14 +20,17 @@ namespace Infrastructure.Scenario.Editor
             ("セリフ表示", typeof(Phrase)),
         };
 
-        private const float DeleteButtonWidth = 56f;
+        private const float ColumnWidth = 260f;
+        private const float ColumnSpacing = 8f;
 
         private ScenarioData _scenarioData;
         private SerializedObject _serializedObject;
-        private SerializedProperty _eventsProperty;
-        private ReorderableList _reorderableList;
+        private SerializedProperty _rowsProperty;
         private Vector2 _scrollPosition;
-        private int _pendingRemoveIndex = -1;
+
+        // GUILayout 中は SerializedProperty の配列構造を変更できないため、
+        // 変更内容を保留しておき、描画がすべて終わった後にまとめて適用する。
+        private Action _pendingAction;
 
         [MenuItem("Tools/Scenario/Scenario Editor")]
         private static void Open()
@@ -59,33 +63,43 @@ namespace Infrastructure.Scenario.Editor
 
             _serializedObject.Update();
 
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                foreach (var (displayName, eventType) in AddableEventTypes)
-                {
-                    if (GUILayout.Button("＋ " + displayName))
-                    {
-                        AddEvent(eventType);
-                    }
-                }
-            }
-
+            EditorGUILayout.HelpBox(
+                "行（Step）はシナリオの時間軸を表します。同じ行に並んだイベントは同時に実行されます。",
+                MessageType.Info);
             EditorGUILayout.Space();
 
-            if (_eventsProperty.arraySize == 0)
+            _pendingAction = null;
+
+            if (_rowsProperty.arraySize == 0)
             {
-                EditorGUILayout.HelpBox("上のボタンからイベントを追加してください。", MessageType.Info);
+                EditorGUILayout.HelpBox("下のボタンから行（タイミング）を追加してください。", MessageType.Info);
             }
 
-            _pendingRemoveIndex = -1;
-
             _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition);
-            _reorderableList.DoLayoutList();
+            for (var rowIndex = 0; rowIndex < _rowsProperty.arraySize; rowIndex++)
+            {
+                DrawRow(rowIndex);
+                EditorGUILayout.Space();
+            }
             EditorGUILayout.EndScrollView();
 
-            if (_pendingRemoveIndex >= 0)
+            if (GUILayout.Button("＋ 行（タイミング）を追加"))
             {
-                RemoveEvent(_pendingRemoveIndex);
+                var insertIndex = _rowsProperty.arraySize;
+                _pendingAction = () =>
+                {
+                    _rowsProperty.InsertArrayElementAtIndex(insertIndex);
+                    // Unity は配列挿入時に直前の要素の内容を複製するため、新しい行は明示的に空にする。
+                    var eventsProperty = _rowsProperty.GetArrayElementAtIndex(insertIndex).FindPropertyRelative("_events");
+                    eventsProperty.ClearArray();
+                };
+            }
+
+            if (_pendingAction != null)
+            {
+                Undo.RecordObject(_scenarioData, "Edit Scenario");
+                _pendingAction.Invoke();
+                EditorUtility.SetDirty(_scenarioData);
             }
 
             _serializedObject.ApplyModifiedProperties();
@@ -95,74 +109,134 @@ namespace Infrastructure.Scenario.Editor
         {
             _scenarioData = scenarioData;
             _serializedObject = _scenarioData != null ? new SerializedObject(_scenarioData) : null;
-            _eventsProperty = _serializedObject?.FindProperty("_events");
-            _reorderableList = _eventsProperty != null ? CreateReorderableList(_eventsProperty) : null;
+            _rowsProperty = _serializedObject?.FindProperty("_rows");
         }
 
-        private ReorderableList CreateReorderableList(SerializedProperty eventsProperty)
+        /// <summary>
+        /// 時間軸上の1行（同時に実行するイベント群）を描画する。
+        /// </summary>
+        private void DrawRow(int rowIndex)
         {
-            var list = new ReorderableList(_serializedObject, eventsProperty, true, true, false, false)
+            var rowProperty = _rowsProperty.GetArrayElementAtIndex(rowIndex);
+            var eventsProperty = rowProperty.FindPropertyRelative("_events");
+
+            using (new EditorGUILayout.VerticalScope(GUI.skin.box))
             {
-                drawHeaderCallback = rect => EditorGUI.LabelField(rect, "Events"),
-                elementHeightCallback = GetElementHeight,
-                drawElementCallback = DrawElement,
-            };
-            return list;
+                DrawRowHeader(rowIndex, eventsProperty);
+
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    if (eventsProperty.arraySize == 0)
+                    {
+                        EditorGUILayout.HelpBox("この行にはまだイベントがありません。上のボタンから追加してください。", MessageType.None);
+                    }
+
+                    for (var columnIndex = 0; columnIndex < eventsProperty.arraySize; columnIndex++)
+                    {
+                        DrawEventColumn(eventsProperty, columnIndex);
+                    }
+                }
+            }
         }
 
-        private void AddEvent(Type eventType)
+        /// <summary>
+        /// 行の見出し（Step番号、行の並び替え・削除、イベント追加ボタン）を描画する。
+        /// </summary>
+        private void DrawRowHeader(int rowIndex, SerializedProperty eventsProperty)
         {
-            Undo.RecordObject(_scenarioData, "Add Scenario Event");
-            var index = _eventsProperty.arraySize;
-            _eventsProperty.InsertArrayElementAtIndex(index);
-            var element = _eventsProperty.GetArrayElementAtIndex(index);
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                EditorGUILayout.LabelField($"Step {rowIndex}", EditorStyles.boldLabel, GUILayout.Width(60));
+
+                GUILayout.FlexibleSpace();
+
+                using (new EditorGUI.DisabledScope(rowIndex == 0))
+                {
+                    if (GUILayout.Button("▲", GUILayout.Width(24)))
+                    {
+                        _pendingAction = () => _rowsProperty.MoveArrayElement(rowIndex, rowIndex - 1);
+                    }
+                }
+
+                using (new EditorGUI.DisabledScope(rowIndex == _rowsProperty.arraySize - 1))
+                {
+                    if (GUILayout.Button("▼", GUILayout.Width(24)))
+                    {
+                        _pendingAction = () => _rowsProperty.MoveArrayElement(rowIndex, rowIndex + 1);
+                    }
+                }
+
+                if (GUILayout.Button("行を削除", GUILayout.Width(70)))
+                {
+                    _pendingAction = () => _rowsProperty.DeleteArrayElementAtIndex(rowIndex);
+                }
+            }
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                EditorGUILayout.LabelField("同時に追加:", GUILayout.Width(70));
+                foreach (var (displayName, eventType) in AddableEventTypes)
+                {
+                    if (GUILayout.Button("＋ " + displayName))
+                    {
+                        _pendingAction = () => AddEvent(eventsProperty, eventType);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 同じ行内の1つのイベント（列）を描画する。
+        /// </summary>
+        private void DrawEventColumn(SerializedProperty eventsProperty, int columnIndex)
+        {
+            var element = eventsProperty.GetArrayElementAtIndex(columnIndex);
+
+            using (new EditorGUILayout.VerticalScope(GUI.skin.box, GUILayout.Width(ColumnWidth)))
+            {
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    EditorGUILayout.LabelField($"[{columnIndex}] {GetEventDisplayName(element)}", EditorStyles.boldLabel);
+
+                    using (new EditorGUI.DisabledScope(columnIndex == 0))
+                    {
+                        if (GUILayout.Button("◀", GUILayout.Width(22)))
+                        {
+                            _pendingAction = () => eventsProperty.MoveArrayElement(columnIndex, columnIndex - 1);
+                        }
+                    }
+
+                    using (new EditorGUI.DisabledScope(columnIndex == eventsProperty.arraySize - 1))
+                    {
+                        if (GUILayout.Button("▶", GUILayout.Width(22)))
+                        {
+                            _pendingAction = () => eventsProperty.MoveArrayElement(columnIndex, columnIndex + 1);
+                        }
+                    }
+
+                    if (GUILayout.Button("削除", GUILayout.Width(40)))
+                    {
+                        _pendingAction = () => eventsProperty.DeleteArrayElementAtIndex(columnIndex);
+                    }
+                }
+
+                EditorGUI.indentLevel++;
+                foreach (var child in EnumerateChildren(element))
+                {
+                    EditorGUILayout.PropertyField(child, true);
+                }
+                EditorGUI.indentLevel--;
+            }
+
+            GUILayout.Space(ColumnSpacing);
+        }
+
+        private static void AddEvent(SerializedProperty eventsProperty, Type eventType)
+        {
+            var index = eventsProperty.arraySize;
+            eventsProperty.InsertArrayElementAtIndex(index);
+            var element = eventsProperty.GetArrayElementAtIndex(index);
             element.managedReferenceValue = Activator.CreateInstance(eventType);
-            EditorUtility.SetDirty(_scenarioData);
-        }
-
-        private void RemoveEvent(int index)
-        {
-            Undo.RecordObject(_scenarioData, "Remove Scenario Event");
-            _eventsProperty.DeleteArrayElementAtIndex(index);
-            EditorUtility.SetDirty(_scenarioData);
-        }
-
-        private float GetElementHeight(int index)
-        {
-            var element = _eventsProperty.GetArrayElementAtIndex(index);
-            var height = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-
-            foreach (var child in EnumerateChildren(element))
-            {
-                height += EditorGUI.GetPropertyHeight(child, true) + EditorGUIUtility.standardVerticalSpacing;
-            }
-
-            return height + EditorGUIUtility.standardVerticalSpacing;
-        }
-
-        private void DrawElement(Rect rect, int index, bool isActive, bool isFocused)
-        {
-            var element = _eventsProperty.GetArrayElementAtIndex(index);
-            rect.y += EditorGUIUtility.standardVerticalSpacing;
-
-            var headerRect = new Rect(rect.x, rect.y, rect.width - DeleteButtonWidth - 4f, EditorGUIUtility.singleLineHeight);
-            EditorGUI.LabelField(headerRect, $"[{index}] {GetEventDisplayName(element)}", EditorStyles.boldLabel);
-
-            var deleteButtonRect = new Rect(rect.x + rect.width - DeleteButtonWidth, rect.y, DeleteButtonWidth, EditorGUIUtility.singleLineHeight);
-            if (GUI.Button(deleteButtonRect, "削除"))
-            {
-                _pendingRemoveIndex = index;
-            }
-
-            var y = rect.y + EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-            EditorGUI.indentLevel++;
-            foreach (var child in EnumerateChildren(element))
-            {
-                var height = EditorGUI.GetPropertyHeight(child, true);
-                EditorGUI.PropertyField(new Rect(rect.x, y, rect.width, height), child, true);
-                y += height + EditorGUIUtility.standardVerticalSpacing;
-            }
-            EditorGUI.indentLevel--;
         }
 
         private static IEnumerable<SerializedProperty> EnumerateChildren(SerializedProperty parent)
