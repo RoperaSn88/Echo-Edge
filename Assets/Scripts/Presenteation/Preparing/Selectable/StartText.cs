@@ -40,6 +40,7 @@ namespace UnityEngine.Selectable
             await ScenarioStageLoader.PlayCurrentStageScenarioAsync();
 
             await SceneLoader.AdditiveLoadAsync(GameScene.MainGame);
+            SceneLoader.Unload(GameScene.Scenario);
             SceneLoader.Unload(GameScene.Preparing);
         }
     }

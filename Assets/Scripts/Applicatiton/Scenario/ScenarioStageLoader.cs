@@ -34,21 +34,13 @@ namespace Applicatiton.Scenario
             if (screen == null)
             {
                 Debug.LogError("Scenario シーンに ScenarioScreen が見つかりませんでした");
-                SceneLoader.Unload(GameScene.Scenario);
                 return;
             }
 
             var address = string.Format(ScenarioAddressFormat, StageData.Level);
 
-            try
-            {
-                await screen.Initialize(address);
-                await screen.ShowAndWaitForFinishAsync();
-            }
-            finally
-            {
-                SceneLoader.Unload(GameScene.Scenario);
-            }
+            await screen.Initialize(address);
+            await screen.ShowAndWaitForFinishAsync();
         }
     }
 }
