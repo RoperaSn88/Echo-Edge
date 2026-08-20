@@ -26,6 +26,8 @@ namespace Domain.Scenario.Controller
         [SerializeField] private Image _fadeImage;
         
         private const float FadeDuration = 0.5f;
+        private const float HighlightedBrightness = 1f;
+        private const float DimmedBrightness = 0.5f;
 
         /// <summary>
         /// セリフ（話者名と本文）を表示する。
@@ -85,6 +87,24 @@ namespace Domain.Scenario.Controller
             if (image == null) return;
 
             image.gameObject.SetActive(false);
+        }
+
+        /// <summary>
+        /// 指定した位置のキャラクターを明るく、それ以外の位置のキャラクターを半分暗く表示する。
+        /// セリフの発話者・表情変更の対象を目立たせるためのハイライト表現。
+        /// </summary>
+        public void HighlightCharacter(CharacterPosition position)
+        {
+            SetBrightness(CharacterPosition.Left, position == CharacterPosition.Left ? HighlightedBrightness : DimmedBrightness);
+            SetBrightness(CharacterPosition.Right, position == CharacterPosition.Right ? HighlightedBrightness : DimmedBrightness);
+        }
+
+        private void SetBrightness(CharacterPosition position, float brightness)
+        {
+            var image = GetCharacterImage(position);
+            if (image == null) return;
+
+            image.SetImageBrightness(brightness);
         }
 
         private Image GetCharacterImage(CharacterPosition position)

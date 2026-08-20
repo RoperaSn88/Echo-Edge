@@ -15,9 +15,11 @@ namespace Applicatiton.Scenario
     {
         [SerializeField] private ScenarioView _view;
 
-        // CharacterExpressionChangeEvent は表示位置を持たないため、
-        // 直近の CharacterAppearEvent から「どのキャラクターがどの位置にいるか」を覚えておく。
-        private readonly Dictionary<string, CharacterPosition> _characterPositions = new();
+        // 各位置に現在どの CharacterData がいるかを覚えておく。
+        // Phrase・CharacterExpressionChangeEvent は位置だけを指定するため、
+        // ここから実際の CharacterData を引いて参照する。
+        private CharacterData _leftCharacter;
+        private CharacterData _rightCharacter;
 
         private ScenarioViewModel _viewModel;
 
@@ -32,7 +34,8 @@ namespace Applicatiton.Scenario
             }
 
             _viewModel = viewModel;
-            _characterPositions.Clear();
+            _leftCharacter = null;
+            _rightCharacter = null;
 
             _viewModel.CurrentEventChanged += OnCurrentEventChanged;
 
@@ -68,19 +71,52 @@ namespace Applicatiton.Scenario
             switch (scenarioEvent)
             {
                 case Phrase phrase:
-                    _view.ShowPhrase(phrase.CharaText, phrase.Text);
+                    var speaker = GetCharacter(phrase.CharaPosition);
+                    _view.ShowPhrase(speaker != null ? speaker.DisplayName : string.Empty, phrase.Text);
+                    _view.HighlightCharacter(phrase.CharaPosition);
                     break;
 
                 case CharacterAppearEvent appear:
-                    _characterPositions[appear.Character.CharacterId] = appear.Position;
+                    SetCharacter(appear.Position, appear.Character);
                     await _view.ShowCharacter(appear.Position, appear.Character.GetSprite(appear.Emotion), destroyCancellationToken);
                     break;
 
                 case CharacterExpressionChangeEvent expression:
-                    if (_characterPositions.TryGetValue(expression.Character.CharacterId, out var position))
+                    var character = GetCharacter(expression.Position);
+                    if (character != null)
                     {
-                        await _view.ShowCharacter(position, expression.Character.GetSprite(expression.Emotion), destroyCancellationToken);
+                        await _view.ShowCharacter(expression.Position, character.GetSprite(expression.Emotion), destroyCancellationToken);
                     }
+                    _view.HighlightCharacter(expression.Position);
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// 指定した位置に現在いる <see cref="CharacterData"/> を取得する。まだ誰もいなければ null。
+        /// </summary>
+        private CharacterData GetCharacter(CharacterPosition position)
+        {
+            return position switch
+            {
+                CharacterPosition.Left => _leftCharacter,
+                CharacterPosition.Right => _rightCharacter,
+                _ => null
+            };
+        }
+
+        /// <summary>
+        /// 指定した位置にいる <see cref="CharacterData"/> を更新する。
+        /// </summary>
+        private void SetCharacter(CharacterPosition position, CharacterData character)
+        {
+            switch (position)
+            {
+                case CharacterPosition.Left:
+                    _leftCharacter = character;
+                    break;
+                case CharacterPosition.Right:
+                    _rightCharacter = character;
                     break;
             }
         }

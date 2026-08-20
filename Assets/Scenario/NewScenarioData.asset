@@ -35,20 +35,20 @@ MonoBehaviour:
     - rid: 8208257029329911899
       type: {class: CharacterExpressionChangeEvent, ns: Domain.Scenario, asm: Assembly-CSharp}
       data:
-        _character: {fileID: 0}
+        _position: 0
         _emotion: 0
     - rid: 8208257029329911900
       type: {class: Phrase, ns: Domain.Scenario, asm: Assembly-CSharp}
       data:
-        _charaText:
+        _charaPosition: 0
         _text:
     - rid: 8208257029329911902
       type: {class: CharacterExpressionChangeEvent, ns: Domain.Scenario, asm: Assembly-CSharp}
       data:
-        _character: {fileID: 0}
+        _position: 0
         _emotion: 0
     - rid: 8208257029329911903
       type: {class: Phrase, ns: Domain.Scenario, asm: Assembly-CSharp}
       data:
-        _charaText:
+        _charaPosition: 0
         _text:

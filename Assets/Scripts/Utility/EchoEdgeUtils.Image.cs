@@ -10,5 +10,14 @@ namespace EchoEdge.Utility
             color.a = alpha;
             image.color = color;
         }
+
+        public static void SetImageBrightness(this UnityEngine.UI.Image image, float brightness)
+        {
+            var color = image.color;
+            color.r = brightness;
+            color.g = brightness;
+            color.b = brightness;
+            image.color = color;
+        }
     }
 }
