@@ -50,7 +50,7 @@ namespace Domain.Scenario.Controller
             }
             catch (Exception e)
             {
-                Debug.LogError($"シナリオデータの読み込みに失敗しました (address: {address}): {e.Message}");
+                Debug.LogError($"シナリオデータの読み込みに失敗しました (address: {address}): {e}");
                 _scenarioData = null;
             }
 
