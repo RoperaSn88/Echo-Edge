@@ -1,5 +1,6 @@
 using System;
 using Cysharp.Threading.Tasks;
+using UnityEngine;
 using UnityEngine.AddressableAssets;
 
 namespace Domain.Scenario.Controller
@@ -39,12 +40,28 @@ namespace Domain.Scenario.Controller
         /// <param name="address">読み込む ScenarioData の Addressable アドレス。</param>
         public async UniTask OnInitializeAsync(string address)
         {
-            _scenarioData = await Addressables.LoadAssetAsync<ScenarioData>(address);
             _currentIndex = -1;
             CurrentEvent = null;
             IsFinished = false;
 
-            ShowNext();
+            try
+            {
+                _scenarioData = await Addressables.LoadAssetAsync<ScenarioData>(address);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"シナリオデータの読み込みに失敗しました (address: {address}): {e}");
+                _scenarioData = null;
+            }
+
+            if (_scenarioData == null || _scenarioData.Events.Count == 0)
+            {
+                IsFinished = true;
+                Finished?.Invoke();
+                return;
+            }
+
+            await ShowNext();
         }
 
         /// <summary>
