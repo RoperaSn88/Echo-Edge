@@ -118,14 +118,29 @@ namespace Domain.Scenario.Controller
             var homePosition = GetCharacterHomePosition(position);
             var offsetX = position == CharacterPosition.Left ? CharacterMoveOffsetX : -CharacterMoveOffsetX;
 
-            image.sprite = sprite;
-            image.SetImageAlpha(0f);
-            image.gameObject.SetActive(true);
-            rectTransform.anchoredPosition = homePosition + new Vector2(offsetX, 0f);
+            Tweener fadeTween = null;
+            Tweener moveTween = null;
+            
+            if (sprite != null)
+            {
+                image.sprite = sprite;
+                image.SetImageAlpha(0f);
+                image.gameObject.SetActive(true);
+                rectTransform.anchoredPosition = homePosition + new Vector2(offsetX, 0f);
+                fadeTween = image.DOFade(1f, FadeDuration);
+                moveTween = rectTransform.DOAnchorPos(homePosition, FadeDuration).SetEase(Ease.OutQuad);
+            }
+            else
+            {
+                image.SetImageAlpha(1f);
+                image.gameObject.SetActive(true);
+                fadeTween = image.DOFade(0f, FadeDuration);
+                moveTween = rectTransform.DOAnchorPos(homePosition + new Vector2(offsetX, 0), FadeDuration).SetEase(Ease.OutQuad);
+            }
 
             return UniTask.WhenAll(
-                image.DOFade(1f, FadeDuration).ToUniTask(cancellationToken: token),
-                rectTransform.DOAnchorPos(homePosition, FadeDuration).SetEase(Ease.OutQuad).ToUniTask(cancellationToken: token)
+                fadeTween.ToUniTask(cancellationToken: token),
+                moveTween.ToUniTask(cancellationToken: token)
             );
         }
 

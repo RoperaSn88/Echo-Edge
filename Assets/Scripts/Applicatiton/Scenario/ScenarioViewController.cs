@@ -83,8 +83,8 @@ namespace Applicatiton.Scenario
                     break;
 
                 case CharacterAppearEvent appear:
-                    _characterPositions[appear.Character.CharacterId] = appear.Position;
-                    await _view.ShowCharacter(appear.Position, appear.Character.GetSprite(appear.Emotion), destroyCancellationToken);
+                    if (appear.Character　!= null) _characterPositions[appear.Character.CharacterId] = appear.Position;
+                    await _view.ShowCharacter(appear.Position, appear.Character ? appear.Character.GetSprite(appear.Emotion) : null, destroyCancellationToken);
                     break;
 
                 case CharacterExpressionChangeEvent expression:
