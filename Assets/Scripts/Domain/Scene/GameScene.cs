@@ -4,5 +4,6 @@ public enum GameScene
     MainGame = 2,
     Option = 3,
     License = 4,
-    Credit = 5
+    Credit = 5,
+    Scenario = 6
 }

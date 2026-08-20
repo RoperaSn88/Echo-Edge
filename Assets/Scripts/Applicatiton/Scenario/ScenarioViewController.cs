@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using Domain.Scenario;
 using Domain.Scenario.Controller;
@@ -22,6 +23,16 @@ namespace Applicatiton.Scenario
         private CharacterData _rightCharacter;
 
         private ScenarioViewModel _viewModel;
+
+        /// <summary>
+        /// シナリオ画面全体のフェードインを行う。シナリオ起動時に呼び出す。
+        /// </summary>
+        public UniTask FadeInAsync(CancellationToken token) => _view.FadeInAsync(token);
+
+        /// <summary>
+        /// シナリオ画面全体のフェードアウトを行う。シナリオ終了時に呼び出す。
+        /// </summary>
+        public UniTask FadeOutAsync(CancellationToken token) => _view.FadeOutAsync(token);
 
         /// <summary>
         /// 監視対象の <see cref="ScenarioViewModel"/> を登録し、状態変化の購読を開始する。
@@ -72,13 +83,13 @@ namespace Applicatiton.Scenario
             {
                 case Phrase phrase:
                     var speaker = GetCharacter(phrase.CharaPosition);
-                    _view.ShowPhrase(speaker != null ? speaker.DisplayName : string.Empty, phrase.Text);
+                    await _view.ShowPhrase(speaker != null ? speaker.DisplayName : string.Empty, phrase.Text, destroyCancellationToken);
                     _view.HighlightCharacter(phrase.CharaPosition);
                     break;
 
                 case CharacterAppearEvent appear:
                     SetCharacter(appear.Position, appear.Character);
-                    await _view.ShowCharacter(appear.Position, appear.Character.GetSprite(appear.Emotion), destroyCancellationToken);
+                    await _view.ShowCharacter(appear.Position, appear.Character != null ? appear.Character.GetSprite(appear.Emotion) : null, destroyCancellationToken);
                     break;
 
                 case CharacterExpressionChangeEvent expression:

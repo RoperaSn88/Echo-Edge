@@ -32,15 +32,22 @@ namespace Applicatiton.Scenario
 
         /// <summary>
         /// シナリオ画面を表示し、クリック待機によるページ送りを開始する。
+        /// シナリオの完了を待つ必要がある場合は <see cref="ShowAndWaitForFinishAsync"/> を使用する。
         /// </summary>
         public void Show()
         {
-            gameObject.SetActive(true);
-
-            _cts?.Cancel();
-            _cts?.Dispose();
-            _cts = new CancellationTokenSource();
+            BeginShow();
             RunAsync(_cts.Token).Forget();
+        }
+
+        /// <summary>
+        /// シナリオ画面を表示し、クリック待機によるページ送りを開始したうえで、
+        /// シナリオが最後まで再生され画面が隠れるまで待機する。
+        /// </summary>
+        public async UniTask ShowAndWaitForFinishAsync()
+        {
+            BeginShow();
+            await RunAndHideAsync(_cts.Token);
         }
 
         /// <summary>
@@ -56,13 +63,37 @@ namespace Applicatiton.Scenario
         }
 
         /// <summary>
+        /// 表示に必要な状態（アクティブ化・キャンセルトークンの再生成）を準備する。
+        /// </summary>
+        private void BeginShow()
+        {
+            gameObject.SetActive(true);
+
+            _cts?.Cancel();
+            _cts?.Dispose();
+            _cts = new CancellationTokenSource();
+        }
+
+        /// <summary>
         /// ScreenModel の入力待機ループを実行し、シナリオが完了したら画面を隠す。
         /// </summary>
         private async UniTaskVoid RunAsync(CancellationToken cancellationToken)
         {
+            await RunAndHideAsync(cancellationToken);
+        }
+
+        /// <summary>
+        /// シナリオ起動時のフェードインを行ったうえで ScreenModel の入力待機ループを実行し、
+        /// シナリオが完了したらフェードアウトしてから画面を隠す。
+        /// キャンセルされた場合はフェードアウトを行わずに終了する。
+        /// </summary>
+        private async UniTask RunAndHideAsync(CancellationToken cancellationToken)
+        {
             try
             {
+                await _viewController.FadeInAsync(cancellationToken);
                 await _screenModel.RunAsync(cancellationToken);
+                await _viewController.FadeOutAsync(cancellationToken);
             }
             catch (OperationCanceledException)
             {
