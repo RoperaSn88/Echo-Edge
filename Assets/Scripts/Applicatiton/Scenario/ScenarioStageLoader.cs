@@ -1,5 +1,6 @@
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Applicatiton.Scenario
 {
@@ -19,6 +20,14 @@ namespace Applicatiton.Scenario
         public static async UniTask PlayCurrentStageScenarioAsync()
         {
             await SceneLoader.AdditiveLoadAsync(GameScene.Scenario);
+
+            // Build Settings にシーンが登録されていない場合など、SceneLoader 側でロードに失敗して
+            // 何もしていない可能性があるため、実際にロードされたかどうかを確認してから続行する
+            if (!SceneManager.GetSceneByBuildIndex((int)GameScene.Scenario).isLoaded)
+            {
+                Debug.LogError("Scenario シーンのロードに失敗したため、シナリオの再生をスキップします");
+                return;
+            }
 
             // ScenarioScreen は初期状態で非表示（非アクティブ）のため、非アクティブなオブジェクトも検索対象に含める
             var screen = UnityEngine.Object.FindFirstObjectByType<ScenarioScreen>(FindObjectsInactive.Include);
