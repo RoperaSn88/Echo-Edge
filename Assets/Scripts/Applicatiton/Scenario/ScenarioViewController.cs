@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -22,6 +23,15 @@ namespace Applicatiton.Scenario
         private CharacterData _leftCharacter;
         private CharacterData _rightCharacter;
 
+        // これまでに表示したセリフのログ。ログ表示 UI から参照される。
+        private readonly List<ScenarioLogEntry> _log = new();
+        public IReadOnlyList<ScenarioLogEntry> Log => _log;
+
+        /// <summary>
+        /// <see cref="Log"/> の内容が更新された際に発火する。
+        /// </summary>
+        public event Action LogUpdated;
+
         private ScenarioViewModel _viewModel;
 
         /// <summary>
@@ -33,6 +43,11 @@ namespace Applicatiton.Scenario
         /// シナリオ画面全体のフェードアウトを行う。シナリオ終了時に呼び出す。
         /// </summary>
         public UniTask FadeOutAsync(CancellationToken token) => _view.FadeOutAsync(token);
+
+        /// <summary>
+        /// 早送り・スキップ中かどうかに応じて、演出の速度を切り替える。
+        /// </summary>
+        public void SetFastForward(bool enabled) => _view.SetFastForward(enabled);
 
         /// <summary>
         /// 監視対象の <see cref="ScenarioViewModel"/> を登録し、状態変化の購読を開始する。
@@ -47,6 +62,8 @@ namespace Applicatiton.Scenario
             _viewModel = viewModel;
             _leftCharacter = null;
             _rightCharacter = null;
+            _log.Clear();
+            LogUpdated?.Invoke();
 
             _viewModel.CurrentEventChanged += OnCurrentEventChanged;
 
@@ -82,9 +99,11 @@ namespace Applicatiton.Scenario
             switch (scenarioEvent)
             {
                 case Phrase phrase:
-                    var speaker = GetCharacter(phrase.CharaPosition);
-                    await _view.ShowPhrase(speaker != null ? speaker.DisplayName : string.Empty, phrase.Text, destroyCancellationToken);
+                    var speakerName = GetCharacter(phrase.CharaPosition)?.DisplayName ?? string.Empty;
+                    await _view.ShowPhrase(speakerName, phrase.Text, destroyCancellationToken);
                     _view.HighlightCharacter(phrase.CharaPosition);
+                    _log.Add(new ScenarioLogEntry(speakerName, phrase.Text));
+                    LogUpdated?.Invoke();
                     break;
 
                 case CharacterAppearEvent appear:

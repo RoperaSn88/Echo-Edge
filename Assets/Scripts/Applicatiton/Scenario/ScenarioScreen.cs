@@ -15,6 +15,7 @@ namespace Applicatiton.Scenario
     public class ScenarioScreen : MonoBehaviour
     {
         [SerializeField] private ScenarioViewController _viewController;
+        [SerializeField] private ScenarioLogView _logView;
 
         private readonly ScenarioScreenModel _screenModel = new();
 
@@ -26,8 +27,52 @@ namespace Applicatiton.Scenario
         /// <param name="scenarioAddress">読み込む ScenarioData の Addressable アドレス。</param>
         public async UniTask Initialize(string scenarioAddress)
         {
+            _viewController.LogUpdated -= OnLogUpdated;
+            _viewController.LogUpdated += OnLogUpdated;
+
             _viewController.Initialize(_screenModel.ScenarioViewModel);
             await _screenModel.InitializeAsync(scenarioAddress);
+        }
+
+        /// <summary>
+        /// 自動再生の有効・無効を切り替える。有効な場合、クリックがなくても一定時間で次に進む。
+        /// </summary>
+        public void SetAutoPlay(bool enabled) => _screenModel.SetAutoPlay(enabled);
+
+        /// <summary>
+        /// 早送りの有効・無効を切り替える。演出速度のみが変化し、進行のタイミングには影響しない。
+        /// </summary>
+        public void SetFastForward(bool enabled)
+        {
+            _screenModel.SetFastForward(enabled);
+            UpdatePlaybackSpeed();
+        }
+
+        /// <summary>
+        /// スキップの有効・無効を切り替える。有効な場合、クリックを待たずに次々と進める。
+        /// </summary>
+        public void SetSkip(bool enabled)
+        {
+            _screenModel.SetSkip(enabled);
+            UpdatePlaybackSpeed();
+        }
+
+        /// <summary>
+        /// ログパネルの表示・非表示を切り替える。
+        /// </summary>
+        public void ToggleLog() => _logView.Toggle();
+
+        /// <summary>
+        /// 早送り・スキップのいずれかが有効な間は、演出速度を上げる。
+        /// </summary>
+        private void UpdatePlaybackSpeed()
+        {
+            _viewController.SetFastForward(_screenModel.IsFastForwarding || _screenModel.IsSkipEnabled);
+        }
+
+        private void OnLogUpdated()
+        {
+            _logView.Refresh(_viewController.Log);
         }
 
         /// <summary>
@@ -105,6 +150,8 @@ namespace Applicatiton.Scenario
 
         private void OnDestroy()
         {
+            _viewController.LogUpdated -= OnLogUpdated;
+
             _cts?.Cancel();
             _cts?.Dispose();
         }
