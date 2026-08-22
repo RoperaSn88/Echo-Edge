@@ -93,7 +93,10 @@ public class PlayerController: MonoBehaviour
     /// <returns></returns>
     private List<IDamageActivator> _damagedEnemies = new();
 
-    private PlayerAttackKind _attackKind;
+    /// <summary>
+    /// 現在実行中の攻撃が、めちゃくちゃ早い一閃(FlashMove)かどうか。
+    /// </summary>
+    private bool _isFlashAttack;
 
     public void Start()
     {
@@ -111,7 +114,7 @@ public class PlayerController: MonoBehaviour
     public async UniTask Move(Vector3 targetPos)
     {
         // 通常の反射攻撃
-        _attackKind = PlayerAttackKind.ReflectAttack;
+        _isFlashAttack = false;
 
         UIPresenter.Instance.ResetFade();
         
@@ -191,7 +194,7 @@ public class PlayerController: MonoBehaviour
     /// <param name="targetPos">ポインターの先の位置</param>
     public async UniTask FlashMove(Vector3 targetPos)
     {
-        _attackKind = PlayerAttackKind.FlashReflectAttack;
+        _isFlashAttack = true;
         byte reflectCount = BattleManager.PlayerStatus.Move;
         PlayerView.Instance.Animator.SetBool("AttackingF", true);
         
@@ -334,7 +337,7 @@ public class PlayerController: MonoBehaviour
     private async UniTask TryDamageEnemy(Collider other)
     {
         // 高速な一閃の場合、TryFlashDamageEnemyで処理するため、ここでは処理しない
-        if(_attackKind == PlayerAttackKind.FlashReflectAttack)
+        if(_isFlashAttack)
         {
             return;
         }
