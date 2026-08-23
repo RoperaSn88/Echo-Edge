@@ -21,4 +21,9 @@ public class BombAttackAction: IPlayerAttackAction
     {
         // 未実装。爆発攻撃固有のダメージ判定は仕様確定後に実装する。
     }
+
+    public void OnCollisionEnter(Collision collision)
+    {
+        throw new NotImplementedException();
+    }
 }

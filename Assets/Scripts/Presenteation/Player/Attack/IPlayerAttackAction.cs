@@ -20,4 +20,10 @@ public interface IPlayerAttackAction
     /// </summary>
     /// <param name="other">相手の当たり判定</param>
     void OnTriggerEnter(Collider other);
+    
+    /// <summary>
+    /// 壁などに当たったときの判定処理。
+    /// </summary>
+    /// <param name="collision"></param>
+    void OnCollisionEnter(Collision collision);
 }

@@ -75,11 +75,12 @@ public class ReflectAttackAction: IPlayerAttackAction
             if (Physics.Raycast(ray, out RaycastHit hit, math.INFINITY, player.LayerMask))
             {
                 var distance = Vector3.Distance(ray.origin, hit.point);
+                
                 // プレイヤーを移動する
-                Vector3 vec = new Vector3(hit.point.x, hit.point.y, hit.point.z);
-                vec = Vector3.Lerp(player.transform.position, vec, 0.99f);
+                Vector3 endVec = new Vector3(hit.point.x, hit.point.y, hit.point.z);
+                endVec = Vector3.Lerp(player.transform.position, endVec, 0.99f);
                 player.ResetAfterimageAnchor();
-                await player.transform.DOMove(vec, distance / Speed)
+                await player.transform.DOMove(endVec, distance / Speed)
                     .OnUpdate(player.SpawnAfterimageIfNeeded);
 
                 _direction = Vector3.Reflect(_direction, hit.normal);
@@ -122,5 +123,10 @@ public class ReflectAttackAction: IPlayerAttackAction
         {
             status.Damage().Forget();
         }
+    }
+
+    public void OnCollisionEnter(Collision collision)
+    {
+        
     }
 }

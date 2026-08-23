@@ -156,7 +156,7 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposab
         _canvasGroup.DOFade(value, 0.5f).SetEase(Ease.OutQuad).ToUniTask().Forget();
     }
 
-    public async UniTask Damage()
+    public async UniTask Damage(float rate)
     {
         await ApplyDamage(BattleManager.EnemyDamage);
     }
@@ -164,7 +164,7 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposab
     /// <summary>
     /// めちゃくちゃ早い一閃によるダメージ処理
     /// </summary>
-    public async UniTask FlashDamage()
+    public async UniTask FlashDamage(float rate)
     {
         await ApplyDamage(BattleManager.FlashAttackDamage);
     }

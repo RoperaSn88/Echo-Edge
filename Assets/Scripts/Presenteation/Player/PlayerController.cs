@@ -43,8 +43,6 @@ public class PlayerController: MonoBehaviour
     /// </summary>
     private Vector3 _direction;
 
-    bool atatta = false;
-
     /// <summary>
     /// 残像オブジェクトプール
     /// </summary>
@@ -124,28 +122,24 @@ public class PlayerController: MonoBehaviour
                 $"未対応の攻撃の組み合わせです。AttackKind: {_attackKind}, IsFlashAttack: {_isFlashAttack}")
         };
     }
-
+    
+#if UNITY_EDITOR
     void Update()
     {
         Debug.DrawLine(_ray.origin, _ray.origin + _direction * 100, Color.yellow);
     }
-
-    void OnCollisionEnter(Collision collision)
-    {
-        if (collision.gameObject.CompareTag("Wall"))
-        {
-            atatta = true;
-        }
-    }
+#endif
 
     /// <summary>
     /// デバッグ描画用のrayを更新する。<see cref="IPlayerAttackAction"/>実装から呼ばれる。
     /// </summary>
     internal void SetDebugRay(Vector3 origin, Vector3 direction)
     {
+        #if unity_editor
         _ray.origin = origin;
         _ray.direction = direction;
         _direction = direction;
+        #endif
     }
 
     /// <summary>
@@ -200,5 +194,14 @@ public class PlayerController: MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         _currentAttackAction?.OnTriggerEnter(other);
+    }
+    
+    /// <summary>
+    /// 壁の処理
+    /// </summary>
+    /// <param name="collision"></param>
+    void OnCollisionEnter(Collision collision)
+    {
+        _currentAttackAction?.OnCollisionEnter(collision);
     }
 }

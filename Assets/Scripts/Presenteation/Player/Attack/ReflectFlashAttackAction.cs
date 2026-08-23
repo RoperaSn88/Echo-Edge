@@ -129,4 +129,9 @@ public class ReflectFlashAttackAction: IPlayerAttackAction
     {
         // 何もしない。ダメージ判定はExecuteAsync内でTryFlashDamageEnemyにより行う。
     }
+
+    public void OnCollisionEnter(Collision collision)
+    {
+        throw new NotImplementedException();
+    }
 }

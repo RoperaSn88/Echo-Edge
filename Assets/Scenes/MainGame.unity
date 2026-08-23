@@ -79089,7 +79089,7 @@ MonoBehaviour:
   _rb: {fileID: 907845584}
   _layerMask:
     serializedVersion: 2
-    m_Bits: 2048
+    m_Bits: 6144
   _afterimagePool: {fileID: 1640804801}
   _afterimageInterval: 1
   _lineMaterial: {fileID: 2100000, guid: aafd00f21b8ec7c42926d4152a702055, type: 2}
@@ -88074,7 +88074,7 @@ Camera:
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 2135
+    m_Bits: 6231
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0

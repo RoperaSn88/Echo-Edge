@@ -2,10 +2,10 @@ using Cysharp.Threading.Tasks;
 
 public interface IDamageActivator
 {
-    public UniTask Damage();
+    public UniTask Damage(float rate = 1.0f);
 
     /// <summary>
     /// めちゃくちゃ早い一閃によるダメージ処理
     /// </summary>
-    public UniTask FlashDamage();
+    public UniTask FlashDamage(float rate = 1.0f);
 }
