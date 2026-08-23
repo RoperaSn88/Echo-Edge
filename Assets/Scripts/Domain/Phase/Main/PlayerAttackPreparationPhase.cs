@@ -65,8 +65,8 @@ public class PlayerAttackPreparationPhase : IPhase
         switch (_clickKind)
         {
             case ClickKinds.Left:
-                bool isFlashing = screen.ScreenModel.PlayerAttackPreparationViewModel.IsFlashing;
-                return isFlashing ? PlayerFlashAttackPhase.Instance : PlayerAttackPhase.Instance;
+                // 攻撃の種類（通常・一閃、反射・貫通・爆発）の切り替えはPlayerController側で一元管理する。
+                return PlayerAttackPhase.Instance;
             case ClickKinds.Right:
                 await CameraManager.Instance.ActMoveCameraToDefault();
                 return PlayerPhase.Instance;

@@ -33,8 +33,12 @@ namespace Domain.Battle.PlayerAttack
             }
             _cancellationTokenSource = new CancellationTokenSource();
             _viewModel = viewModel;
+            
             _viewModel.IsFlashingChanged += OnIsFlashingChanged;
+            _viewModel.IsFlashingChanged += PlayerController.Instance.SetFlashAttack;
+            
             _viewModel.AttackKindChanged += OnAttackKindChanged;
+            _viewModel.AttackKindChanged += PlayerController.Instance.SetAttackKind;
         }
 
         public async UniTask InitializeAsync(CancellationToken token)
