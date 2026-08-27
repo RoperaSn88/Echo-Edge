@@ -35,11 +35,12 @@ namespace Domain.Battle.PlayerAttack
         }
         
         /// <summary>
-        /// マウスホイールでの切り替え入力を受けて、攻撃の種類を切り替える
+        /// マウスホイールでの切り替え入力を受けて、攻撃の種類を切り替える。
+        /// ホイール上方向で <paramref name="forward"/> = true、下方向で false を渡す。
         /// </summary>
-        public void ToggleAttackMode()
+        public void CycleAttackMode(bool forward)
         {
-            PlayerAttackPreparationViewModel.ToggleAttackMode();
+            PlayerAttackPreparationViewModel.CycleAttackMode(forward);
         }
     }
 }

@@ -71,7 +71,7 @@ public class CameraManager : MonoBehaviour
     /// <summary>
     /// 上のときのzのオフセット
     /// </summary>
-    private const float TopCameraOffset = 0f;
+    private const float TopCameraOffset = 0.5f;
 
     /// <summary>
     /// 通常時のzのオフセット

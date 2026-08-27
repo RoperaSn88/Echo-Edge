@@ -11,13 +11,13 @@ namespace Domain.Battle.PlayerAttack
     public class PlayerAttackPreparationViewModel
     {
         /// <summary>
-        /// <see cref="ToggleAttackMode"/> で切り替える対象の攻撃種類。<see cref="PlayerAttackKinds.Invalid"/> は含めない。
+        /// <see cref="CycleAttackMode"/> で切り替える対象の攻撃種類。<see cref="PlayerAttackKinds.Invalid"/> は含めない。
         /// </summary>
         private static readonly PlayerAttackKinds[] CyclableAttackKinds =
         {
             PlayerAttackKinds.Reflect,
             PlayerAttackKinds.Pierce,
-            PlayerAttackKinds.Bomb,
+            PlayerAttackKinds.Curve,
         };
 
         public bool IsPrepared { get; set; }
@@ -40,7 +40,9 @@ namespace Domain.Battle.PlayerAttack
         {
             IsPrepared = false;
             IsFlashing = false;
-            AttackKind = PlayerAttackKinds.Reflect;
+            // AttackKind はリセットしない。同じバトル内(このインスタンスの生存中)は
+            // 前回のフェーズで選んだ攻撃を維持する。バトルが変わればインスタンスごと作り直され、
+            // 既定値の反射(PlayerAttackKinds.Reflect)に戻る。
         }
 
         public async UniTask OnFinalizeAsync()
@@ -77,12 +79,23 @@ namespace Domain.Battle.PlayerAttack
         }
 
         /// <summary>
-        /// <see cref="AttackKind"/> を反射・貫通・爆発の順で次の攻撃種類に切り替える。
+        /// <see cref="AttackKind"/> を <see cref="CyclableAttackKinds"/> の並び順で切り替える。
+        /// スクロール上方向は <paramref name="forward"/> = true、下方向は false を渡す。
+        /// 端に達したら反対側へ循環する。
         /// </summary>
-        public void ToggleAttackMode()
+        /// <param name="forward">true で次の種類へ、false で前の種類へ。</param>
+        public void CycleAttackMode(bool forward)
         {
+            int count = CyclableAttackKinds.Length;
             int currentIndex = Array.IndexOf(CyclableAttackKinds, AttackKind);
-            int nextIndex = currentIndex < 0 ? 0 : (currentIndex + 1) % CyclableAttackKinds.Length;
+            if (currentIndex < 0)
+            {
+                SetAttackKind(CyclableAttackKinds[0]);
+                return;
+            }
+
+            int step = forward ? 1 : -1;
+            int nextIndex = ((currentIndex + step) % count + count) % count;
             SetAttackKind(CyclableAttackKinds[nextIndex]);
         }
     }

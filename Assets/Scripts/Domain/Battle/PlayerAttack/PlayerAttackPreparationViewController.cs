@@ -39,6 +39,9 @@ namespace Domain.Battle.PlayerAttack
             
             _viewModel.AttackKindChanged += OnAttackKindChanged;
             _viewModel.AttackKindChanged += PlayerController.Instance.SetAttackKind;
+
+            // 同じバトル内で維持されている攻撃種類を PlayerController へ反映する(表示は ShowAsync 側で行う)。
+            PlayerController.Instance.SetAttackKind(_viewModel.AttackKind);
         }
 
         public async UniTask InitializeAsync(CancellationToken token)
@@ -87,6 +90,8 @@ namespace Domain.Battle.PlayerAttack
                     return "貫通";
                 case PlayerAttackKinds.Bomb:
                     return "爆発";
+                case PlayerAttackKinds.Curve:
+                    return "曲線";
                 default:
                     return "不明";
             }
@@ -102,6 +107,8 @@ namespace Domain.Battle.PlayerAttack
                     return "貫通攻撃の説明";
                 case PlayerAttackKinds.Bomb:
                     return "爆発攻撃の説明";
+                case PlayerAttackKinds.Curve:
+                    return "曲線攻撃の説明";
                 default:
                     return "不明な攻撃の説明";
             }
@@ -117,6 +124,8 @@ namespace Domain.Battle.PlayerAttack
                     return Color.red;
                 case PlayerAttackKinds.Bomb:
                     return Color.yellow;
+                case PlayerAttackKinds.Curve:
+                    return Color.green;
                 default:
                     return Color.white;
             }

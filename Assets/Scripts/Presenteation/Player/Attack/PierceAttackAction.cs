@@ -84,7 +84,6 @@ public class PierceAttackAction: IPlayerAttackAction
                     
                     var moveVec = new Vector3(hit.normal.x * rate, 0, hit.normal.z * rate);
                     
-                    await UniTask.Delay(TimeSpan.FromSeconds(AwaitTime));
                     _pos = hit.point + moveVec;
                     player.transform.position = _pos;
                 }

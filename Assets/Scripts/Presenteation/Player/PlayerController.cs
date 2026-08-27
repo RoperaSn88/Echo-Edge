@@ -118,6 +118,9 @@ public class PlayerController: MonoBehaviour
             (PlayerAttackKinds.Pierce, true) => PierceFlashAttackAction.Instance,
             (PlayerAttackKinds.Bomb, false) => BombAttackAction.Instance,
             (PlayerAttackKinds.Bomb, true) => BombFlashAttackAction.Instance,
+            // 曲線攻撃は通常のみ実装。めちゃくちゃ早い一閃版は未実装のため通常版にフォールバックする。
+            (PlayerAttackKinds.Curve, false) => CurveAttackAction.Instance,
+            (PlayerAttackKinds.Curve, true) => CurveAttackAction.Instance,
             _ => throw new InvalidOperationException(
                 $"未対応の攻撃の組み合わせです。AttackKind: {_attackKind}, IsFlashAttack: {_isFlashAttack}")
         };

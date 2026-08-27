@@ -5,6 +5,7 @@
         Reflect,
         Pierce,
         Bomb,
+        Curve,
         Invalid
     }
 }
