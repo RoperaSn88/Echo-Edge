@@ -105,7 +105,7 @@ public class BattleManager : MonoBehaviour
         _reflectionCount = 0;
     }
 
-    public async static UniTask<(int damage, bool isDeath)> EnemyDamage()
+    public static async UniTask<(int damage, bool isDeath)> EnemyDamage()
     {
         if (!_QTEFlug)
         {

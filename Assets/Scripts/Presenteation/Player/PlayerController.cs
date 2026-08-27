@@ -1,10 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
 using Cysharp.Threading.Tasks;
-using DG.Tweening;
-using Unity.Mathematics;
+using Domain.Battle.PlayerAttack;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
@@ -30,40 +26,22 @@ public class PlayerController: MonoBehaviour
 
     [SerializeField]
     private LayerMask _layerMask;
-    /// <summary>
-    /// 現在のプレイヤーの位置
-    /// </summary>
-    private Vector3 _pos;
 
     /// <summary>
-    /// うごかす方向のフィールド
+    /// 攻撃固有の実装(<see cref="IPlayerAttackAction"/>)から参照する、壁判定用のレイヤーマスク。
     /// </summary>
-    private Vector3 _direction;
+    internal LayerMask LayerMask => _layerMask;
 
     /// <summary>
-    /// rayをキャッシュする
+    /// Update内でのデバッグ描画用のray。実行中の攻撃(<see cref="IPlayerAttackAction"/>)が
+    /// <see cref="SetDebugRay"/>で更新する。
     /// </summary>
     private Ray _ray;
 
     /// <summary>
-    /// RaycastHitをキャッシュする
+    /// Update内でのデバッグ描画用の方向。実行中の攻撃が<see cref="SetDebugDirection"/>で更新する。
     /// </summary>
-    private RaycastHit _hit;
-
-    /// <summary>
-    /// ベクトルをキャッシュする
-    /// </summary>
-    private Vector3 _vec;
-    
-    bool atatta = false;
-
-    private const float Speed = 23;
-    private const float ReflectionDamageCheckRadius = 0.5f;
-
-    /// <summary>
-    /// めちゃくちゃ早い一閃で、敵を斬り抜ける際のトゥイーン時間
-    /// </summary>
-    private const float FlashAttackSlashDuration = 0.1f;
+    private Vector3 _direction;
 
     /// <summary>
     /// 残像オブジェクトプール
@@ -79,7 +57,7 @@ public class PlayerController: MonoBehaviour
 
     [SerializeField, Tooltip("ヤケクソの線マテリアル")]
     private Material _lineMaterial;
-    
+
     public Material LineMaterial => _lineMaterial;
 
     /// <summary>
@@ -88,12 +66,23 @@ public class PlayerController: MonoBehaviour
     private Vector3 _lastAfterimagePosition;
 
     /// <summary>
-    /// ダメージを与えたことのある敵のリスト。反射中に同じ敵に複数回ダメージを与えないようにするためのもの。
+    /// 現在実行中の攻撃が、めちゃくちゃ早い一閃(Flash)かどうか。
     /// </summary>
-    /// <returns></returns>
-    private List<IDamageActivator> _damagedEnemies = new();
+    private bool _isFlashAttack;
 
-    private PlayerAttackKind _attackKind;
+    /// <summary>
+    /// 現在の攻撃が、めちゃくちゃ早い一閃(Flash)かどうか。攻撃固有の実装から参照する。
+    /// </summary>
+    public bool IsFlashAttack => _isFlashAttack;
+
+    private PlayerAttackKinds _attackKind = PlayerAttackKinds.Reflect;
+
+    public PlayerAttackKinds AttackKind => _attackKind;
+
+    /// <summary>
+    /// 現在実行中(または直近に実行した)攻撃。OnTriggerEnter発生時のダメージ判定の委譲先として使う。
+    /// </summary>
+    private IPlayerAttackAction _currentAttackAction;
 
     public void Start()
     {
@@ -101,182 +90,86 @@ public class PlayerController: MonoBehaviour
         _ray = new Ray();
     }
 
-    /// <summary>
-    /// ポインターとプレイヤーの角度を計算し、プレイヤーを進ませる。
-    /// ポインターの位置とプレイヤーの位置の相違を計算する。ポインターとプレイヤーの位置のレイに敵が当たっていたら、その敵にダメージを与える。
-    /// プレイヤーをポインターの位置にテレポートさせる。
-    /// 壁についたらreflectCountを減らす。減らした後、1以上ならば反射角に対しておなじことを行う
-    /// </summary>
-    /// <param name="targetPos">ポインターの先の位置</param>
-    public async UniTask Move(Vector3 targetPos)
+    public void SetAttackKind(PlayerAttackKinds kind)
     {
-        // 通常の反射攻撃
-        _attackKind = PlayerAttackKind.ReflectAttack;
+        _attackKind = kind;
+    }
 
-        UIPresenter.Instance.ResetFade();
-        
-        _pos = _playerTransform.position;
-
-        _direction.Set(targetPos.x - _pos.x, 0, targetPos.z - _pos.z);
-        _direction = _direction.normalized;
-        
-        PlayerView.Instance.Animator.SetBool("AttackingF", true);
-        
-        
-        byte reflectCount = BattleManager.PlayerStatus.Move;
-
-        BattleManager.ResetReflectionCount();
-
-        for(int i = 0; i <= reflectCount; i++)
-        {
-            await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
-
-            _ray.origin = _pos;
-            _ray.direction = _direction;
-
-            // このセグメントに到達するまでに発生した反射回数を記録する。
-            // OverlapSphere・移動中の OnTriggerEnter によるダメージ計算で参照される。
-            BattleManager.SetReflectionCount(i);
-
-            if (i > 0)
-            {
-                var colliders = Physics.OverlapSphere(_ray.origin, ReflectionDamageCheckRadius);
-                foreach (var collider in colliders)
-                {
-                    TryDamageEnemy(collider).Forget();
-                }
-            }
-
-            // 始点からdirection方向にrayを飛ばし、当たった位置を新たな_posとする。
-            if(Physics.Raycast(_ray, out _hit, math.INFINITY, _layerMask))
-            {
-                var distance = Vector3.Distance(_ray.origin, _hit.point);
-                // プレイヤーを移動する
-                _vec.Set(_hit.point.x, _hit.point.y, _hit.point.z);
-                _vec = Vector3.Lerp(transform.position, _vec, 0.99f);
-                _lastAfterimagePosition = transform.position;
-                await transform.DOMove(_vec, distance / Speed)
-                    .OnUpdate(SpawnAfterimageIfNeeded);
-
-                _direction = Vector3.Reflect(_direction, _hit.normal);
-                if(i != reflectCount) _pos = _playerTransform.position;
-            }
-            else
-            {
-                throw new System.Exception("当たってない...だと");
-            }
-        }
-        
-        await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
-
-        _vec.Set(-8, _playerTransform.position.y, _playerTransform.position.z);
-
-        BattleManager.ResetQTE();
-        BattleManager.ResetCombo();
-        BattleManager.ResetReflectionCount();
-        UIPresenter.Instance.FadeTexts();
-        
-        PlayerView.Instance.Animator.SetBool("AttackingF", false);
-
-        _playerTransform.position = _vec;
-        await UniTask.Delay(TimeSpan.FromSeconds(0.6f));
+    public void SetFlashAttack(bool isFlash)
+    {
+        _isFlashAttack = isFlash;
     }
 
     /// <summary>
-    /// めちゃくちゃ早い一閃。
-    /// プレイヤーからポインター方向へ光線を飛ばし、当たった壁の位置へ瞬時に移動する。
-    /// 光線上に敵がいる場合はプレイヤーに近い順に斬りつけたのち、壁の位置まで瞬時に移動する。
-    /// 反射回数の分だけ壁の法線で反射しながら繰り返し、最後に元の位置へ戻る。
+    /// 攻撃の実行エントリーポイント。
+    /// PlayerControllerが保持する攻撃パラメータ(<see cref="AttackKind"/>と<see cref="_isFlashAttack"/>)の
+    /// 組み合わせによって、適切な<see cref="IPlayerAttackAction"/>実装に処理を委譲する。
+    /// 攻撃の種類ごとの実装は、攻撃種類ごとに用意された<see cref="IPlayerAttackAction"/>実装クラスを参照。
     /// </summary>
     /// <param name="targetPos">ポインターの先の位置</param>
-    public async UniTask FlashMove(Vector3 targetPos)
+    public async UniTask ExecuteAttack(Vector3 targetPos)
     {
-        _attackKind = PlayerAttackKind.FlashReflectAttack;
-        byte reflectCount = BattleManager.PlayerStatus.Move;
-        PlayerView.Instance.Animator.SetBool("AttackingF", true);
-        
-        // CameraManager.Instance.ActSetCameraTarget(transform.position).Forget();
-
-        Vector3 originalPosition = _playerTransform.position;
-        _pos = originalPosition;
-        _direction = new Vector3(targetPos.x - _pos.x, 0, targetPos.z - _pos.z).normalized;
-
-        await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
-
-        for (int i = 0; i <= reflectCount; i++)
-        {
-            // 反射するたびに敵のリストをクリアする。
-            _damagedEnemies.Clear();
-
-            Ray ray = new Ray(_pos, _direction);
-            if (!Physics.Raycast(ray, out RaycastHit wallHit, math.INFINITY, _layerMask))
-            {
-                throw new System.Exception("当たってない...だと");
-            }
-
-            float wallDistance = Vector3.Distance(_pos, wallHit.point);
-
-            // 光線に触れた敵を、プレイヤーから近い順に並べる
-            var enemyHits = Physics.RaycastAll(ray, wallDistance, ~0, QueryTriggerInteraction.Collide)
-                .Where(hit => hit.collider.CompareTag("Enemy"))
-                .OrderBy(hit => hit.distance)
-                .ToArray();
-
-            foreach (var enemyHit in enemyHits)
-            {
-                Vector3 enemyPos = enemyHit.collider.transform.position;
-                targetPos = new Vector3(enemyPos.x, _playerTransform.position.y, enemyPos.z);
-
-                // 敵の位置から光線の単位ベクトル分マイナスした位置へ瞬時に移動し、プラスした位置へ斬り抜ける
-                // 疑似的にダメージ与える
-                _playerTransform.position = targetPos - _direction * 0.5f;
-
-                // 移動はするが、攻撃が終了したタイミングで次の敵の位置に移動するように
-                CancellationTokenSource cts = new CancellationTokenSource();
-                var tween = _playerTransform.DOMove(targetPos, FlashAttackSlashDuration).ToUniTask(cancellationToken: cts.Token);
-                PlayerView.Instance.Animator.SetTrigger("AttackT");
-                await TryFlashDamageEnemy(enemyHit.collider);
-                cts.Cancel();
-            }
-
-            // 壁の位置まで瞬時に移動する
-            _playerTransform.position = wallHit.point - _direction * 0.5f;
-            await _playerTransform.DOMove(wallHit.point, FlashAttackSlashDuration);
-
-            _pos = wallHit.point;
-            _direction = Vector3.Reflect(_direction, wallHit.normal);
-            
-            await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
-        }
-        
-        BattleManager.ResetQTE();
-        BattleManager.ResetCombo();
-        BattleManager.ResetReflectionCount();
-        UIPresenter.Instance.FadeTexts();
-
-        PlayerView.Instance.Animator.SetBool("AttackingF", false);
-
-        // z軸を含めて元の位置へ戻す
-        _playerTransform.position = originalPosition;
+        _currentAttackAction = ResolveAttackAction();
+        await _currentAttackAction.ExecuteAsync(targetPos);
     }
 
+    private IPlayerAttackAction ResolveAttackAction()
+    {
+        return (_attackKind, _isFlashAttack) switch
+        {
+            (PlayerAttackKinds.Reflect, false) => ReflectAttackAction.Instance,
+            (PlayerAttackKinds.Reflect, true) => ReflectFlashAttackAction.Instance,
+            (PlayerAttackKinds.Pierce, false) => PierceAttackAction.Instance,
+            (PlayerAttackKinds.Pierce, true) => PierceFlashAttackAction.Instance,
+            (PlayerAttackKinds.Bomb, false) => BombAttackAction.Instance,
+            (PlayerAttackKinds.Bomb, true) => BombFlashAttackAction.Instance,
+            // 曲線攻撃は通常・一閃とも同じクラス。一閃版は CurveAttackAction 内で移動速度だけ上げる。
+            (PlayerAttackKinds.Curve, false) => CurveAttackAction.Instance,
+            (PlayerAttackKinds.Curve, true) => CurveAttackAction.Instance,
+            _ => throw new InvalidOperationException(
+                $"未対応の攻撃の組み合わせです。AttackKind: {_attackKind}, IsFlashAttack: {_isFlashAttack}")
+        };
+    }
+    
+#if UNITY_EDITOR
     void Update()
     {
         Debug.DrawLine(_ray.origin, _ray.origin + _direction * 100, Color.yellow);
     }
+#endif
 
-    void OnCollisionEnter(Collision collision)
+    /// <summary>
+    /// デバッグ描画用のrayを更新する。<see cref="IPlayerAttackAction"/>実装から呼ばれる。
+    /// </summary>
+    internal void SetDebugRay(Vector3 origin, Vector3 direction)
     {
-        if (collision.gameObject.CompareTag("Wall"))
-        {
-            atatta = true;
-        }
+        #if unity_editor
+        _ray.origin = origin;
+        _ray.direction = direction;
+        _direction = direction;
+        #endif
+    }
+
+    /// <summary>
+    /// デバッグ描画用の方向のみを更新する。<see cref="IPlayerAttackAction"/>実装から呼ばれる。
+    /// </summary>
+    internal void SetDebugDirection(Vector3 direction)
+    {
+        _direction = direction;
+    }
+
+    /// <summary>
+    /// 残像の出現判定の基準位置を、現在位置にリセットする。トゥイーン移動を開始する直前に呼ぶ。
+    /// </summary>
+    internal void ResetAfterimageAnchor()
+    {
+        _lastAfterimagePosition = transform.position;
     }
 
     /// <summary>
     /// 一定距離移動した場合に残像を出現させる。DOTweenのOnUpdateコールバックから呼ばれる。
     /// </summary>
-    private void SpawnAfterimageIfNeeded()
+    internal void SpawnAfterimageIfNeeded()
     {
         if (_afterimagePool == null) return;
         if (Vector3.Distance(transform.position, _lastAfterimagePosition) >= _afterimageInterval)
@@ -303,51 +196,20 @@ public class PlayerController: MonoBehaviour
     }
 
     /// <summary>
-    /// ダメージ処理
+    /// ダメージ処理。実行中の攻撃固有の判定に委譲する。
     /// </summary>
     /// <param name="other">相手の当たり判定</param>
     private void OnTriggerEnter(Collider other)
     {
-        TryDamageEnemy(other).Forget();
+        _currentAttackAction?.OnTriggerEnter(other);
     }
-
-    private async UniTask TryFlashDamageEnemy(Collider other)
+    
+    /// <summary>
+    /// 壁の処理
+    /// </summary>
+    /// <param name="collision"></param>
+    void OnCollisionEnter(Collision collision)
     {
-        if (!other.CompareTag("Enemy"))
-        {
-            return;
-        }
-
-        if (_damagedEnemies.Contains(other.GetComponent<IDamageActivator>()))
-        {
-            return;
-        }
-
-        PlayerView.Instance.Animator.SetTrigger("AttackT");
-        if (other.TryGetComponent<IDamageActivator>(out var status))
-        {
-            _damagedEnemies.Add(status);
-            await status.FlashDamage();
-        }
-    }   
-
-    private async UniTask TryDamageEnemy(Collider other)
-    {
-        // 高速な一閃の場合、TryFlashDamageEnemyで処理するため、ここでは処理しない
-        if(_attackKind == PlayerAttackKind.FlashReflectAttack)
-        {
-            return;
-        }
-
-        if (!other.CompareTag("Enemy"))
-        {
-            return;
-        }
-
-        PlayerView.Instance.Animator.SetTrigger("AttackT");
-        if (other.TryGetComponent<IDamageActivator>(out var status))
-        {
-            status.Damage().Forget();
-        }
+        _currentAttackAction?.OnCollisionEnter(collision);
     }
 }

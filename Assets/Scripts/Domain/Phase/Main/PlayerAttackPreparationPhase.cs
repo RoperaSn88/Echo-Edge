@@ -1,6 +1,8 @@
 using System;
+using System.Threading;
 using Actions;
 using Cysharp.Threading.Tasks;
+using Domain.Battle.PlayerAttack;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -31,22 +33,23 @@ public class PlayerAttackPreparationPhase : IPhase
     /// </summary>
     private ClickKinds _clickKind;
 
-    /// <summary>
-    /// マウスホイールで切り替える、めちゃくちゃ早い一閃モードかどうか
-    /// </summary>
-    private bool _isFlashAttackMode;
-
     public async UniTask<IPhase> WaitPhase()
     {
         // 初期条件
         _clickFlug = false;
-        _isFlashAttackMode = false;
         _attackGuideLine.SetMaterial(PlayerController.Instance.LineMaterial);
         CameraManager.Instance.ActMoveCameraToTopAngle();
+
+        // 通常・一閃の切り替え状態はPlayerAttackPreparationViewModelを唯一のデータソースとする
+        var screen = PlayerAttackPreparationScreen.Instance;
+        using var cts = new CancellationTokenSource();
+        await screen.InitializeAsync(cts.Token);
+        await screen.OnShowAsync(cts.Token);
 
         PlayerActions playerActions = new PlayerActions();
         EnableController(playerActions);
 
+        // 入力があるまで待機する
         while (!_clickFlug)
         {
             UpdateAttackGuideLine();
@@ -57,10 +60,13 @@ public class PlayerAttackPreparationPhase : IPhase
         _attackGuideLine.Destroy();
         ResetController(playerActions);
 
+        await screen.OnHideAsync(cts.Token);
+
         switch (_clickKind)
         {
             case ClickKinds.Left:
-                return _isFlashAttackMode ? PlayerFlashAttackPhase.Instance : PlayerAttackPhase.Instance;
+                // 攻撃の種類（通常・一閃、反射・貫通・爆発）の切り替えはPlayerController側で一元管理する。
+                return PlayerAttackPhase.Instance;
             case ClickKinds.Right:
                 await CameraManager.Instance.ActMoveCameraToDefault();
                 return PlayerPhase.Instance;
@@ -74,6 +80,7 @@ public class PlayerAttackPreparationPhase : IPhase
         playerActions.PlayerPhase.Attack.started += OnPressAttack;
         playerActions.PlayerPhase.Skill.started += OnPressSkill;
         playerActions.PlayerPhase.Scroll.performed += OnScroll;
+        playerActions.PlayerPhase.ToggleFlash.started += OnPressToggleFlash;
         playerActions.Enable();
     }
 
@@ -96,9 +103,19 @@ public class PlayerAttackPreparationPhase : IPhase
 
     private void OnScroll(InputAction.CallbackContext context)
     {
-        // マウスホイールで通常の一閃と、めちゃくちゃ早い一閃を切り替える。
-        _isFlashAttackMode = !_isFlashAttackMode;
-        Debug.Log("isFlash: " + _isFlashAttackMode);
+        // マウスホイールの回転で、攻撃の種類を切り替える。
+        // 上方向の回転で次、下方向の回転で前の種類へ。0付近のノイズは無視する。
+        // 状態の保持はPlayerAttackPreparationViewModelに一本化し、表示への反映はViewControllerに任せる。
+        float scroll = context.ReadValue<float>();
+        if (Mathf.Approximately(scroll, 0f)) return;
+
+        PlayerAttackPreparationScreen.Instance.ScreenModel.CycleAttackMode(scroll > 0f);
+    }
+
+    private void OnPressToggleFlash(InputAction.CallbackContext context)
+    {
+        // マウスホイールの押し込みで、通常の一閃と、めちゃくちゃ早い一閃を切り替える。
+        PlayerAttackPreparationScreen.Instance.ScreenModel.ToggleFlashMode();
     }
 
     private void UpdateAttackGuideLine()

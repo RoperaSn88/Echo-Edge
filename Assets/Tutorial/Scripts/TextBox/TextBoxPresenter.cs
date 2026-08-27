@@ -103,7 +103,6 @@ namespace CommonUI.Tutorial
                         turn = await WaitUntilInputAsync(cancellationToken);
                     } while (turn == PageTurn.Prev && pageIndex == 0);
                     
-                    Debug.Log(turn);
                     switch (turn)
                     {
                         case PageTurn.Next:

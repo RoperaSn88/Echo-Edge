@@ -26,7 +26,7 @@ public class PlayerAttackPhase: IPhase
         // プレイヤーの攻撃開始時に追尾を開始する
         CameraManager.Instance.StartTracking(PlayerController.Instance.transform);
 
-        await PlayerController.Instance.Move(rch.point);
+        await PlayerController.Instance.ExecuteAttack(rch.point);
 
         // 追尾を終了する
         CameraManager.Instance.StopTracking();
