@@ -42,6 +42,8 @@ namespace Domain.Battle.PlayerAttack
 
             // 同じバトル内で維持されている攻撃種類を PlayerController へ反映する(表示は ShowAsync 側で行う)。
             PlayerController.Instance.SetAttackKind(_viewModel.AttackKind);
+            // Flash(一閃)フラグは毎ターン初期化する。OnInitializeAsync で false に戻した状態を PlayerController へ反映する。
+            PlayerController.Instance.SetFlashAttack(_viewModel.IsFlashing);
         }
 
         public async UniTask InitializeAsync(CancellationToken token)

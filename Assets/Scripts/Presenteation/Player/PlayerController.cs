@@ -70,6 +70,11 @@ public class PlayerController: MonoBehaviour
     /// </summary>
     private bool _isFlashAttack;
 
+    /// <summary>
+    /// 現在の攻撃が、めちゃくちゃ早い一閃(Flash)かどうか。攻撃固有の実装から参照する。
+    /// </summary>
+    public bool IsFlashAttack => _isFlashAttack;
+
     private PlayerAttackKinds _attackKind = PlayerAttackKinds.Reflect;
 
     public PlayerAttackKinds AttackKind => _attackKind;
@@ -118,7 +123,7 @@ public class PlayerController: MonoBehaviour
             (PlayerAttackKinds.Pierce, true) => PierceFlashAttackAction.Instance,
             (PlayerAttackKinds.Bomb, false) => BombAttackAction.Instance,
             (PlayerAttackKinds.Bomb, true) => BombFlashAttackAction.Instance,
-            // 曲線攻撃は通常のみ実装。めちゃくちゃ早い一閃版は未実装のため通常版にフォールバックする。
+            // 曲線攻撃は通常・一閃とも同じクラス。一閃版は CurveAttackAction 内で移動速度だけ上げる。
             (PlayerAttackKinds.Curve, false) => CurveAttackAction.Instance,
             (PlayerAttackKinds.Curve, true) => CurveAttackAction.Instance,
             _ => throw new InvalidOperationException(

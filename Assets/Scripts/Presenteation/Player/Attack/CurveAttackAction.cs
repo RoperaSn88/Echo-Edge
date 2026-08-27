@@ -10,6 +10,7 @@ using UnityEngine;
 /// 壁に当たった場合は、当たった面の軸方向の速度成分を反転させて跳ね返る。
 /// 曲線フェーズ・放物線フェーズとも移動区間を分割してレイキャストするため、1マスの壁でもすり抜けない。
 /// 移動中にOnTriggerEnterで敵に触れた場合はダメージを与える。
+/// めちゃくちゃ早い一閃(Flash)版は、とりあえず移動が速くなるだけで挙動は同じ。
 /// </summary>
 public class CurveAttackAction: IPlayerAttackAction
 {
@@ -21,6 +22,11 @@ public class CurveAttackAction: IPlayerAttackAction
     /// 曲線移動の基準速度。端点間距離からおおよその移動時間を算出するのに使う。
     /// </summary>
     private const float Speed = 23f;
+
+    /// <summary>
+    /// めちゃくちゃ早い一閃(Flash)版の基準速度。挙動は通常版と同じで、移動だけ速くする。
+    /// </summary>
+    private const float FlashSpeed = 46f;
 
     /// <summary>
     /// 曲線の曲率。制御点を、端点の中点から垂直方向へ (Curvature × 端点間距離) だけずらす。
@@ -80,7 +86,9 @@ public class CurveAttackAction: IPlayerAttackAction
         if (perpendicular.z < 0f) perpendicular = -perpendicular;
         Vector3 control = (start + end) * 0.5f + perpendicular * (Curvature * distance);
 
-        float duration = Mathf.Max(distance / Speed, 0.01f);
+        // 一閃(Flash)版は移動を速くするだけ。曲線の形も加速度も duration 経由で自動的に速くなる。
+        float speed = player.IsFlashAttack ? FlashSpeed : Speed;
+        float duration = Mathf.Max(distance / speed, 0.01f);
 
         // 2次ベジェの2階微分は一定。これが「1の方法で演じた速度の加減」にあたる。
         float accelerationZ = (2f * (start - 2f * control + end) / (duration * duration)).z;
