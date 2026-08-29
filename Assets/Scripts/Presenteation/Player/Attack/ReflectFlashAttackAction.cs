@@ -26,6 +26,11 @@ public class ReflectFlashAttackAction: IPlayerAttackAction
     private const float FlashAttackSlashDuration = 0.1f;
 
     /// <summary>
+    /// この攻撃のダメージ倍率。反射攻撃をメインの攻撃として基準値(1.0)にする。
+    /// </summary>
+    private const float DamageRate = 1.0f;
+
+    /// <summary>
     /// ダメージを与えたことのある敵のリスト。反射中に同じ敵に複数回ダメージを与えないようにするためのもの。
     /// </summary>
     private readonly List<IDamageActivator> _damagedEnemies = new();
@@ -117,7 +122,7 @@ public class ReflectFlashAttackAction: IPlayerAttackAction
         if (other.TryGetComponent<IDamageActivator>(out var status))
         {
             _damagedEnemies.Add(status);
-            await status.FlashDamage();
+            await status.FlashDamage(DamageRate);
         }
     }
 

@@ -19,6 +19,11 @@ public class PierceAttackAction: IPlayerAttackAction
     private const float AwaitTime = 0.5f;
 
     /// <summary>
+    /// この攻撃のダメージ倍率。反射攻撃(基準値1.0)より弱くするため0.7倍とする。
+    /// </summary>
+    private const float DamageRate = 0.7f;
+
+    /// <summary>
     /// 現在のプレイヤーの位置
     /// </summary>
     private Vector3 _pos;
@@ -130,7 +135,7 @@ public class PierceAttackAction: IPlayerAttackAction
         PlayerView.Instance.Animator.SetTrigger("AttackT");
         if (other.TryGetComponent<IDamageActivator>(out var status))
         {
-            status.Damage().Forget();
+            status.Damage(DamageRate).Forget();
         }
     }
 
