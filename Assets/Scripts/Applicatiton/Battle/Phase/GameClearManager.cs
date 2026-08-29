@@ -70,9 +70,12 @@ public static class GameClearManager
 
     public static async UniTask StartGameClearSequenceAsync()
     {
-        if(_gameClearAsyncStarted) return;  
+        if(_gameClearAsyncStarted) return;
         _gameClearAsyncStarted = true;
-        
+
+        // ステージクリアの進行状況を記録し、次のステージを選択可能にする
+        StageData.RegisterStageCleared(StageData.Level);
+
         // 1. 暗転する
         await UIPresenter.Instance.FadeOutAsync(0.01f);
 
