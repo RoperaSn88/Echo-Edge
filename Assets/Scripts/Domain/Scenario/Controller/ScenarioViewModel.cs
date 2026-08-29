@@ -62,7 +62,26 @@ namespace Domain.Scenario.Controller
                 return;
             }
 
+            PlayBgmIfAssigned();
+
             await ShowNext();
+        }
+
+        /// <summary>
+        /// シナリオに BGM が割り当てられている場合、最初の Step が再生される前にループ再生を開始する。
+        /// </summary>
+        private void PlayBgmIfAssigned()
+        {
+            var bgm = _scenarioData.Bgm;
+            if (bgm == null) return;
+
+            if (AudioManager.Instance == null)
+            {
+                Debug.LogWarning("AudioManager.Instance が見つからないため、シナリオの BGM を再生できません。");
+                return;
+            }
+
+            AudioManager.Instance.PlayBgm(bgm, true);
         }
 
         /// <summary>

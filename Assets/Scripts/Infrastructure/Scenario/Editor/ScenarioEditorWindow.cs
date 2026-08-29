@@ -18,7 +18,6 @@ namespace Infrastructure.Scenario.Editor
             ("キャラクター登場", typeof(CharacterAppearEvent)),
             ("表情変更", typeof(CharacterExpressionChangeEvent)),
             ("セリフ表示", typeof(Phrase)),
-            ("BGM再生", typeof(BgmPlayEvent)),
             ("SE再生", typeof(SePlayEvent)),
         };
 
@@ -28,6 +27,7 @@ namespace Infrastructure.Scenario.Editor
         private ScenarioData _scenarioData;
         private SerializedObject _serializedObject;
         private SerializedProperty _rowsProperty;
+        private SerializedProperty _bgmProperty;
         private Vector2 _scrollPosition;
 
         // GUILayout 中は SerializedProperty の配列構造を変更できないため、
@@ -64,6 +64,9 @@ namespace Infrastructure.Scenario.Editor
             }
 
             _serializedObject.Update();
+
+            EditorGUILayout.PropertyField(_bgmProperty, new GUIContent("BGM（シナリオ開始前に再生）"));
+            EditorGUILayout.Space();
 
             EditorGUILayout.HelpBox(
                 "行（Step）はシナリオの時間軸を表します。同じ行に並んだイベントは同時に実行されます。",
@@ -112,6 +115,7 @@ namespace Infrastructure.Scenario.Editor
             _scenarioData = scenarioData;
             _serializedObject = _scenarioData != null ? new SerializedObject(_scenarioData) : null;
             _rowsProperty = _serializedObject?.FindProperty("_rows");
+            _bgmProperty = _serializedObject?.FindProperty("_bgm");
         }
 
         /// <summary>

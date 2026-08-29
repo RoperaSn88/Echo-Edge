@@ -28,8 +28,16 @@ namespace Domain.Scenario
             public List<IScenarioEvent> Events => _events;
         }
 
+        [SerializeField, Tooltip("Scenario シーン起動時・最初の Step が再生される前に流す BGM")]
+        private AudioClip _bgm;
+
         [SerializeField]
         private List<EventRow> _rows = new();
+
+        /// <summary>
+        /// このシナリオの再生中に流す BGM。割り当てられていない場合は null。
+        /// </summary>
+        public AudioClip Bgm => _bgm;
 
         /// <summary>
         /// シナリオイベントの一覧。

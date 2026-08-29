@@ -12,10 +12,6 @@ namespace Domain.Scenario
         [SerializeField, Tooltip("再生する SE")]
         private AudioClip _clip;
 
-        [SerializeField, Range(0f, 1f), Tooltip("再生音量")]
-        private float _volume = 1f;
-
         public AudioClip Clip => _clip;
-        public float Volume => _volume;
     }
 }

@@ -23,8 +23,6 @@ namespace Domain.Scenario.Controller
         [SerializeField] private Image _rightCharacterImage;
         [SerializeField] private Image _backgroundImage;
         [SerializeField] private Image _fadeImage;
-        [SerializeField] private AudioSource _bgmAudioSource;
-        [SerializeField] private AudioSource _seAudioSource;
 
         private const float FadeDuration = 0.5f;
         private const float CharacterMoveOffsetX = 40f;
@@ -184,30 +182,6 @@ namespace Domain.Scenario.Controller
         public void SetFastForward(bool enabled)
         {
             _speedMultiplier = enabled ? FastForwardSpeedMultiplier : 1f;
-        }
-
-        /// <summary>
-        /// BGM をループ再生する。既に同じクリップを再生中の場合は何もしない。
-        /// </summary>
-        public void PlayBgm(AudioClip clip, float volume)
-        {
-            if (clip == null) return;
-            if (_bgmAudioSource.isPlaying && _bgmAudioSource.clip == clip) return;
-
-            _bgmAudioSource.clip = clip;
-            _bgmAudioSource.volume = volume;
-            _bgmAudioSource.loop = true;
-            _bgmAudioSource.Play();
-        }
-
-        /// <summary>
-        /// SE（効果音）を一度だけ再生する。
-        /// </summary>
-        public void PlaySe(AudioClip clip, float volume)
-        {
-            if (clip == null) return;
-
-            _seAudioSource.PlayOneShot(clip, volume);
         }
 
         private void SetBrightness(CharacterPosition position, float brightness)
