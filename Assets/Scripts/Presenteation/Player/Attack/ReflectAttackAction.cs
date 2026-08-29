@@ -19,6 +19,11 @@ public class ReflectAttackAction: IPlayerAttackAction
     private const float ReflectionDamageCheckRadius = 0.5f;
 
     /// <summary>
+    /// この攻撃のダメージ倍率。反射攻撃をメインの攻撃として基準値(1.0)にする。
+    /// </summary>
+    private const float DamageRate = 1.0f;
+
+    /// <summary>
     /// 現在のプレイヤーの位置
     /// </summary>
     private Vector3 _pos;
@@ -121,7 +126,7 @@ public class ReflectAttackAction: IPlayerAttackAction
         PlayerView.Instance.Animator.SetTrigger("AttackT");
         if (other.TryGetComponent<IDamageActivator>(out var status))
         {
-            status.Damage().Forget();
+            status.Damage(DamageRate).Forget();
         }
     }
 

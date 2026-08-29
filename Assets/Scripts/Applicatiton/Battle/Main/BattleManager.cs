@@ -105,7 +105,8 @@ public class BattleManager : MonoBehaviour
         _reflectionCount = 0;
     }
 
-    public static async UniTask<(int damage, bool isDeath)> EnemyDamage()
+    /// <param name="attackTypeRate">攻撃種類ごとのダメージ倍率。反射攻撃を基準(1.0)とし、他の攻撃種類はこれより小さい値を渡して弱める。</param>
+    public static async UniTask<(int damage, bool isDeath)> EnemyDamage(float attackTypeRate = 1.0f)
     {
         if (!_QTEFlug)
         {
@@ -121,16 +122,17 @@ public class BattleManager : MonoBehaviour
         // 反射回数に応じて基礎攻撃へ倍率を掛ける (1.0 + 0.10 * n)
         float reflectionValue = 1.0f + ReflectionDamageBonusPerCount * _reflectionCount;
 
-        return await _enemyStatus.Damage((int)(_playerStatus.Attack * (comboValue * comboValue) * reflectionValue * _qteResult));
+        return await _enemyStatus.Damage((int)(_playerStatus.Attack * (comboValue * comboValue) * reflectionValue * _qteResult * attackTypeRate));
     }
 
     /// <summary>
     /// めちゃくちゃ早い一閃によるダメージを反映する。
     /// プレイヤーの攻撃パラメータの2.5倍を基礎ダメージとし、QTEやコンボ・反射倍率は乗算しない。
     /// </summary>
-    public async static UniTask<(int damage, bool isDeath)> FlashAttackDamage()
+    /// <param name="attackTypeRate">攻撃種類ごとのダメージ倍率。反射攻撃を基準(1.0)とし、他の攻撃種類はこれより小さい値を渡して弱める。</param>
+    public async static UniTask<(int damage, bool isDeath)> FlashAttackDamage(float attackTypeRate = 1.0f)
     {
-        return await _enemyStatus.Damage((int)(_playerStatus.Attack * FlashAttackDamageMultiplier));
+        return await _enemyStatus.Damage((int)(_playerStatus.Attack * FlashAttackDamageMultiplier * attackTypeRate));
     }
 
     public async static UniTask<(int damage, bool isDeath)> PlayerDamage(float rate)

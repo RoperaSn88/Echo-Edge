@@ -56,6 +56,11 @@ public class CurveAttackAction: IPlayerAttackAction
     private const float SkinWidth = 0.05f;
 
     /// <summary>
+    /// この攻撃のダメージ倍率。反射攻撃(基準値1.0)より弱くするため0.7倍とする。
+    /// </summary>
+    private const float DamageRate = 0.7f;
+
+    /// <summary>
     /// start と end を端点とする2次ベジェ曲線を描いて移動し、
     /// 到達後は X軸の速度を保ったまま曲線の加速度を Z軸へ与え続けて飛ばす。
     /// 壁に当たったらその軸の速度を反転して跳ね返す。
@@ -268,7 +273,7 @@ public class CurveAttackAction: IPlayerAttackAction
         PlayerView.Instance.Animator.SetTrigger("AttackT");
         if (other.TryGetComponent<IDamageActivator>(out var status))
         {
-            status.Damage().Forget();
+            status.Damage(DamageRate).Forget();
         }
     }
 

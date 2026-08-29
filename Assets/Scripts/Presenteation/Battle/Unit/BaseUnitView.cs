@@ -158,7 +158,7 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposab
 
     public async UniTask Damage(float rate)
     {
-        await ApplyDamage(BattleManager.EnemyDamage);
+        await ApplyDamage(() => BattleManager.EnemyDamage(rate));
     }
 
     /// <summary>
@@ -166,7 +166,7 @@ public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDisposab
     /// </summary>
     public async UniTask FlashDamage(float rate)
     {
-        await ApplyDamage(BattleManager.FlashAttackDamage);
+        await ApplyDamage(() => BattleManager.FlashAttackDamage(rate));
     }
 
     private async UniTask ApplyDamage(Func<UniTask<(int damage, bool isDeath)>> calculateDamage)
