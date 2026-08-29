@@ -95,8 +95,8 @@ public class AudioManager : MonoBehaviour
     public void SetBgmVolume(float volume)
     {
         _bgmVolume = Mathf.Clamp01(volume);
-        if (_bgmSource != null) _bgmSource.volume = _bgmVolume * WeightBGMSound;
-        if (_additionalBgmSource != null) _additionalBgmSource.volume = _bgmVolume;
+        if (_bgmSource != null) _bgmSource.volume = _bgmVolume * _masterVolume * WeightBGMSound;
+        if (_additionalBgmSource != null) _additionalBgmSource.volume = _bgmVolume * _masterVolume * WeightBGMSound;
         AudioVolumeSaveManager.SaveVolumes(_masterVolume, _bgmVolume, _seVolume);
     }
 
@@ -108,7 +108,7 @@ public class AudioManager : MonoBehaviour
         _seVolume = Mathf.Clamp01(volume);
         foreach (var source in _seSources)
         {
-            if (source != null) source.volume = _seVolume;
+            if (source != null) source.volume = _seVolume * _masterVolume;
         }
         AudioVolumeSaveManager.SaveVolumes(_masterVolume, _bgmVolume, _seVolume);
     }
@@ -117,11 +117,41 @@ public class AudioManager : MonoBehaviour
     {
         await PlayBgmAsync(bgmType, isLoop);
     }
+    
+    public void PlayBgm(AudioClip clip, bool isLoop)
+    {
+        if (clip == null)
+        {
+            return;
+        }
+
+        if (_bgmSource == null)
+        {
+            Debug.LogError("BGM 用 AudioSource が未設定です");
+            return;
+        }
+
+        _bgmSource.loop = isLoop;
+        _bgmSource.volume = _bgmVolume * _masterVolume * WeightBGMSound;
+        _bgmSource.clip = clip;
+        _bgmSource.Play();
+    }
 
     public void PlaySe(SeAudioType seType)
     {
         PlaySeAsync(seType).Forget();
     }
+    
+    public void PlaySe(AudioClip clip)
+    {
+        if (clip == null)
+        {
+            return;
+        }
+
+        var source = GetNextSeAudioSource();
+        source.PlayOneShot(clip);
+    } 
 
     private async UniTask PlayBgmAsync(BgmAudioType bgmType, bool isLoop)
     {
