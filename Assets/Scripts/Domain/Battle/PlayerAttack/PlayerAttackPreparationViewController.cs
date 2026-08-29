@@ -93,7 +93,7 @@ namespace Domain.Battle.PlayerAttack
                 case PlayerAttackKinds.Bomb:
                     return "爆発";
                 case PlayerAttackKinds.Curve:
-                    return "曲線";
+                    return "弧曲";
                 default:
                     return "不明";
             }
@@ -110,7 +110,7 @@ namespace Domain.Battle.PlayerAttack
                 case PlayerAttackKinds.Bomb:
                     return "爆発攻撃の説明";
                 case PlayerAttackKinds.Curve:
-                    return "曲線攻撃の説明";
+                    return "弧曲攻撃の説明";
                 default:
                     return "不明な攻撃の説明";
             }
