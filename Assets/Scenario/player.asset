@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8fc052505faa90a4eb2020b3d315a530, type: 3}
+  m_Name: player
+  m_EditorClassIdentifier: Assembly-CSharp::Domain.Scenario.CharacterData
+  _characterId: 100
+  _displayName: "\uFF1F\uFF1F\uFF1F"
+  _normalSprite: {fileID: 21300000, guid: 508e2072ce9275a40bde1ee06570d6c6, type: 3}
+  _delightSprite: {fileID: 21300000, guid: 508e2072ce9275a40bde1ee06570d6c6, type: 3}
+  _sadSprite: {fileID: 21300000, guid: 508e2072ce9275a40bde1ee06570d6c6, type: 3}
+  _angrySprite: {fileID: 21300000, guid: e3f37b315500b194caa1d39a1405bdf0, type: 3}

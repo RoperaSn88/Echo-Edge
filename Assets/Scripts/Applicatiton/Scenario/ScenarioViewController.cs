@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -14,11 +15,25 @@ namespace Applicatiton.Scenario
     /// </summary>
     public class ScenarioViewController : MonoBehaviour
     {
+        // シナリオ終了時に BGM をフェードアウトさせる時間（秒）。
+        private const float BgmFadeOutDurationSeconds = 0.5f;
+
         [SerializeField] private ScenarioView _view;
 
-        // CharacterExpressionChangeEvent は表示位置を持たないため、
-        // 直近の CharacterAppearEvent から「どのキャラクターがどの位置にいるか」を覚えておく。
-        private readonly Dictionary<string, CharacterPosition> _characterPositions = new();
+        // 各位置に現在どの CharacterData がいるかを覚えておく。
+        // Phrase・CharacterExpressionChangeEvent は位置だけを指定するため、
+        // ここから実際の CharacterData を引いて参照する。
+        private CharacterData _leftCharacter;
+        private CharacterData _rightCharacter;
+
+        // これまでに表示したセリフのログ。ログ表示 UI から参照される。
+        private readonly List<ScenarioLogEntry> _log = new();
+        public IReadOnlyList<ScenarioLogEntry> Log => _log;
+
+        /// <summary>
+        /// <see cref="Log"/> の内容が更新された際に発火する。
+        /// </summary>
+        public event Action LogUpdated;
 
         private ScenarioViewModel _viewModel;
 
@@ -33,6 +48,22 @@ namespace Applicatiton.Scenario
         public UniTask FadeOutAsync(CancellationToken token) => _view.FadeOutAsync(token);
 
         /// <summary>
+        /// シナリオ終了時に BGM をフェードアウトさせながら停止する。
+        /// BGM が再生されていない、または AudioManager が存在しない場合は何もしない。
+        /// </summary>
+        public UniTask FadeBgmOutAsync(CancellationToken token)
+        {
+            return AudioManager.Instance != null
+                ? AudioManager.Instance.FadeBGMAsync(BgmFadeOutDurationSeconds, token)
+                : UniTask.CompletedTask;
+        }
+
+        /// <summary>
+        /// 早送り・スキップ中かどうかに応じて、演出の速度を切り替える。
+        /// </summary>
+        public void SetFastForward(bool enabled) => _view.SetFastForward(enabled);
+
+        /// <summary>
         /// 監視対象の <see cref="ScenarioViewModel"/> を登録し、状態変化の購読を開始する。
         /// </summary>
         public void Initialize(ScenarioViewModel viewModel)
@@ -43,34 +74,97 @@ namespace Applicatiton.Scenario
             }
 
             _viewModel = viewModel;
-            _characterPositions.Clear();
+            _leftCharacter = null;
+            _rightCharacter = null;
+            _log.Clear();
+            LogUpdated?.Invoke();
 
             _viewModel.CurrentEventChanged += OnCurrentEventChanged;
 
-            if (_viewModel.CurrentEvent != null)
+            if (_viewModel.CurrentEvents != null)
             {
-                OnCurrentEventChanged(_viewModel.CurrentEvent);
+                OnCurrentEventChanged(_viewModel.CurrentEvents);
             }
         }
 
-        private void OnCurrentEventChanged(IScenarioEvent scenarioEvent)
+        /// <summary>
+        /// 同じタイミングで実行するシナリオイベント群を受け取り、すべて同時に実行する。
+        /// </summary>
+        private void OnCurrentEventChanged(List<IScenarioEvent> scenarioEvents)
+        {
+            HandleEventsAsync(scenarioEvents).Forget();
+        }
+
+        private async UniTask HandleEventsAsync(List<IScenarioEvent> scenarioEvents)
+        {
+            if (scenarioEvents == null) return;
+
+            var tasks = new List<UniTask>(scenarioEvents.Count);
+            foreach (var scenarioEvent in scenarioEvents)
+            {
+                tasks.Add(HandleEventAsync(scenarioEvent));
+            }
+
+            await UniTask.WhenAll(tasks);
+        }
+
+        private async UniTask HandleEventAsync(IScenarioEvent scenarioEvent)
         {
             switch (scenarioEvent)
             {
                 case Phrase phrase:
-                    _view.ShowPhrase(phrase.CharaText, phrase.Text, destroyCancellationToken);
+                    var speakerName = GetCharacter(phrase.CharaPosition)?.DisplayName ?? string.Empty;
+                    await _view.ShowPhrase(speakerName, phrase.Text, destroyCancellationToken);
+                    _view.HighlightCharacter(phrase.CharaPosition);
+                    _log.Add(new ScenarioLogEntry(speakerName, phrase.Text));
+                    LogUpdated?.Invoke();
                     break;
 
                 case CharacterAppearEvent appear:
-                    _characterPositions[appear.Character.CharacterId] = appear.Position;
-                    _view.ShowCharacter(appear.Position, appear.Character.GetSprite(appear.Emotion), destroyCancellationToken);
+                    SetCharacter(appear.Position, appear.Character);
+                    await _view.ShowCharacter(appear.Position, appear.Character != null ? appear.Character.GetSprite(appear.Emotion) : null, destroyCancellationToken);
                     break;
 
                 case CharacterExpressionChangeEvent expression:
-                    if (_characterPositions.TryGetValue(expression.Character.CharacterId, out var position))
+                    var character = GetCharacter(expression.Position);
+                    if (character != null)
                     {
-                        _view.ShowCharacter(position, expression.Character.GetSprite(expression.Emotion), destroyCancellationToken);
+                        await _view.ShowCharacter(expression.Position, character.GetSprite(expression.Emotion), destroyCancellationToken);
                     }
+                    _view.HighlightCharacter(expression.Position);
+                    break;
+
+                case SePlayEvent se:
+                    AudioManager.Instance?.PlaySe(se.Clip);
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// 指定した位置に現在いる <see cref="CharacterData"/> を取得する。まだ誰もいなければ null。
+        /// </summary>
+        private CharacterData GetCharacter(CharacterPosition position)
+        {
+            return position switch
+            {
+                CharacterPosition.Left => _leftCharacter,
+                CharacterPosition.Right => _rightCharacter,
+                _ => null
+            };
+        }
+
+        /// <summary>
+        /// 指定した位置にいる <see cref="CharacterData"/> を更新する。
+        /// </summary>
+        private void SetCharacter(CharacterPosition position, CharacterData character)
+        {
+            switch (position)
+            {
+                case CharacterPosition.Left:
+                    _leftCharacter = character;
+                    break;
+                case CharacterPosition.Right:
+                    _rightCharacter = character;
                     break;
             }
         }

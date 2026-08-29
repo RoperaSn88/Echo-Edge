@@ -32,6 +32,14 @@ namespace Domain.Scenario.Controller
 
         private const float ScreenFadeDuration = 0.4f;
 
+        private const float HighlightedBrightness = 1f;
+        private const float DimmedBrightness = 0.5f;
+
+        // 早送り・スキップ中は演出時間をこの倍率まで短縮する。
+        private const float FastForwardSpeedMultiplier = 0.15f;
+
+        private float _speedMultiplier = 1f;
+
         private Vector2 _speakerTextHomePosition;
         private Vector2 _bodyTextHomePosition;
         private Vector2 _leftCharacterHomePosition;
@@ -68,19 +76,21 @@ namespace Domain.Scenario.Controller
         /// <summary>
         /// セリフ（話者名と本文）を表示する。
         /// 表示開始時に左へ少しオフセットした位置・透明度0から、元の位置・透明度1へ移動するモーションを行う。
+        /// 早送り・スキップ中はモーション時間を短縮する。
         /// </summary>
         public UniTask ShowPhrase(string speakerName, string body, CancellationToken token)
         {
             _speakerText.text = speakerName;
             _bodyText.text = body;
 
+            var duration = TextMotionDuration * _speedMultiplier;
             return UniTask.WhenAll(
-                AnimateTextAppear(_speakerText, _speakerTextHomePosition, token),
-                AnimateTextAppear(_bodyText, _bodyTextHomePosition, token)
+                AnimateTextAppear(_speakerText, _speakerTextHomePosition, duration, token),
+                AnimateTextAppear(_bodyText, _bodyTextHomePosition, duration, token)
             );
         }
 
-        private static UniTask AnimateTextAppear(TMP_Text text, Vector2 homePosition, CancellationToken token)
+        private static UniTask AnimateTextAppear(TMP_Text text, Vector2 homePosition, float duration, CancellationToken token)
         {
             var rectTransform = text.rectTransform;
             rectTransform.DOKill();
@@ -92,8 +102,8 @@ namespace Domain.Scenario.Controller
             text.color = color;
 
             return UniTask.WhenAll(
-                rectTransform.DOAnchorPos(homePosition, TextMotionDuration).SetEase(Ease.OutQuad).ToUniTask(cancellationToken: token),
-                text.DOFade(1f, TextMotionDuration).ToUniTask(cancellationToken: token)
+                rectTransform.DOAnchorPos(homePosition, duration).SetEase(Ease.OutQuad).ToUniTask(cancellationToken: token),
+                text.DOFade(1f, duration).ToUniTask(cancellationToken: token)
             );
         }
 
@@ -117,15 +127,31 @@ namespace Domain.Scenario.Controller
 
             var homePosition = GetCharacterHomePosition(position);
             var offsetX = position == CharacterPosition.Left ? CharacterMoveOffsetX : -CharacterMoveOffsetX;
+            var duration = FadeDuration * _speedMultiplier;
 
-            image.sprite = sprite;
-            image.SetImageAlpha(0f);
-            image.gameObject.SetActive(true);
-            rectTransform.anchoredPosition = homePosition + new Vector2(offsetX, 0f);
+            Tweener fadeTween = null;
+            Tweener moveTween = null;
+
+            if (sprite != null)
+            {
+                image.sprite = sprite;
+                image.SetImageAlpha(0f);
+                image.gameObject.SetActive(true);
+                rectTransform.anchoredPosition = homePosition + new Vector2(offsetX, 0f);
+                fadeTween = image.DOFade(1f, duration);
+                moveTween = rectTransform.DOAnchorPos(homePosition, duration).SetEase(Ease.OutQuad);
+            }
+            else
+            {
+                image.SetImageAlpha(1f);
+                image.gameObject.SetActive(true);
+                fadeTween = image.DOFade(0f, duration);
+                moveTween = rectTransform.DOAnchorPos(homePosition + new Vector2(offsetX, 0), duration).SetEase(Ease.OutQuad);
+            }
 
             return UniTask.WhenAll(
-                image.DOFade(1f, FadeDuration).ToUniTask(cancellationToken: token),
-                rectTransform.DOAnchorPos(homePosition, FadeDuration).SetEase(Ease.OutQuad).ToUniTask(cancellationToken: token)
+                fadeTween.ToUniTask(cancellationToken: token),
+                moveTween.ToUniTask(cancellationToken: token)
             );
         }
 
@@ -138,6 +164,32 @@ namespace Domain.Scenario.Controller
             if (image == null) return;
 
             image.gameObject.SetActive(false);
+        }
+
+        /// <summary>
+        /// 指定した位置のキャラクターを明るく、それ以外の位置のキャラクターを半分暗く表示する。
+        /// セリフの発話者・表情変更の対象を目立たせるためのハイライト表現。
+        /// </summary>
+        public void HighlightCharacter(CharacterPosition position)
+        {
+            SetBrightness(CharacterPosition.Left, position == CharacterPosition.Left ? HighlightedBrightness : DimmedBrightness);
+            SetBrightness(CharacterPosition.Right, position == CharacterPosition.Right ? HighlightedBrightness : DimmedBrightness);
+        }
+
+        /// <summary>
+        /// 早送り・スキップ中かどうかに応じて、セリフ・キャラクター演出の速度を切り替える。
+        /// </summary>
+        public void SetFastForward(bool enabled)
+        {
+            _speedMultiplier = enabled ? FastForwardSpeedMultiplier : 1f;
+        }
+
+        private void SetBrightness(CharacterPosition position, float brightness)
+        {
+            var image = GetCharacterImage(position);
+            if (image == null) return;
+
+            image.SetImageBrightness(brightness);
         }
 
         private Image GetCharacterImage(CharacterPosition position)

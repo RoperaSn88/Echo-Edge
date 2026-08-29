@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8fc052505faa90a4eb2020b3d315a530, type: 3}
   m_Name: NewCharacterData
   m_EditorClassIdentifier: Assembly-CSharp::Domain.Scenario.CharacterData
-  _characterId: 
-  _displayName: 
-  _normalSprite: {fileID: 0}
-  _delightSprite: {fileID: 0}
-  _sadSprite: {fileID: 0}
-  _angrySprite: {fileID: 0}
+  _characterId: 101
+  _displayName: "\u30D6\u30EB\u30FC\u30C8"
+  _normalSprite: {fileID: 21300000, guid: 9ae79b4695d69f94a9b0d67d869320de, type: 3}
+  _delightSprite: {fileID: 21300000, guid: 9ae79b4695d69f94a9b0d67d869320de, type: 3}
+  _sadSprite: {fileID: 21300000, guid: 9ae79b4695d69f94a9b0d67d869320de, type: 3}
+  _angrySprite: {fileID: 21300000, guid: 9ae79b4695d69f94a9b0d67d869320de, type: 3}
