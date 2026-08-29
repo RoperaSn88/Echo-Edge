@@ -36,6 +36,13 @@ namespace Domain.Scenario.Controller
         public event Action Finished;
 
         /// <summary>
+        /// このシナリオが BGM の再生を開始したかどうか。
+        /// シナリオ終了時に BGM をフェードアウトすべきかの判断に使う
+        /// （このシナリオが BGM を割り当てていない場合、既存の BGM を止めないようにするため）。
+        /// </summary>
+        public bool HasStartedBgm { get; private set; }
+
+        /// <summary>
         /// Addressables から <see cref="ScenarioData"/> を読み込み、先頭のページから再生できる状態にする。
         /// </summary>
         /// <param name="address">読み込む ScenarioData の Addressable アドレス。</param>
@@ -44,6 +51,7 @@ namespace Domain.Scenario.Controller
             _currentIndex = -1;
             CurrentEvents = null;
             IsFinished = false;
+            HasStartedBgm = false;
 
             try
             {
@@ -82,6 +90,7 @@ namespace Domain.Scenario.Controller
             }
 
             AudioManager.Instance.PlayBgm(bgm, true);
+            HasStartedBgm = true;
         }
 
         /// <summary>

@@ -15,6 +15,9 @@ namespace Applicatiton.Scenario
     /// </summary>
     public class ScenarioViewController : MonoBehaviour
     {
+        // シナリオ終了時に BGM をフェードアウトさせる時間（秒）。
+        private const float BgmFadeOutDurationSeconds = 0.5f;
+
         [SerializeField] private ScenarioView _view;
 
         // 各位置に現在どの CharacterData がいるかを覚えておく。
@@ -43,6 +46,17 @@ namespace Applicatiton.Scenario
         /// シナリオ画面全体のフェードアウトを行う。シナリオ終了時に呼び出す。
         /// </summary>
         public UniTask FadeOutAsync(CancellationToken token) => _view.FadeOutAsync(token);
+
+        /// <summary>
+        /// シナリオ終了時に BGM をフェードアウトさせながら停止する。
+        /// BGM が再生されていない、または AudioManager が存在しない場合は何もしない。
+        /// </summary>
+        public UniTask FadeBgmOutAsync(CancellationToken token)
+        {
+            return AudioManager.Instance != null
+                ? AudioManager.Instance.FadeBGMAsync(BgmFadeOutDurationSeconds, token)
+                : UniTask.CompletedTask;
+        }
 
         /// <summary>
         /// 早送り・スキップ中かどうかに応じて、演出の速度を切り替える。

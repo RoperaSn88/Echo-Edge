@@ -129,7 +129,8 @@ namespace Applicatiton.Scenario
 
         /// <summary>
         /// シナリオ起動時のフェードインを行ったうえで ScreenModel の入力待機ループを実行し、
-        /// シナリオが完了したらフェードアウトしてから画面を隠す。
+        /// シナリオが完了したら画面と BGM を同時にフェードアウトしてから画面を隠す。
+        /// このシナリオが BGM を再生していない場合は、既存の BGM を止めないよう BGM のフェードは行わない。
         /// キャンセルされた場合はフェードアウトを行わずに終了する。
         /// </summary>
         private async UniTask RunAndHideAsync(CancellationToken cancellationToken)
@@ -138,7 +139,13 @@ namespace Applicatiton.Scenario
             {
                 await _viewController.FadeInAsync(cancellationToken);
                 await _screenModel.RunAsync(cancellationToken);
-                await _viewController.FadeOutAsync(cancellationToken);
+
+                var screenFadeTask = _viewController.FadeOutAsync(cancellationToken);
+                var bgmFadeTask = _screenModel.ScenarioViewModel.HasStartedBgm
+                    ? _viewController.FadeBgmOutAsync(cancellationToken)
+                    : UniTask.CompletedTask;
+
+                await UniTask.WhenAll(screenFadeTask, bgmFadeTask);
             }
             catch (OperationCanceledException)
             {
