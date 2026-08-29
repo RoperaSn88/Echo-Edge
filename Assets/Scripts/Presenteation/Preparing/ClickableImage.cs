@@ -24,7 +24,7 @@ public interface IClickableImage
 public class ClickableImage : MonoBehaviour, IPointerClickHandler, IClickableImage
 {
     private const float InteractableAlpha = 1f;
-    private const float NonInteractableAlpha = 0.5f;
+    private const float DefaultNonInteractableAlpha = 0.5f;
 
     /// <summary>
     /// クリック時に発火するイベント
@@ -33,6 +33,12 @@ public class ClickableImage : MonoBehaviour, IPointerClickHandler, IClickableIma
 
     [SerializeField]
     private Image _image;
+
+    /// <summary>
+    /// クリック不可時の透明度（Inspectorで個別に調整可能。デフォルトは0.5）
+    /// </summary>
+    [SerializeField]
+    private float _nonInteractableAlpha = DefaultNonInteractableAlpha;
 
     private bool _interactable = true;
 
@@ -46,6 +52,19 @@ public class ClickableImage : MonoBehaviour, IPointerClickHandler, IClickableIma
         {
             if (_interactable == value) return;
             _interactable = value;
+            ApplyInteractableAppearance();
+        }
+    }
+
+    /// <summary>
+    /// クリック不可時の透明度。コードから個別のボタンに対して上書きする場合に使用する。
+    /// </summary>
+    public float NonInteractableAlpha
+    {
+        get => _nonInteractableAlpha;
+        set
+        {
+            _nonInteractableAlpha = value;
             ApplyInteractableAppearance();
         }
     }
@@ -72,7 +91,7 @@ public class ClickableImage : MonoBehaviour, IPointerClickHandler, IClickableIma
         if (_image == null) return;
 
         var color = _image.color;
-        color.a = _interactable ? InteractableAlpha : NonInteractableAlpha;
+        color.a = _interactable ? InteractableAlpha : _nonInteractableAlpha;
         _image.color = color;
     }
 }

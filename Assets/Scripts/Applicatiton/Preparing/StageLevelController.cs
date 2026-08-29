@@ -8,6 +8,12 @@ using UnityEngine.EventSystems;
 public class StageLevelController : MonoBehaviour
 {
     /// <summary>
+    /// 増加ボタン（右側）が選択不可の際の透明度。
+    /// 通常の半透明(0.5)だとわかりづらいため、薄く(20%)する。
+    /// </summary>
+    private const float IncrementButtonNonInteractableAlpha = 0.2f;
+
+    /// <summary>
     /// レベルを表示するテキスト
     /// </summary>
     [SerializeField]
@@ -35,6 +41,7 @@ public class StageLevelController : MonoBehaviour
 
         if (_incrementButton != null)
         {
+            _incrementButton.NonInteractableAlpha = IncrementButtonNonInteractableAlpha;
             _incrementButton.OnClick += _incrementAction;
         }
 
