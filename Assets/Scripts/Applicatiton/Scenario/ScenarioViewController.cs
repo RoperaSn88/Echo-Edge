@@ -119,6 +119,14 @@ namespace Applicatiton.Scenario
                     }
                     _view.HighlightCharacter(expression.Position);
                     break;
+
+                case BgmPlayEvent bgm:
+                    _view.PlayBgm(bgm.Clip, bgm.Volume);
+                    break;
+
+                case SePlayEvent se:
+                    _view.PlaySe(se.Clip, se.Volume);
+                    break;
             }
         }
 

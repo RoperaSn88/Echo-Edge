@@ -18,6 +18,8 @@ namespace Infrastructure.Scenario.Editor
             ("キャラクター登場", typeof(CharacterAppearEvent)),
             ("表情変更", typeof(CharacterExpressionChangeEvent)),
             ("セリフ表示", typeof(Phrase)),
+            ("BGM再生", typeof(BgmPlayEvent)),
+            ("SE再生", typeof(SePlayEvent)),
         };
 
         private const float ColumnWidth = 260f;
@@ -226,9 +228,31 @@ namespace Infrastructure.Scenario.Editor
                     EditorGUILayout.PropertyField(child, true);
                 }
                 EditorGUI.indentLevel--;
+
+                if (IsEventOfType(element, typeof(SePlayEvent)))
+                {
+                    DrawSePreviewButton(element);
+                }
             }
 
             GUILayout.Space(ColumnSpacing);
+        }
+
+        /// <summary>
+        /// SE再生イベントに割り当てられた AudioClip をエディタ上で試聴するボタンを描画する。
+        /// </summary>
+        private static void DrawSePreviewButton(SerializedProperty element)
+        {
+            var clipProperty = element.FindPropertyRelative("_clip");
+            var clip = clipProperty?.objectReferenceValue as AudioClip;
+
+            using (new EditorGUI.DisabledScope(clip == null))
+            {
+                if (GUILayout.Button("▶ 試聴"))
+                {
+                    EditorAudioPreview.PlayClip(clip);
+                }
+            }
         }
 
         private static void AddEvent(SerializedProperty eventsProperty, Type eventType)
@@ -256,13 +280,18 @@ namespace Infrastructure.Scenario.Editor
         {
             foreach (var (displayName, eventType) in AddableEventTypes)
             {
-                if (element.managedReferenceFullTypename.Contains(eventType.FullName ?? eventType.Name))
+                if (IsEventOfType(element, eventType))
                 {
                     return displayName;
                 }
             }
 
             return "Unknown Event";
+        }
+
+        private static bool IsEventOfType(SerializedProperty element, Type eventType)
+        {
+            return element.managedReferenceFullTypename.Contains(eventType.FullName ?? eventType.Name);
         }
     }
 }
