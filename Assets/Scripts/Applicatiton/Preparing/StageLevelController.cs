@@ -8,6 +8,12 @@ using UnityEngine.EventSystems;
 public class StageLevelController : MonoBehaviour
 {
     /// <summary>
+    /// 増加ボタン（右側）が選択不可の際の透明度。
+    /// 通常の半透明(0.5)だとわかりづらいため、薄く(20%)する。
+    /// </summary>
+    private const float IncrementButtonNonInteractableAlpha = 0.2f;
+
+    /// <summary>
     /// レベルを表示するテキスト
     /// </summary>
     [SerializeField]
@@ -35,6 +41,7 @@ public class StageLevelController : MonoBehaviour
 
         if (_incrementButton != null)
         {
+            _incrementButton.NonInteractableAlpha = IncrementButtonNonInteractableAlpha;
             _incrementButton.OnClick += _incrementAction;
         }
 
@@ -44,6 +51,7 @@ public class StageLevelController : MonoBehaviour
         }
 
         UpdateLevelText();
+        UpdateButtonInteractable();
     }
 
     private void OnDestroy()
@@ -66,6 +74,7 @@ public class StageLevelController : MonoBehaviour
     {
         StageData.IncrementLevel();
         UpdateLevelText();
+        UpdateButtonInteractable();
     }
 
     /// <summary>
@@ -75,6 +84,7 @@ public class StageLevelController : MonoBehaviour
     {
         StageData.DecrementLevel();
         UpdateLevelText();
+        UpdateButtonInteractable();
     }
 
     private void UpdateLevelText()
@@ -82,6 +92,22 @@ public class StageLevelController : MonoBehaviour
         if (_levelText != null)
         {
             _levelText.text = StageData.Level.ToString();
+        }
+    }
+
+    /// <summary>
+    /// 選択不可能な範囲へ進もうとするボタンを、押せない半透明な状態にする
+    /// </summary>
+    private void UpdateButtonInteractable()
+    {
+        if (_incrementButton != null)
+        {
+            _incrementButton.Interactable = StageData.Level < StageData.HighestClearedStage;
+        }
+
+        if (_decrementButton != null)
+        {
+            _decrementButton.Interactable = StageData.Level > StageData.MinLevel;
         }
     }
 }

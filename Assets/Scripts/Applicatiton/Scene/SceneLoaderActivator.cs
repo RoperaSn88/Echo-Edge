@@ -10,6 +10,7 @@ namespace Scene
             // 大宮祭用にデリートしてから起動
             PlayerSwordParameterSaveManager.DeleteAllSavedData();
             AudioVolumeSaveManager.DeleteAllSavedData();
+            StageProgressSaveManager.DeleteAllSavedData();
             PlayerPrefs.DeleteKey(StartPhase.TutorialCompletedKey);
             PlayerPrefs.Save();
             SceneLoader.AdditiveLoad(GameScene.Preparing);
