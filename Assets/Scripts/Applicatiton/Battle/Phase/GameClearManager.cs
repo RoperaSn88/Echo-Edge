@@ -27,6 +27,7 @@ public static class GameClearManager
         _currentTask = CreateTask(conditionType);
         _currentTask.Subscribe();
         _isClear = false;
+        _gameClearAsyncStarted = false;
     }
 
     /// <summary>
@@ -70,11 +71,11 @@ public static class GameClearManager
 
     public static async UniTask StartGameClearSequenceAsync()
     {
+        // ステージクリアの進行状況を記録し、次のステージを選択可能にする（ガードに関係なく実行）
+        StageData.RegisterStageCleared(StageData.Level);
+
         if(_gameClearAsyncStarted) return;
         _gameClearAsyncStarted = true;
-
-        // ステージクリアの進行状況を記録し、次のステージを選択可能にする
-        StageData.RegisterStageCleared(StageData.Level);
 
         // 1. 暗転する
         await UIPresenter.Instance.FadeOutAsync(0.01f);
