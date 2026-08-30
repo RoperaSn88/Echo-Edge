@@ -9,15 +9,12 @@ namespace Domain.Scenario.Controller
     /// シナリオ画面における入力の判断を行うクラス。
     /// <see cref="ScenarioViewModel"/> を保持し、クリック用の InputAction を生成して
     /// クリックされるまで非同期に待機しながらページを進める。
-    /// 自動再生・スキップが有効な場合は、クリックを待たずに自動でページを進める。
+    /// 早送り・自動再生が有効な場合は、クリックを待たずに自動でページを進める。
     /// </summary>
     public class ScenarioScreenModel
     {
         // 自動再生時、次に進むまでクリックを待つ最大時間。
         private const float AutoPlayDelaySeconds = 1.2f;
-
-        // スキップ時、次に進むまでの待機時間。0 にはせず、僅かに待つことでフレーム分割する。
-        private const float SkipAdvanceDelaySeconds = 0.05f;
 
         // 早送り速度1のとき、次の Step へ自動で進むまでの待機時間。
         private const float FastForwardSpeed1DelaySeconds = 0.6f;
@@ -32,11 +29,6 @@ namespace Domain.Scenario.Controller
         /// 自動再生が有効かどうか。有効な場合、クリックがなくても一定時間で次に進む。
         /// </summary>
         public bool IsAutoPlayEnabled { get; private set; }
-
-        /// <summary>
-        /// スキップが有効かどうか。有効な場合、クリックを待たずに次々と進める。
-        /// </summary>
-        public bool IsSkipEnabled { get; private set; }
 
         /// <summary>
         /// 現在の早送りモード。
@@ -72,8 +64,6 @@ namespace Domain.Scenario.Controller
 
         public void SetAutoPlay(bool enabled) => IsAutoPlayEnabled = enabled;
 
-        public void SetSkip(bool enabled) => IsSkipEnabled = enabled;
-
         public void SetFastForward(FastForwardMode mode) => FastForwardMode = mode;
 
         /// <summary>
@@ -104,7 +94,6 @@ namespace Domain.Scenario.Controller
 
         /// <summary>
         /// 次のページに進めるまで待機する。
-        /// スキップ中はごく短い時間の待機のみで次に進む。
         /// 早送り中は、クリックされるかモードに応じた待機時間が経過するかのどちらか早い方まで待つ
         /// （速度2の方が待機時間が短い）。
         /// 自動再生中は、クリックされるか一定時間が経過するかのどちらか早い方まで待つ。
@@ -112,12 +101,6 @@ namespace Domain.Scenario.Controller
         /// </summary>
         private async UniTask WaitForAdvanceAsync(MouseClick mouseClick, CancellationToken cancellationToken)
         {
-            if (IsSkipEnabled)
-            {
-                await UniTask.Delay(TimeSpan.FromSeconds(SkipAdvanceDelaySeconds), cancellationToken: cancellationToken);
-                return;
-            }
-
             if (FastForwardMode != FastForwardMode.Off)
             {
                 var delaySeconds = FastForwardMode == FastForwardMode.Speed2
@@ -167,7 +150,7 @@ namespace Domain.Scenario.Controller
             }
         }
 
-        private static async UniTask WaitForClickOrDelayAsync(MouseClick mouseClick, float delaySeconds, CancellationToken cancellationToken)
+        private async UniTask WaitForClickOrDelayAsync(MouseClick mouseClick, float delaySeconds, CancellationToken cancellationToken)
         {
             using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             var linkedToken = linkedCts.Token;

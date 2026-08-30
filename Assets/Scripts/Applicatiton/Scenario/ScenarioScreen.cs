@@ -54,12 +54,17 @@ namespace Applicatiton.Scenario
         }
 
         /// <summary>
-        /// スキップの有効・無効を切り替える。有効な場合、クリックを待たずに次々と進める。
+        /// 再生中のシナリオを最後まで待たずに中断する。
+        /// 進行中のシナリオタスクをキャンセルし、このシナリオで再生した BGM を停止して画面を閉じる。
         /// </summary>
-        public void SetSkip(bool enabled)
+        public void Skip()
         {
-            _screenModel.SetSkip(enabled);
-            UpdatePlaybackSpeed();
+            if (_screenModel.ScenarioViewModel.HasStartedBgm)
+            {
+                AudioManager.Instance?.StopBgm();
+            }
+
+            Hide();
         }
 
         /// <summary>
@@ -76,11 +81,11 @@ namespace Applicatiton.Scenario
         }
 
         /// <summary>
-        /// 早送り・スキップのいずれかが有効な間は、演出速度を上げる。
+        /// 早送りが有効な間は、演出速度を上げる。
         /// </summary>
         private void UpdatePlaybackSpeed()
         {
-            _viewController.SetFastForward(_screenModel.IsFastForwarding || _screenModel.IsSkipEnabled);
+            _viewController.SetFastForward(_screenModel.IsFastForwarding);
         }
 
         private void OnLogUpdated()
