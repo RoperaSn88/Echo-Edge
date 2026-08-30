@@ -18,6 +18,9 @@ namespace Applicatiton.Scenario
         // シナリオ終了時に BGM をフェードアウトさせる時間（秒）。
         private const float BgmFadeOutDurationSeconds = 0.5f;
 
+        // BgmEvent でのフェードイン・フェードアウトそれぞれの時間（秒）。
+        private const float BgmEventFadeDurationSeconds = 1.0f;
+
         [SerializeField] private ScenarioView _view;
 
         // 各位置に現在どの CharacterData がいるかを覚えておく。
@@ -153,6 +156,55 @@ namespace Applicatiton.Scenario
 
                 case SePlayEvent se:
                     AudioManager.Instance?.PlaySe(se.Clip);
+                    break;
+
+                case BgmEvent bgm:
+                    await HandleBgmEventAsync(bgm);
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// BGM の再生・停止を行う。
+        /// 再生時に既に BGM が再生中の場合は、シナリオ側の停止漏れとして例外を投げる。
+        /// </summary>
+        private async UniTask HandleBgmEventAsync(BgmEvent bgmEvent)
+        {
+            if (AudioManager.Instance == null) return;
+
+            switch (bgmEvent.Action)
+            {
+                case BgmEventAction.Play:
+                    if (AudioManager.Instance.IsBgmPlaying)
+                    {
+                        throw new InvalidOperationException(
+                            "BgmEvent: BGM が既に再生中です。再生する前に停止するイベントを挟んでください。");
+                    }
+
+                    if (bgmEvent.Bgm == null) break;
+
+                    if (bgmEvent.IsFadeIn)
+                    {
+                        await AudioManager.Instance.PlayBgmWithFadeInAsync(
+                            bgmEvent.Bgm, bgmEvent.IsLoop, BgmEventFadeDurationSeconds, destroyCancellationToken);
+                    }
+                    else
+                    {
+                        AudioManager.Instance.PlayBgm(bgmEvent.Bgm, bgmEvent.IsLoop);
+                    }
+
+                    _viewModel.NotifyBgmStarted();
+                    break;
+
+                case BgmEventAction.Stop:
+                    if (bgmEvent.IsFadeOut)
+                    {
+                        await AudioManager.Instance.FadeBGMAsync(BgmEventFadeDurationSeconds, destroyCancellationToken);
+                    }
+                    else
+                    {
+                        AudioManager.Instance.StopBgm();
+                    }
                     break;
             }
         }
