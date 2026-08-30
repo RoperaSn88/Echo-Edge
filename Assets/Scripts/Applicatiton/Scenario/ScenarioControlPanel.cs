@@ -63,12 +63,8 @@ namespace Applicatiton.Scenario
         {
             if (_fastForwardLabel != null)
             {
-                _fastForwardLabel.text = _fastForwardMode switch
-                {
-                    FastForwardMode.Speed1 => "早送り 速度1",
-                    FastForwardMode.Speed2 => "早送り 速度2",
-                    _ => "早送り OFF",
-                };
+                // OFF → 0、速度1 → 1、速度2 → 2 のように数字を振って表示する。
+                _fastForwardLabel.text = $"早送り{(int)_fastForwardMode}";
             }
 
             if (_skipLabel != null)
