@@ -957,7 +957,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.09371662, g: 0.10386257, b: 0.16981131, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -1259,7 +1259,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 0.6}
+  m_Color: {r: 0, g: 0, b: 0, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -1611,10 +1611,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Applicatiton.Scenario.ScenarioControlPanel
   _screen: {fileID: 5000000022}
-  _autoPlayButton: {fileID: 0}
-  _autoPlayLabel: {fileID: 0}
-  _fastForwardButton: {fileID: 0}
-  _fastForwardLabel: {fileID: 0}
+  _fastForwardButton: {fileID: 1876506900}
+  _fastForwardLabel: {fileID: 1335994166}
   _skipButton: {fileID: 5000000172}
   _skipLabel: {fileID: 5000000182}
   _logButton: {fileID: 5000000192}

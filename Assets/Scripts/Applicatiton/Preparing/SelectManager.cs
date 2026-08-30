@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using UnityEngine;
 using DG.Tweening;
 using System.Threading.Tasks;
+using Applicatiton.Scenario;
 using Unity.VisualScripting;
 
 public class SelectManager : MonoBehaviour
@@ -46,6 +47,13 @@ public class SelectManager : MonoBehaviour
         if (AudioManager.Instance == null)
         {
             throw new InvalidOperationException("AudioManager.Instance が見つかりません。シーンに AudioManager を配置してください。");
+        }
+        
+        // 初回起動時はプロローグシナリオを再生してから Preparing シーンを起動する。
+        // 再生済みの場合は従来どおり Preparing シーンを直接起動する。
+        if (!PrologueSaveManager.HasPlayedPrologue())
+        {
+            await PlayPrologueThenLoadPreparingAsync();
         }
         
         await AudioManager.Instance.PlayBgm(BgmAudioType.Title, true);
@@ -110,5 +118,29 @@ public class SelectManager : MonoBehaviour
         }
         
         await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
+    }
+    
+    /// <summary>
+    /// プロローグシナリオを再生し、再生済みとして保存したうえで Preparing シーンを起動する。
+    /// 次回起動時には <see cref="PrologueSaveManager.HasPlayedPrologue"/> が true を返すため、
+    /// このメソッドは呼び出されなくなる。
+    /// プロローグの再生に失敗した場合でも、finally で Preparing シーンの起動だけは必ず行う
+    /// （この場合は再生済みとして保存しないため、次回起動時に再度プロローグの再生を試みる）。
+    /// </summary>
+    private async UniTask PlayPrologueThenLoadPreparingAsync()
+    {
+        try
+        {
+            await ScenarioStageLoader.PlayPrologueScenarioAsync();
+            PrologueSaveManager.SaveProloguePlayed();
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"プロローグシナリオの再生に失敗しました。Preparing シーンを起動します: {e}");
+        }
+        finally
+        {
+            SceneLoader.Unload(GameScene.Scenario);
+        }
     }
 }
