@@ -64,8 +64,10 @@ namespace Domain.Scenario.Controller
         /// </summary>
         public UniTask FadeInAsync(CancellationToken token)
         {
+            _fadeImage.gameObject.SetActive(true);
             _fadeImage.DOKill();
             return _fadeImage.DOFade(0f, ScreenFadeDuration).ToUniTask(cancellationToken: token);
+            _fadeImage.gameObject.SetActive(false);
         }
 
         /// <summary>
@@ -74,6 +76,7 @@ namespace Domain.Scenario.Controller
         /// </summary>
         public UniTask FadeOutAsync(CancellationToken token)
         {
+            _fadeImage.gameObject.SetActive(true);
             _fadeImage.DOKill();
             return _fadeImage.DOFade(1f, ScreenFadeDuration).ToUniTask(cancellationToken: token);
         }
