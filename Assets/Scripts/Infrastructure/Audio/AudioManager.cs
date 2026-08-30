@@ -51,6 +51,11 @@ public class AudioManager : MonoBehaviour
     /// </summary>
     public float SeVolume => _seVolume;
 
+    /// <summary>
+    /// メインの BGM が現在再生中かどうか。
+    /// </summary>
+    public bool IsBgmPlaying => _bgmSource != null && _bgmSource.isPlaying;
+
     private void Awake()
     {
         InitializeSeAudioSources();
@@ -135,6 +140,44 @@ public class AudioManager : MonoBehaviour
         _bgmSource.volume = _bgmVolume * _masterVolume * WeightBGMSound;
         _bgmSource.clip = clip;
         _bgmSource.Play();
+    }
+
+    /// <summary>
+    /// BGM を音量0から再生開始し、指定時間かけてフェードインさせる。
+    /// </summary>
+    public UniTask PlayBgmWithFadeInAsync(AudioClip clip, bool isLoop, float durationSeconds, CancellationToken cancellationToken)
+    {
+        if (clip == null)
+        {
+            return UniTask.CompletedTask;
+        }
+
+        if (_bgmSource == null)
+        {
+            Debug.LogError("BGM 用 AudioSource が未設定です");
+            return UniTask.CompletedTask;
+        }
+
+        _bgmSource.loop = isLoop;
+        _bgmSource.clip = clip;
+        _bgmSource.volume = 0.0f;
+        _bgmSource.Play();
+
+        var targetVolume = _bgmVolume * _masterVolume * WeightBGMSound;
+        return FadeVolumeAsync(_bgmSource, 0.0f, targetVolume, durationSeconds, cancellationToken);
+    }
+
+    /// <summary>
+    /// 再生中の BGM を即座に停止する。
+    /// </summary>
+    public void StopBgm()
+    {
+        if (_bgmSource == null || !_bgmSource.isPlaying)
+        {
+            return;
+        }
+
+        _bgmSource.Stop();
     }
 
     public void PlaySe(SeAudioType seType)

@@ -48,6 +48,15 @@ namespace Domain.Scenario.Controller
         public bool HasStartedBgm { get; private set; }
 
         /// <summary>
+        /// BGM 再生イベントなど、シナリオの進行中に BGM の再生が開始されたことを通知する。
+        /// シナリオ終了時の BGM フェードアウトを正しく行うために <see cref="HasStartedBgm"/> を立てる。
+        /// </summary>
+        public void NotifyBgmStarted()
+        {
+            HasStartedBgm = true;
+        }
+
+        /// <summary>
         /// Addressables から <see cref="ScenarioData"/> を読み込み、先頭のページから再生できる状態にする。
         /// </summary>
         /// <param name="address">読み込む ScenarioData の Addressable アドレス。</param>
