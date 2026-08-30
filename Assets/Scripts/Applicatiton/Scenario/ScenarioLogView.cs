@@ -197,16 +197,16 @@ namespace Applicatiton.Scenario
         private void CreateEntry(ScenarioLogEntry entry)
         {
             var speakerName = entry.SpeakerName ?? string.Empty;
-            var nameCell = CreateText(_nameArea, speakerName, _settings.SpeakerFontSize, _settings.SpeakerColor, FontStyles.Bold);
+            var nameCell = CreateText(_nameArea, speakerName, _settings.SpeakerFontSize, _settings.SpeakerColor, FontStyles.Bold, HorizontalAlignmentOptions.Right);
             nameCell.gameObject.AddComponent<LayoutElement>();
 
-            var phraseCell = CreateText(_phraseArea, entry.Text + TrailingBlankLine, _settings.BodyFontSize, _settings.BodyColor, FontStyles.Normal);
+            var phraseCell = CreateText(_phraseArea, entry.Text + TrailingBlankLine, _settings.BodyFontSize, _settings.BodyColor, FontStyles.Normal, HorizontalAlignmentOptions.Left);
 
             _nameCells.Add(nameCell);
             _phraseCells.Add(phraseCell);
         }
 
-        private RectTransform CreateText(Transform parent, string value, float fontSize, Color color, FontStyles style)
+        private RectTransform CreateText(Transform parent, string value, float fontSize, Color color, FontStyles style, HorizontalAlignmentOptions horizontalAlignment)
         {
             var textObject = new GameObject("Text", typeof(RectTransform));
             textObject.transform.SetParent(parent, false);
@@ -224,6 +224,8 @@ namespace Applicatiton.Scenario
             text.textWrappingMode = TextWrappingModes.Normal;
             text.raycastTarget = false;
             text.richText = true;
+            text.horizontalAlignment = horizontalAlignment;
+            text.verticalAlignment = VerticalAlignmentOptions.Top;
 
             return (RectTransform)textObject.transform;
         }
