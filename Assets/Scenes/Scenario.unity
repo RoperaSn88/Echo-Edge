@@ -2803,14 +2803,15 @@ MonoBehaviour:
   _scrollRect: {fileID: 620265884}
   _content: {fileID: 1406781067}
   _closeButton: {fileID: 5000000232}
-  _fontAsset: {fileID: 11400000, guid: e0e891a8435edff45afeef14828736c8, type: 2}
-  _speakerFontSize: 22
-  _bodyFontSize: 24
-  _speakerColor: {r: 0.65, g: 0.85, b: 1, a: 1}
-  _bodyColor: {r: 1, g: 1, b: 1, a: 1}
-  _entrySpacing: 20
-  _speakerBodySpacing: 4
-  _contentPadding: 16
+  _settings:
+    _fontAsset: {fileID: 11400000, guid: e0e891a8435edff45afeef14828736c8, type: 2}
+    _speakerFontSize: 22
+    _bodyFontSize: 24
+    _speakerColor: {r: 0.65, g: 0.85, b: 1, a: 1}
+    _bodyColor: {r: 1, g: 1, b: 1, a: 1}
+    _entrySpacing: 20
+    _speakerBodySpacing: 4
+    _contentPadding: 16
 --- !u!1 &5000000230
 GameObject:
   m_ObjectHideFlags: 0

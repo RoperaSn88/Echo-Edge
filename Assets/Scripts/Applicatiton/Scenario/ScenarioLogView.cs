@@ -11,6 +11,7 @@ namespace Applicatiton.Scenario
     /// 表示することに専念し、ログの中身は <see cref="ScenarioViewController"/> から受け取る。
     /// ログ1件につき「キャラクター名」と「本文テキスト」を積み上げて表示し、
     /// 件数が増えても ScrollView でスクロールして閲覧できる。
+    /// 見た目の調整項目は <see cref="ScenarioLogViewSettings"/> に分離している。
     /// </summary>
     public class ScenarioLogView : MonoBehaviour
     {
@@ -18,19 +19,9 @@ namespace Applicatiton.Scenario
         [SerializeField] private ScrollRect _scrollRect;
         [SerializeField] private RectTransform _content;
         [SerializeField] private Button _closeButton;
-        [SerializeField] private TMP_FontAsset _fontAsset;
 
         [Header("表示設定")]
-        [SerializeField] private float _speakerFontSize = 22f;
-        [SerializeField] private float _bodyFontSize = 24f;
-        [SerializeField] private Color _speakerColor = new(0.65f, 0.85f, 1f, 1f);
-        [SerializeField] private Color _bodyColor = Color.white;
-        // ログ1件ごとの縦間隔（px）。
-        [SerializeField] private float _entrySpacing = 20f;
-        // 話者名と本文の縦間隔（px）。
-        [SerializeField] private float _speakerBodySpacing = 4f;
-        // Content 内側の余白（px）。
-        [SerializeField] private int _contentPadding = 16;
+        [SerializeField] private ScenarioLogViewSettings _settings = new();
 
         // 生成済みのログ行 GameObject。差分更新のために保持する。
         private readonly List<GameObject> _entryObjects = new();
@@ -40,10 +31,37 @@ namespace Applicatiton.Scenario
 
         private bool _layoutReady;
 
+        // 必要な参照がすべて設定されているか。未設定時は表示を行わない。
+        private bool _hasRequiredReferences;
+
         private void Awake()
         {
+            _hasRequiredReferences = ValidateReferences();
+            if (!_hasRequiredReferences)
+            {
+                return;
+            }
+
             _closeButton.onClick.AddListener(Hide);
             EnsureContentLayout();
+        }
+
+        /// <summary>
+        /// 必要なシーン参照がそろっているか検証する。欠けている場合はエラーを出してこのコンポーネントを無効化する。
+        /// シーン参照の付け替え直後などに NullReferenceException で落ちるのを防ぎ、原因を特定しやすくする。
+        /// </summary>
+        private bool ValidateReferences()
+        {
+            if (_scrollRect != null && _content != null && _closeButton != null)
+            {
+                return true;
+            }
+
+            Debug.LogError(
+                $"{nameof(ScenarioLogView)}: 参照（ScrollRect / Content / CloseButton）が未設定のため、ログ表示を無効化します。",
+                this);
+            enabled = false;
+            return false;
         }
 
         /// <summary>
@@ -84,6 +102,11 @@ namespace Applicatiton.Scenario
         /// </summary>
         public void Refresh(IReadOnlyList<ScenarioLogEntry> entries)
         {
+            if (!_hasRequiredReferences)
+            {
+                return;
+            }
+
             EnsureContentLayout();
 
             // ログが減った・空になった（別シナリオ開始など）場合は作り直す。
@@ -118,8 +141,9 @@ namespace Applicatiton.Scenario
                 layout = _content.gameObject.AddComponent<VerticalLayoutGroup>();
             }
 
-            layout.padding = new RectOffset(_contentPadding, _contentPadding, _contentPadding, _contentPadding);
-            layout.spacing = _entrySpacing;
+            var padding = _settings.ContentPadding;
+            layout.padding = new RectOffset(padding, padding, padding, padding);
+            layout.spacing = _settings.EntrySpacing;
             layout.childAlignment = TextAnchor.UpperLeft;
             layout.childControlWidth = true;
             layout.childControlHeight = true;
@@ -147,7 +171,7 @@ namespace Applicatiton.Scenario
             entryObject.transform.SetParent(_content, false);
 
             var entryLayout = entryObject.AddComponent<VerticalLayoutGroup>();
-            entryLayout.spacing = _speakerBodySpacing;
+            entryLayout.spacing = _settings.SpeakerBodySpacing;
             entryLayout.childAlignment = TextAnchor.UpperLeft;
             entryLayout.childControlWidth = true;
             entryLayout.childControlHeight = true;
@@ -156,10 +180,10 @@ namespace Applicatiton.Scenario
 
             if (!string.IsNullOrEmpty(entry.SpeakerName))
             {
-                CreateText(entryObject.transform, entry.SpeakerName, _speakerFontSize, _speakerColor, FontStyles.Bold);
+                CreateText(entryObject.transform, entry.SpeakerName, _settings.SpeakerFontSize, _settings.SpeakerColor, FontStyles.Bold);
             }
 
-            CreateText(entryObject.transform, entry.Text, _bodyFontSize, _bodyColor, FontStyles.Normal);
+            CreateText(entryObject.transform, entry.Text, _settings.BodyFontSize, _settings.BodyColor, FontStyles.Normal);
 
             _entryObjects.Add(entryObject);
         }
@@ -170,9 +194,9 @@ namespace Applicatiton.Scenario
             textObject.transform.SetParent(parent, false);
 
             var text = textObject.AddComponent<TextMeshProUGUI>();
-            if (_fontAsset != null)
+            if (_settings.FontAsset != null)
             {
-                text.font = _fontAsset;
+                text.font = _settings.FontAsset;
             }
 
             text.text = value;
@@ -186,15 +210,18 @@ namespace Applicatiton.Scenario
 
         /// <summary>
         /// 生成済みのログ行をすべて破棄し、描画済み件数をリセットする。
+        /// Destroy は実行フレーム末尾まで反映されないため、先に親から外して同フレームの
+        /// レイアウト再計算（<see cref="ScrollToBottom"/>）に混ざらないようにする。
         /// </summary>
         private void ClearEntries()
         {
             foreach (var entryObject in _entryObjects)
             {
-                if (entryObject != null)
-                {
-                    Destroy(entryObject);
-                }
+                if (entryObject == null) continue;
+
+                entryObject.transform.SetParent(null, false);
+                entryObject.SetActive(false);
+                Destroy(entryObject);
             }
 
             _entryObjects.Clear();
