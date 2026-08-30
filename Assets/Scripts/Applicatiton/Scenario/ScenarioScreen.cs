@@ -43,21 +43,28 @@ namespace Applicatiton.Scenario
         public void SetAutoPlay(bool enabled) => _screenModel.SetAutoPlay(enabled);
 
         /// <summary>
-        /// 早送りの有効・無効を切り替える。演出速度のみが変化し、進行のタイミングには影響しない。
+        /// 早送りモードを切り替える。
+        /// テキストは一括表示のため、モードに応じて次の Step へ進むまでの待機時間が短くなり、
+        /// 併せて演出速度も上がる。
         /// </summary>
-        public void SetFastForward(bool enabled)
+        public void SetFastForward(FastForwardMode mode)
         {
-            _screenModel.SetFastForward(enabled);
+            _screenModel.SetFastForward(mode);
             UpdatePlaybackSpeed();
         }
 
         /// <summary>
-        /// スキップの有効・無効を切り替える。有効な場合、クリックを待たずに次々と進める。
+        /// 再生中のシナリオを最後まで待たずに中断する。
+        /// 進行中のシナリオタスクをキャンセルし、このシナリオで再生した BGM を停止して画面を閉じる。
         /// </summary>
-        public void SetSkip(bool enabled)
+        public void Skip()
         {
-            _screenModel.SetSkip(enabled);
-            UpdatePlaybackSpeed();
+            if (_screenModel.ScenarioViewModel.HasStartedBgm)
+            {
+                AudioManager.Instance?.StopBgm();
+            }
+
+            Hide();
         }
 
         /// <summary>
@@ -74,11 +81,11 @@ namespace Applicatiton.Scenario
         }
 
         /// <summary>
-        /// 早送り・スキップのいずれかが有効な間は、演出速度を上げる。
+        /// 早送りが有効な間は、演出速度を上げる。
         /// </summary>
         private void UpdatePlaybackSpeed()
         {
-            _viewController.SetFastForward(_screenModel.IsFastForwarding || _screenModel.IsSkipEnabled);
+            _viewController.SetFastForward(_screenModel.IsFastForwarding);
         }
 
         private void OnLogUpdated()
