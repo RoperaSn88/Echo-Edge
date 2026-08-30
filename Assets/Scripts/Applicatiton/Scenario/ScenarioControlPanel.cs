@@ -13,9 +13,6 @@ namespace Applicatiton.Scenario
     {
         [SerializeField] private ScenarioScreen _screen;
 
-        [SerializeField] private Button _autoPlayButton;
-        [SerializeField] private TextMeshProUGUI _autoPlayLabel;
-
         [SerializeField] private Button _fastForwardButton;
         [SerializeField] private TextMeshProUGUI _fastForwardLabel;
 
@@ -30,18 +27,10 @@ namespace Applicatiton.Scenario
 
         private void Awake()
         {
-            _autoPlayButton.onClick.AddListener(OnClickAutoPlay);
             _fastForwardButton.onClick.AddListener(OnClickFastForward);
             _skipButton.onClick.AddListener(OnClickSkip);
             _logButton.onClick.AddListener(OnClickLog);
 
-            UpdateLabels();
-        }
-
-        private void OnClickAutoPlay()
-        {
-            _isAutoPlayOn = !_isAutoPlayOn;
-            _screen.SetAutoPlay(_isAutoPlayOn);
             UpdateLabels();
         }
 
@@ -66,9 +55,7 @@ namespace Applicatiton.Scenario
 
         private void UpdateLabels()
         {
-            _autoPlayLabel.text = _isAutoPlayOn ? "自動再生:ON" : "自動再生:OFF";
-            _fastForwardLabel.text = _isFastForwardOn ? "早送り:ON" : "早送り:OFF";
-            _skipLabel.text = _isSkipOn ? "スキップ:ON" : "スキップ:OFF";
+
         }
     }
 }
