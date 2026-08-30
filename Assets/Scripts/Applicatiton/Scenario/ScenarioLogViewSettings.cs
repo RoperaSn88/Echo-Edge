@@ -21,10 +21,7 @@ namespace Applicatiton.Scenario
         [Tooltip("ログ1件ごとの縦間隔（px）。")]
         [SerializeField] private float _entrySpacing = 20f;
 
-        [Tooltip("話者名と本文の縦間隔（px）。")]
-        [SerializeField] private float _speakerBodySpacing = 4f;
-
-        [Tooltip("Content 内側の余白（px）。")]
+        [Tooltip("NameArea / PhraseArea 内側の余白（px）。")]
         [SerializeField] private int _contentPadding = 16;
 
         /// <summary>テキストに適用するフォント。未設定なら TMP の既定フォントを使う。</summary>
@@ -45,10 +42,7 @@ namespace Applicatiton.Scenario
         /// <summary>ログ1件ごとの縦間隔（px）。</summary>
         public float EntrySpacing => _entrySpacing;
 
-        /// <summary>話者名と本文の縦間隔（px）。</summary>
-        public float SpeakerBodySpacing => _speakerBodySpacing;
-
-        /// <summary>Content 内側の余白（px）。</summary>
+        /// <summary>NameArea / PhraseArea 内側の余白（px）。</summary>
         public int ContentPadding => _contentPadding;
     }
 }

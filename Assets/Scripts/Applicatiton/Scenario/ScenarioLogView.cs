@@ -10,27 +10,33 @@ namespace Applicatiton.Scenario
     /// <summary>
     /// これまでに表示したセリフのログを ScrollView に一覧表示するパネル。
     /// 表示することに専念し、ログの中身は <see cref="ScenarioViewController"/> から受け取る。
-    /// ログ1件につき「キャラクター名」と「本文テキスト」を積み上げて表示し、
+    /// 話者名は NameArea、本文は PhraseArea の子として2列で積み上げて表示し、
     /// 件数が増えても ScrollView でスクロールして閲覧できる。
     /// 見た目の調整項目は <see cref="ScenarioLogViewSettings"/> に分離している。
     /// </summary>
     public class ScenarioLogView : MonoBehaviour
     {
+        // 新しいログ行の本文末尾に付ける空行。行同士の区切りを見やすくする。
+        private const string TrailingBlankLine = "\n";
+
         [Header("参照")]
         [SerializeField] private ScrollRect _scrollRect;
         [SerializeField] private RectTransform _content;
+        [SerializeField] private RectTransform _nameArea;
+        [SerializeField] private RectTransform _phraseArea;
         [SerializeField] private Button _closeButton;
 
         [Header("表示設定")]
         [SerializeField] private ScenarioLogViewSettings _settings = new();
 
-        // 生成済みのログ行 GameObject。差分更新のために保持する。
-        private readonly List<GameObject> _entryObjects = new();
+        // 生成済みの行セル。name と phrase は同じインデックスで対応する。
+        private readonly List<RectTransform> _nameCells = new();
+        private readonly List<RectTransform> _phraseCells = new();
 
         // すでに描画したログ件数。次回 Refresh でここから先だけを追加する。
         private int _renderedCount;
 
-        private bool _layoutReady;
+        private bool _areaLayoutReady;
 
         // 必要な参照がすべて設定されているか。未設定時は表示を行わない。
         private bool _hasRequiredReferences;
@@ -54,7 +60,7 @@ namespace Applicatiton.Scenario
             }
 
             _closeButton.onClick.AddListener(Hide);
-            EnsureContentLayout();
+            EnsureAreaLayout();
         }
 
         /// <summary>
@@ -63,13 +69,13 @@ namespace Applicatiton.Scenario
         /// </summary>
         private bool ValidateReferences()
         {
-            if (_scrollRect != null && _content != null && _closeButton != null)
+            if (_scrollRect != null && _content != null && _nameArea != null && _phraseArea != null && _closeButton != null)
             {
                 return true;
             }
 
             Debug.LogError(
-                $"{nameof(ScenarioLogView)}: 参照（ScrollRect / Content / CloseButton）が未設定のため、ログ表示を無効化します。",
+                $"{nameof(ScenarioLogView)}: 参照（ScrollRect / Content / NameArea / PhraseArea / CloseButton）が未設定のため、ログ表示を無効化します。",
                 this);
             enabled = false;
             return false;
@@ -111,7 +117,7 @@ namespace Applicatiton.Scenario
 
         /// <summary>
         /// ログの内容を最新の状態に描画し直す。
-        /// 直前の描画から増えた分だけを Content に追加し、ログがリセットされた場合は全消去して作り直す。
+        /// 直前の描画から増えた分だけを追加し、ログがリセットされた場合は全消去して作り直す。
         /// </summary>
         public void Refresh(IReadOnlyList<ScenarioLogEntry> entries)
         {
@@ -120,7 +126,7 @@ namespace Applicatiton.Scenario
                 return;
             }
 
-            EnsureContentLayout();
+            EnsureAreaLayout();
 
             // ログが減った・空になった（別シナリオ開始など）場合は作り直す。
             if (entries.Count < _renderedCount)
@@ -135,6 +141,9 @@ namespace Applicatiton.Scenario
 
             _renderedCount = entries.Count;
 
+            SyncRowHeights();
+            RebuildContentSize();
+
             if (isActiveAndEnabled)
             {
                 ScrollToBottom();
@@ -142,16 +151,24 @@ namespace Applicatiton.Scenario
         }
 
         /// <summary>
-        /// Content に縦積みレイアウトと高さ自動調整を用意する。シーン側で付け忘れても動くようにする。
+        /// NameArea / PhraseArea に縦積みレイアウトと高さ自動調整を用意する。シーン側で付け忘れても動くようにする。
         /// </summary>
-        private void EnsureContentLayout()
+        private void EnsureAreaLayout()
         {
-            if (_layoutReady || _content == null) return;
+            if (_areaLayoutReady || _nameArea == null || _phraseArea == null) return;
 
-            var layout = _content.GetComponent<VerticalLayoutGroup>();
+            SetupColumn(_nameArea);
+            SetupColumn(_phraseArea);
+
+            _areaLayoutReady = true;
+        }
+
+        private void SetupColumn(RectTransform column)
+        {
+            var layout = column.GetComponent<VerticalLayoutGroup>();
             if (layout == null)
             {
-                layout = _content.gameObject.AddComponent<VerticalLayoutGroup>();
+                layout = column.gameObject.AddComponent<VerticalLayoutGroup>();
             }
 
             var padding = _settings.ContentPadding;
@@ -163,45 +180,33 @@ namespace Applicatiton.Scenario
             layout.childForceExpandWidth = true;
             layout.childForceExpandHeight = false;
 
-            var fitter = _content.GetComponent<ContentSizeFitter>();
+            var fitter = column.GetComponent<ContentSizeFitter>();
             if (fitter == null)
             {
-                fitter = _content.gameObject.AddComponent<ContentSizeFitter>();
+                fitter = column.gameObject.AddComponent<ContentSizeFitter>();
             }
 
             fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
             fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-
-            _layoutReady = true;
         }
 
         /// <summary>
-        /// ログ1件分の GameObject（話者名テキスト＋本文テキスト）を生成して Content に追加する。
+        /// ログ1件分のセルを、話者名は NameArea、本文は PhraseArea の子として生成する。
+        /// 地の文（話者名なし）でも行の対応がずれないよう、空の話者名セルを必ず作る。
         /// </summary>
         private void CreateEntry(ScenarioLogEntry entry)
         {
-            var entryObject = new GameObject("LogEntry", typeof(RectTransform));
-            entryObject.transform.SetParent(_content, false);
+            var speakerName = entry.SpeakerName ?? string.Empty;
+            var nameCell = CreateText(_nameArea, speakerName, _settings.SpeakerFontSize, _settings.SpeakerColor, FontStyles.Bold);
+            nameCell.gameObject.AddComponent<LayoutElement>();
 
-            var entryLayout = entryObject.AddComponent<VerticalLayoutGroup>();
-            entryLayout.spacing = _settings.SpeakerBodySpacing;
-            entryLayout.childAlignment = TextAnchor.UpperLeft;
-            entryLayout.childControlWidth = true;
-            entryLayout.childControlHeight = true;
-            entryLayout.childForceExpandWidth = true;
-            entryLayout.childForceExpandHeight = false;
+            var phraseCell = CreateText(_phraseArea, entry.Text + TrailingBlankLine, _settings.BodyFontSize, _settings.BodyColor, FontStyles.Normal);
 
-            if (!string.IsNullOrEmpty(entry.SpeakerName))
-            {
-                CreateText(entryObject.transform, entry.SpeakerName, _settings.SpeakerFontSize, _settings.SpeakerColor, FontStyles.Bold);
-            }
-
-            CreateText(entryObject.transform, entry.Text, _settings.BodyFontSize, _settings.BodyColor, FontStyles.Normal);
-
-            _entryObjects.Add(entryObject);
+            _nameCells.Add(nameCell);
+            _phraseCells.Add(phraseCell);
         }
 
-        private void CreateText(Transform parent, string value, float fontSize, Color color, FontStyles style)
+        private RectTransform CreateText(Transform parent, string value, float fontSize, Color color, FontStyles style)
         {
             var textObject = new GameObject("Text", typeof(RectTransform));
             textObject.transform.SetParent(parent, false);
@@ -219,26 +224,69 @@ namespace Applicatiton.Scenario
             text.textWrappingMode = TextWrappingModes.Normal;
             text.raycastTarget = false;
             text.richText = true;
+
+            return (RectTransform)textObject.transform;
         }
 
         /// <summary>
-        /// 生成済みのログ行をすべて破棄し、描画済み件数をリセットする。
+        /// 各行について、話者名セルの高さを対応する本文セルの高さに合わせ、2列の行位置をそろえる。
+        /// </summary>
+        private void SyncRowHeights()
+        {
+            if (_phraseCells.Count == 0) return;
+
+            Canvas.ForceUpdateCanvases();
+            LayoutRebuilder.ForceRebuildLayoutImmediate(_phraseArea);
+
+            for (var i = 0; i < _nameCells.Count && i < _phraseCells.Count; i++)
+            {
+                var layoutElement = _nameCells[i].GetComponent<LayoutElement>();
+                if (layoutElement != null)
+                {
+                    layoutElement.minHeight = _phraseCells[i].rect.height;
+                }
+            }
+
+            LayoutRebuilder.ForceRebuildLayoutImmediate(_nameArea);
+        }
+
+        /// <summary>
+        /// Content の高さを NameArea / PhraseArea のうち高い方に合わせ、スクロール範囲を確定させる。
+        /// </summary>
+        private void RebuildContentSize()
+        {
+            Canvas.ForceUpdateCanvases();
+            LayoutRebuilder.ForceRebuildLayoutImmediate(_nameArea);
+            LayoutRebuilder.ForceRebuildLayoutImmediate(_phraseArea);
+
+            var height = Mathf.Max(_nameArea.rect.height, _phraseArea.rect.height);
+            _content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
+        }
+
+        /// <summary>
+        /// 生成済みの行セルをすべて破棄し、描画済み件数をリセットする。
         /// Destroy は実行フレーム末尾まで反映されないため、先に親から外して同フレームの
-        /// レイアウト再計算（<see cref="ScrollToBottom"/>）に混ざらないようにする。
+        /// レイアウト再計算に混ざらないようにする。
         /// </summary>
         private void ClearEntries()
         {
-            foreach (var entryObject in _entryObjects)
-            {
-                if (entryObject == null) continue;
+            DestroyCells(_nameCells);
+            DestroyCells(_phraseCells);
+            _renderedCount = 0;
+        }
 
-                entryObject.transform.SetParent(null, false);
-                entryObject.SetActive(false);
-                Destroy(entryObject);
+        private static void DestroyCells(List<RectTransform> cells)
+        {
+            foreach (var cell in cells)
+            {
+                if (cell == null) continue;
+
+                cell.SetParent(null, false);
+                cell.gameObject.SetActive(false);
+                Destroy(cell.gameObject);
             }
 
-            _entryObjects.Clear();
-            _renderedCount = 0;
+            cells.Clear();
         }
 
         /// <summary>
