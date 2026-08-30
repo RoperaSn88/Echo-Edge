@@ -40,11 +40,13 @@ namespace Applicatiton.Scenario
         public void SetAutoPlay(bool enabled) => _screenModel.SetAutoPlay(enabled);
 
         /// <summary>
-        /// 早送りの有効・無効を切り替える。演出速度のみが変化し、進行のタイミングには影響しない。
+        /// 早送りモードを切り替える。
+        /// テキストは一括表示のため、モードに応じて次の Step へ進むまでの待機時間が短くなり、
+        /// 併せて演出速度も上がる。
         /// </summary>
-        public void SetFastForward(bool enabled)
+        public void SetFastForward(FastForwardMode mode)
         {
-            _screenModel.SetFastForward(enabled);
+            _screenModel.SetFastForward(mode);
             UpdatePlaybackSpeed();
         }
 

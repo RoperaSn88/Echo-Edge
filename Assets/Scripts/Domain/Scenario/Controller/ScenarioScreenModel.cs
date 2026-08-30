@@ -19,6 +19,12 @@ namespace Domain.Scenario.Controller
         // スキップ時、次に進むまでの待機時間。0 にはせず、僅かに待つことでフレーム分割する。
         private const float SkipAdvanceDelaySeconds = 0.05f;
 
+        // 早送り速度1のとき、次の Step へ自動で進むまでの待機時間。
+        private const float FastForwardSpeed1DelaySeconds = 0.6f;
+
+        // 早送り速度2のとき、次の Step へ自動で進むまでの待機時間（速度1より短い）。
+        private const float FastForwardSpeed2DelaySeconds = 0.2f;
+
         private readonly ScenarioViewModel _scenarioViewModel;
         public ScenarioViewModel ScenarioViewModel => _scenarioViewModel;
 
@@ -33,9 +39,16 @@ namespace Domain.Scenario.Controller
         public bool IsSkipEnabled { get; private set; }
 
         /// <summary>
-        /// 早送りが有効かどうか。進行のタイミングには影響せず、演出速度のみに影響する。
+        /// 現在の早送りモード。
+        /// テキストは一括表示のため、モードに応じて次の Step へ自動で進むまでの待機時間が短くなる。
+        /// 加えて、早送り中は演出速度も上がる。
         /// </summary>
-        public bool IsFastForwarding { get; private set; }
+        public FastForwardMode FastForwardMode { get; private set; } = FastForwardMode.Off;
+
+        /// <summary>
+        /// 早送り中（<see cref="FastForwardMode"/> が Off 以外）かどうか。
+        /// </summary>
+        public bool IsFastForwarding => FastForwardMode != FastForwardMode.Off;
 
         public ScenarioScreenModel()
         {
@@ -55,7 +68,7 @@ namespace Domain.Scenario.Controller
 
         public void SetSkip(bool enabled) => IsSkipEnabled = enabled;
 
-        public void SetFastForward(bool enabled) => IsFastForwarding = enabled;
+        public void SetFastForward(FastForwardMode mode) => FastForwardMode = mode;
 
         /// <summary>
         /// クリック用の InputAction を生成し、次に進めるまで待機してページを進める処理を
@@ -86,6 +99,8 @@ namespace Domain.Scenario.Controller
         /// <summary>
         /// 次のページに進めるまで待機する。
         /// スキップ中はごく短い時間の待機のみで次に進む。
+        /// 早送り中は、クリックされるかモードに応じた待機時間が経過するかのどちらか早い方まで待つ
+        /// （速度2の方が待機時間が短い）。
         /// 自動再生中は、クリックされるか一定時間が経過するかのどちらか早い方まで待つ。
         /// どちらでもない場合は、通常通りクリックされるまで待つ。
         /// </summary>
@@ -94,6 +109,18 @@ namespace Domain.Scenario.Controller
             if (IsSkipEnabled)
             {
                 await UniTask.Delay(TimeSpan.FromSeconds(SkipAdvanceDelaySeconds), cancellationToken: cancellationToken);
+                return;
+            }
+
+            if (FastForwardMode != FastForwardMode.Off)
+            {
+                var delaySeconds = FastForwardMode == FastForwardMode.Speed2
+                    ? FastForwardSpeed2DelaySeconds
+                    : FastForwardSpeed1DelaySeconds;
+
+                await UniTask.WhenAny(
+                    WaitForClickAsync(mouseClick, cancellationToken),
+                    UniTask.Delay(TimeSpan.FromSeconds(delaySeconds), cancellationToken: cancellationToken));
                 return;
             }
 
