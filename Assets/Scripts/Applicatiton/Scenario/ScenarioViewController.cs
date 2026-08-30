@@ -125,7 +125,7 @@ namespace Applicatiton.Scenario
                 case BackgroundChangeEvent background:
                     if (background.Background != null)
                     {
-                        _view.SetBackground(background.Background);
+                        await _view.ChangeBackgroundAsync(background.Background, destroyCancellationToken);
                     }
                     break;
 

@@ -27,6 +27,9 @@ namespace Domain.Scenario.Controller
         private const float FadeDuration = 0.5f;
         private const float CharacterMoveOffsetX = 40f;
 
+        // 背景チェンジイベントでの黒フェードアウト・フェードインそれぞれの時間（秒）。
+        private const float BackgroundChangeFadeDuration = 0.4f;
+
         private const float TextMotionDuration = 0.25f;
         private const float TextMoveOffsetX = -30f;
 
@@ -44,6 +47,7 @@ namespace Domain.Scenario.Controller
         private Vector2 _bodyTextHomePosition;
         private Vector2 _leftCharacterHomePosition;
         private Vector2 _rightCharacterHomePosition;
+        private Color _backgroundHomeColor;
 
         private void Awake()
         {
@@ -51,6 +55,7 @@ namespace Domain.Scenario.Controller
             _bodyTextHomePosition = _bodyText.rectTransform.anchoredPosition;
             _leftCharacterHomePosition = _leftCharacterImage.rectTransform.anchoredPosition;
             _rightCharacterHomePosition = _rightCharacterImage.rectTransform.anchoredPosition;
+            _backgroundHomeColor = _backgroundImage.color;
         }
 
         /// <summary>
@@ -161,6 +166,23 @@ namespace Domain.Scenario.Controller
         public void SetBackground(Sprite background)
         {
             _backgroundImage.sprite = background;
+        }
+
+        /// <summary>
+        /// 背景チェンジイベント用に、演出を伴って背景画像を変更する。
+        /// 現在の背景を黒へフェードアウトしたのち、指定した背景に差し替えてフェードインする。
+        /// </summary>
+        public async UniTask ChangeBackgroundAsync(Sprite background, CancellationToken token)
+        {
+            _backgroundImage.DOKill();
+
+            var duration = BackgroundChangeFadeDuration * _speedMultiplier;
+
+            await _backgroundImage.DOColor(Color.black, duration).ToUniTask(cancellationToken: token);
+
+            _backgroundImage.sprite = background;
+
+            await _backgroundImage.DOColor(_backgroundHomeColor, duration).ToUniTask(cancellationToken: token);
         }
 
         /// <summary>
