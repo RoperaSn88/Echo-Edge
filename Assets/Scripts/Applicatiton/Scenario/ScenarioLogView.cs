@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Text;
 using Domain.Scenario.Controller;
 using TMPro;
 using UnityEngine;
@@ -8,28 +7,52 @@ using UnityEngine.UI;
 namespace Applicatiton.Scenario
 {
     /// <summary>
-    /// これまでに表示したセリフのログを一覧表示するパネル。
+    /// これまでに表示したセリフのログを ScrollView に一覧表示するパネル。
     /// 表示することに専念し、ログの中身は <see cref="ScenarioViewController"/> から受け取る。
+    /// ログ1件につき「キャラクター名」と「本文テキスト」を積み上げて表示し、
+    /// 件数が増えても ScrollView でスクロールして閲覧できる。
     /// </summary>
     public class ScenarioLogView : MonoBehaviour
     {
-        // スクロール機能を持たないため、直近この件数分のみを表示して溢れを防ぐ。
-        private const int MaxDisplayCount = 12;
-
-        [SerializeField] private TextMeshProUGUI _logText;
+        [Header("参照")]
+        [SerializeField] private ScrollRect _scrollRect;
+        [SerializeField] private RectTransform _content;
         [SerializeField] private Button _closeButton;
+        [SerializeField] private TMP_FontAsset _fontAsset;
+
+        [Header("表示設定")]
+        [SerializeField] private float _speakerFontSize = 22f;
+        [SerializeField] private float _bodyFontSize = 24f;
+        [SerializeField] private Color _speakerColor = new(0.65f, 0.85f, 1f, 1f);
+        [SerializeField] private Color _bodyColor = Color.white;
+        // ログ1件ごとの縦間隔（px）。
+        [SerializeField] private float _entrySpacing = 20f;
+        // 話者名と本文の縦間隔（px）。
+        [SerializeField] private float _speakerBodySpacing = 4f;
+        // Content 内側の余白（px）。
+        [SerializeField] private int _contentPadding = 16;
+
+        // 生成済みのログ行 GameObject。差分更新のために保持する。
+        private readonly List<GameObject> _entryObjects = new();
+
+        // すでに描画したログ件数。次回 Refresh でここから先だけを追加する。
+        private int _renderedCount;
+
+        private bool _layoutReady;
 
         private void Awake()
         {
             _closeButton.onClick.AddListener(Hide);
+            EnsureContentLayout();
         }
 
         /// <summary>
-        /// ログパネルを表示する。
+        /// ログパネルを表示する。表示時は末尾（最新）までスクロールする。
         /// </summary>
         public void Show()
         {
             gameObject.SetActive(true);
+            ScrollToBottom();
         }
 
         /// <summary>
@@ -57,25 +80,137 @@ namespace Applicatiton.Scenario
 
         /// <summary>
         /// ログの内容を最新の状態に描画し直す。
-        /// スクロール機能を持たないため、直近 <see cref="MaxDisplayCount"/> 件のみを表示する。
+        /// 直前の描画から増えた分だけを Content に追加し、ログがリセットされた場合は全消去して作り直す。
         /// </summary>
         public void Refresh(IReadOnlyList<ScenarioLogEntry> entries)
         {
-            var startIndex = Mathf.Max(0, entries.Count - MaxDisplayCount);
+            EnsureContentLayout();
 
-            var builder = new StringBuilder();
-            for (var i = startIndex; i < entries.Count; i++)
+            // ログが減った・空になった（別シナリオ開始など）場合は作り直す。
+            if (entries.Count < _renderedCount)
             {
-                var entry = entries[i];
-                if (!string.IsNullOrEmpty(entry.SpeakerName))
-                {
-                    builder.Append("<b>").Append(entry.SpeakerName).Append("</b>\n");
-                }
-
-                builder.Append(entry.Text).Append("\n\n");
+                ClearEntries();
             }
 
-            _logText.text = builder.ToString();
+            for (var i = _renderedCount; i < entries.Count; i++)
+            {
+                CreateEntry(entries[i]);
+            }
+
+            _renderedCount = entries.Count;
+
+            if (isActiveAndEnabled)
+            {
+                ScrollToBottom();
+            }
+        }
+
+        /// <summary>
+        /// Content に縦積みレイアウトと高さ自動調整を用意する。シーン側で付け忘れても動くようにする。
+        /// </summary>
+        private void EnsureContentLayout()
+        {
+            if (_layoutReady || _content == null) return;
+
+            var layout = _content.GetComponent<VerticalLayoutGroup>();
+            if (layout == null)
+            {
+                layout = _content.gameObject.AddComponent<VerticalLayoutGroup>();
+            }
+
+            layout.padding = new RectOffset(_contentPadding, _contentPadding, _contentPadding, _contentPadding);
+            layout.spacing = _entrySpacing;
+            layout.childAlignment = TextAnchor.UpperLeft;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = true;
+            layout.childForceExpandHeight = false;
+
+            var fitter = _content.GetComponent<ContentSizeFitter>();
+            if (fitter == null)
+            {
+                fitter = _content.gameObject.AddComponent<ContentSizeFitter>();
+            }
+
+            fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            _layoutReady = true;
+        }
+
+        /// <summary>
+        /// ログ1件分の GameObject（話者名テキスト＋本文テキスト）を生成して Content に追加する。
+        /// </summary>
+        private void CreateEntry(ScenarioLogEntry entry)
+        {
+            var entryObject = new GameObject("LogEntry", typeof(RectTransform));
+            entryObject.transform.SetParent(_content, false);
+
+            var entryLayout = entryObject.AddComponent<VerticalLayoutGroup>();
+            entryLayout.spacing = _speakerBodySpacing;
+            entryLayout.childAlignment = TextAnchor.UpperLeft;
+            entryLayout.childControlWidth = true;
+            entryLayout.childControlHeight = true;
+            entryLayout.childForceExpandWidth = true;
+            entryLayout.childForceExpandHeight = false;
+
+            if (!string.IsNullOrEmpty(entry.SpeakerName))
+            {
+                CreateText(entryObject.transform, entry.SpeakerName, _speakerFontSize, _speakerColor, FontStyles.Bold);
+            }
+
+            CreateText(entryObject.transform, entry.Text, _bodyFontSize, _bodyColor, FontStyles.Normal);
+
+            _entryObjects.Add(entryObject);
+        }
+
+        private void CreateText(Transform parent, string value, float fontSize, Color color, FontStyles style)
+        {
+            var textObject = new GameObject("Text", typeof(RectTransform));
+            textObject.transform.SetParent(parent, false);
+
+            var text = textObject.AddComponent<TextMeshProUGUI>();
+            if (_fontAsset != null)
+            {
+                text.font = _fontAsset;
+            }
+
+            text.text = value;
+            text.fontSize = fontSize;
+            text.color = color;
+            text.fontStyle = style;
+            text.textWrappingMode = TextWrappingModes.Normal;
+            text.raycastTarget = false;
+            text.richText = true;
+        }
+
+        /// <summary>
+        /// 生成済みのログ行をすべて破棄し、描画済み件数をリセットする。
+        /// </summary>
+        private void ClearEntries()
+        {
+            foreach (var entryObject in _entryObjects)
+            {
+                if (entryObject != null)
+                {
+                    Destroy(entryObject);
+                }
+            }
+
+            _entryObjects.Clear();
+            _renderedCount = 0;
+        }
+
+        /// <summary>
+        /// レイアウトを確定させたうえで最新のログ（末尾）までスクロールする。
+        /// </summary>
+        private void ScrollToBottom()
+        {
+            if (_scrollRect == null || _content == null) return;
+
+            Canvas.ForceUpdateCanvases();
+            LayoutRebuilder.ForceRebuildLayoutImmediate(_content);
+            _scrollRect.verticalNormalizedPosition = 0f;
         }
     }
 }

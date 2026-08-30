@@ -538,7 +538,7 @@ RectTransform:
   m_Father: {fileID: 620265883}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
@@ -2800,8 +2800,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4799e8f3000a48439abdc0d1c67fd2fb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Applicatiton.Scenario.ScenarioLogView
-  _logText: {fileID: 0}
+  _scrollRect: {fileID: 620265884}
+  _content: {fileID: 1406781067}
   _closeButton: {fileID: 5000000232}
+  _fontAsset: {fileID: 11400000, guid: e0e891a8435edff45afeef14828736c8, type: 2}
+  _speakerFontSize: 22
+  _bodyFontSize: 24
+  _speakerColor: {r: 0.65, g: 0.85, b: 1, a: 1}
+  _bodyColor: {r: 1, g: 1, b: 1, a: 1}
+  _entrySpacing: 20
+  _speakerBodySpacing: 4
+  _contentPadding: 16
 --- !u!1 &5000000230
 GameObject:
   m_ObjectHideFlags: 0
