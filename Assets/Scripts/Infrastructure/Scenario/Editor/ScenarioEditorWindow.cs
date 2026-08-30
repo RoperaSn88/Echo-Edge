@@ -234,7 +234,14 @@ namespace Infrastructure.Scenario.Editor
                 EditorGUI.indentLevel++;
                 foreach (var child in EnumerateChildren(element))
                 {
-                    EditorGUILayout.PropertyField(child, true);
+                    if (IsEventOfType(element, typeof(Phrase)) && child.name == "_text")
+                    {
+                        DrawPhraseTextArea(child);
+                    }
+                    else
+                    {
+                        EditorGUILayout.PropertyField(child, true);
+                    }
                 }
                 EditorGUI.indentLevel--;
 
@@ -245,6 +252,30 @@ namespace Infrastructure.Scenario.Editor
             }
 
             GUILayout.Space(ColumnSpacing);
+        }
+
+        /// <summary>
+        /// セリフ本文を、内容の行数に応じて高さが伸びるテキストエリアとして描画する。
+        /// 既定の <see cref="TextAreaAttribute"/> は指定行数を超えると内部スクロールになり、
+        /// ウィンドウ全体のスクロールビュー内では隠れた行を確認できなくなるため、独自に描画する。
+        /// </summary>
+        private static void DrawPhraseTextArea(SerializedProperty textProperty)
+        {
+            EditorGUILayout.LabelField(textProperty.displayName);
+
+            var style = EditorStyles.textArea;
+            // 列の内寸（ボックス余白・インデント分）を差し引いた、実際の折り返し幅。
+            const float innerWidth = ColumnWidth - 30f;
+            var contentHeight = style.CalcHeight(new GUIContent(textProperty.stringValue), innerWidth);
+            var height = Mathf.Ceil(
+                Mathf.Max(contentHeight, EditorGUIUtility.singleLineHeight * 3f) + style.lineHeight);
+
+            EditorGUI.BeginChangeCheck();
+            var newText = EditorGUILayout.TextArea(textProperty.stringValue, style, GUILayout.Height(height));
+            if (EditorGUI.EndChangeCheck())
+            {
+                textProperty.stringValue = newText;
+            }
         }
 
         /// <summary>
