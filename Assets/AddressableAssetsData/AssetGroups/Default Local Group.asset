@@ -115,6 +115,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 94ca6728b004b6f4cba1b9cd572ce6e0
+    m_Address: Assets/Addressables/Scenario/ScenarioData_Prologue.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 9cb6074127301604692f33d2b6875d27
     m_Address: Assets/Addressables/Audio/SE/QTE_Good.wav
     m_ReadOnly: 0

@@ -12,12 +12,32 @@ namespace Applicatiton.Scenario
     public static class ScenarioStageLoader
     {
         private const string ScenarioAddressFormat = "Assets/Addressables/Scenario/ScenarioData_{0}.asset";
+        private const string PrologueScenarioAddress = "Assets/Addressables/Scenario/ScenarioData_Prologue.asset";
 
         /// <summary>
         /// 現在選択されているステージレベルに対応するシナリオを Scenario シーンで再生し、
         /// 再生が終了するまで待機する。対応するシナリオデータが存在しない場合は何も表示せずに終了する。
         /// </summary>
         public static async UniTask PlayCurrentStageScenarioAsync()
+        {
+            var address = string.Format(ScenarioAddressFormat, StageData.Level);
+            await PlayScenarioAsync(address);
+        }
+
+        /// <summary>
+        /// 初回起動時のプロローグシナリオを Scenario シーンで再生し、再生が終了するまで待機する。
+        /// 対応するシナリオデータが存在しない場合は何も表示せずに終了する。
+        /// </summary>
+        public static async UniTask PlayPrologueScenarioAsync()
+        {
+            await PlayScenarioAsync(PrologueScenarioAddress);
+        }
+
+        /// <summary>
+        /// 指定した Addressable アドレスのシナリオデータを Scenario シーンで再生し、
+        /// 再生が終了するまで待機する。
+        /// </summary>
+        private static async UniTask PlayScenarioAsync(string scenarioAddress)
         {
             await SceneLoader.AdditiveLoadAsync(GameScene.Scenario);
 
@@ -37,9 +57,7 @@ namespace Applicatiton.Scenario
                 return;
             }
 
-            var address = string.Format(ScenarioAddressFormat, StageData.Level);
-
-            await screen.Initialize(address);
+            await screen.Initialize(scenarioAddress);
             await screen.ShowAndWaitForFinishAsync();
         }
     }

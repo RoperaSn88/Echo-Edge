@@ -14932,6 +14932,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f4b56e064a628b4080cecfa4f858f14, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClickableImage
+  _image: {fileID: 0}
+  _nonInteractableAlpha: 0.5
 --- !u!1001 &383214955
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -50050,6 +50052,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f4b56e064a628b4080cecfa4f858f14, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClickableImage
+  _image: {fileID: 0}
+  _nonInteractableAlpha: 0.5
 --- !u!4 &1327419940 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 234017323753348374, guid: 7cf8c5ce7f8c9fa4b899be72ca6eb60d, type: 3}
@@ -58800,6 +58804,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f4b56e064a628b4080cecfa4f858f14, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClickableImage
+  _image: {fileID: 0}
+  _nonInteractableAlpha: 0.5
 --- !u!114 &1574200981
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -70717,6 +70723,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f4b56e064a628b4080cecfa4f858f14, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClickableImage
+  _image: {fileID: 0}
+  _nonInteractableAlpha: 0.5
 --- !u!4 &1893237795 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2768560146257392266, guid: 2fe8646777765574da855e41a92cff95, type: 3}
