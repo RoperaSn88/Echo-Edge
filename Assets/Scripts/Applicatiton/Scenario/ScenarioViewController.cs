@@ -120,13 +120,15 @@ namespace Applicatiton.Scenario
 
         private async UniTask HandleEventAsync(IScenarioEvent scenarioEvent)
         {
-            if (scenarioEvent.Background != null)
-            {
-                _view.SetBackground(scenarioEvent.Background);
-            }
-
             switch (scenarioEvent)
             {
+                case BackgroundChangeEvent background:
+                    if (background.Background != null)
+                    {
+                        _view.SetBackground(background.Background);
+                    }
+                    break;
+
                 case Phrase phrase:
                     var speakerName = GetCharacter(phrase.CharaPosition)?.DisplayName ?? string.Empty;
                     await _view.ShowPhrase(speakerName, phrase.Text, destroyCancellationToken);

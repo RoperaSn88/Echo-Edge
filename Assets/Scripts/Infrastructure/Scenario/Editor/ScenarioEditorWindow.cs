@@ -19,6 +19,7 @@ namespace Infrastructure.Scenario.Editor
             ("表情変更", typeof(CharacterExpressionChangeEvent)),
             ("セリフ表示", typeof(Phrase)),
             ("SE再生", typeof(SePlayEvent)),
+            ("背景変更", typeof(BackgroundChangeEvent)),
         };
 
         private const float ColumnWidth = 260f;
