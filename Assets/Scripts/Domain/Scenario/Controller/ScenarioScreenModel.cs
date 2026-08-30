@@ -118,17 +118,13 @@ namespace Domain.Scenario.Controller
                     ? FastForwardSpeed2DelaySeconds
                     : FastForwardSpeed1DelaySeconds;
 
-                await UniTask.WhenAny(
-                    WaitForClickAsync(mouseClick, cancellationToken),
-                    UniTask.Delay(TimeSpan.FromSeconds(delaySeconds), cancellationToken: cancellationToken));
+                await WaitForClickOrDelayAsync(mouseClick, delaySeconds, cancellationToken);
                 return;
             }
 
             if (IsAutoPlayEnabled)
             {
-                await UniTask.WhenAny(
-                    WaitForClickAsync(mouseClick, cancellationToken),
-                    UniTask.Delay(TimeSpan.FromSeconds(AutoPlayDelaySeconds), cancellationToken: cancellationToken));
+                await WaitForClickOrDelayAsync(mouseClick, AutoPlayDelaySeconds, cancellationToken);
                 return;
             }
 
@@ -156,6 +152,37 @@ namespace Domain.Scenario.Controller
             finally
             {
                 mouseClick.Mouse.MouseClick.started -= OnClick;
+            }
+        }
+
+        private static async UniTask WaitForClickOrDelayAsync(MouseClick mouseClick, float delaySeconds, CancellationToken cancellationToken)
+        {
+            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            var linkedToken = linkedCts.Token;
+
+            var clickTask = WaitForClickAsync(mouseClick, linkedToken).Preserve();
+            var delayTask = UniTask.Delay(TimeSpan.FromSeconds(delaySeconds), cancellationToken: linkedToken).Preserve();
+
+            try
+            {
+                await UniTask.WhenAny(clickTask, delayTask);
+            }
+            finally
+            {
+                linkedCts.Cancel();
+                await AwaitTaskIgnoringInternalCancellationAsync(clickTask, cancellationToken);
+                await AwaitTaskIgnoringInternalCancellationAsync(delayTask, cancellationToken);
+            }
+        }
+
+        private static async UniTask AwaitTaskIgnoringInternalCancellationAsync(UniTask task, CancellationToken cancellationToken)
+        {
+            try
+            {
+                await task;
+            }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
             }
         }
     }
