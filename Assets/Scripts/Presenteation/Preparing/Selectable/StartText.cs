@@ -36,11 +36,15 @@ namespace UnityEngine.Selectable
                 AudioManager.Instance.FadeBGMAsync(_fadeDuration, CancellationToken.None)
             );
 
-            // 選択したステージに対応するシナリオを読み込んで再生し、見終わってからメインゲームへ移行する
-            await ScenarioStageLoader.PlayCurrentStageScenarioAsync();
+            // 選択したステージにシナリオが設定されていれば読み込んで再生し、見終わってからメインゲームへ移行する。
+            // シナリオ再生が無効なステージの場合は、そのまま即メインゲームへ移行する。
+            var scenarioLoaded = await ScenarioStageLoader.PlayCurrentStageScenarioAsync();
 
             await SceneLoader.AdditiveLoadAsync(GameScene.MainGame);
-            SceneLoader.Unload(GameScene.Scenario);
+            if (scenarioLoaded)
+            {
+                SceneLoader.Unload(GameScene.Scenario);
+            }
             SceneLoader.Unload(GameScene.Preparing);
         }
     }
