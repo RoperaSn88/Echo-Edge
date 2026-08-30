@@ -37,6 +37,12 @@ namespace Domain.Scenario.Controller
         /// </summary>
         public bool IsFastForwarding { get; private set; }
 
+        /// <summary>
+        /// クリックによるページ送りを一時的に無効化するかどうか。
+        /// ログ画面表示中など、シナリオを進めたくない間に true にする。
+        /// </summary>
+        public bool IsAdvanceByClickBlocked { get; set; }
+
         public ScenarioScreenModel()
         {
             _scenarioViewModel = new ScenarioViewModel();
@@ -111,12 +117,18 @@ namespace Domain.Scenario.Controller
         /// <summary>
         /// クリックされるまで待機する。<see cref="InputAction.started"/> のコールバックで
         /// 完了させることで、Update でのポーリングを行わずに待機を実現する。
+        /// <see cref="IsAdvanceByClickBlocked"/> が true の間はクリックを受け付けず、
+        /// ログ画面などを閉じてブロックが解除された後のクリックで次に進む。
         /// </summary>
-        private static async UniTask WaitForClickAsync(MouseClick mouseClick, CancellationToken cancellationToken)
+        private async UniTask WaitForClickAsync(MouseClick mouseClick, CancellationToken cancellationToken)
         {
             var tcs = new UniTaskCompletionSource();
 
-            void OnClick(InputAction.CallbackContext _) => tcs.TrySetResult();
+            void OnClick(InputAction.CallbackContext _)
+            {
+                if (IsAdvanceByClickBlocked) return;
+                tcs.TrySetResult();
+            }
 
             mouseClick.Mouse.MouseClick.started += OnClick;
             try

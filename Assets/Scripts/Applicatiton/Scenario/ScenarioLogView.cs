@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Domain.Scenario.Controller;
 using TMPro;
@@ -33,6 +34,16 @@ namespace Applicatiton.Scenario
 
         // 必要な参照がすべて設定されているか。未設定時は表示を行わない。
         private bool _hasRequiredReferences;
+
+        /// <summary>
+        /// 表示状態が変化した際に発火する。引数は表示中かどうか。
+        /// </summary>
+        public event Action<bool> VisibilityChanged;
+
+        /// <summary>
+        /// ログパネルが現在表示されているかどうか。
+        /// </summary>
+        public bool IsOpen => gameObject.activeSelf;
 
         private void Awake()
         {
@@ -71,6 +82,7 @@ namespace Applicatiton.Scenario
         {
             gameObject.SetActive(true);
             ScrollToBottom();
+            VisibilityChanged?.Invoke(true);
         }
 
         /// <summary>
@@ -79,6 +91,7 @@ namespace Applicatiton.Scenario
         public void Hide()
         {
             gameObject.SetActive(false);
+            VisibilityChanged?.Invoke(false);
         }
 
         /// <summary>

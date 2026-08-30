@@ -30,6 +30,9 @@ namespace Applicatiton.Scenario
             _viewController.LogUpdated -= OnLogUpdated;
             _viewController.LogUpdated += OnLogUpdated;
 
+            _logView.VisibilityChanged -= OnLogVisibilityChanged;
+            _logView.VisibilityChanged += OnLogVisibilityChanged;
+
             _viewController.Initialize(_screenModel.ScenarioViewModel);
             await _screenModel.InitializeAsync(scenarioAddress);
         }
@@ -61,6 +64,14 @@ namespace Applicatiton.Scenario
         /// ログパネルの表示・非表示を切り替える。
         /// </summary>
         public void ToggleLog() => _logView.Toggle();
+
+        /// <summary>
+        /// ログパネルの表示中はクリックでシナリオが進まないようにする。
+        /// </summary>
+        private void OnLogVisibilityChanged(bool isOpen)
+        {
+            _screenModel.IsAdvanceByClickBlocked = isOpen;
+        }
 
         /// <summary>
         /// 早送り・スキップのいずれかが有効な間は、演出速度を上げる。
@@ -158,6 +169,7 @@ namespace Applicatiton.Scenario
         private void OnDestroy()
         {
             _viewController.LogUpdated -= OnLogUpdated;
+            _logView.VisibilityChanged -= OnLogVisibilityChanged;
 
             _cts?.Cancel();
             _cts?.Dispose();
