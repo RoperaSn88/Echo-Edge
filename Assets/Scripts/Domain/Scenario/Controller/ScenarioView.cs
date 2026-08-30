@@ -156,6 +156,14 @@ namespace Domain.Scenario.Controller
         }
 
         /// <summary>
+        /// 背景画像を変更する。
+        /// </summary>
+        public void SetBackground(Sprite background)
+        {
+            _backgroundImage.sprite = background;
+        }
+
+        /// <summary>
         /// 指定した位置のキャラクター表示を消す。
         /// </summary>
         public void HideCharacter(CharacterPosition position)

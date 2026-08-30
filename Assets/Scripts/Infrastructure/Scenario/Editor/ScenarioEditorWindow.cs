@@ -28,6 +28,7 @@ namespace Infrastructure.Scenario.Editor
         private SerializedObject _serializedObject;
         private SerializedProperty _rowsProperty;
         private SerializedProperty _bgmProperty;
+        private SerializedProperty _backgroundProperty;
         private Vector2 _scrollPosition;
 
         // GUILayout 中は SerializedProperty の配列構造を変更できないため、
@@ -66,6 +67,7 @@ namespace Infrastructure.Scenario.Editor
             _serializedObject.Update();
 
             EditorGUILayout.PropertyField(_bgmProperty, new GUIContent("BGM（シナリオ開始前に再生）"));
+            EditorGUILayout.PropertyField(_backgroundProperty, new GUIContent("背景（シナリオ開始前に変更）"));
             EditorGUILayout.Space();
 
             EditorGUILayout.HelpBox(
@@ -116,6 +118,7 @@ namespace Infrastructure.Scenario.Editor
             _serializedObject = _scenarioData != null ? new SerializedObject(_scenarioData) : null;
             _rowsProperty = _serializedObject?.FindProperty("_rows");
             _bgmProperty = _serializedObject?.FindProperty("_bgm");
+            _backgroundProperty = _serializedObject?.FindProperty("_background");
         }
 
         /// <summary>

@@ -71,6 +71,7 @@ namespace Applicatiton.Scenario
             if (_viewModel != null)
             {
                 _viewModel.CurrentEventChanged -= OnCurrentEventChanged;
+                _viewModel.BackgroundChanged -= OnBackgroundChanged;
             }
 
             _viewModel = viewModel;
@@ -80,6 +81,7 @@ namespace Applicatiton.Scenario
             LogUpdated?.Invoke();
 
             _viewModel.CurrentEventChanged += OnCurrentEventChanged;
+            _viewModel.BackgroundChanged += OnBackgroundChanged;
 
             if (_viewModel.CurrentEvents != null)
             {
@@ -93,6 +95,14 @@ namespace Applicatiton.Scenario
         private void OnCurrentEventChanged(List<IScenarioEvent> scenarioEvents)
         {
             HandleEventsAsync(scenarioEvents).Forget();
+        }
+
+        /// <summary>
+        /// シナリオ起動時に背景が割り当てられている場合、ビューの背景を変更する。
+        /// </summary>
+        private void OnBackgroundChanged(Sprite background)
+        {
+            _view.SetBackground(background);
         }
 
         private async UniTask HandleEventsAsync(List<IScenarioEvent> scenarioEvents)
@@ -110,6 +120,11 @@ namespace Applicatiton.Scenario
 
         private async UniTask HandleEventAsync(IScenarioEvent scenarioEvent)
         {
+            if (scenarioEvent.Background != null)
+            {
+                _view.SetBackground(scenarioEvent.Background);
+            }
+
             switch (scenarioEvent)
             {
                 case Phrase phrase:
@@ -174,6 +189,7 @@ namespace Applicatiton.Scenario
             if (_viewModel != null)
             {
                 _viewModel.CurrentEventChanged -= OnCurrentEventChanged;
+                _viewModel.BackgroundChanged -= OnBackgroundChanged;
             }
         }
     }

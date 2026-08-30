@@ -36,6 +36,11 @@ namespace Domain.Scenario.Controller
         public event Action Finished;
 
         /// <summary>
+        /// シナリオ起動時に背景が変更された際に発火する。
+        /// </summary>
+        public event Action<Sprite> BackgroundChanged;
+
+        /// <summary>
         /// このシナリオが BGM の再生を開始したかどうか。
         /// シナリオ終了時に BGM をフェードアウトすべきかの判断に使う
         /// （このシナリオが BGM を割り当てていない場合、既存の BGM を止めないようにするため）。
@@ -71,6 +76,7 @@ namespace Domain.Scenario.Controller
             }
 
             PlayBgmIfAssigned();
+            ApplyStartupBackgroundIfAssigned();
 
             await ShowNext();
         }
@@ -91,6 +97,17 @@ namespace Domain.Scenario.Controller
 
             AudioManager.Instance.PlayBgm(bgm, true);
             HasStartedBgm = true;
+        }
+
+        /// <summary>
+        /// シナリオに背景が割り当てられている場合、最初の Step が再生される前に背景を変更する。
+        /// </summary>
+        private void ApplyStartupBackgroundIfAssigned()
+        {
+            var background = _scenarioData.Background;
+            if (background == null) return;
+
+            BackgroundChanged?.Invoke(background);
         }
 
         /// <summary>
