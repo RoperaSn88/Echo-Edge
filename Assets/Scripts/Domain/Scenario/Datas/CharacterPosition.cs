@@ -5,8 +5,8 @@ namespace Domain.Scenario
     /// </summary>
     public enum CharacterPosition
     {
+        None,
         Left,
         Right,
-        None
     }
 }

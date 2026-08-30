@@ -15,12 +15,12 @@ namespace Infrastructure.Scenario.Editor
     {
         private static readonly (string DisplayName, Type EventType)[] AddableEventTypes =
         {
+            ("セリフ表示", typeof(Phrase)),
             ("キャラクター登場", typeof(CharacterAppearEvent)),
             ("表情変更", typeof(CharacterExpressionChangeEvent)),
-            ("セリフ表示", typeof(Phrase)),
-            ("SE再生", typeof(SePlayEvent)),
             ("背景変更", typeof(BackgroundChangeEvent)),
             ("BGM再生・停止", typeof(BgmEvent)),
+            ("SE再生", typeof(SePlayEvent)),
         };
 
         private const float ColumnWidth = 260f;
