@@ -31,6 +31,9 @@ namespace Domain.Scenario
         [SerializeField, Tooltip("Scenario シーン起動時・最初の Step が再生される前に流す BGM")]
         private AudioClip _bgm;
 
+        [SerializeField, Tooltip("Scenario シーン起動時・最初の Step が再生される前に変更する背景。未設定の場合は背景を変更しない")]
+        private Sprite _background;
+
         [SerializeField]
         private List<EventRow> _rows = new();
 
@@ -38,6 +41,11 @@ namespace Domain.Scenario
         /// このシナリオの再生中に流す BGM。割り当てられていない場合は null。
         /// </summary>
         public AudioClip Bgm => _bgm;
+
+        /// <summary>
+        /// シナリオ起動時に変更する背景。割り当てられていない場合は null。
+        /// </summary>
+        public Sprite Background => _background;
 
         /// <summary>
         /// シナリオイベントの一覧。
