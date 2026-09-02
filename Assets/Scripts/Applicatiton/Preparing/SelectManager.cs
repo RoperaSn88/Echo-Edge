@@ -25,7 +25,17 @@ public class SelectManager : MonoBehaviour
     [SerializeField] private Transform _defaultPosition;
     [SerializeField] private SelectableGroup _selectableGroup;
 
+    [SerializeField]
+    [Tooltip("ステージごとのシナリオ再生要否設定。StartText がステージ選択確定時に参照する")]
+    private StageScenarioPlaybackSettings _stageScenarioPlaybackSettings;
+
     public Vector3 DefaultLocalPosition => _defaultPosition.localPosition;
+
+    /// <summary>
+    /// ステージごとのシナリオ再生要否設定。
+    /// StartText がステージ選択確定時に、選択中ステージのシナリオを再生するか判定するために参照する。
+    /// </summary>
+    public StageScenarioPlaybackSettings StageScenarioPlaybackSettings => _stageScenarioPlaybackSettings;
 
     /// <summary>
     /// スタックの最上位にあるRectTransform
