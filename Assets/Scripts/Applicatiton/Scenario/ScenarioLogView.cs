@@ -41,6 +41,14 @@ namespace Applicatiton.Scenario
         // 必要な参照がすべて設定されているか。未設定時は表示を行わない。
         private bool _hasRequiredReferences;
 
+        // 表示・非表示は GameObject の Active ではなく CanvasGroup で切り替える。
+        // 非表示中もログ行の生成とレイアウトを進めておき、開いた瞬間に処理が集中して
+        // カクつくのを防ぐ。
+        private CanvasGroup _canvasGroup;
+
+        // ログパネルが開いているか。CanvasGroup の表示状態と一致する。
+        private bool _isOpen;
+
         /// <summary>
         /// 表示状態が変化した際に発火する。引数は表示中かどうか。
         /// </summary>
@@ -49,7 +57,7 @@ namespace Applicatiton.Scenario
         /// <summary>
         /// ログパネルが現在表示されているかどうか。
         /// </summary>
-        public bool IsOpen => gameObject.activeSelf;
+        public bool IsOpen => _isOpen;
 
         private void Awake()
         {
@@ -59,8 +67,26 @@ namespace Applicatiton.Scenario
                 return;
             }
 
+            _canvasGroup = GetComponent<CanvasGroup>();
+            if (_canvasGroup == null)
+            {
+                _canvasGroup = gameObject.AddComponent<CanvasGroup>();
+            }
+
             _closeButton.onClick.AddListener(Hide);
             EnsureAreaLayout();
+            ApplyVisibility(false);
+        }
+
+        /// <summary>
+        /// 別シナリオ開始などで（親ごと）再アクティブ化された際は、ログを閉じた状態から始める。
+        /// </summary>
+        private void OnEnable()
+        {
+            if (_canvasGroup != null)
+            {
+                ApplyVisibility(false);
+            }
         }
 
         /// <summary>
@@ -86,7 +112,7 @@ namespace Applicatiton.Scenario
         /// </summary>
         public void Show()
         {
-            gameObject.SetActive(true);
+            ApplyVisibility(true);
             ScrollToBottom();
             VisibilityChanged?.Invoke(true);
         }
@@ -96,7 +122,7 @@ namespace Applicatiton.Scenario
         /// </summary>
         public void Hide()
         {
-            gameObject.SetActive(false);
+            ApplyVisibility(false);
             VisibilityChanged?.Invoke(false);
         }
 
@@ -105,7 +131,7 @@ namespace Applicatiton.Scenario
         /// </summary>
         public void Toggle()
         {
-            if (gameObject.activeSelf)
+            if (_isOpen)
             {
                 Hide();
             }
@@ -113,6 +139,24 @@ namespace Applicatiton.Scenario
             {
                 Show();
             }
+        }
+
+        /// <summary>
+        /// CanvasGroup で表示・非表示を切り替える。GameObject は常にアクティブのままにして、
+        /// 非表示中もログ行の生成とレイアウト・TMP のメッシュ生成を進められるようにする。
+        /// </summary>
+        private void ApplyVisibility(bool visible)
+        {
+            _isOpen = visible;
+
+            if (_canvasGroup == null)
+            {
+                return;
+            }
+
+            _canvasGroup.alpha = visible ? 1f : 0f;
+            _canvasGroup.interactable = visible;
+            _canvasGroup.blocksRaycasts = visible;
         }
 
         /// <summary>
@@ -144,7 +188,8 @@ namespace Applicatiton.Scenario
             SyncRowHeights();
             RebuildContentSize();
 
-            if (isActiveAndEnabled)
+            // 非表示中はスクロール位置を触らない。開いたときに Show() が末尾へ寄せる。
+            if (_isOpen)
             {
                 ScrollToBottom();
             }
@@ -197,7 +242,7 @@ namespace Applicatiton.Scenario
         private void CreateEntry(ScenarioLogEntry entry)
         {
             var speakerName = entry.SpeakerName ?? string.Empty;
-            var nameCell = CreateText(_nameArea, speakerName, _settings.SpeakerFontSize, _settings.SpeakerColor, FontStyles.Bold, HorizontalAlignmentOptions.Right);
+            var nameCell = CreateText(_nameArea, speakerName, _settings.SpeakerFontSize, _settings.SpeakerColor, FontStyles.Bold, HorizontalAlignmentOptions.Left);
             nameCell.gameObject.AddComponent<LayoutElement>();
 
             var phraseCell = CreateText(_phraseArea, entry.Text + TrailingBlankLine, _settings.BodyFontSize, _settings.BodyColor, FontStyles.Normal, HorizontalAlignmentOptions.Left);
