@@ -1,6 +1,8 @@
-﻿using Cysharp.Threading.Tasks;
+﻿using UnityEngine;
+using Cysharp.Threading.Tasks;
 
-namespace UnityEngine.Selectable{
+namespace EchoEdge.Presenter.Preparing
+{
     /// <summary>
     /// 選択時、前の選択肢へ戻すテキストを管理するクラス
     /// </summary>

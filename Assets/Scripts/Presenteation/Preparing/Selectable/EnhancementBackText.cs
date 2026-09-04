@@ -1,6 +1,9 @@
+using UnityEngine;
 using Cysharp.Threading.Tasks;
 
-namespace UnityEngine.Selectable
+using EchoEdge.App.Preparing;
+
+namespace EchoEdge.Presenter.Preparing
 {
     /// <summary>
     /// 選択時、カメラを元の位置に戻してメインメニューグループへ戻るテキストを管理するクラス。

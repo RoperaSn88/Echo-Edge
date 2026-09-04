@@ -3,40 +3,45 @@ using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
 
-/// <summary>
-/// 飛行能力を持つユニット用の View。
-/// BaseUnitView を継承し、IFlyingUnitView を実装することで飛び上がり・ビーム攻撃アニメーションを提供する。
-/// </summary>
-public class FlyingBaseUnitView : BaseUnitView, IFlyingUnitView
+using EchoEdge.Domain.Battle;
+
+namespace EchoEdge.Presenter.Battle
 {
     /// <summary>
-    /// 地上のY座標（飛行前の元の高さ）
+    /// 飛行能力を持つユニット用の View。
+    /// BaseUnitView を継承し、IFlyingUnitView を実装することで飛び上がり・ビーム攻撃アニメーションを提供する。
     /// </summary>
-    private float _groundY;
-
-    private const float FlyHeight = 2f;
-    private const float FlyTime = 0.5f;
-
-    /// <inheritdoc/>
-    public override async UniTask Setup(int h, int w, EnemyKinds enemyID)
+    public class FlyingBaseUnitView : BaseUnitView, IFlyingUnitView
     {
-        await base.Setup(h, w, enemyID);
-        _groundY = transform.localPosition.y;
-    }
+        /// <summary>
+        /// 地上のY座標（飛行前の元の高さ）
+        /// </summary>
+        private float _groundY;
 
-    /// <inheritdoc/>
-    public async UniTask WaitFlyAnim()
-    {
-        Animator.SetTrigger("SkillT");
-        await transform.DOLocalMoveY(_groundY + FlyHeight, FlyTime).SetEase(Ease.OutQuad);
-    }
+        private const float FlyHeight = 2f;
+        private const float FlyTime = 0.5f;
 
-    /// <inheritdoc/>
-    public async UniTask WaitAnimAfterFlying()
-    {
-        // スカイア用のアニメーター
-        Animator.SetTrigger("BeamT");
-        await UniTask.WaitUntil(() => AnimationFlag);
-        await transform.DOLocalMoveY(_groundY, FlyTime).SetEase(Ease.InQuad);
+        /// <inheritdoc/>
+        public override async UniTask Setup(int h, int w, EnemyKinds enemyID)
+        {
+            await base.Setup(h, w, enemyID);
+            _groundY = transform.localPosition.y;
+        }
+
+        /// <inheritdoc/>
+        public async UniTask WaitFlyAnim()
+        {
+            Animator.SetTrigger("SkillT");
+            await transform.DOLocalMoveY(_groundY + FlyHeight, FlyTime).SetEase(Ease.OutQuad);
+        }
+
+        /// <inheritdoc/>
+        public async UniTask WaitAnimAfterFlying()
+        {
+            // スカイア用のアニメーター
+            Animator.SetTrigger("BeamT");
+            await UniTask.WaitUntil(() => AnimationFlag);
+            await transform.DOLocalMoveY(_groundY, FlyTime).SetEase(Ease.InQuad);
+        }
     }
 }

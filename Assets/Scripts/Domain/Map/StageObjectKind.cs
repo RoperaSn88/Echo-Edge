@@ -1,6 +1,9 @@
-public enum StageObjectKind : byte
+namespace EchoEdge.Domain.Map
 {
-    Invalid,
-    Wall,
-    Unit
+    public enum StageObjectKind : byte
+    {
+        Invalid,
+        Wall,
+        Unit
+    }
 }

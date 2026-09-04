@@ -4,7 +4,9 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
-namespace Domain.Scenario.Controller
+using EchoEdge.Infra.Audio;
+
+namespace EchoEdge.Domain.Scenario
 {
     /// <summary>
     /// シナリオの再生状態を管理するモデルクラス。

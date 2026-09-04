@@ -1,7 +1,8 @@
 ﻿using UnityEngine;
 using Cysharp.Threading.Tasks;
 
-namespace VFX{
+namespace EchoEdge.Presenter.VFX
+{
     public class VFXEmitter : MonoBehaviour 
     {
         public static VFXEmitter Instance { get; private set; }

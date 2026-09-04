@@ -5,7 +5,11 @@ using Cysharp.Threading.Tasks;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
-namespace UI.Weapon
+using EchoEdge.App.Battle;
+using EchoEdge.Domain.Phase;
+using EchoEdge.Presenter.Player;
+
+namespace EchoEdge.Presenter.UI
 {
     public class WeaponController: MonoBehaviour
     {

@@ -2,11 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using Domain.Scenario;
-using Domain.Scenario.Controller;
 using UnityEngine;
 
-namespace Applicatiton.Scenario
+using EchoEdge.Domain.Scenario;
+using EchoEdge.Infra.Audio;
+
+namespace EchoEdge.App.Scenario
 {
     /// <summary>
     /// ビューにモデルの状態を反映させるコントローラークラス。

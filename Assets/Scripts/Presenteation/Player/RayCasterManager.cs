@@ -1,10 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using UnityEngine;
+using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Pointer = UnityEngine.InputSystem.Pointer;
 
-namespace UnityEngine
+using EchoEdge.Domain.Preparing;
+
+namespace EchoEdge.Presenter.Player
 {
     public class RayCasterManager: MonoBehaviour
     {

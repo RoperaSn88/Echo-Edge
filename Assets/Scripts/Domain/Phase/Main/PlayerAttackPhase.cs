@@ -2,35 +2,42 @@ using Cysharp.Threading.Tasks;
 using Unity.Mathematics;
 using UnityEngine;
 
-public class PlayerAttackPhase: IPhase
+using EchoEdge.App.Battle;
+using EchoEdge.Infra.Camera;
+using EchoEdge.Presenter.Player;
+
+namespace EchoEdge.Domain.Phase
 {
-    /// <summary>
-    /// アタックフェーズのインスタンス
-    /// </summary>
-    private static PlayerAttackPhase _instance;
-
-    /// <summary>
-    /// 他のスクリプトから干渉するプロパティ
-    /// </summary>
-    public static PlayerAttackPhase Instance => _instance ??= new PlayerAttackPhase();
-
-    public const int LayerNumber = 1;
-
-    public async UniTask<IPhase> WaitPhase()
+    public class PlayerAttackPhase: IPhase
     {
-        // 今のポインターの先の位置を取得
-        CameraManager.Instance.ActMoveCameraToDefault();
-        Ray ray = Camera.main.ScreenPointToRay(CameraManager.Instance.GetMousePosition());
-        Physics.Raycast(ray, out RaycastHit rch, math.INFINITY,LayerNumber);
+        /// <summary>
+        /// アタックフェーズのインスタンス
+        /// </summary>
+        private static PlayerAttackPhase _instance;
 
-        // プレイヤーの攻撃開始時に追尾を開始する
-        CameraManager.Instance.StartTracking(PlayerController.Instance.transform);
+        /// <summary>
+        /// 他のスクリプトから干渉するプロパティ
+        /// </summary>
+        public static PlayerAttackPhase Instance => _instance ??= new PlayerAttackPhase();
 
-        await PlayerController.Instance.ExecuteAttack(rch.point);
+        public const int LayerNumber = 1;
 
-        // 追尾を終了する
-        CameraManager.Instance.StopTracking();
+        public async UniTask<IPhase> WaitPhase()
+        {
+            // 今のポインターの先の位置を取得
+            CameraManager.Instance.ActMoveCameraToDefault();
+            Ray ray = Camera.main.ScreenPointToRay(CameraManager.Instance.GetMousePosition());
+            Physics.Raycast(ray, out RaycastHit rch, math.INFINITY,LayerNumber);
 
-        return await WaveManager.ResolvePhaseAfterAttackAsync();
+            // プレイヤーの攻撃開始時に追尾を開始する
+            CameraManager.Instance.StartTracking(PlayerController.Instance.transform);
+
+            await PlayerController.Instance.ExecuteAttack(rch.point);
+
+            // 追尾を終了する
+            CameraManager.Instance.StopTracking();
+
+            return await WaveManager.ResolvePhaseAfterAttackAsync();
+        }
     }
 }

@@ -1,6 +1,9 @@
-public enum QTEResults
+namespace EchoEdge.Presenter.UI
 {
-    Failed,
-    Good,
-    Perfect,
+    public enum QTEResults
+    {
+        Failed,
+        Good,
+        Perfect,
+    }
 }

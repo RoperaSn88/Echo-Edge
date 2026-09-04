@@ -1,9 +1,10 @@
-using Domain.Scenario.Controller;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Applicatiton.Scenario
+using EchoEdge.Domain.Scenario;
+
+namespace EchoEdge.App.Scenario
 {
     /// <summary>
     /// 早送り・スキップ・ログ表示を操作するボタン群を扱うクラス。

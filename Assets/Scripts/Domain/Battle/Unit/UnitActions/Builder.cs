@@ -4,7 +4,12 @@ using System.Linq;
 using System;
 using UnityEngine;
 
-namespace Unit.pureC.Unit
+using EchoEdge.App.Battle;
+using EchoEdge.Infra.Camera;
+using EchoEdge.Presenter.Player;
+using EchoEdge.Presenter.UI;
+
+namespace EchoEdge.Domain.Battle
 {
     public class Builder: IUnitAction
     {

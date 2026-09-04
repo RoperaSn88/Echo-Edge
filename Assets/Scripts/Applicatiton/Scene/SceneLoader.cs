@@ -2,113 +2,118 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public static class SceneLoader
+using EchoEdge.Domain.Scene;
+
+namespace EchoEdge.App.Scene
 {
-    public static void Load(GameScene scene)
+    public static class SceneLoader
     {
-        if (!TryGetSceneIndex(scene, out var sceneIndex))
+        public static void Load(GameScene scene)
         {
-            return;
+            if (!TryGetSceneIndex(scene, out var sceneIndex))
+            {
+                return;
+            }
+
+            SceneManager.LoadScene(sceneIndex);
         }
 
-        SceneManager.LoadScene(sceneIndex);
-    }
-
-    public static void AdditiveLoad(GameScene scene)
-    {
-        if (!TryGetSceneIndex(scene, out var sceneIndex))
+        public static void AdditiveLoad(GameScene scene)
         {
-            return;
+            if (!TryGetSceneIndex(scene, out var sceneIndex))
+            {
+                return;
+            }
+
+            SceneManager.LoadScene(sceneIndex, LoadSceneMode.Additive);
         }
 
-        SceneManager.LoadScene(sceneIndex, LoadSceneMode.Additive);
-    }
-
-    /// <summary>
-    /// シーンを追加ロードし、ロード完了まで待機します。
-    /// </summary>
-    public static async UniTask AdditiveLoadAsync(GameScene scene)
-    {
-        if (!TryGetSceneIndex(scene, out var sceneIndex))
+        /// <summary>
+        /// シーンを追加ロードし、ロード完了まで待機します。
+        /// </summary>
+        public static async UniTask AdditiveLoadAsync(GameScene scene)
         {
-            return;
+            if (!TryGetSceneIndex(scene, out var sceneIndex))
+            {
+                return;
+            }
+
+            await AdditiveLoadAsync(sceneIndex);
         }
 
-        await AdditiveLoadAsync(sceneIndex);
-    }
-
-    /// <summary>
-    /// ビルドインデックスで指定されたシーンを追加ロードし、ロード完了まで待機します。
-    /// </summary>
-    public static async UniTask AdditiveLoadAsync(int sceneIndex)
-    {
-        if (sceneIndex < 0 || sceneIndex >= SceneManager.sceneCountInBuildSettings)
+        /// <summary>
+        /// ビルドインデックスで指定されたシーンを追加ロードし、ロード完了まで待機します。
+        /// </summary>
+        public static async UniTask AdditiveLoadAsync(int sceneIndex)
         {
-            Debug.LogError($"Build Settings にシーンインデックス {sceneIndex} が存在しません");
-            return;
+            if (sceneIndex < 0 || sceneIndex >= SceneManager.sceneCountInBuildSettings)
+            {
+                Debug.LogError($"Build Settings にシーンインデックス {sceneIndex} が存在しません");
+                return;
+            }
+
+            await SceneManager.LoadSceneAsync(sceneIndex, LoadSceneMode.Additive).ToUniTask();
         }
 
-        await SceneManager.LoadSceneAsync(sceneIndex, LoadSceneMode.Additive).ToUniTask();
-    }
-
-    /// <summary>
-    /// シーンを追加ロードし、そのシーンがアンロードされるまで待機します。
-    /// </summary>
-    public static async UniTask AdditiveLoadAndWait(GameScene scene)
-    {
-        if (!TryGetSceneIndex(scene, out var sceneIndex))
+        /// <summary>
+        /// シーンを追加ロードし、そのシーンがアンロードされるまで待機します。
+        /// </summary>
+        public static async UniTask AdditiveLoadAndWait(GameScene scene)
         {
-            return;
+            if (!TryGetSceneIndex(scene, out var sceneIndex))
+            {
+                return;
+            }
+
+            await AdditiveLoadAndWait(sceneIndex);
         }
 
-        await AdditiveLoadAndWait(sceneIndex);
-    }
-
-    /// <summary>
-    /// ビルドインデックスで指定されたシーンを追加ロードし、アンロードされるまで待機します。
-    /// </summary>
-    public static async UniTask AdditiveLoadAndWait(int sceneIndex)
-    {
-        if (sceneIndex < 0 || sceneIndex >= SceneManager.sceneCountInBuildSettings)
+        /// <summary>
+        /// ビルドインデックスで指定されたシーンを追加ロードし、アンロードされるまで待機します。
+        /// </summary>
+        public static async UniTask AdditiveLoadAndWait(int sceneIndex)
         {
-            Debug.LogError($"Build Settings にシーンインデックス {sceneIndex} が存在しません");
-            return;
+            if (sceneIndex < 0 || sceneIndex >= SceneManager.sceneCountInBuildSettings)
+            {
+                Debug.LogError($"Build Settings にシーンインデックス {sceneIndex} が存在しません");
+                return;
+            }
+
+            await SceneManager.LoadSceneAsync(sceneIndex, LoadSceneMode.Additive).ToUniTask();
+            var loadedScene = SceneManager.GetSceneByBuildIndex(sceneIndex);
+            await UniTask.WaitUntil(() => !loadedScene.isLoaded);
         }
 
-        await SceneManager.LoadSceneAsync(sceneIndex, LoadSceneMode.Additive).ToUniTask();
-        var loadedScene = SceneManager.GetSceneByBuildIndex(sceneIndex);
-        await UniTask.WaitUntil(() => !loadedScene.isLoaded);
-    }
-
-    public static void Unload(GameScene scene)
-    {
-        if (!TryGetSceneIndex(scene, out var sceneIndex))
+        public static void Unload(GameScene scene)
         {
-            return;
+            if (!TryGetSceneIndex(scene, out var sceneIndex))
+            {
+                return;
+            }
+
+            if (!SceneManager.GetSceneByBuildIndex(sceneIndex).isLoaded)
+            {
+                Debug.LogWarning($"アンロード対象シーンがロードされていません: {scene}");
+                return;
+            }
+
+            var unloadOperation = SceneManager.UnloadSceneAsync(sceneIndex);
+            if (unloadOperation == null)
+            {
+                Debug.LogError($"シーンのアンロード開始に失敗しました: {scene}");
+            }
         }
 
-        if (!SceneManager.GetSceneByBuildIndex(sceneIndex).isLoaded)
+        private static bool TryGetSceneIndex(GameScene scene, out int sceneIndex)
         {
-            Debug.LogWarning($"アンロード対象シーンがロードされていません: {scene}");
-            return;
-        }
+            sceneIndex = (int)scene;
+            if (sceneIndex < 0 || sceneIndex >= SceneManager.sceneCountInBuildSettings)
+            {
+                Debug.LogError($"Build Settings にシーンインデックス {sceneIndex} が存在しません: {scene}");
+                return false;
+            }
 
-        var unloadOperation = SceneManager.UnloadSceneAsync(sceneIndex);
-        if (unloadOperation == null)
-        {
-            Debug.LogError($"シーンのアンロード開始に失敗しました: {scene}");
+            return true;
         }
-    }
-
-    private static bool TryGetSceneIndex(GameScene scene, out int sceneIndex)
-    {
-        sceneIndex = (int)scene;
-        if (sceneIndex < 0 || sceneIndex >= SceneManager.sceneCountInBuildSettings)
-        {
-            Debug.LogError($"Build Settings にシーンインデックス {sceneIndex} が存在しません: {scene}");
-            return false;
-        }
-
-        return true;
     }
 }

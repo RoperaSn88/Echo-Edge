@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Domain.Scenario
+namespace EchoEdge.Domain.Scenario
 {
     /// <summary>
     /// 指定した効果音（SE）を一度だけ再生するイベント。

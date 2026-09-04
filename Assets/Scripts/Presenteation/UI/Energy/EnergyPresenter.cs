@@ -2,7 +2,9 @@
 using DG.Tweening;
 using Cysharp.Threading.Tasks;
 
-namespace UI.Energy
+using EchoEdge.App.Battle;
+
+namespace EchoEdge.Presenter.UI
 {
     public class EnergyPresenter: ObjectPooler
     {

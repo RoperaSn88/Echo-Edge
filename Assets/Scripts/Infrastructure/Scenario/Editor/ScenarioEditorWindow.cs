@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
-using Domain.Scenario;
 using UnityEditor;
 using UnityEngine;
 
-namespace Infrastructure.Scenario.Editor
+using EchoEdge.Domain.Scenario;
+
+namespace EchoEdge.Infra.Scenario
 {
     /// <summary>
     /// ScenarioData が持つイベント一覧を、具象型を選んで追加・削除・並び替えできる編集ツール。

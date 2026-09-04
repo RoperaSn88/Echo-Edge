@@ -2,7 +2,7 @@
 using UnityEngine;
 using Cysharp.Threading.Tasks;
 
-namespace UI.Energy
+namespace EchoEdge.Presenter.UI
 {
     public class EnergyPool: ObjectPool
     {

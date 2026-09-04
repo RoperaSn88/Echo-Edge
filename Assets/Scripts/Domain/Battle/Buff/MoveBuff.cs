@@ -1,25 +1,28 @@
-public class MoveBuff : IBuff
+namespace EchoEdge.Domain.Battle
 {
-    private readonly BuffKinds _kind = BuffKinds.Move;
-
-    /// <summary>
-    /// 移動速度を1上昇させる
-    /// </summary>
-    public void Buff(BattleStatus targetStatus)
+    public class MoveBuff : IBuff
     {
-        targetStatus.ChangeMove(1);
-    }
+        private readonly BuffKinds _kind = BuffKinds.Move;
 
-    /// <summary>
-    /// 移動速度バフを消す
-    /// </summary>
-    public void RemoveBuff(BattleStatus targetStatus)
-    {
-        targetStatus.ChangeMove(-1);
-    }
+        /// <summary>
+        /// 移動速度を1上昇させる
+        /// </summary>
+        public void Buff(BattleStatus targetStatus)
+        {
+            targetStatus.ChangeMove(1);
+        }
 
-    public BuffKinds GetBuffKinds()
-    {
-        return _kind;
+        /// <summary>
+        /// 移動速度バフを消す
+        /// </summary>
+        public void RemoveBuff(BattleStatus targetStatus)
+        {
+            targetStatus.ChangeMove(-1);
+        }
+
+        public BuffKinds GetBuffKinds()
+        {
+            return _kind;
+        }
     }
 }

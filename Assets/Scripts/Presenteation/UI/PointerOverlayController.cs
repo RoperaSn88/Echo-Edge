@@ -1,27 +1,30 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PointerOverlayController : MonoBehaviour
+namespace EchoEdge.Presenter.UI
 {
-    [SerializeField] private RectTransform _pointerRectTransform;
-
-    private void Awake()
+    public class PointerOverlayController : MonoBehaviour
     {
-        Cursor.visible = false;
-    }
+        [SerializeField] private RectTransform _pointerRectTransform;
 
-    private void Update()
-    {
-        if (_pointerRectTransform == null || Pointer.current == null)
+        private void Awake()
         {
-            return;
+            Cursor.visible = false;
         }
 
-        _pointerRectTransform.position = Pointer.current.position.ReadValue();
-    }
+        private void Update()
+        {
+            if (_pointerRectTransform == null || Pointer.current == null)
+            {
+                return;
+            }
 
-    private void OnDestroy()
-    {
-        Cursor.visible = true;
+            _pointerRectTransform.position = Pointer.current.position.ReadValue();
+        }
+
+        private void OnDestroy()
+        {
+            Cursor.visible = true;
+        }
     }
 }

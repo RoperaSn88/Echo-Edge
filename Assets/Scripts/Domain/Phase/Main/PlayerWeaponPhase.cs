@@ -1,36 +1,42 @@
 using System;
 using Cysharp.Threading.Tasks;
-using UI.Weapon;
 
-public class PlayerWeaponPhase : IPhase
+using EchoEdge.Infra.Camera;
+using EchoEdge.Presenter.Player;
+using EchoEdge.Presenter.UI;
+
+namespace EchoEdge.Domain.Phase
 {
-
-    /// <summary>
-    /// スキルフェーズのインスタンス
-    /// </summary>
-    private static PlayerWeaponPhase _instance;
-
-    /// <summary>
-    /// 他のスクリプトから干渉するプロパティ
-    /// </summary>
-    public static PlayerWeaponPhase Instance => _instance ??= new PlayerWeaponPhase();
-    public async UniTask<IPhase> WaitPhase()
+    public class PlayerWeaponPhase : IPhase
     {
-        await CameraManager.Instance.ActPlayerWeaponZoom(PlayerView.Instance.Transform.position);
-        
-        // 武器選びする
-        WeaponActionType result = await WeaponController.Instance.SelectWeapon();
-        
-        // キャンセル時の操作
-        PlayerView.Instance.ResetRotateAnim();
-        await CameraManager.Instance.ActResetCameraTargetWithRotate();
 
-        // 武器が選択されたときは装備品使用フェーズへ遷移する
-        if (result == WeaponActionType.Press)
+        /// <summary>
+        /// スキルフェーズのインスタンス
+        /// </summary>
+        private static PlayerWeaponPhase _instance;
+
+        /// <summary>
+        /// 他のスクリプトから干渉するプロパティ
+        /// </summary>
+        public static PlayerWeaponPhase Instance => _instance ??= new PlayerWeaponPhase();
+        public async UniTask<IPhase> WaitPhase()
         {
-            return PlayerEquipPhase.Instance;
+            await CameraManager.Instance.ActPlayerWeaponZoom(PlayerView.Instance.Transform.position);
+
+            // 武器選びする
+            WeaponActionType result = await WeaponController.Instance.SelectWeapon();
+
+            // キャンセル時の操作
+            PlayerView.Instance.ResetRotateAnim();
+            await CameraManager.Instance.ActResetCameraTargetWithRotate();
+
+            // 武器が選択されたときは装備品使用フェーズへ遷移する
+            if (result == WeaponActionType.Press)
+            {
+                return PlayerEquipPhase.Instance;
+            }
+
+            return PlayerPhase.Instance;
         }
-        
-        return PlayerPhase.Instance;
     }
 }

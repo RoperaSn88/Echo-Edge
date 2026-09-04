@@ -1,4 +1,4 @@
-﻿namespace UI.QTE
+﻿namespace EchoEdge.Presenter.UI
 {
     public enum QTEKinds
     {

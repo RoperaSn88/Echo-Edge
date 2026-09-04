@@ -1,15 +1,18 @@
-/// <summary>
-/// オプションシーンの終了結果
-/// </summary>
-public enum OptionResult
+namespace EchoEdge.Domain.Scene
 {
     /// <summary>
-    /// 閉じる（Escキーまたは閉じるテキスト）
+    /// オプションシーンの終了結果
     /// </summary>
-    Close,
+    public enum OptionResult
+    {
+        /// <summary>
+        /// 閉じる（Escキーまたは閉じるテキスト）
+        /// </summary>
+        Close,
 
-    /// <summary>
-    /// リタイア
-    /// </summary>
-    Retire,
+        /// <summary>
+        /// リタイア
+        /// </summary>
+        Retire,
+    }
 }

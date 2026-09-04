@@ -1,9 +1,11 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using EchoEdge.Utility;
 using UnityEngine;
 
-namespace Domain.Battle.PlayerAttack
+using EchoEdge.Presenter.Player;
+using EchoEdge.Utils;
+
+namespace EchoEdge.Domain.Battle
 {
     /// <summary>
     /// ビューにモデルの状態を反映させるコントローラークラス。

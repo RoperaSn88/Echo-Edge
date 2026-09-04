@@ -1,9 +1,15 @@
 ﻿using System;
-using Applicatiton.Scenario;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
-namespace Scene
+using EchoEdge.App.Scenario;
+using EchoEdge.Domain.Phase;
+using EchoEdge.Domain.Scene;
+using EchoEdge.Infra.Audio;
+using EchoEdge.Infra.Battle;
+using EchoEdge.Infra.Preparing;
+
+namespace EchoEdge.App.Scene
 {
     public class SceneLoaderActivator: MonoBehaviour
     {

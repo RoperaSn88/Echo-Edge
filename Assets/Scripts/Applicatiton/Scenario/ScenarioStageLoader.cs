@@ -2,7 +2,11 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace Applicatiton.Scenario
+using EchoEdge.App.Scene;
+using EchoEdge.Domain.Preparing;
+using EchoEdge.Domain.Scene;
+
+namespace EchoEdge.App.Scenario
 {
     /// <summary>
     /// ステージ選択完了時に、選択中のステージに対応するシナリオを読み込んで再生するクラス。

@@ -4,7 +4,7 @@ using DG.Tweening;
 using TMPro;
 using UnityEngine;
 
-namespace Domain.Battle.PlayerAttack
+namespace EchoEdge.Domain.Battle
 {
     public class PlayerAttackPreparationView: MonoBehaviour
     {

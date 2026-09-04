@@ -9,7 +9,7 @@ using Cysharp.Threading.Tasks;
 using DG.Tweening.Core;
 using DG.Tweening.Plugins.Options;
 
-namespace UI
+namespace EchoEdge.Presenter.UI
 {
     public class PlayerStatusPresenter : MonoBehaviour
     {
@@ -269,10 +269,10 @@ namespace UI
             }
         }
     }
-}
 
-public enum AttentionKinds
-{
-    Blue,
-    Red
+    public enum AttentionKinds
+    {
+        Blue,
+        Red
+    }
 }

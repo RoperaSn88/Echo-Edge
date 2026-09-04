@@ -1,4 +1,4 @@
-﻿namespace Domain.Battle.PlayerAttack
+﻿namespace EchoEdge.Domain.Battle
 {
     public enum PlayerAttackKinds
     {

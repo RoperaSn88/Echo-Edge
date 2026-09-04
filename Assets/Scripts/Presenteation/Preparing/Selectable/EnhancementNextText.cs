@@ -1,6 +1,9 @@
+using UnityEngine;
 using Cysharp.Threading.Tasks;
 
-namespace UnityEngine.Selectable
+using EchoEdge.App.Preparing;
+
+namespace EchoEdge.Presenter.Preparing
 {
     /// <summary>
     /// 選択時、カメラを前方へ移動させ強化選択肢グループを表示するテキストを管理するクラス。

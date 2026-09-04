@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Domain.Scenario
+namespace EchoEdge.Domain.Scenario
 {
     /// <summary>
     /// 指定した位置にいるキャラクターの表情を変更するイベント。

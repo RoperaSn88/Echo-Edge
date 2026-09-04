@@ -1,6 +1,9 @@
 ﻿using Cysharp.Threading.Tasks;
 
-namespace UnityEngine.Selectable
+using EchoEdge.App.Scene;
+using EchoEdge.Domain.Scene;
+
+namespace EchoEdge.Presenter.Preparing
 {
     public class OptionText : TMPSelectObject
     {

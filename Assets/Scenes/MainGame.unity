@@ -33437,6 +33437,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Domain.Battle.PlayerAttack.PlayerAttackPreparationScreen
   _viewController: {fileID: 1633745918}
+  _hoveredAlpha: 0.3
+  _fadeDuration: 0.2
 --- !u!1001 &393774875
 PrefabInstance:
   m_ObjectHideFlags: 0

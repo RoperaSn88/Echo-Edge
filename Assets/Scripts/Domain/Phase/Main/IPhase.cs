@@ -1,8 +1,12 @@
 using Cysharp.Threading.Tasks;
-public interface IPhase 
+
+namespace EchoEdge.Domain.Phase
 {
-    /// <summary>
-    /// 待機
-    /// </summary>
-    public UniTask<IPhase> WaitPhase();
+    public interface IPhase 
+    {
+        /// <summary>
+        /// 待機
+        /// </summary>
+        public UniTask<IPhase> WaitPhase();
+    }
 }

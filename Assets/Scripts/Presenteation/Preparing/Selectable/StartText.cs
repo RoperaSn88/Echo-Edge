@@ -1,10 +1,18 @@
+using UnityEngine;
 using System.Threading;
-using Applicatiton.Scenario;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine.UI;
 
-namespace UnityEngine.Selectable
+using EchoEdge.App.Preparing;
+using EchoEdge.App.Scenario;
+using EchoEdge.App.Scene;
+using EchoEdge.Domain.Preparing;
+using EchoEdge.Domain.Scenario;
+using EchoEdge.Domain.Scene;
+using EchoEdge.Infra.Audio;
+
+namespace EchoEdge.Presenter.Preparing
 {
     /// <summary>
     /// 選択時、パネルをフェードインしてステージをロードするテキストを管理するクラス

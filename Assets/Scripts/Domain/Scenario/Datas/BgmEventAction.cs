@@ -1,4 +1,4 @@
-namespace Domain.Scenario
+namespace EchoEdge.Domain.Scenario
 {
     /// <summary>
     /// <see cref="BgmEvent"/> が行う操作の種類。

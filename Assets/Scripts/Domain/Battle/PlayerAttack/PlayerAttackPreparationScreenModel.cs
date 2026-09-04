@@ -1,6 +1,6 @@
 using Cysharp.Threading.Tasks;
 
-namespace Domain.Battle.PlayerAttack
+namespace EchoEdge.Domain.Battle
 {
     /// <summary>
     /// 攻撃準備画面のScreenModel。

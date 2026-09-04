@@ -4,207 +4,211 @@ using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
+using EchoEdge.Presenter.UI;
 
-[Serializable]
-public class BattleStatus : IDamagable
+namespace EchoEdge.Domain.Battle
 {
-    /// <summary>
-    /// HP（現在値と最大値を HitPoint Value Object で管理する）
-    /// </summary>
-    [NonSerialized]
-    private HitPoint _hp;
-
-    public int HP => _hp.Current;
-    public int MaxHP => _hp.Max;
-
-    /// <summary>
-    /// 攻撃力
-    /// </summary>
-    private int _attack;
-    public int Attack => _attack;
-
-    /// <summary>
-    /// 防御力
-    /// </summary>
-    private int _defend;
-    public int Defend => _defend;
-    
-    /// <summary>
-    /// 1ターンの移動回数
-    /// </summary>
-    private byte _move;
-    public byte Move => _move;
-    
-    /// <summary>
-    /// 攻撃をいつやるか
-    /// </summary>
-    private MovePattern _movePattern;
-    public MovePattern MovePattern => _movePattern;
-    
-    [SerializeField]
-    private int _experience;
-    /// <summary>
-    /// 経験値
-    /// </summary>
-    public int Experience => _experience;
-
-    [SerializeField]
-    private int _level = 1;
-    /// <summary>
-    /// レベル
-    /// </summary>
-    public int Level => _level;
-    
-    [SerializeField]
-    private int _energy;
-    /// <summary>
-    /// 落とすエナジーの量, プレイヤーの所持エナジー
-    /// </summary>
-    public int Energy => _energy;
-
-    /// <summary>
-    /// 現在かかっているバフのリスト (バフ, 残りターン数)
-    /// </summary>
-    [NonSerialized]
-    private List<(IBuff buff, int remainingTurns)> _activeBuffs = new();
-
-    /// <summary>
-    /// ダメージを無効化するか（飛行中など）
-    /// </summary>
-    [NonSerialized]
-    public bool IsInvincible;
-
-    private const int ExperiencePerLevel = 100;
-
-    public void Initialize()
+    [Serializable]
+    public class BattleStatus : IDamagable
     {
-        // HitPoint は SetStatus で (current=max) として生成済みのため再設定不要
-        _activeBuffs = new List<(IBuff, int)>();
-    }
+        /// <summary>
+        /// HP（現在値と最大値を HitPoint Value Object で管理する）
+        /// </summary>
+        [NonSerialized]
+        private HitPoint _hp;
 
-    public BattleStatus(int hp, int attack, int defend, byte move, MovePattern movePattern, int experience, int energy)
-    {
-        SetStatus(hp, attack, defend, move, movePattern, experience, energy);
-    }
+        public int HP => _hp.Current;
+        public int MaxHP => _hp.Max;
 
-    /// <summary>
-    /// ステータスを更新する
-    /// </summary>
-    public void SetStatus(int hp, int attack, int defend, byte move, MovePattern movePattern, int experience, int energy)
-    {
-        _hp = new HitPoint(hp, hp);
-        _attack = attack;
-        _defend = defend;
-        _move = move;
-        _movePattern = movePattern;
-        _experience = experience;
-        _energy = energy;
-    }
+        /// <summary>
+        /// 攻撃力
+        /// </summary>
+        private int _attack;
+        public int Attack => _attack;
 
-    public void SetLevel(int level)
-    {
-        _level = Mathf.Max(1, level);
-    }
+        /// <summary>
+        /// 防御力
+        /// </summary>
+        private int _defend;
+        public int Defend => _defend;
 
-    /// <summary>
-    /// 1ターンの移動回数を増減させる（バフ・デバフ用）
-    /// </summary>
-    public void ChangeMove(int delta)
-    {
-        _move = (byte)Mathf.Max(0, _move + delta);
-    }
+        /// <summary>
+        /// 1ターンの移動回数
+        /// </summary>
+        private byte _move;
+        public byte Move => _move;
 
-    /// <summary>
-    /// 経験値を加算する。
-    /// </summary>
-    public void AddExperience(int experience)
-    {
-        if (experience < 0)
+        /// <summary>
+        /// 攻撃をいつやるか
+        /// </summary>
+        private MovePattern _movePattern;
+        public MovePattern MovePattern => _movePattern;
+
+        [SerializeField]
+        private int _experience;
+        /// <summary>
+        /// 経験値
+        /// </summary>
+        public int Experience => _experience;
+
+        [SerializeField]
+        private int _level = 1;
+        /// <summary>
+        /// レベル
+        /// </summary>
+        public int Level => _level;
+
+        [SerializeField]
+        private int _energy;
+        /// <summary>
+        /// 落とすエナジーの量, プレイヤーの所持エナジー
+        /// </summary>
+        public int Energy => _energy;
+
+        /// <summary>
+        /// 現在かかっているバフのリスト (バフ, 残りターン数)
+        /// </summary>
+        [NonSerialized]
+        private List<(IBuff buff, int remainingTurns)> _activeBuffs = new();
+
+        /// <summary>
+        /// ダメージを無効化するか（飛行中など）
+        /// </summary>
+        [NonSerialized]
+        public bool IsInvincible;
+
+        private const int ExperiencePerLevel = 100;
+
+        public void Initialize()
         {
-            throw new ArgumentOutOfRangeException(nameof(experience), "experience must be greater than or equal to 0.");
+            // HitPoint は SetStatus で (current=max) として生成済みのため再設定不要
+            _activeBuffs = new List<(IBuff, int)>();
         }
 
-        _experience += experience;
-    }
-
-    /// <summary>
-    /// 100EXP ごとにレベルアップし、レベルアップ分の経験値を消費する。
-    /// </summary>
-    /// <returns>上昇したレベル数</returns>
-    public int LevelUp()
-    {
-        var levelUpCount = 0;
-        while (_experience >= ExperiencePerLevel)
+        public BattleStatus(int hp, int attack, int defend, byte move, MovePattern movePattern, int experience, int energy)
         {
-            _experience -= ExperiencePerLevel;
-            _level++;
-            levelUpCount++;
-            
-            _hp = _hp.ExpandMax(10).FullRestore(); // 最大HP+10 & 全回復
-            _attack += 5;
-            _defend += 1;
+            SetStatus(hp, attack, defend, move, movePattern, experience, energy);
         }
 
-        return levelUpCount;
-    }
-
-    /// <summary>
-    /// 指定した種類のバフが現在かかっているか確認する
-    /// </summary>
-    public bool HasBuff(BuffKinds kind)
-    {
-        return _activeBuffs.Any(b => b.buff.GetBuffKinds() == kind);
-    }
-
-    /// <summary>
-    /// バフを付与し、ターン数つきで管理リストに追加する。
-    /// 同じ種類のバフが既に付与されている場合は何もしない（1体につき1種類1つまで）。
-    /// </summary>
-    /// <param name="buff">付与するバフ</param>
-    /// <param name="durationTurns">効果が続くターン数</param>
-    public void AddBuff(IBuff buff, int durationTurns)
-    {
-        if (HasBuff(buff.GetBuffKinds())) return;
-        buff.Buff(this);
-        _activeBuffs.Add((buff, durationTurns));
-    }
-
-    /// <summary>
-    /// EnemyPhase開始時に呼び出し、バフの残りターンを減らして期限切れのバフを消す
-    /// </summary>
-    public void TickBuffs()
-    {
-        for (int i = _activeBuffs.Count - 1; i >= 0; i--)
+        /// <summary>
+        /// ステータスを更新する
+        /// </summary>
+        public void SetStatus(int hp, int attack, int defend, byte move, MovePattern movePattern, int experience, int energy)
         {
-            var (buff, remaining) = _activeBuffs[i];
-            remaining--;
-            if (remaining <= 0)
+            _hp = new HitPoint(hp, hp);
+            _attack = attack;
+            _defend = defend;
+            _move = move;
+            _movePattern = movePattern;
+            _experience = experience;
+            _energy = energy;
+        }
+
+        public void SetLevel(int level)
+        {
+            _level = Mathf.Max(1, level);
+        }
+
+        /// <summary>
+        /// 1ターンの移動回数を増減させる（バフ・デバフ用）
+        /// </summary>
+        public void ChangeMove(int delta)
+        {
+            _move = (byte)Mathf.Max(0, _move + delta);
+        }
+
+        /// <summary>
+        /// 経験値を加算する。
+        /// </summary>
+        public void AddExperience(int experience)
+        {
+            if (experience < 0)
             {
-                buff.RemoveBuff(this);
-                _activeBuffs.RemoveAt(i);
+                throw new ArgumentOutOfRangeException(nameof(experience), "experience must be greater than or equal to 0.");
             }
-            else
-            {
-                _activeBuffs[i] = (buff, remaining);
-            }
-        }
-    }
 
-    /// <summary>
-    /// ダメージを反映させる
-    /// </summary>
-    /// <param name="targetAttack">相手の攻撃力</param>
-    /// <returns>(与えたダメージ量, 死亡したか)</returns>
-    public UniTask<(int damage, bool isDeath)> Damage(int targetAttack)
-    {
-        if (IsInvincible)
+            _experience += experience;
+        }
+
+        /// <summary>
+        /// 100EXP ごとにレベルアップし、レベルアップ分の経験値を消費する。
+        /// </summary>
+        /// <returns>上昇したレベル数</returns>
+        public int LevelUp()
         {
-            return UniTask.FromResult((0, false));
+            var levelUpCount = 0;
+            while (_experience >= ExperiencePerLevel)
+            {
+                _experience -= ExperiencePerLevel;
+                _level++;
+                levelUpCount++;
+
+                _hp = _hp.ExpandMax(10).FullRestore(); // 最大HP+10 & 全回復
+                _attack += 5;
+                _defend += 1;
+            }
+
+            return levelUpCount;
         }
 
-        int damage = DamageCalculationService.Calculate(targetAttack, _defend);
-        _hp = _hp.TakeDamage(damage);
+        /// <summary>
+        /// 指定した種類のバフが現在かかっているか確認する
+        /// </summary>
+        public bool HasBuff(BuffKinds kind)
+        {
+            return _activeBuffs.Any(b => b.buff.GetBuffKinds() == kind);
+        }
 
-        return UniTask.FromResult((damage, _hp.IsDead));
+        /// <summary>
+        /// バフを付与し、ターン数つきで管理リストに追加する。
+        /// 同じ種類のバフが既に付与されている場合は何もしない（1体につき1種類1つまで）。
+        /// </summary>
+        /// <param name="buff">付与するバフ</param>
+        /// <param name="durationTurns">効果が続くターン数</param>
+        public void AddBuff(IBuff buff, int durationTurns)
+        {
+            if (HasBuff(buff.GetBuffKinds())) return;
+            buff.Buff(this);
+            _activeBuffs.Add((buff, durationTurns));
+        }
+
+        /// <summary>
+        /// EnemyPhase開始時に呼び出し、バフの残りターンを減らして期限切れのバフを消す
+        /// </summary>
+        public void TickBuffs()
+        {
+            for (int i = _activeBuffs.Count - 1; i >= 0; i--)
+            {
+                var (buff, remaining) = _activeBuffs[i];
+                remaining--;
+                if (remaining <= 0)
+                {
+                    buff.RemoveBuff(this);
+                    _activeBuffs.RemoveAt(i);
+                }
+                else
+                {
+                    _activeBuffs[i] = (buff, remaining);
+                }
+            }
+        }
+
+        /// <summary>
+        /// ダメージを反映させる
+        /// </summary>
+        /// <param name="targetAttack">相手の攻撃力</param>
+        /// <returns>(与えたダメージ量, 死亡したか)</returns>
+        public UniTask<(int damage, bool isDeath)> Damage(int targetAttack)
+        {
+            if (IsInvincible)
+            {
+                return UniTask.FromResult((0, false));
+            }
+
+            int damage = DamageCalculationService.Calculate(targetAttack, _defend);
+            _hp = _hp.TakeDamage(damage);
+
+            return UniTask.FromResult((damage, _hp.IsDead));
+        }
     }
 }

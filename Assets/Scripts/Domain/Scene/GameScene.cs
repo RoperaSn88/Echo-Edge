@@ -1,9 +1,12 @@
-public enum GameScene
+namespace EchoEdge.Domain.Scene
 {
-    Preparing = 1,
-    MainGame = 2,
-    Option = 3,
-    License = 4,
-    Credit = 5,
-    Scenario = 6
+    public enum GameScene
+    {
+        Preparing = 1,
+        MainGame = 2,
+        Option = 3,
+        License = 4,
+        Credit = 5,
+        Scenario = 6
+    }
 }

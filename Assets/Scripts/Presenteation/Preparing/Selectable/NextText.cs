@@ -1,6 +1,9 @@
-﻿using Cysharp.Threading.Tasks;
+﻿using UnityEngine;
+using Cysharp.Threading.Tasks;
 
-namespace UnityEngine.Selectable
+using EchoEdge.App.Preparing;
+
+namespace EchoEdge.Presenter.Preparing
 {
     /// <summary>
     /// 選択時、次の選択を表示するテキストを管理するクラス

@@ -2,7 +2,7 @@ using System;
 using TMPro;
 using UnityEngine;
 
-namespace Applicatiton.Scenario
+namespace EchoEdge.App.Scenario
 {
     /// <summary>
     /// <see cref="ScenarioLogView"/> のログ表示に関する設定値。

@@ -3,7 +3,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine.InputSystem;
 
-namespace Domain.Scenario.Controller
+namespace EchoEdge.Domain.Scenario
 {
     /// <summary>
     /// シナリオ画面における入力の判断を行うクラス。

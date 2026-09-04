@@ -1,30 +1,36 @@
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
-/// <summary>
-/// エナジーウォールの効果クラス
-/// </summary>
-public class EnergyWall : IEquipEffect
+using EchoEdge.App.Battle;
+using EchoEdge.Domain.Phase;
+
+namespace EchoEdge.Domain.Battle
 {
     /// <summary>
-    /// エナジーウォールの効果を発揮する
+    /// エナジーウォールの効果クラス
     /// </summary>
-    public async UniTask Activate()
+    public class EnergyWall : IEquipEffect
     {
-        if (MapManager.Instance == null)
+        /// <summary>
+        /// エナジーウォールの効果を発揮する
+        /// </summary>
+        public async UniTask Activate()
         {
-            return;
-        }
+            if (MapManager.Instance == null)
+            {
+                return;
+            }
 
-        Vector2Int targetFloorPos = PlayerEquipPhase.Instance.TargetFloorPos;
-        if (targetFloorPos.x == int.MinValue || targetFloorPos.y == int.MinValue)
-        {
-            return;
-        }
+            Vector2Int targetFloorPos = PlayerEquipPhase.Instance.TargetFloorPos;
+            if (targetFloorPos.x == int.MinValue || targetFloorPos.y == int.MinValue)
+            {
+                return;
+            }
 
-        int wallHeight = targetFloorPos.y;
-        int wallWidth = targetFloorPos.x;
-        EnergyWallManager.Instance.TrySetEnergyWall(wallHeight, wallWidth);
-        await UniTask.CompletedTask;
+            int wallHeight = targetFloorPos.y;
+            int wallWidth = targetFloorPos.x;
+            EnergyWallManager.Instance.TrySetEnergyWall(wallHeight, wallWidth);
+            await UniTask.CompletedTask;
+        }
     }
 }

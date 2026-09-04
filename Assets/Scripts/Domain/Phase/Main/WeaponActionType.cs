@@ -1,8 +1,11 @@
-﻿public enum WeaponActionType
+﻿namespace EchoEdge.Domain.Phase
 {
-    Press,
-    Cancel,
-    SelectUp,
-    SelectDown,
-    Invalid
+    public enum WeaponActionType
+    {
+        Press,
+        Cancel,
+        SelectUp,
+        SelectDown,
+        Invalid
+    }
 }

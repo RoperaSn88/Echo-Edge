@@ -5,9 +5,10 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
-using EchoEdge.Utility;
 
-namespace Domain.Scenario.Controller
+using EchoEdge.Utils;
+
+namespace EchoEdge.Domain.Scenario
 {
     /// <summary>
     /// シナリオの表示を担当するビュークラス。
