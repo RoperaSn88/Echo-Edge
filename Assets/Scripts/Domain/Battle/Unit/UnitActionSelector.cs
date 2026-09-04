@@ -20,8 +20,11 @@
                     return new Booster();
                 case EnemyKinds.Brute:
                     return new Brute();
-                    
-                
+                case EnemyKinds.Enar:
+                    return new Enar();
+                case EnemyKinds.BigEnar:
+                    return new BigEnar();
+
                 default:
                     throw new System.ArgumentException($"Invalid UnitType: {enemyType}");
             }

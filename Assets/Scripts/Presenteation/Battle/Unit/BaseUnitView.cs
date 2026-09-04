@@ -8,6 +8,7 @@ using UnityEngine.UI;
 using EchoEdge.App.Battle;
 using EchoEdge.Domain.Battle;
 using EchoEdge.Infra.Audio;
+using EchoEdge.Infra.Battle;
 using EchoEdge.Infra.Camera;
 using EchoEdge.Presenter.UI;
 using EchoEdge.Presenter.VFX;
@@ -95,6 +96,11 @@ namespace EchoEdge.Presenter.Battle
             _healthBar.fillAmount = 1f;
 
             transform.localPosition = new Vector3(w, 0, h);
+
+            // 2x2など複数マスを占有するエネミーは、専用モデルが用意されるまでの暫定対応として見た目を拡大する
+            var size = await EnemyStatusLoader.TryLoadSize((int)enemyID);
+            transform.localScale = Vector3.one * (int)size;
+
             await SetAnimator(enemyID);
             gameObject.SetActive(true);
         }

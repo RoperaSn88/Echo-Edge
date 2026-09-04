@@ -25,9 +25,18 @@ namespace EchoEdge.Domain.Battle
 
         private BattleStatus _battleStatus;
         private IUnitAction _unitAction;
+        private EnemyKinds _enemyKind = EnemyKinds.Invalid;
 
-        public BaseUnit(int h, int w)
+        /// <summary>
+        /// マップ上で占有するマスのサイズ。
+        /// LoadStatus が完了する前（マップへの初期登録時）にも必要になるため、
+        /// コンストラクタで確定させておく（CSV読み込みは MapManager 側で先に行う）。
+        /// </summary>
+        private EnemySize _size;
+
+        public BaseUnit(int h, int w, EnemySize size = EnemySize.Default)
         {
+            _size = size;
             Initialize(h, w);
         }
 
@@ -46,6 +55,8 @@ namespace EchoEdge.Domain.Battle
 
             status.Initialize();
             _battleStatus = status;
+            _enemyKind = enemyId;
+            _size = status.Size;
 
             // ユニット特有のアクションを行う
             _unitAction = UnitActionSelector.SelectAction(enemyId);
@@ -227,6 +238,9 @@ namespace EchoEdge.Domain.Battle
             var srcW = Width;
             if (!mapManager.IsInBounds(srcH, srcW)) return;
 
+            // 2x2など複数マスを占有するユニットは、移動先候補全マスの空き状況を見る必要がある
+            var span = (int)GetSize();
+
             var mapSize = count * 2 + 1;
             var scoreMap = new byte[mapSize, mapSize];
             var minScore = int.MinValue / 4;
@@ -275,8 +289,8 @@ namespace EchoEdge.Domain.Battle
                         {
                             var nextH = h + dirH[dir];
                             var nextW = w + dirW[dir];
-                            if (!mapManager.IsInBounds(nextH, nextW)) continue;
-                            if (mapManager.GetUnitAt(nextH, nextW) != null) continue;
+                            // 自身を除いた、占有する全マスの空き状況を確認する（2x2など複数マス対応）
+                            if (!mapManager.IsFootprintFree(nextH, nextW, span, this)) continue;
 
                             var candidate = baseScore + dirScore[dir];
                             if (candidate <= scoreByStep[step, nextH, nextW]) continue;
@@ -376,9 +390,25 @@ namespace EchoEdge.Domain.Battle
             return _battleStatus;
         }
 
+        public EnemyKinds GetEnemyKind() => _enemyKind;
+
+        public EnemySize GetSize() => _size;
+
         public async UniTask<(int damage, bool isDeath)> Damage(int damage)
         {
             var result = await _battleStatus.Damage(damage);
+
+            if (result.isDeath)
+            {
+                await Dead();
+            }
+
+            return result;
+        }
+
+        public async UniTask<(int damage, bool isDeath)> ConsumeHP(int amount)
+        {
+            var result = await _battleStatus.ConsumeHP(amount);
 
             if (result.isDeath)
             {

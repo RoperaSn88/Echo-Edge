@@ -77,6 +77,12 @@ namespace EchoEdge.Domain.Battle
         [NonSerialized]
         public bool IsInvincible;
 
+        /// <summary>
+        /// マップ上で占有するマスのサイズ（キャラクターごとに EnemyInfo.csv で設定する）
+        /// </summary>
+        private EnemySize _size = EnemySize.Default;
+        public EnemySize Size => _size;
+
         private const int ExperiencePerLevel = 100;
 
         public void Initialize()
@@ -85,15 +91,15 @@ namespace EchoEdge.Domain.Battle
             _activeBuffs = new List<(IBuff, int)>();
         }
 
-        public BattleStatus(int hp, int attack, int defend, byte move, MovePattern movePattern, int experience, int energy)
+        public BattleStatus(int hp, int attack, int defend, byte move, MovePattern movePattern, int experience, int energy, EnemySize size = EnemySize.Default)
         {
-            SetStatus(hp, attack, defend, move, movePattern, experience, energy);
+            SetStatus(hp, attack, defend, move, movePattern, experience, energy, size);
         }
 
         /// <summary>
         /// ステータスを更新する
         /// </summary>
-        public void SetStatus(int hp, int attack, int defend, byte move, MovePattern movePattern, int experience, int energy)
+        public void SetStatus(int hp, int attack, int defend, byte move, MovePattern movePattern, int experience, int energy, EnemySize size = EnemySize.Default)
         {
             _hp = new HitPoint(hp, hp);
             _attack = attack;
@@ -102,6 +108,7 @@ namespace EchoEdge.Domain.Battle
             _movePattern = movePattern;
             _experience = experience;
             _energy = energy;
+            _size = size;
         }
 
         public void SetLevel(int level)
@@ -115,6 +122,41 @@ namespace EchoEdge.Domain.Battle
         public void ChangeMove(int delta)
         {
             _move = (byte)Mathf.Max(0, _move + delta);
+        }
+
+        /// <summary>
+        /// 攻撃力を増減させる（バフ・デバフ、スキルによる永続強化用）
+        /// </summary>
+        public void ChangeAttack(int delta)
+        {
+            _attack = Mathf.Max(0, _attack + delta);
+        }
+
+        /// <summary>
+        /// 防御力を増減させる（バフ・デバフ、スキルによる永続強化用）
+        /// </summary>
+        public void ChangeDefend(int delta)
+        {
+            _defend = Mathf.Max(0, _defend + delta);
+        }
+
+        /// <summary>
+        /// HPを回復させる（最大HPを超えない）
+        /// </summary>
+        public void Heal(int amount)
+        {
+            _hp = _hp.Restore(Mathf.Max(0, amount));
+        }
+
+        /// <summary>
+        /// 防御力・無敵状態を無視して直接HPを消費する（スキル発動コストなど、被ダメージではない自傷用）
+        /// </summary>
+        /// <returns>(実際に消費したHP量, 死亡したか)</returns>
+        public UniTask<(int damage, bool isDeath)> ConsumeHP(int amount)
+        {
+            var actualAmount = Mathf.Max(0, amount);
+            _hp = _hp.TakeDamage(actualAmount);
+            return UniTask.FromResult((actualAmount, _hp.IsDead));
         }
 
         /// <summary>

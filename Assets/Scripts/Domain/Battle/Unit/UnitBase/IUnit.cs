@@ -44,6 +44,21 @@ namespace EchoEdge.Domain.Battle
         public BattleStatus GetStatus();
 
         /// <summary>
+        /// このユニットのエネミー種別を取得する（プレイヤーや壁など該当しない場合は Invalid）
+        /// </summary>
+        public EnemyKinds GetEnemyKind();
+
+        /// <summary>
+        /// このユニットがマップ上で占有するマスのサイズを取得する
+        /// </summary>
+        public EnemySize GetSize();
+
+        /// <summary>
+        /// 防御力・無敵状態を無視して直接HPを消費する（スキル発動コストなど、被ダメージではない自傷用）
+        /// </summary>
+        public UniTask<(int damage, bool isDeath)> ConsumeHP(int amount);
+
+        /// <summary>
         /// ターン開始時の行動
         /// </summary>
         public UniTask OnTurnStart();

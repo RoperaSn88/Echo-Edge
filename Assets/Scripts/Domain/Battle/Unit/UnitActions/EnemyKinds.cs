@@ -6,6 +6,8 @@ namespace EchoEdge.Domain.Battle
         Skya,
         Builder,
         Booster,
-        Brute
+        Brute,
+        Enar,
+        BigEnar
     }
 }

@@ -83,7 +83,22 @@ namespace EchoEdge.Domain.Battle
             return null;
         }
 
+        public EnemyKinds GetEnemyKind()
+        {
+            return EnemyKinds.Invalid;
+        }
+
+        public EnemySize GetSize()
+        {
+            return EnemySize.Default;
+        }
+
         public UniTask<(int damage, bool isDeath)> Damage(int damage)
+        {
+            throw new NotImplementedException();
+        }
+
+        public UniTask<(int damage, bool isDeath)> ConsumeHP(int amount)
         {
             throw new NotImplementedException();
         }
