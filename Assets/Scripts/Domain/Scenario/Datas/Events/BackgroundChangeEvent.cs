@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace EchoEdge.Domain.Scenario
 {
@@ -7,6 +8,7 @@ namespace EchoEdge.Domain.Scenario
     /// 背景を変更するイベント。
     /// </summary>
     [Serializable]
+    [MovedFrom(true, sourceNamespace: "Domain.Scenario")]
     public class BackgroundChangeEvent : IScenarioEvent
     {
         [SerializeField, Tooltip("変更先の背景")]

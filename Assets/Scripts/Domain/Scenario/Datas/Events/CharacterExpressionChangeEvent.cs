@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace EchoEdge.Domain.Scenario
 {
@@ -8,6 +9,7 @@ namespace EchoEdge.Domain.Scenario
     /// キャラクター自体はその位置に登場済みの <see cref="CharacterData"/> を参照する。
     /// </summary>
     [Serializable]
+    [MovedFrom(true, sourceNamespace: "Domain.Scenario")]
     public class CharacterExpressionChangeEvent : IScenarioEvent
     {
         [SerializeField, Tooltip("どの位置のキャラの表情を変更するのか")]
