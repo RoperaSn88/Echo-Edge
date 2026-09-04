@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace EchoEdge.Domain.Scenario
 {
@@ -8,6 +9,7 @@ namespace EchoEdge.Domain.Scenario
     /// 話者名は、指定した位置にいる <see cref="CharacterData"/> の表示名を使用する。
     /// </summary>
     [Serializable]
+    [MovedFrom(true, sourceNamespace: "Domain.Scenario")]
     public class Phrase : IScenarioEvent
     {
         [SerializeField, Tooltip("どの位置のキャラが喋るのか")]
