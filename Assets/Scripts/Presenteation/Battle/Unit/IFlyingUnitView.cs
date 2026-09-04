@@ -1,18 +1,21 @@
 using Cysharp.Threading.Tasks;
 
-/// <summary>
-/// 飛行アニメーションを持つ View のインターフェース。
-/// IUnitView を継承し、飛び上がり・ビーム攻撃のアニメーションを追加する。
-/// </summary>
-public interface IFlyingUnitView : IUnitView
+namespace EchoEdge.Presenter.Battle
 {
     /// <summary>
-    /// 飛び上がるアニメーションを実行する
+    /// 飛行アニメーションを持つ View のインターフェース。
+    /// IUnitView を継承し、飛び上がり・ビーム攻撃のアニメーションを追加する。
     /// </summary>
-    public UniTask WaitFlyAnim();
+    public interface IFlyingUnitView : IUnitView
+    {
+        /// <summary>
+        /// 飛び上がるアニメーションを実行する
+        /// </summary>
+        public UniTask WaitFlyAnim();
 
-    /// <summary>
-    /// ビームエフェクトを表示し地上に戻るアニメーションを実行する
-    /// </summary>
-    public UniTask WaitAnimAfterFlying();
+        /// <summary>
+        /// ビームエフェクトを表示し地上に戻るアニメーションを実行する
+        /// </summary>
+        public UniTask WaitAnimAfterFlying();
+    }
 }

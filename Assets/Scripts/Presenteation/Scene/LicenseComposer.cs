@@ -1,15 +1,17 @@
 ﻿using UnityEngine;
 
-
-[System.Serializable, CreateAssetMenu(menuName = "License")]
-public class LicenseComposer:ScriptableObject
+namespace EchoEdge.Presenter.Scene
 {
-    [SerializeField]
-    private string licenseName;
-    
-    public string LicenseName => licenseName;
-    
-    [SerializeField,TextArea]
-    private string licenseIntroduction;
-    public string LicenseIntroduction => licenseIntroduction;
+    [System.Serializable, CreateAssetMenu(menuName = "License")]
+    public class LicenseComposer:ScriptableObject
+    {
+        [SerializeField]
+        private string licenseName;
+
+        public string LicenseName => licenseName;
+
+        [SerializeField,TextArea]
+        private string licenseIntroduction;
+        public string LicenseIntroduction => licenseIntroduction;
+    }
 }

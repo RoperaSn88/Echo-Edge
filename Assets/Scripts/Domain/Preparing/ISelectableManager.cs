@@ -1,13 +1,16 @@
 ﻿using Cysharp.Threading.Tasks;
 
-/// <summary>
-/// 選べるテキストをマネージするクラス
-/// </summary>
-public interface ISelectableManager
+namespace EchoEdge.Domain.Preparing
 {
     /// <summary>
-    /// 選び始める時
+    /// 選べるテキストをマネージするクラス
     /// </summary>
-    /// <returns></returns>
-    public UniTask<ISelectableManager> Selecting();
+    public interface ISelectableManager
+    {
+        /// <summary>
+        /// 選び始める時
+        /// </summary>
+        /// <returns></returns>
+        public UniTask<ISelectableManager> Selecting();
+    }
 }

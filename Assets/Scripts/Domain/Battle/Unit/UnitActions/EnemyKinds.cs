@@ -1,8 +1,11 @@
-public enum EnemyKinds : byte
+namespace EchoEdge.Domain.Battle
 {
-    Invalid,
-    Skya,
-    Builder,
-    Booster,
-    Brute
+    public enum EnemyKinds : byte
+    {
+        Invalid,
+        Skya,
+        Builder,
+        Booster,
+        Brute
+    }
 }

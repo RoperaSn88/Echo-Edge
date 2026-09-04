@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Domain.Scenario
+namespace EchoEdge.Domain.Scenario
 {
     /// <summary>
     /// キャラクターがシナリオ上に登場するイベント。

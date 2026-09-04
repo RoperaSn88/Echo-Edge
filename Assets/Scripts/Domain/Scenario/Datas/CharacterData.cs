@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Domain.Scenario
+namespace EchoEdge.Domain.Scenario
 {
     /// <summary>
     /// シナリオに登場するキャラクターの定義データ。

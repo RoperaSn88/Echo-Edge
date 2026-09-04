@@ -1,6 +1,9 @@
 ﻿using Cysharp.Threading.Tasks;
 
-namespace Domain.Phase.GameClear
+using EchoEdge.App.Battle;
+using EchoEdge.Domain.Battle;
+
+namespace EchoEdge.Domain.Phase
 {
     public class EndureStageClearTask: IStageClearTask
     {

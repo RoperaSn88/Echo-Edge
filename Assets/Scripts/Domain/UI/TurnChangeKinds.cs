@@ -1,5 +1,8 @@
-public enum TurnChangeKinds
+namespace EchoEdge.Domain.UI
 {
-    PlayerTurn,
-    EnemyTurn
+    public enum TurnChangeKinds
+    {
+        PlayerTurn,
+        EnemyTurn
+    }
 }

@@ -1,10 +1,12 @@
-using System;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.SceneManagement;
 
-namespace Applicatiton.Scenario
+using EchoEdge.App.Scene;
+using EchoEdge.Domain.Preparing;
+using EchoEdge.Domain.Scene;
+
+namespace EchoEdge.App.Scenario
 {
     /// <summary>
     /// ステージ選択完了時に、選択中のステージに対応するシナリオを読み込んで再生するクラス。
@@ -15,26 +17,20 @@ namespace Applicatiton.Scenario
     {
         private const string ScenarioAddressFormat = "Assets/Addressables/Scenario/ScenarioData_{0}.asset";
         private const string PrologueScenarioAddress = "Assets/Addressables/Scenario/ScenarioData_Prologue.asset";
-        private const string StageWaveSetAddressFormat = "Assets/Addressables/StageWaves/WaveSet/StageWaveSet_{0}.asset";
 
         /// <summary>
         /// 現在選択されているステージレベルに対応するシナリオを Scenario シーンで再生し、
         /// 再生が終了するまで待機する。
-        /// ステージ設定（<see cref="StageWaveSetData.PlayScenario"/>）でシナリオ再生が無効の場合は、
-        /// Scenario シーンをロードせず、そのまま呼び出し元に戻る。
+        /// シナリオ再生の要否は呼び出し元（<c>StartText</c>）が
+        /// <see cref="StageScenarioPlaybackSettings"/> で判定済みであることを前提とし、
+        /// このメソッドは常にシナリオの読み込み・再生を試みる。
         /// </summary>
         /// <returns>
         /// Scenario シーンをロードした場合は true（呼び出し元でのアンロードが必要）。
-        /// シナリオ再生をスキップした場合、または Scenario シーンのロードに失敗した場合は false。
+        /// Scenario シーンのロードに失敗した場合は false。
         /// </returns>
         public static async UniTask<bool> PlayCurrentStageScenarioAsync()
         {
-            if (!await ShouldPlayCurrentStageScenarioAsync())
-            {
-                Debug.Log($"ステージ {StageData.Level} はシナリオ再生が無効のため、Scenario シーンをロードせずにメインゲームへ進みます");
-                return false;
-            }
-
             var address = string.Format(ScenarioAddressFormat, StageData.Level);
             return await PlayScenarioAsync(address);
         }
@@ -46,32 +42,6 @@ namespace Applicatiton.Scenario
         public static async UniTask PlayPrologueScenarioAsync()
         {
             await PlayScenarioAsync(PrologueScenarioAddress);
-        }
-
-        /// <summary>
-        /// 現在選択されているステージがシナリオ再生の対象かどうかを、ステージ設定から判定する。
-        /// ステージ設定が取得できない場合は、従来通りシナリオを再生する（true を返す）。
-        /// </summary>
-        private static async UniTask<bool> ShouldPlayCurrentStageScenarioAsync()
-        {
-            var address = string.Format(StageWaveSetAddressFormat, StageData.Level);
-
-            try
-            {
-                var waveSet = await Addressables.LoadAssetAsync<StageWaveSetData>(address);
-                if (waveSet == null)
-                {
-                    Debug.LogWarning($"ステージ {StageData.Level} の StageWaveSetData が見つからないため、シナリオを再生します (address: {address})");
-                    return true;
-                }
-
-                return waveSet.PlayScenario;
-            }
-            catch (Exception e)
-            {
-                Debug.LogError($"ステージ {StageData.Level} の StageWaveSetData 読み込みに失敗したため、シナリオを再生します: {e}");
-                return true;
-            }
         }
 
         /// <summary>

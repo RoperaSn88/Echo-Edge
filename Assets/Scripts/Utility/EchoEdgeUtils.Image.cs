@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace EchoEdge.Utility
+namespace EchoEdge.Utils
 {
     public static class EchoEdgeUtils
     {

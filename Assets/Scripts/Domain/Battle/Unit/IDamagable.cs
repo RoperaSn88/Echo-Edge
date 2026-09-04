@@ -1,9 +1,12 @@
 using Cysharp.Threading.Tasks;
 
-public interface IDamagable
+namespace EchoEdge.Domain.Battle
 {
-    /// <summary>
-    /// ダメージを受けるためのメソッド
-    /// </summary>
-    public UniTask<(int damage, bool isDeath)> Damage(int damage);
+    public interface IDamagable
+    {
+        /// <summary>
+        /// ダメージを受けるためのメソッド
+        /// </summary>
+        public UniTask<(int damage, bool isDeath)> Damage(int damage);
+    }
 }

@@ -1,17 +1,20 @@
-/// <summary>
-/// 敵ユニットが撃破されたときに発行されるドメインイベント。
-/// </summary>
-public struct EnemyDefeatedEvent : IDomainEvent
+namespace EchoEdge.Domain.Battle
 {
-    /// <summary>撃破された敵の座標</summary>
-    public UnitPosition Position { get; }
-
-    /// <summary>撃破によって得られる経験値</summary>
-    public int ExperienceReward { get; }
-
-    public EnemyDefeatedEvent(UnitPosition position, int experienceReward)
+    /// <summary>
+    /// 敵ユニットが撃破されたときに発行されるドメインイベント。
+    /// </summary>
+    public struct EnemyDefeatedEvent : IDomainEvent
     {
-        Position = position;
-        ExperienceReward = experienceReward;
+        /// <summary>撃破された敵の座標</summary>
+        public UnitPosition Position { get; }
+
+        /// <summary>撃破によって得られる経験値</summary>
+        public int ExperienceReward { get; }
+
+        public EnemyDefeatedEvent(UnitPosition position, int experienceReward)
+        {
+            Position = position;
+            ExperienceReward = experienceReward;
+        }
     }
 }

@@ -2,85 +2,90 @@ using System;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
-public class building : IUnit
+using EchoEdge.App.Battle;
+
+namespace EchoEdge.Domain.Battle
 {
-    [SerializeField]
-    private int height;
-    public int Height => height;
-
-    [SerializeField]
-    private int width;
-    public int Width => width;
-
-    public void Initialize(int h, int w)
+    public class building : IUnit
     {
-        height = h;
-        width = w;
-        MapManager.Instance.RegisterUnit(this,h,w);
-    }
-    
-    public UniTask MoveTurn()
-    {
-        throw new System.NotImplementedException();
-    }
+        [SerializeField]
+        private int height;
+        public int Height => height;
 
-    public UniTask OnTurnStart()
-    {
-        return UniTask.CompletedTask;
-    }
+        [SerializeField]
+        private int width;
+        public int Width => width;
 
-    public UniTask OnTurnEnd()
-    {
-        return UniTask.CompletedTask;
-    }
+        public void Initialize(int h, int w)
+        {
+            height = h;
+            width = w;
+            MapManager.Instance.RegisterUnit(this,h,w);
+        }
 
-    public UniTask Attack()
-    {
-        throw new System.NotImplementedException();
-    }
+        public UniTask MoveTurn()
+        {
+            throw new System.NotImplementedException();
+        }
 
-    public bool CanMove()
-    {
-        return false;
-    }
+        public UniTask OnTurnStart()
+        {
+            return UniTask.CompletedTask;
+        }
 
-    public async UniTask Move(int x, int y)
-    {
-        throw new System.NotImplementedException();
-    }
+        public UniTask OnTurnEnd()
+        {
+            return UniTask.CompletedTask;
+        }
 
-    public async UniTask Specific()
-    {
-        throw new System.NotImplementedException();
-    }
+        public UniTask Attack()
+        {
+            throw new System.NotImplementedException();
+        }
 
-    public int GetMoveHeight()
-    {
-        throw new System.NotImplementedException();
-    }
+        public bool CanMove()
+        {
+            return false;
+        }
 
-    public int GetMoveWidth()
-    {
-        throw new System.NotImplementedException();
-    }
+        public async UniTask Move(int x, int y)
+        {
+            throw new System.NotImplementedException();
+        }
 
-    public int GetHeight()
-    {
-        throw new System.NotImplementedException();
-    }
+        public async UniTask Specific()
+        {
+            throw new System.NotImplementedException();
+        }
 
-    public int GetWidth()
-    {
-        throw new System.NotImplementedException();
-    }
+        public int GetMoveHeight()
+        {
+            throw new System.NotImplementedException();
+        }
 
-    public BattleStatus GetStatus()
-    {
-        return null;
-    }
+        public int GetMoveWidth()
+        {
+            throw new System.NotImplementedException();
+        }
 
-    public UniTask<(int damage, bool isDeath)> Damage(int damage)
-    {
-        throw new NotImplementedException();
+        public int GetHeight()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public int GetWidth()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public BattleStatus GetStatus()
+        {
+            return null;
+        }
+
+        public UniTask<(int damage, bool isDeath)> Damage(int damage)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

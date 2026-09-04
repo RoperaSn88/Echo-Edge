@@ -1,4 +1,4 @@
-﻿namespace Unit.pureC.Unit
+﻿namespace EchoEdge.Domain.Battle
 {
     public static class UnitActionSelector
     {

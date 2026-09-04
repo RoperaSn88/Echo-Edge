@@ -1,11 +1,16 @@
-/// <summary>
-/// 剣の反射回数を強化するクリッカブルイメージ。
-/// </summary>
-public class SwordReflectEnhancementImage : EnhancementItemImage
+using EchoEdge.App.Preparing;
+
+namespace EchoEdge.Presenter.Preparing
 {
-    /// <inheritdoc/>
-    protected override bool TryEnhance()
+    /// <summary>
+    /// 剣の反射回数を強化するクリッカブルイメージ。
+    /// </summary>
+    public class SwordReflectEnhancementImage : EnhancementItemImage
     {
-        return EnhancementManager.TryUpgradeSwordReflect();
+        /// <inheritdoc/>
+        protected override bool TryEnhance()
+        {
+            return EnhancementManager.TryUpgradeSwordReflect();
+        }
     }
 }

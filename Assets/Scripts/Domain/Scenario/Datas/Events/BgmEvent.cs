@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Domain.Scenario
+namespace EchoEdge.Domain.Scenario
 {
     /// <summary>
     /// BGM の再生・停止を行うイベント。

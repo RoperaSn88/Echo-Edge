@@ -1,7 +1,7 @@
 using TMPro;
 using UnityEngine;
 
-namespace UI
+namespace EchoEdge.Presenter.UI
 {
     /// <summary>
     /// ゲームクリアの条件を表示するUIのプレゼンタークラス。

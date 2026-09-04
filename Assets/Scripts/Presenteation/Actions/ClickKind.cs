@@ -1,4 +1,4 @@
-namespace Actions
+namespace EchoEdge.Presenter.Actions
 {
     public enum ClickKinds
     {

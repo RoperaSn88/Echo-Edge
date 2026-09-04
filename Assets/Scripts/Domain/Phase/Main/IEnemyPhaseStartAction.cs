@@ -1,4 +1,7 @@
-public interface IEnemyPhaseStartAction
+namespace EchoEdge.Domain.Phase
 {
-    public void OnEnemyPhaseStart();
+    public interface IEnemyPhaseStartAction
+    {
+        public void OnEnemyPhaseStart();
+    }
 }

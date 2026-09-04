@@ -13475,6 +13475,7 @@ MonoBehaviour:
   _topRectTransform: {fileID: 1462122529}
   _defaultPosition: {fileID: 521739670}
   _selectableGroup: {fileID: 1048470372}
+  _stageScenarioPlaybackSettings: {fileID: 11400000, guid: c3a5b7d9e1f2438506a7b8c9d0e1f2a3, type: 2}
 --- !u!4 &349622377 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 234017323753348374, guid: 7cf8c5ce7f8c9fa4b899be72ca6eb60d, type: 3}

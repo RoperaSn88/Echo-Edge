@@ -3,7 +3,7 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
-namespace Infrastructure.Scenario.Editor
+namespace EchoEdge.Infra.Scenario
 {
     /// <summary>
     /// エディタ上で AudioClip を試聴するためのヘルパー。

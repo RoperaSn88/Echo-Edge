@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Domain.Scenario
+namespace EchoEdge.Domain.Scenario
 {
     /// <summary>
     /// 1つの場面を構成するシナリオイベントの並び。

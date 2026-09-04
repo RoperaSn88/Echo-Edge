@@ -1,7 +1,10 @@
-public enum StageClearConditionType
+namespace EchoEdge.Domain.Phase
 {
-    DefeatAllEnemies,
-    Endurance,
-    DefeatInARow,
-    DefeatBoss,
+    public enum StageClearConditionType
+    {
+        DefeatAllEnemies,
+        Endurance,
+        DefeatInARow,
+        DefeatBoss,
+    }
 }

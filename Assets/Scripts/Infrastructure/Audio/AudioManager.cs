@@ -6,474 +6,477 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
-public class AudioManager : MonoBehaviour
+namespace EchoEdge.Infra.Audio
 {
-    public static AudioManager Instance;
-    
-    private const string AudioBasePath = "Assets/Addressables/Audio/";
-    private const string BgmRelativePath = "BGM/";
-    private const string SeRelativePath = "SE/";
-    private const string AudioExtension = ".wav";
-
-    private static readonly Dictionary<BgmAudioType, string> BgmPathCache = BuildBgmPathCache();
-    private static readonly Dictionary<SeAudioType, string> SePathCache = BuildSePathCache();
-
-    [SerializeField] private AudioSource _bgmSource;
-    [SerializeField] private AudioSource _additionalBgmSource;
-    [SerializeField, Min(1)] private int _initialSeSourceCount = 2;
-    [SerializeField] private float _fadeDurationSeconds = 1.0f;
-
-    private readonly List<AudioSource> _seSources = new();
-    private readonly Dictionary<string, AsyncOperationHandle<AudioClip>> _audioClipHandleCache = new();
-
-    private CancellationTokenSource _addBgmFadeCancellation;
-    private UniTask _sePreloadTask = UniTask.CompletedTask;
-    private int _nextSeSourceIndex;
-
-    private float _masterVolume = 1.0f;
-    private float _bgmVolume = 1.0f;
-    private float _seVolume = 1.0f;
-
-    /// <summary>
-    /// マスター音量 (0〜1)
-    /// </summary>
-    public float MasterVolume => _masterVolume;
-
-    /// <summary>
-    /// BGM音量 (0〜1)
-    /// </summary>
-    public float BgmVolume => _bgmVolume;
-
-    private const float WeightBGMSound = 0.3f;
-
-    /// <summary>
-    /// SE音量 (0〜1)
-    /// </summary>
-    public float SeVolume => _seVolume;
-
-    /// <summary>
-    /// メインの BGM が現在再生中かどうか。
-    /// </summary>
-    public bool IsBgmPlaying => _bgmSource != null && _bgmSource.isPlaying;
-
-    private void Awake()
+    public class AudioManager : MonoBehaviour
     {
-        InitializeSeAudioSources();
+        public static AudioManager Instance;
 
-        if (Instance != null)
+        private const string AudioBasePath = "Assets/Addressables/Audio/";
+        private const string BgmRelativePath = "BGM/";
+        private const string SeRelativePath = "SE/";
+        private const string AudioExtension = ".wav";
+
+        private static readonly Dictionary<BgmAudioType, string> BgmPathCache = BuildBgmPathCache();
+        private static readonly Dictionary<SeAudioType, string> SePathCache = BuildSePathCache();
+
+        [SerializeField] private AudioSource _bgmSource;
+        [SerializeField] private AudioSource _additionalBgmSource;
+        [SerializeField, Min(1)] private int _initialSeSourceCount = 2;
+        [SerializeField] private float _fadeDurationSeconds = 1.0f;
+
+        private readonly List<AudioSource> _seSources = new();
+        private readonly Dictionary<string, AsyncOperationHandle<AudioClip>> _audioClipHandleCache = new();
+
+        private CancellationTokenSource _addBgmFadeCancellation;
+        private UniTask _sePreloadTask = UniTask.CompletedTask;
+        private int _nextSeSourceIndex;
+
+        private float _masterVolume = 1.0f;
+        private float _bgmVolume = 1.0f;
+        private float _seVolume = 1.0f;
+
+        /// <summary>
+        /// マスター音量 (0〜1)
+        /// </summary>
+        public float MasterVolume => _masterVolume;
+
+        /// <summary>
+        /// BGM音量 (0〜1)
+        /// </summary>
+        public float BgmVolume => _bgmVolume;
+
+        private const float WeightBGMSound = 0.3f;
+
+        /// <summary>
+        /// SE音量 (0〜1)
+        /// </summary>
+        public float SeVolume => _seVolume;
+
+        /// <summary>
+        /// メインの BGM が現在再生中かどうか。
+        /// </summary>
+        public bool IsBgmPlaying => _bgmSource != null && _bgmSource.isPlaying;
+
+        private void Awake()
         {
-            Destroy(this.gameObject);
-            return;
+            InitializeSeAudioSources();
+
+            if (Instance != null)
+            {
+                Destroy(this.gameObject);
+                return;
+            }
+
+            Instance = this;
+
+            // PlayerPrefsから音量を読み込み、各AudioSourceへ反映する
+            _masterVolume = AudioVolumeSaveManager.LoadMasterVolume();
+            _bgmVolume = AudioVolumeSaveManager.LoadBgmVolume();
+            _seVolume = AudioVolumeSaveManager.LoadSeVolume();
+
+            AudioListener.volume = _masterVolume;
+            if (_bgmSource != null) _bgmSource.volume = _bgmVolume * WeightBGMSound;
+            if (_additionalBgmSource != null) _additionalBgmSource.volume = _bgmVolume;
+            foreach (var source in _seSources)
+            {
+                if (source != null) source.volume = _seVolume;
+            }
+
+            _sePreloadTask = PreloadSeAudioClipsAsync().Preserve();
         }
 
-        Instance = this;
-
-        // PlayerPrefsから音量を読み込み、各AudioSourceへ反映する
-        _masterVolume = AudioVolumeSaveManager.LoadMasterVolume();
-        _bgmVolume = AudioVolumeSaveManager.LoadBgmVolume();
-        _seVolume = AudioVolumeSaveManager.LoadSeVolume();
-
-        AudioListener.volume = _masterVolume;
-        if (_bgmSource != null) _bgmSource.volume = _bgmVolume * WeightBGMSound;
-        if (_additionalBgmSource != null) _additionalBgmSource.volume = _bgmVolume;
-        foreach (var source in _seSources)
+        /// <summary>
+        /// マスター音量を設定する
+        /// </summary>
+        public void SetMasterVolume(float volume)
         {
-            if (source != null) source.volume = _seVolume;
+            _masterVolume = Mathf.Clamp01(volume);
+            AudioListener.volume = _masterVolume;
+            AudioVolumeSaveManager.SaveVolumes(_masterVolume, _bgmVolume, _seVolume);
         }
 
-        _sePreloadTask = PreloadSeAudioClipsAsync().Preserve();
-    }
-
-    /// <summary>
-    /// マスター音量を設定する
-    /// </summary>
-    public void SetMasterVolume(float volume)
-    {
-        _masterVolume = Mathf.Clamp01(volume);
-        AudioListener.volume = _masterVolume;
-        AudioVolumeSaveManager.SaveVolumes(_masterVolume, _bgmVolume, _seVolume);
-    }
-
-    /// <summary>
-    /// BGM音量を設定する
-    /// </summary>
-    public void SetBgmVolume(float volume)
-    {
-        _bgmVolume = Mathf.Clamp01(volume);
-        if (_bgmSource != null) _bgmSource.volume = _bgmVolume * _masterVolume * WeightBGMSound;
-        if (_additionalBgmSource != null) _additionalBgmSource.volume = _bgmVolume * _masterVolume * WeightBGMSound;
-        AudioVolumeSaveManager.SaveVolumes(_masterVolume, _bgmVolume, _seVolume);
-    }
-
-    /// <summary>
-    /// SE音量を設定する
-    /// </summary>
-    public void SetSeVolume(float volume)
-    {
-        _seVolume = Mathf.Clamp01(volume);
-        foreach (var source in _seSources)
+        /// <summary>
+        /// BGM音量を設定する
+        /// </summary>
+        public void SetBgmVolume(float volume)
         {
-            if (source != null) source.volume = _seVolume * _masterVolume;
-        }
-        AudioVolumeSaveManager.SaveVolumes(_masterVolume, _bgmVolume, _seVolume);
-    }
-
-    public async UniTask PlayBgm(BgmAudioType bgmType, bool isLoop)
-    {
-        await PlayBgmAsync(bgmType, isLoop);
-    }
-    
-    public void PlayBgm(AudioClip clip, bool isLoop)
-    {
-        if (clip == null)
-        {
-            return;
+            _bgmVolume = Mathf.Clamp01(volume);
+            if (_bgmSource != null) _bgmSource.volume = _bgmVolume * _masterVolume * WeightBGMSound;
+            if (_additionalBgmSource != null) _additionalBgmSource.volume = _bgmVolume * _masterVolume * WeightBGMSound;
+            AudioVolumeSaveManager.SaveVolumes(_masterVolume, _bgmVolume, _seVolume);
         }
 
-        if (_bgmSource == null)
+        /// <summary>
+        /// SE音量を設定する
+        /// </summary>
+        public void SetSeVolume(float volume)
         {
-            Debug.LogError("BGM 用 AudioSource が未設定です");
-            return;
+            _seVolume = Mathf.Clamp01(volume);
+            foreach (var source in _seSources)
+            {
+                if (source != null) source.volume = _seVolume * _masterVolume;
+            }
+            AudioVolumeSaveManager.SaveVolumes(_masterVolume, _bgmVolume, _seVolume);
         }
 
-        _bgmSource.loop = isLoop;
-        _bgmSource.volume = _bgmVolume * _masterVolume * WeightBGMSound;
-        _bgmSource.clip = clip;
-        _bgmSource.Play();
-    }
-
-    /// <summary>
-    /// BGM を音量0から再生開始し、指定時間かけてフェードインさせる。
-    /// </summary>
-    public UniTask PlayBgmWithFadeInAsync(AudioClip clip, bool isLoop, float durationSeconds, CancellationToken cancellationToken)
-    {
-        if (clip == null)
+        public async UniTask PlayBgm(BgmAudioType bgmType, bool isLoop)
         {
-            return UniTask.CompletedTask;
+            await PlayBgmAsync(bgmType, isLoop);
         }
 
-        if (_bgmSource == null)
+        public void PlayBgm(AudioClip clip, bool isLoop)
         {
-            Debug.LogError("BGM 用 AudioSource が未設定です");
-            return UniTask.CompletedTask;
+            if (clip == null)
+            {
+                return;
+            }
+
+            if (_bgmSource == null)
+            {
+                Debug.LogError("BGM 用 AudioSource が未設定です");
+                return;
+            }
+
+            _bgmSource.loop = isLoop;
+            _bgmSource.volume = _bgmVolume * _masterVolume * WeightBGMSound;
+            _bgmSource.clip = clip;
+            _bgmSource.Play();
         }
 
-        _bgmSource.loop = isLoop;
-        _bgmSource.clip = clip;
-        _bgmSource.volume = 0.0f;
-        _bgmSource.Play();
-
-        var targetVolume = _bgmVolume * _masterVolume * WeightBGMSound;
-        return FadeVolumeAsync(_bgmSource, 0.0f, targetVolume, durationSeconds, cancellationToken);
-    }
-
-    /// <summary>
-    /// 再生中の BGM を即座に停止する。
-    /// </summary>
-    public void StopBgm()
-    {
-        if (_bgmSource == null || !_bgmSource.isPlaying)
+        /// <summary>
+        /// BGM を音量0から再生開始し、指定時間かけてフェードインさせる。
+        /// </summary>
+        public UniTask PlayBgmWithFadeInAsync(AudioClip clip, bool isLoop, float durationSeconds, CancellationToken cancellationToken)
         {
-            return;
+            if (clip == null)
+            {
+                return UniTask.CompletedTask;
+            }
+
+            if (_bgmSource == null)
+            {
+                Debug.LogError("BGM 用 AudioSource が未設定です");
+                return UniTask.CompletedTask;
+            }
+
+            _bgmSource.loop = isLoop;
+            _bgmSource.clip = clip;
+            _bgmSource.volume = 0.0f;
+            _bgmSource.Play();
+
+            var targetVolume = _bgmVolume * _masterVolume * WeightBGMSound;
+            return FadeVolumeAsync(_bgmSource, 0.0f, targetVolume, durationSeconds, cancellationToken);
         }
 
-        _bgmSource.Stop();
-    }
-
-    public void PlaySe(SeAudioType seType)
-    {
-        PlaySeAsync(seType).Forget();
-    }
-    
-    public void PlaySe(AudioClip clip)
-    {
-        if (clip == null)
+        /// <summary>
+        /// 再生中の BGM を即座に停止する。
+        /// </summary>
+        public void StopBgm()
         {
-            return;
-        }
+            if (_bgmSource == null || !_bgmSource.isPlaying)
+            {
+                return;
+            }
 
-        var source = GetNextSeAudioSource();
-        source.PlayOneShot(clip);
-    } 
-
-    private async UniTask PlayBgmAsync(BgmAudioType bgmType, bool isLoop)
-    {
-        if (_bgmSource.isPlaying)
-        {
             _bgmSource.Stop();
         }
-        if (_bgmSource == null)
+
+        public void PlaySe(SeAudioType seType)
         {
-            Debug.LogError("BGM 用 AudioSource が未設定です");
-            return;
+            PlaySeAsync(seType).Forget();
         }
 
-        var clip = await LoadAudioClipAsync(GetBgmAddressablesPath(bgmType));
-        if (clip == null)
+        public void PlaySe(AudioClip clip)
         {
-            return;
-        }
-
-        _bgmSource.loop = isLoop;
-        _bgmSource.volume = 1.0f * WeightBGMSound;
-        _bgmSource.clip = clip;
-        _bgmSource.Play();
-    }
-
-    public async UniTaskVoid AddPlayBgmAsync(BgmAudioType bgmType, bool isLoop, CancellationToken cancellationToken)
-    {
-        if (_additionalBgmSource == null)
-        {
-            Debug.LogError("追加 BGM 用 AudioSource が未設定です");
-            return;
-        }
-
-        var clip = await LoadAudioClipAsync(GetBgmAddressablesPath(bgmType));
-        if (clip == null)
-        {
-            return;
-        }
-
-        _additionalBgmSource.loop = isLoop;
-        _additionalBgmSource.clip = clip;
-        _additionalBgmSource.volume = 0.0f;
-        _additionalBgmSource.time = _bgmSource.time;
-        _additionalBgmSource.Play();
-
-        await FadeVolumeAsync(_additionalBgmSource, 0.0f, 1.0f, _fadeDurationSeconds, cancellationToken);
-    }
-
-    private async UniTaskVoid StopAddedBgmAsync(CancellationToken cancellationToken)
-    {
-        if (_additionalBgmSource == null || !_additionalBgmSource.isPlaying)
-        {
-            return;
-        }
-
-        await FadeVolumeAsync(_additionalBgmSource, _additionalBgmSource.volume, 0.0f, _fadeDurationSeconds, cancellationToken);
-
-        if (!cancellationToken.IsCancellationRequested)
-        {
-            _additionalBgmSource.Stop();
-        }
-    }
-    
-    public async UniTask FadeBGMAsync(float durationSeconds, CancellationToken cancellationToken)
-    {
-        if (_bgmSource == null || !_bgmSource.isPlaying)
-        {
-            return;
-        }
-
-        await FadeVolumeAsync(_bgmSource, _bgmSource.volume, 0.0f, durationSeconds, cancellationToken);
-
-        if (!cancellationToken.IsCancellationRequested)
-        {
-            _bgmSource.Stop();
-        }
-    }
-
-    public async UniTask FadeAddedBGMAsync(float durationSeconds, CancellationToken cancellationToken)
-    {
-        _addBgmFadeCancellation?.Cancel();
-        _addBgmFadeCancellation?.Dispose();
-        _addBgmFadeCancellation = null;
-
-        if (_additionalBgmSource == null || !_additionalBgmSource.isPlaying)
-        {
-            return;
-        }
-
-        await FadeVolumeAsync(_additionalBgmSource, _additionalBgmSource.volume, 0.0f, durationSeconds, cancellationToken);
-
-        if (!cancellationToken.IsCancellationRequested)
-        {
-            _additionalBgmSource.Stop();
-        }
-    }
-
-    private async UniTaskVoid PlaySeAsync(SeAudioType seType)
-    {
-        if (!InitializeSeAudioSources())
-        {
-            Debug.LogError("SE 用 AudioSource の初期化に失敗しました");
-            return;
-        }
-
-        await _sePreloadTask;
-
-        var clip = await LoadAudioClipAsync(GetSeAddressablesPath(seType));
-        if (clip == null)
-        {
-            return;
-        }
-
-        var source = GetNextSeAudioSource();
-        source.PlayOneShot(clip);
-    }
-
-    private async UniTask<AudioClip> LoadAudioClipAsync(string addressablesPath)
-    {
-        if (_audioClipHandleCache.TryGetValue(addressablesPath, out var cachedHandle))
-        {
-            if (cachedHandle.IsValid() &&
-                cachedHandle.Status == AsyncOperationStatus.Succeeded &&
-                cachedHandle.Result != null)
+            if (clip == null)
             {
-                return cachedHandle.Result;
+                return;
             }
 
-            if (cachedHandle.IsValid())
+            var source = GetNextSeAudioSource();
+            source.PlayOneShot(clip);
+        } 
+
+        private async UniTask PlayBgmAsync(BgmAudioType bgmType, bool isLoop)
+        {
+            if (_bgmSource.isPlaying)
             {
-                Addressables.Release(cachedHandle);
+                _bgmSource.Stop();
+            }
+            if (_bgmSource == null)
+            {
+                Debug.LogError("BGM 用 AudioSource が未設定です");
+                return;
             }
 
-            _audioClipHandleCache.Remove(addressablesPath);
-        }
-
-        var loadHandle = Addressables.LoadAssetAsync<AudioClip>(addressablesPath);
-        var clip = await loadHandle;
-        if (loadHandle.Status != AsyncOperationStatus.Succeeded || clip == null)
-        {
-            Debug.LogError(ZString.Concat("AudioClip の読み込みに失敗しました: ", addressablesPath));
-            if (loadHandle.IsValid())
+            var clip = await LoadAudioClipAsync(GetBgmAddressablesPath(bgmType));
+            if (clip == null)
             {
-                Addressables.Release(loadHandle);
+                return;
             }
-            return null;
+
+            _bgmSource.loop = isLoop;
+            _bgmSource.volume = 1.0f * WeightBGMSound;
+            _bgmSource.clip = clip;
+            _bgmSource.Play();
         }
 
-        _audioClipHandleCache[addressablesPath] = loadHandle;
-        return clip;
-    }
-
-    private async UniTask PreloadSeAudioClipsAsync()
-    {
-        var seTypes = (SeAudioType[])System.Enum.GetValues(typeof(SeAudioType));
-        foreach (var seType in seTypes)
+        public async UniTaskVoid AddPlayBgmAsync(BgmAudioType bgmType, bool isLoop, CancellationToken cancellationToken)
         {
-            await LoadAudioClipAsync(GetSeAddressablesPath(seType));
-        }
-    }
-
-    private static string GetBgmAddressablesPath(BgmAudioType bgmType)
-    {
-        return BgmPathCache[bgmType];
-    }
-
-    private static string GetSeAddressablesPath(SeAudioType seType)
-    {
-        return SePathCache[seType];
-    }
-
-    private AudioSource GetNextSeAudioSource()
-    {
-        for (int i = 0; i < _seSources.Count; i++)
-        {
-            int index = (_nextSeSourceIndex + i) % _seSources.Count;
-            var source = _seSources[index];
-            if (!source.isPlaying)
+            if (_additionalBgmSource == null)
             {
-                _nextSeSourceIndex = (index + 1) % _seSources.Count;
-                return source;
+                Debug.LogError("追加 BGM 用 AudioSource が未設定です");
+                return;
+            }
+
+            var clip = await LoadAudioClipAsync(GetBgmAddressablesPath(bgmType));
+            if (clip == null)
+            {
+                return;
+            }
+
+            _additionalBgmSource.loop = isLoop;
+            _additionalBgmSource.clip = clip;
+            _additionalBgmSource.volume = 0.0f;
+            _additionalBgmSource.time = _bgmSource.time;
+            _additionalBgmSource.Play();
+
+            await FadeVolumeAsync(_additionalBgmSource, 0.0f, 1.0f, _fadeDurationSeconds, cancellationToken);
+        }
+
+        private async UniTaskVoid StopAddedBgmAsync(CancellationToken cancellationToken)
+        {
+            if (_additionalBgmSource == null || !_additionalBgmSource.isPlaying)
+            {
+                return;
+            }
+
+            await FadeVolumeAsync(_additionalBgmSource, _additionalBgmSource.volume, 0.0f, _fadeDurationSeconds, cancellationToken);
+
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                _additionalBgmSource.Stop();
             }
         }
 
-        var newSource = CreateSeAudioSource();
-        _seSources.Add(newSource);
-        _nextSeSourceIndex = 0;
-        return newSource;
-    }
-
-    private bool InitializeSeAudioSources()
-    {
-        if (_seSources.Count > 0)
+        public async UniTask FadeBGMAsync(float durationSeconds, CancellationToken cancellationToken)
         {
-            return true;
-        }
-
-        int sourceCount = Mathf.Max(1, _initialSeSourceCount);
-        while (_seSources.Count < sourceCount)
-        {
-            _seSources.Add(CreateSeAudioSource());
-        }
-
-        return _seSources.Count > 0;
-    }
-
-    private AudioSource CreateSeAudioSource()
-    {
-        return gameObject.AddComponent<AudioSource>();
-    }
-
-    private static Dictionary<BgmAudioType, string> BuildBgmPathCache()
-    {
-        var cache = new Dictionary<BgmAudioType, string>();
-        var bgmTypes = (BgmAudioType[])System.Enum.GetValues(typeof(BgmAudioType));
-        foreach (var bgmType in bgmTypes)
-        {
-            cache[bgmType] = ZString.Concat(AudioBasePath, BgmRelativePath, bgmType.ToString(), AudioExtension);
-        }
-
-        return cache;
-    }
-
-    private static Dictionary<SeAudioType, string> BuildSePathCache()
-    {
-        var cache = new Dictionary<SeAudioType, string>();
-        var seTypes = (SeAudioType[])System.Enum.GetValues(typeof(SeAudioType));
-        foreach (var seType in seTypes)
-        {
-            cache[seType] = ZString.Concat(AudioBasePath, SeRelativePath, seType.ToString(), AudioExtension);
-        }
-
-        return cache;
-    }
-
-    private static async UniTask FadeVolumeAsync(AudioSource source, float from, float to, float durationSeconds, CancellationToken cancellationToken)
-    {
-        if (source == null)
-        {
-            return;
-        }
-
-        if (durationSeconds <= 0.0f)
-        {
-            source.volume = to;
-            return;
-        }
-
-        float elapsed = 0.0f;
-        source.volume = from;
-
-        while (elapsed < durationSeconds && !cancellationToken.IsCancellationRequested)
-        {
-            elapsed += Time.unscaledDeltaTime;
-            float progress = Mathf.Clamp01(elapsed / durationSeconds);
-            source.volume = Mathf.Lerp(from, to, progress);
-            await UniTask.Yield(PlayerLoopTiming.Update);
-        }
-
-        if (!cancellationToken.IsCancellationRequested)
-        {
-            source.volume = to;
-        }
-    }
-
-    private void OnDestroy()
-    {
-        _addBgmFadeCancellation?.Cancel();
-        _addBgmFadeCancellation?.Dispose();
-        _addBgmFadeCancellation = null;
-
-        foreach (var handle in _audioClipHandleCache.Values)
-        {
-            if (handle.IsValid())
+            if (_bgmSource == null || !_bgmSource.isPlaying)
             {
-                Addressables.Release(handle);
+                return;
+            }
+
+            await FadeVolumeAsync(_bgmSource, _bgmSource.volume, 0.0f, durationSeconds, cancellationToken);
+
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                _bgmSource.Stop();
             }
         }
 
-        _audioClipHandleCache.Clear();
+        public async UniTask FadeAddedBGMAsync(float durationSeconds, CancellationToken cancellationToken)
+        {
+            _addBgmFadeCancellation?.Cancel();
+            _addBgmFadeCancellation?.Dispose();
+            _addBgmFadeCancellation = null;
+
+            if (_additionalBgmSource == null || !_additionalBgmSource.isPlaying)
+            {
+                return;
+            }
+
+            await FadeVolumeAsync(_additionalBgmSource, _additionalBgmSource.volume, 0.0f, durationSeconds, cancellationToken);
+
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                _additionalBgmSource.Stop();
+            }
+        }
+
+        private async UniTaskVoid PlaySeAsync(SeAudioType seType)
+        {
+            if (!InitializeSeAudioSources())
+            {
+                Debug.LogError("SE 用 AudioSource の初期化に失敗しました");
+                return;
+            }
+
+            await _sePreloadTask;
+
+            var clip = await LoadAudioClipAsync(GetSeAddressablesPath(seType));
+            if (clip == null)
+            {
+                return;
+            }
+
+            var source = GetNextSeAudioSource();
+            source.PlayOneShot(clip);
+        }
+
+        private async UniTask<AudioClip> LoadAudioClipAsync(string addressablesPath)
+        {
+            if (_audioClipHandleCache.TryGetValue(addressablesPath, out var cachedHandle))
+            {
+                if (cachedHandle.IsValid() &&
+                    cachedHandle.Status == AsyncOperationStatus.Succeeded &&
+                    cachedHandle.Result != null)
+                {
+                    return cachedHandle.Result;
+                }
+
+                if (cachedHandle.IsValid())
+                {
+                    Addressables.Release(cachedHandle);
+                }
+
+                _audioClipHandleCache.Remove(addressablesPath);
+            }
+
+            var loadHandle = Addressables.LoadAssetAsync<AudioClip>(addressablesPath);
+            var clip = await loadHandle;
+            if (loadHandle.Status != AsyncOperationStatus.Succeeded || clip == null)
+            {
+                Debug.LogError(ZString.Concat("AudioClip の読み込みに失敗しました: ", addressablesPath));
+                if (loadHandle.IsValid())
+                {
+                    Addressables.Release(loadHandle);
+                }
+                return null;
+            }
+
+            _audioClipHandleCache[addressablesPath] = loadHandle;
+            return clip;
+        }
+
+        private async UniTask PreloadSeAudioClipsAsync()
+        {
+            var seTypes = (SeAudioType[])System.Enum.GetValues(typeof(SeAudioType));
+            foreach (var seType in seTypes)
+            {
+                await LoadAudioClipAsync(GetSeAddressablesPath(seType));
+            }
+        }
+
+        private static string GetBgmAddressablesPath(BgmAudioType bgmType)
+        {
+            return BgmPathCache[bgmType];
+        }
+
+        private static string GetSeAddressablesPath(SeAudioType seType)
+        {
+            return SePathCache[seType];
+        }
+
+        private AudioSource GetNextSeAudioSource()
+        {
+            for (int i = 0; i < _seSources.Count; i++)
+            {
+                int index = (_nextSeSourceIndex + i) % _seSources.Count;
+                var source = _seSources[index];
+                if (!source.isPlaying)
+                {
+                    _nextSeSourceIndex = (index + 1) % _seSources.Count;
+                    return source;
+                }
+            }
+
+            var newSource = CreateSeAudioSource();
+            _seSources.Add(newSource);
+            _nextSeSourceIndex = 0;
+            return newSource;
+        }
+
+        private bool InitializeSeAudioSources()
+        {
+            if (_seSources.Count > 0)
+            {
+                return true;
+            }
+
+            int sourceCount = Mathf.Max(1, _initialSeSourceCount);
+            while (_seSources.Count < sourceCount)
+            {
+                _seSources.Add(CreateSeAudioSource());
+            }
+
+            return _seSources.Count > 0;
+        }
+
+        private AudioSource CreateSeAudioSource()
+        {
+            return gameObject.AddComponent<AudioSource>();
+        }
+
+        private static Dictionary<BgmAudioType, string> BuildBgmPathCache()
+        {
+            var cache = new Dictionary<BgmAudioType, string>();
+            var bgmTypes = (BgmAudioType[])System.Enum.GetValues(typeof(BgmAudioType));
+            foreach (var bgmType in bgmTypes)
+            {
+                cache[bgmType] = ZString.Concat(AudioBasePath, BgmRelativePath, bgmType.ToString(), AudioExtension);
+            }
+
+            return cache;
+        }
+
+        private static Dictionary<SeAudioType, string> BuildSePathCache()
+        {
+            var cache = new Dictionary<SeAudioType, string>();
+            var seTypes = (SeAudioType[])System.Enum.GetValues(typeof(SeAudioType));
+            foreach (var seType in seTypes)
+            {
+                cache[seType] = ZString.Concat(AudioBasePath, SeRelativePath, seType.ToString(), AudioExtension);
+            }
+
+            return cache;
+        }
+
+        private static async UniTask FadeVolumeAsync(AudioSource source, float from, float to, float durationSeconds, CancellationToken cancellationToken)
+        {
+            if (source == null)
+            {
+                return;
+            }
+
+            if (durationSeconds <= 0.0f)
+            {
+                source.volume = to;
+                return;
+            }
+
+            float elapsed = 0.0f;
+            source.volume = from;
+
+            while (elapsed < durationSeconds && !cancellationToken.IsCancellationRequested)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                float progress = Mathf.Clamp01(elapsed / durationSeconds);
+                source.volume = Mathf.Lerp(from, to, progress);
+                await UniTask.Yield(PlayerLoopTiming.Update);
+            }
+
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                source.volume = to;
+            }
+        }
+
+        private void OnDestroy()
+        {
+            _addBgmFadeCancellation?.Cancel();
+            _addBgmFadeCancellation?.Dispose();
+            _addBgmFadeCancellation = null;
+
+            foreach (var handle in _audioClipHandleCache.Values)
+            {
+                if (handle.IsValid())
+                {
+                    Addressables.Release(handle);
+                }
+            }
+
+            _audioClipHandleCache.Clear();
+        }
     }
 }

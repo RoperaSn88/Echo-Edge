@@ -1,11 +1,14 @@
 using Cysharp.Threading.Tasks;
 
-public interface IDamageActivator
+namespace EchoEdge.Domain.Battle
 {
-    public UniTask Damage(float rate = 1.0f);
+    public interface IDamageActivator
+    {
+        public UniTask Damage(float rate = 1.0f);
 
-    /// <summary>
-    /// めちゃくちゃ早い一閃によるダメージ処理
-    /// </summary>
-    public UniTask FlashDamage(float rate = 1.0f);
+        /// <summary>
+        /// めちゃくちゃ早い一閃によるダメージ処理
+        /// </summary>
+        public UniTask FlashDamage(float rate = 1.0f);
+    }
 }

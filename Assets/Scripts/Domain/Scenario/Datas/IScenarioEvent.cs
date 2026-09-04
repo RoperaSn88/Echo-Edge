@@ -1,4 +1,4 @@
-namespace Domain.Scenario
+namespace EchoEdge.Domain.Scenario
 {
     /// <summary>
     /// シナリオ上で発生するイベントのマーカーインターフェース。

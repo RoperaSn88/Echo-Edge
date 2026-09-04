@@ -1,6 +1,9 @@
-public enum BgmAudioType
+namespace EchoEdge.Infra.Audio
 {
-    Title,
-    Battle,
-    Pinch,
+    public enum BgmAudioType
+    {
+        Title,
+        Battle,
+        Pinch,
+    }
 }

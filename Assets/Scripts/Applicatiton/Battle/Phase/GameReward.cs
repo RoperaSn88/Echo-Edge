@@ -1,4 +1,6 @@
-﻿namespace Applicatiton.Battle.Phase
+﻿using EchoEdge.App.PlayerData;
+
+namespace EchoEdge.App.Battle
 {
     public static class GameReward
     {

@@ -1,14 +1,17 @@
-public enum MovePattern
+namespace EchoEdge.Domain.Battle
 {
-    /// <summary>
-    /// 攻撃前
-    /// </summary>
-    Before,
+    public enum MovePattern
+    {
+        /// <summary>
+        /// 攻撃前
+        /// </summary>
+        Before,
 
-    /// <summary>
-    /// 攻撃後
-    /// </summary>
-    After,
+        /// <summary>
+        /// 攻撃後
+        /// </summary>
+        After,
 
-    Invalid
+        Invalid
+    }
 }

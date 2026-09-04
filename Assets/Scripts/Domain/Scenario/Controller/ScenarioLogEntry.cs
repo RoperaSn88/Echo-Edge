@@ -1,4 +1,4 @@
-namespace Domain.Scenario.Controller
+namespace EchoEdge.Domain.Scenario
 {
     /// <summary>
     /// ログに表示するセリフ1件分のデータ。

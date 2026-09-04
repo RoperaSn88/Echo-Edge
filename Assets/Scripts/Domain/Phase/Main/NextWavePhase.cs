@@ -1,26 +1,33 @@
 ﻿using Cysharp.Threading.Tasks;
 using UnityEngine;
 
-public class NextWavePhase: IPhase
+using EchoEdge.App.Battle;
+using EchoEdge.Infra.Camera;
+using EchoEdge.Presenter.UI;
+
+namespace EchoEdge.Domain.Phase
 {
-    private static NextWavePhase _instance;
-    public static NextWavePhase Instance => _instance ??= new NextWavePhase();
-    
-    public async UniTask<IPhase> WaitPhase()
+    public class NextWavePhase: IPhase
     {
-        CameraManager.Instance.ActResetCameraTarget();
+        private static NextWavePhase _instance;
+        public static NextWavePhase Instance => _instance ??= new NextWavePhase();
 
-        await UniTask.WhenAll(
-            NextWaveView.Instance.ShowNextWave(),
-            MapManager.Instance.BuildStageFromCsv()
-        );
+        public async UniTask<IPhase> WaitPhase()
+        {
+            CameraManager.Instance.ActResetCameraTarget();
 
-        GameClearManager.SetStageClearCondition(false);
-        
-        await UniTask.Delay(1000);
-        
-        await NextWaveView.Instance.HideNextWave();
+            await UniTask.WhenAll(
+                NextWaveView.Instance.ShowNextWave(),
+                MapManager.Instance.BuildStageFromCsv()
+            );
 
-        return PlayerPhase.Instance;
+            GameClearManager.SetStageClearCondition(false);
+
+            await UniTask.Delay(1000);
+
+            await NextWaveView.Instance.HideNextWave();
+
+            return PlayerPhase.Instance;
+        }
     }
 }

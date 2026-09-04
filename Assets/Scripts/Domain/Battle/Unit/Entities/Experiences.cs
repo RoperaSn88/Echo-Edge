@@ -1,22 +1,25 @@
-public class Experiences
+namespace EchoEdge.Domain.Battle
 {
-    public int Experience { get; private set; }
-    public int Level { get; private set; }
-    private const int ExperiencePerLevel = 100;
-
-    public Experiences(int experience, int level = 0)
+    public class Experiences
     {
-        Experience = experience;
-        Level = level;
-    }
+        public int Experience { get; private set; }
+        public int Level { get; private set; }
+        private const int ExperiencePerLevel = 100;
 
-    public void AddExperience(int amount)
-    {
-        Experience += amount;
-        while (Experience >= ExperiencePerLevel)
+        public Experiences(int experience, int level = 0)
         {
-            Experience -= ExperiencePerLevel;
-            Level++;
+            Experience = experience;
+            Level = level;
+        }
+
+        public void AddExperience(int amount)
+        {
+            Experience += amount;
+            while (Experience >= ExperiencePerLevel)
+            {
+                Experience -= ExperiencePerLevel;
+                Level++;
+            }
         }
     }
 }

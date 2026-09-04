@@ -1,6 +1,8 @@
 using Cysharp.Threading.Tasks;
 
-namespace UnityEngine.Selectable
+using EchoEdge.App.Scene;
+
+namespace EchoEdge.Presenter.Preparing
 {
     /// <summary>
     /// 選択時、オプションシーンを追加ロードするテキストを管理するクラス

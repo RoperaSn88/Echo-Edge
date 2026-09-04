@@ -1,22 +1,27 @@
 using System;
 
-public static class EnemyPhaseStartActivator
-{
-    private static event Action OnEnemyPhaseStart;
+using EchoEdge.Domain.Phase;
 
-    public static void Register(IEnemyPhaseStartAction action)
+namespace EchoEdge.App.Battle
+{
+    public static class EnemyPhaseStartActivator
     {
-        if (action == null)
+        private static event Action OnEnemyPhaseStart;
+
+        public static void Register(IEnemyPhaseStartAction action)
         {
-            return;
+            if (action == null)
+            {
+                return;
+            }
+
+            OnEnemyPhaseStart -= action.OnEnemyPhaseStart;
+            OnEnemyPhaseStart += action.OnEnemyPhaseStart;
         }
 
-        OnEnemyPhaseStart -= action.OnEnemyPhaseStart;
-        OnEnemyPhaseStart += action.OnEnemyPhaseStart;
-    }
-
-    public static void ExecuteEnemyPhaseStartActions()
-    {
-        OnEnemyPhaseStart?.Invoke();
+        public static void ExecuteEnemyPhaseStartActions()
+        {
+            OnEnemyPhaseStart?.Invoke();
+        }
     }
 }

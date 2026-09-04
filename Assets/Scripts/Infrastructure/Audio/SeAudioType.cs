@@ -1,14 +1,17 @@
-public enum SeAudioType
+namespace EchoEdge.Infra.Audio
 {
-    Click,
-    Attack,
-    Kill,
-    QTE,
-    QTE_Bad,
-    QTE_Good,
-    QTE_Perfect,
-    EnemyTurn,
-    Decide,
-    TurnChange,
-    NextWave,
+    public enum SeAudioType
+    {
+        Click,
+        Attack,
+        Kill,
+        QTE,
+        QTE_Bad,
+        QTE_Good,
+        QTE_Perfect,
+        EnemyTurn,
+        Decide,
+        TurnChange,
+        NextWave,
+    }
 }

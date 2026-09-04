@@ -1,11 +1,16 @@
-/// <summary>
-/// 剣の攻撃力を強化するクリッカブルイメージ。
-/// </summary>
-public class SwordAttackEnhancementImage : EnhancementItemImage
+using EchoEdge.App.Preparing;
+
+namespace EchoEdge.Presenter.Preparing
 {
-    /// <inheritdoc/>
-    protected override bool TryEnhance()
+    /// <summary>
+    /// 剣の攻撃力を強化するクリッカブルイメージ。
+    /// </summary>
+    public class SwordAttackEnhancementImage : EnhancementItemImage
     {
-        return EnhancementManager.TryUpgradeSwordAttack();
+        /// <inheritdoc/>
+        protected override bool TryEnhance()
+        {
+            return EnhancementManager.TryUpgradeSwordAttack();
+        }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using Cysharp.Threading.Tasks;
 
-namespace UnityEngine
+namespace EchoEdge.Domain.Preparing
 {
     public interface ISelectable
     {

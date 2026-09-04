@@ -1,4 +1,4 @@
-﻿namespace UI.Weapon
+﻿namespace EchoEdge.Presenter.UI
 {
     public enum WeaponMoveDirection
     {

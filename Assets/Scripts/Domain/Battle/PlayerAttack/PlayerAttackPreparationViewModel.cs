@@ -1,7 +1,7 @@
 using System;
 using Cysharp.Threading.Tasks;
 
-namespace Domain.Battle.PlayerAttack
+namespace EchoEdge.Domain.Battle
 {
     /// <summary>
     /// 攻撃準備フェーズに関する状態を保持する唯一のデータソース。

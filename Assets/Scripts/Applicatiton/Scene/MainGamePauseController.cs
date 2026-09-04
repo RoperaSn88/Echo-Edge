@@ -3,9 +3,12 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
-using UI;
 
-namespace Scene
+using EchoEdge.Domain.Scene;
+using EchoEdge.Infra.Audio;
+using EchoEdge.Presenter.UI;
+
+namespace EchoEdge.App.Scene
 {
     public class MainGamePauseController : MonoBehaviour
     {

@@ -6,7 +6,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace UI
+namespace EchoEdge.Presenter.UI
 {
     public class GameClearRewardPresenter : MonoBehaviour
     {

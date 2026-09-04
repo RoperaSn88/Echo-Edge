@@ -1,8 +1,9 @@
+using UnityEngine;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine.UI;
 
-namespace UnityEngine.Selectable
+namespace EchoEdge.Presenter.Preparing
 {
     /// <summary>
     /// 選択時、パネルをフェードインしてゲームを終了するテキストを管理するクラス

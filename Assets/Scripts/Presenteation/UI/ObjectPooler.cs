@@ -1,32 +1,35 @@
 ﻿using UnityEngine;
 using Cysharp.Threading.Tasks;
 
-public abstract class ObjectPooler: MonoBehaviour
+namespace EchoEdge.Presenter.UI
 {
-    private ObjectPool _pool;
-    
-    public ObjectPool Pool
+    public abstract class ObjectPooler: MonoBehaviour
     {
-        get => _pool;
-        set => _pool = value;
-    }
+        private ObjectPool _pool;
 
-    /// <summary>
-    /// 出現するときの処理
-    /// </summary>
-    /// <returns></returns>
-    public abstract UniTask Appear();
-    
-    /// <summary>
-    /// プールに戻すときの処理
-    /// </summary>
-    public void Release()
-    {
-        _pool.ReturnToPool(this);
-    }
+        public ObjectPool Pool
+        {
+            get => _pool;
+            set => _pool = value;
+        }
 
-    public void SetPool(ObjectPool pool)
-    {
-        _pool = pool;
+        /// <summary>
+        /// 出現するときの処理
+        /// </summary>
+        /// <returns></returns>
+        public abstract UniTask Appear();
+
+        /// <summary>
+        /// プールに戻すときの処理
+        /// </summary>
+        public void Release()
+        {
+            _pool.ReturnToPool(this);
+        }
+
+        public void SetPool(ObjectPool pool)
+        {
+            _pool = pool;
+        }
     }
 }

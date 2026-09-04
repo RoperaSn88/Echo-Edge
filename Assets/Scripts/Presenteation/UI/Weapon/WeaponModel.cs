@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace UI.Weapon
+namespace EchoEdge.Presenter.UI
 {
     [CreateAssetMenu(menuName = "Weapon/WeaponModel")]
     public class WeaponModel : ScriptableObject 

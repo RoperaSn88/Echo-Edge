@@ -1,7 +1,10 @@
-public enum BuffKinds
+namespace EchoEdge.Domain.Battle
 {
-    HP,
-    Attack,
-    Defend,
-    Move
+    public enum BuffKinds
+    {
+        HP,
+        Attack,
+        Defend,
+        Move
+    }
 }

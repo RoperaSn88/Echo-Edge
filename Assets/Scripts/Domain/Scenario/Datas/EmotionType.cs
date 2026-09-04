@@ -1,4 +1,4 @@
-namespace Domain.Scenario
+namespace EchoEdge.Domain.Scenario
 {
     /// <summary>
     /// キャラクターの表情種別。
