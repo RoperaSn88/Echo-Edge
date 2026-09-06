@@ -15,7 +15,8 @@ namespace EchoEdge.App.Scenario
     /// </summary>
     public static class ScenarioStageLoader
     {
-        private const string ScenarioAddressFormat = "Assets/Addressables/Scenario/ScenarioData_{0}.asset";
+        private const string ScenarioAddressBeforeFormat = "Assets/Addressables/Scenario/ScenarioData_{0}_before.asset";
+        private const string ScenarioAddressAfterFormat = "Assets/Addressables/Scenario/ScenarioData_{0}_after.asset";
         private const string PrologueScenarioAddress = "Assets/Addressables/Scenario/ScenarioData_Prologue.asset";
 
         /// <summary>
@@ -29,9 +30,15 @@ namespace EchoEdge.App.Scenario
         /// Scenario シーンをロードした場合は true（呼び出し元でのアンロードが必要）。
         /// Scenario シーンのロードに失敗した場合は false。
         /// </returns>
-        public static async UniTask<bool> PlayCurrentStageScenarioAsync()
+        public static async UniTask<bool> PlayCurrentBeforeStageScenarioAsync()
         {
-            var address = string.Format(ScenarioAddressFormat, StageData.Level);
+            var address = string.Format(ScenarioAddressBeforeFormat, StageData.Level);
+            return await PlayScenarioAsync(address);
+        }
+        
+        public static async UniTask<bool> PlayCurrentAfterStageScenarioAsync()
+        {
+            var address = string.Format(ScenarioAddressAfterFormat, StageData.Level);
             return await PlayScenarioAsync(address);
         }
 

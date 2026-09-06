@@ -30,12 +30,12 @@ namespace EchoEdge.Domain.Phase
             DomainEventDispatcher.Unregister<TurnEndEvent>(OnTurnEnd);
         }
 
-        private void OnTurnEnd(TurnEndEvent e)
+        private async UniTask OnTurnEnd(TurnEndEvent e)
         {
-            UpdateCondition();
+            await UpdateCondition();
         }
         
-        private void UpdateCondition()
+        private async UniTask UpdateCondition()
         {
             if (_remainingTurns > 0)
             {
@@ -50,7 +50,10 @@ namespace EchoEdge.Domain.Phase
 
             if (!WaveManager.HasNextWave)
             {
-                GameClearManager.StartGameClearSequenceAsync().Forget();
+                // クリア演出・シナリオ再生の完了まで await する。
+                // ここを待つことでディスパッチ元（敵ターン終了処理）が止まり、
+                // 演出中に後続のバトルサイクルが進むのを防ぐ。
+                await GameClearManager.StartGameClearSequenceAsync();
             }
         }
     }

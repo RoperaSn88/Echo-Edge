@@ -4,6 +4,7 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 using EchoEdge.App.Preparing;
+using EchoEdge.App.Scenario;
 using EchoEdge.App.Scene;
 using EchoEdge.Domain.Phase;
 using EchoEdge.Domain.Preparing;
@@ -25,6 +26,12 @@ namespace EchoEdge.App.Battle
         public static bool IsClear => _isClear;
 
         private static bool _gameClearAsyncStarted;
+
+        /// <summary>
+        /// クリア演出シーケンス（暗転→報酬表示→シナリオ再生→シーン遷移）が開始済みか。
+        /// これが true の間は MainGame 裏でバトルサイクルを進めてはいけない。
+        /// </summary>
+        public static bool IsGameClearSequenceRunning => _gameClearAsyncStarted;
 
         /// <summary>
         /// このステージで使うクリア条件タスクを切り替える。ステージ開始時（StartPhase）から呼ぶ。
@@ -108,10 +115,10 @@ namespace EchoEdge.App.Battle
             await UIPresenter.Instance.FadeInAsync(0.01f);
             var reward = GameReward.ApplyStageClearReward();
             Time.timeScale = 0.0f;
-            await GameClearRewardPresenter.Instance.ShowAsync(reward.level, reward.gainedExperience, reward.currentExperience);
-
+            
             // 5. カメラを揺らす
             CameraManager.Instance.StartCameraShake();
+            await GameClearRewardPresenter.Instance.ShowAsync(reward.level, reward.gainedExperience, reward.currentExperience);
 
             // クリックを待つ
             var mouseActions = new MouseClick();
@@ -138,6 +145,8 @@ namespace EchoEdge.App.Battle
             Time.timeScale = 1.0f;
 
             EnhancementManager.AddStone(1);
+
+            await ScenarioStageLoader.PlayCurrentAfterStageScenarioAsync();
 
             // 6. MainGameをアンロードし、Preparingシーンを読み込む
             await SceneLoader.AdditiveLoadAsync(GameScene.Preparing);

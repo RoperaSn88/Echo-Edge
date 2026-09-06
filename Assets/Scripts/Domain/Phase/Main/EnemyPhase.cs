@@ -29,6 +29,13 @@ namespace EchoEdge.Domain.Phase
 
         public async UniTask<IPhase> WaitPhase()
         {
+            // 直前のプレイヤー攻撃でクリアが確定していた場合、敵ターンには入らない。
+            // (フェーズループ側でも弾かれるが、演出中の余計な処理を避けるため入口でも確認する)
+            if (GameClearManager.IsGameClearSequenceRunning)
+            {
+                return PlayerPhase.Instance;
+            }
+
             _clickFlug = false;
             await TurnChangeView.Instance.ShowTurnChange(TurnChangeKinds.EnemyTurn);
             EnemyPhaseStartActivator.ExecuteEnemyPhaseStartActions();
@@ -38,7 +45,9 @@ namespace EchoEdge.Domain.Phase
             await MapManager.Instance.ExecuteTurnEndActions();
             await CameraManager.Instance.ActResetCameraTarget();
 
-            DomainEventDispatcher.Dispatch(new TurnEndEvent());
+            // 耐久クリア条件などのターン経過ハンドラーを await する。
+            // クリア成立ならクリア演出・シナリオ再生の完了までここで止まる。
+            await DomainEventDispatcher.Dispatch(new TurnEndEvent());
 
             return PlayerPhase.Instance;
         }

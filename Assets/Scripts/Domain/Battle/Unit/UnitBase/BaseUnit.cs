@@ -88,7 +88,8 @@ namespace EchoEdge.Domain.Battle
 
             // ドメインイベントをディスパッチして、アプリケーション層のハンドラーに通知する
             // (直接 DefeatAllEnemiesStageClearTask を呼ぶのではなく、イベント経由で疎結合にする)
-            DomainEventDispatcher.Dispatch(new EnemyDefeatedEvent(position, _battleStatus.Experience));
+            // クリア条件成立時はここでクリア演出・シナリオ再生の完了まで待機する。
+            await DomainEventDispatcher.Dispatch(new EnemyDefeatedEvent(position, _battleStatus.Experience));
         }
 
         public async UniTask Attack()

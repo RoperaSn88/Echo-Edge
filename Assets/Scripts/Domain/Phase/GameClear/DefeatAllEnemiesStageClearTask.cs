@@ -39,14 +39,14 @@ namespace EchoEdge.Domain.Phase
             DomainEventDispatcher.Unregister<EnemyDefeatedEvent>(OnEnemyDefeated);
         }
 
-        private void OnEnemyDefeated(EnemyDefeatedEvent e)
+        private async UniTask OnEnemyDefeated(EnemyDefeatedEvent e)
         {
             GameReward.UpdateLastEnemyPosition(e.Position.Height, e.Position.Width);
             GameReward.AddStageEarnedExperience(e.ExperienceReward);
-            UpdateCondition();
+            await UpdateCondition();
         }
 
-        private void UpdateCondition()
+        private async UniTask UpdateCondition()
         {
             if (_remainingEnemyCount > 0)
             {
@@ -61,7 +61,10 @@ namespace EchoEdge.Domain.Phase
 
             if (!WaveManager.HasNextWave)
             {
-                GameClearManager.StartGameClearSequenceAsync().Forget();
+                // クリア演出・シナリオ再生の完了まで await する。
+                // ここを待つことでディスパッチ元（敵撃破処理）が止まり、
+                // 演出中に後続のバトルサイクルが進むのを防ぐ。
+                await GameClearManager.StartGameClearSequenceAsync();
             }
         }
     }
