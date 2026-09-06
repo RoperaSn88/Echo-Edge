@@ -27,10 +27,14 @@ namespace EchoEdge.App.Battle
             IPhase phase = StartPhase.Instance;
             try
             {
-                while (true)
+                // クリア演出シーケンスが始まったら、次のフェーズへ進めずループを抜ける。
+                // これにより読み込んだシナリオシーンの裏でバトルサイクルが回り続けるのを防ぐ。
+                while (!GameClearManager.IsGameClearSequenceRunning)
             {
                 phase = await phase.WaitPhase();
             }
+
+                Debug.Log("PhaseManager: クリア演出シーケンス開始のためフェーズループを終了しました");
             }
             catch (OperationCanceledException)
             {

@@ -222,7 +222,8 @@ namespace EchoEdge.Presenter.Battle
                 MapManager.Instance.RemoveUnitAt(height, width);
                 if (targetUnit is IEnemyUnit)
                 {
-                    DomainEventDispatcher.Dispatch(new EnemyDefeatedEvent(new UnitPosition(height, width), targetStatus.Experience));
+                    // クリア条件成立時はクリア演出・シナリオ再生の完了まで await する。
+                    await DomainEventDispatcher.Dispatch(new EnemyDefeatedEvent(new UnitPosition(height, width), targetStatus.Experience));
                 }
                 //Destroyするが、後でオブジェクトプールにする
                 Dispose();

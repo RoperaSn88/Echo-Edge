@@ -57,7 +57,7 @@ namespace EchoEdge.Presenter.Preparing
             var scenarioLoaded = false;
             if (settings == null || settings.ShouldPlayScenario(StageData.Level))
             {
-                scenarioLoaded = await ScenarioStageLoader.PlayCurrentStageScenarioAsync();
+                scenarioLoaded = await ScenarioStageLoader.PlayCurrentBeforeStageScenarioAsync();
             }
 
             await SceneLoader.AdditiveLoadAsync(GameScene.MainGame);

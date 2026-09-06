@@ -51,7 +51,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 2a4137546f1652145baf4f9902389c41
-    m_Address: Assets/Addressables/Scenario/ScenarioData_2.asset
+    m_Address: Assets/Addressables/Scenario/ScenarioData_1_after.asset
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -141,7 +141,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a5d485aa929447a4e9f082ccb23f07ca
-    m_Address: Assets/Addressables/Scenario/ScenarioData_1.asset
+    m_Address: Assets/Addressables/Scenario/ScenarioData_1_before.asset
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
