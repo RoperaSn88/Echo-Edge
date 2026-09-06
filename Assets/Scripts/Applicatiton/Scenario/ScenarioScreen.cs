@@ -4,7 +4,6 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 using EchoEdge.Domain.Scenario;
-using EchoEdge.Infra.Audio;
 
 namespace EchoEdge.App.Scenario
 {
@@ -57,13 +56,35 @@ namespace EchoEdge.App.Scenario
 
         /// <summary>
         /// 再生中のシナリオを最後まで待たずに中断する。
-        /// 進行中のシナリオタスクをキャンセルし、このシナリオで再生した BGM を停止して画面を閉じる。
+        /// 進行中のシナリオタスク（クリック待機ループ）をキャンセルしたうえで、
+        /// 通常終了時と同様に画面と BGM を同時にフェードアウトし、完了してから画面を閉じる。
         /// </summary>
         public void Skip()
         {
-            if (_screenModel.ScenarioViewModel.HasStartedBgm)
+            SkipAsync().Forget();
+        }
+
+        /// <summary>
+        /// スキップ時のフェードアウト処理本体。
+        /// キャンセルされた場合（連打などで <see cref="Hide"/> が先に呼ばれた場合）は何もしない。
+        /// </summary>
+        private async UniTaskVoid SkipAsync()
+        {
+            // クリック待機中のシナリオ進行ループを中断する。
+            _cts?.Cancel();
+
+            try
             {
-                AudioManager.Instance?.StopBgm();
+                var screenFadeTask = _viewController.FadeOutAsync(destroyCancellationToken);
+                var bgmFadeTask = _screenModel.ScenarioViewModel.HasStartedBgm
+                    ? _viewController.FadeBgmOutAsync(destroyCancellationToken)
+                    : UniTask.CompletedTask;
+
+                await UniTask.WhenAll(screenFadeTask, bgmFadeTask);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
             }
 
             Hide();
