@@ -36,6 +36,12 @@ namespace EchoEdge.Presenter.Battle
         [SerializeField]
         private SpriteRenderer _renderer;
 
+        /// <summary>
+        /// prefab 時点の sprite のローカル座標。Offset はこの値を基準に適用する（プール再利用で累積させないため）。
+        /// </summary>
+        private Vector3 _rendererBaseLocalPosition;
+        private bool _rendererBaseLocalPositionCaptured;
+
         [SerializeField]
         private CanvasGroup _canvasGroup;
 
@@ -101,8 +107,30 @@ namespace EchoEdge.Presenter.Battle
             var size = await EnemyStatusLoader.TryLoadSize((int)enemyID);
             transform.localScale = Vector3.one * (int)size;
 
+            // EnemyInfo.csv の Offset 分だけ sprite の高さをズラす（基本値 0）
+            ApplySpriteOffset(await EnemyStatusLoader.TryLoadOffset((int)enemyID));
+
             await SetAnimator(enemyID);
             gameObject.SetActive(true);
+        }
+
+        /// <summary>
+        /// EnemyInfo.csv の Offset 値だけ sprite のローカルY座標をズラす。
+        /// prefab 時点の座標を基準に絶対値で設定するため、プール再利用でも累積しない。
+        /// </summary>
+        /// <param name="offset">ズラす高さ（基本値 0）</param>
+        private void ApplySpriteOffset(float offset)
+        {
+            if (_renderer == null) return;
+
+            var spriteTransform = _renderer.transform;
+            if (!_rendererBaseLocalPositionCaptured)
+            {
+                _rendererBaseLocalPosition = spriteTransform.localPosition;
+                _rendererBaseLocalPositionCaptured = true;
+            }
+
+            spriteTransform.localPosition = _rendererBaseLocalPosition + new Vector3(0f, offset, 0f);
         }
 
         /// <summary>
@@ -204,19 +232,11 @@ namespace EchoEdge.Presenter.Battle
 
             if (damageValue.isDeath)
             {
-                _animator.SetTrigger("DeadT");
-                UIPresenter.Instance.AppearEnergy(transform.position, targetStatus.Energy).Forget();
-                AudioManager.Instance.PlaySe(SeAudioType.Attack);
-                VFXEmitter.Instance.Emit(VFXKinds.Attack, transform.position);
-                await UniTask.Delay(TimeSpan.FromSeconds(0.7f), ignoreTimeScale:true);
+                await Death(targetStatus);
             }
             else
             {
-                _animator.SetTrigger("DamageT");
-                UIPresenter.Instance.AppearEnergy(transform.position, targetStatus.Energy / 2).Forget();
-                AudioManager.Instance.PlaySe(SeAudioType.Kill);
-                VFXEmitter.Instance.Emit(VFXKinds.Defeat, transform.position);
-                await UniTask.Delay(TimeSpan.FromSeconds(0.5f), ignoreTimeScale:true);
+                await Damage(targetStatus);
             }
 
             Time.timeScale = 1.0f;
@@ -244,6 +264,28 @@ namespace EchoEdge.Presenter.Battle
             }
         }
 
+        public async UniTask Death(BattleStatus targetStatus)
+        {
+            _animator.SetTrigger("DeadT");
+            UIPresenter.Instance.AppearEnergy(transform.position, targetStatus.Energy).Forget();
+            AudioManager.Instance.PlaySe(SeAudioType.Attack);
+            VFXEmitter.Instance.Emit(VFXKinds.Attack, transform.position);
+            await UniTask.Delay(TimeSpan.FromSeconds(0.7f), ignoreTimeScale:true);
+        }
+
+        public async UniTask Damage(BattleStatus targetStatus)
+        {
+            _animator.SetTrigger("DamageT");
+            UIPresenter.Instance.AppearEnergy(transform.position, targetStatus.Energy / 2).Forget();
+            AudioManager.Instance.PlaySe(SeAudioType.Kill);
+            VFXEmitter.Instance.Emit(VFXKinds.Defeat, transform.position);
+            await UniTask.Delay(TimeSpan.FromSeconds(0.5f), ignoreTimeScale:true);
+        }
+        
+        /// <summary>
+        /// アニメーションイベント以外にも発火できるように。
+        /// 犠牲処理も対象。
+        /// </summary>
         public void Dead()
         {
             _isDeath = true;

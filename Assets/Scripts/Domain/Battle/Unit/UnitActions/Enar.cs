@@ -26,7 +26,7 @@ namespace EchoEdge.Domain.Battle
         /// <summary>
         /// スキルの対象を探す範囲（マス数）
         /// </summary>
-        private const int SkillRange = 2;
+        private const int SkillRange = 3;
 
         /// <summary>
         /// スキル成功時の自身への強化量
@@ -59,7 +59,7 @@ namespace EchoEdge.Domain.Battle
         public UniTask<EnemyMoveKinds> Act(int selfHeight, int selfWidth)
         {
             // スキルはどこにいても発動できるが、犠牲にできる他の『エナー』が近くにいる時のみ選択肢に入る
-            if (FindSacrificeCandidates(selfHeight, selfWidth).Count > 0 && UnityEngine.Random.value < SpecificRate)
+            if (FindSacrificeCandidates(selfHeight, selfWidth).Count > 0) //  && UnityEngine.Random.value < SpecificRate
             {
                 return UniTask.FromResult(EnemyMoveKinds.Specific);
             }
@@ -81,7 +81,7 @@ namespace EchoEdge.Domain.Battle
 
         public async UniTask BeforeSpecific()
         {
-            await MessagePresenter.Instance.AppearMessage("エナーは仲間を犠牲にしようとしている");
+            await MessagePresenter.Instance.AppearMessage("エナーは仲間を吸収にしようとしている");
         }
 
         /// <inheritdoc/>
@@ -130,7 +130,8 @@ namespace EchoEdge.Domain.Battle
             if (status == null) return;
 
             var lethalDamage = status.MaxHP + status.Defend;
-            await target.Damage(lethalDamage);
+            BattleManager.RegisterEnemy(status);
+            
         }
 
         /// <inheritdoc/>

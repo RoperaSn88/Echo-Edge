@@ -1,7 +1,7 @@
-ID,HP,Attack,Defend,Move,MovePattern,Experience,Energy,Size,Memo
-1,50,20,10,2,After,70,130,Default,スカイアのステータス
-2,70,50,12,2,After,100,150,Default,ビルダーのステータス
-3,60,35,12,3,Before,75,120,Default,ブースターのステータス
-4,80,80,15,5,After,120,160,Default,ブルートのステータス
-5,50,15,0,3,Before,40,90,Default,エナーのステータス
-6,500,30,0,2,Before,300,400,Large,でかエナーのステータス（2x2マス）
+ID,HP,Attack,Defend,Move,MovePattern,Experience,Energy,Size,Offset,Memo
+1,50,20,10,2,After,70,130,Default,0,スカイアのステータス
+2,70,50,12,2,After,100,150,Default,0,ビルダーのステータス
+3,60,35,12,3,Before,75,120,Default,0,ブースターのステータス
+4,80,80,15,5,After,120,160,Default,0,ブルートのステータス
+5,50,15,0,3,Before,40,90,Default,-0.45,エナーのステータス
+6,500,30,0,2,Before,300,400,Large,-0.31,でかエナーのステータス（2x2マス）
