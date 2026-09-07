@@ -80,6 +80,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5904b36af8417ca4ba797f1dddf3506f
+    m_Address: Assets/Addressables/Animator/BigEnar.controller
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 5cca891ffc476c84ea2888d1a1ab9ae6
     m_Address: Assets/Addressables/StageWaves/StageLayout_10.csv
     m_ReadOnly: 0
@@ -202,6 +207,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: d00de0979fbf452ebbb8dc71fae8d9b7
     m_Address: Assets/Addressables/StageWaves/WaveSet/StageWaveSet_8.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d22ad34ae4c30744c9928f9e338ca0b4
+    m_Address: Assets/Addressables/Animator/Enar.controller
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

@@ -8,6 +8,7 @@ using AndanteTribe.Utils.Unity;
 using EchoEdge.Domain.Battle;
 using EchoEdge.Domain.Map;
 using EchoEdge.Domain.Phase;
+using EchoEdge.Infra.Battle;
 using EchoEdge.Infra.Map;
 using EchoEdge.Presenter.Battle;
 
@@ -83,7 +84,10 @@ namespace EchoEdge.App.Battle
                 if (placement.objectKind == StageObjectKind.Unit)
                 {
                     initialEnemyCount++;
-                    var unit = new BaseUnit(placement.height, placement.width);
+                    // マスの占有登録はコンストラクタ内（LoadStatus完了前）に行われるため、
+                    // サイズはあらかじめCSVから取得しておく（2x2など複数マスを占有するエネミー対応）。
+                    var size = await EnemyStatusLoader.TryLoadSize((int)placement.enemyKind);
+                    var unit = new BaseUnit(placement.height, placement.width, size);
                     await unit.LoadStatus(placement.enemyKind);
                     UnitSpawner.Instance.SpawnView(unit, placement.enemyKind);
                 }
@@ -104,12 +108,35 @@ namespace EchoEdge.App.Battle
 
         public void RegisterUnit(IUnit unit, int h, int w)
         {
-            if(_mapGrid[h, w] == null)
+            var span = (int)unit.GetSize();
+            if (!IsFootprintFree(h, w, span, null))
             {
-                _mapGrid[h, w] = unit;
-                _unitPositions[unit] = (h, w);
+                throw new InvalidOperationException("指定したマスにはunitがいるか、範囲外です h:" + h + ", w:" + w);
             }
-            else throw new InvalidOperationException("指定したマスにはunitがいるか、範囲外です h:" + h + ", w:" + w);
+
+            SetFootprint(h, w, span, unit);
+            _unitPositions[unit] = (h, w);
+        }
+
+        /// <summary>
+        /// 指定した位置を左上として、size マス四方（2x2など）がすべて範囲内かつ空きマスか判定する。
+        /// ignoreUnit を指定すると、そのユニット自身が占有しているマスは空きとして扱う（自己参照による移動判定用）。
+        /// </summary>
+        public bool IsFootprintFree(int anchorH, int anchorW, int size, IUnit ignoreUnit)
+        {
+            for (var dh = 0; dh < size; dh++)
+            {
+                for (var dw = 0; dw < size; dw++)
+                {
+                    var h = anchorH + dh;
+                    var w = anchorW + dw;
+                    if (!IsInBounds(h, w)) return false;
+
+                    var occupant = _mapGrid[h, w];
+                    if (occupant != null && !ReferenceEquals(occupant, ignoreUnit)) return false;
+                }
+            }
+            return true;
         }
 
         /// <summary>
@@ -137,13 +164,28 @@ namespace EchoEdge.App.Battle
         /// </summary>
         public void RemoveUnitAt(int h, int w)
         {
-            if (h < 0 || h >= MapHeight || w < 0 || w >= MapWidth) return;
+            if (!IsInBounds(h, w)) return;
             var unit = _mapGrid[h, w];
-            if (unit != null)
+            if (unit == null) return;
+
+            // 2x2など複数マスを占有している場合があるため、登録済みのアンカー位置から占有マス全てを解放する
+            var anchor = _unitPositions.TryGetValue(unit, out var pos) ? pos : (h, w);
+            var span = (int)unit.GetSize();
+
+            for (var dh = 0; dh < span; dh++)
             {
-                _unitPositions.Remove(unit);
+                for (var dw = 0; dw < span; dw++)
+                {
+                    var ch = anchor.h + dh;
+                    var cw = anchor.w + dw;
+                    if (IsInBounds(ch, cw) && ReferenceEquals(_mapGrid[ch, cw], unit))
+                    {
+                        _mapGrid[ch, cw] = null;
+                    }
+                }
             }
-            _mapGrid[h, w] = null;
+
+            _unitPositions.Remove(unit);
         }
 
         /// <summary>
@@ -301,9 +343,10 @@ namespace EchoEdge.App.Battle
         public bool PlaceUnitAt(IUnit unit, int h, int w)
         {
             if (unit == null) return false;
-            if (h < 0 || h >= MapHeight || w < 0 || w >= MapWidth) return false;
-            if (_mapGrid[h, w] != null) return false;
-            _mapGrid[h, w] = unit;
+            var span = (int)unit.GetSize();
+            if (!IsFootprintFree(h, w, span, null)) return false;
+
+            SetFootprint(h, w, span, unit);
             _unitPositions[unit] = (h, w);
             return true;
         }
@@ -311,12 +354,14 @@ namespace EchoEdge.App.Battle
         public async UniTask<bool> TryMoveUnitTo(IUnit unit, int dstH, int dstW)
         {
             if (unit == null) return false;
-            if (!IsInBounds(dstH, dstW)) return false;
-            if (_mapGrid[dstH, dstW] != null) return false;
             if (!_unitPositions.TryGetValue(unit, out var src)) return false;
 
-            _mapGrid[src.h, src.w] = null;
-            _mapGrid[dstH, dstW] = unit;
+            var span = (int)unit.GetSize();
+            // 自身が現在占有しているマスは空きとして扱う（同じユニットが移動先にかぶっても問題ない）
+            if (!IsFootprintFree(dstH, dstW, span, unit)) return false;
+
+            SetFootprint(src.h, src.w, span, null);
+            SetFootprint(dstH, dstW, span, unit);
             _unitPositions[unit] = (dstH, dstW);
 
             try
@@ -325,13 +370,32 @@ namespace EchoEdge.App.Battle
             }
             catch
             {
-                _mapGrid[dstH, dstW] = null;
-                _mapGrid[src.h, src.w] = unit;
+                SetFootprint(dstH, dstW, span, null);
+                SetFootprint(src.h, src.w, span, unit);
                 _unitPositions[unit] = src;
                 return false;
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// anchorH/anchorW を左上として size マス四方に unit（null可）を書き込む
+        /// </summary>
+        private void SetFootprint(int anchorH, int anchorW, int size, IUnit unit)
+        {
+            for (var dh = 0; dh < size; dh++)
+            {
+                for (var dw = 0; dw < size; dw++)
+                {
+                    var h = anchorH + dh;
+                    var w = anchorW + dw;
+                    if (IsInBounds(h, w))
+                    {
+                        _mapGrid[h, w] = unit;
+                    }
+                }
+            }
         }
 
         private List<IUnit> GetUnitsInMapOrderSnapshot()

@@ -15,6 +15,12 @@ namespace EchoEdge.Infra.Battle
     {
         private const string CsvPath = "Assets/Addressables/EnemyInfo.csv";
 
+        // Size 列のインデックス（未記載の古い行との後方互換のため、存在チェックしてから読む）
+        private const int SizeColumnIndex = 8;
+
+        // Offset 列のインデックス（読み込み時に prefab の sprite の高さをこの値だけズラす。未記載なら 0）
+        private const int OffsetColumnIndex = 9;
+
         // CSV を初回読み込み時にキャッシュする (ID → 各列の値)
         private static Dictionary<int, string[]> _cache;
 
@@ -73,8 +79,9 @@ namespace EchoEdge.Infra.Battle
                 var movePattern = (MovePattern)Enum.Parse(typeof(MovePattern), cols[5].Trim());
                 int experience  = int.Parse(cols[6].Trim());
                 int energy      = int.Parse(cols[7].Trim());
+                var size        = ParseSize(cols);
 
-                var status = new BattleStatus(hp, attack, defend, move, movePattern, experience, energy);
+                var status = new BattleStatus(hp, attack, defend, move, movePattern, experience, energy, size);
                 return status;
             }
             catch (Exception e)
@@ -82,6 +89,53 @@ namespace EchoEdge.Infra.Battle
                 Debug.LogError($"EnemyInfo.csv の ID {id} の行を解析できませんでした: {e.Message}");
                 return null;
             }
+        }
+
+        /// <summary>
+        /// 指定した ID のエネミーサイズだけを取得する。
+        /// マップへの登録はステータス全体の読み込みより先に行う必要があるケース（複数マスを占有するエネミーの初期配置など）で使用する。
+        /// </summary>
+        /// <param name="id">読み取る行の ID</param>
+        public static async UniTask<EnemySize> TryLoadSize(int id)
+        {
+            var cache = await GetCacheAsync();
+            return cache.TryGetValue(id, out var cols) ? ParseSize(cols) : EnemySize.Default;
+        }
+
+        /// <summary>
+        /// 指定した ID のエネミーの Offset だけを取得する。
+        /// 読み込み時に prefab の sprite の高さをこの値だけズラすために使用する。
+        /// </summary>
+        /// <param name="id">読み取る行の ID</param>
+        /// <returns>Offset 値。列が存在しない、もしくは不正な値の場合は 0</returns>
+        public static async UniTask<float> TryLoadOffset(int id)
+        {
+            var cache = await GetCacheAsync();
+            return cache.TryGetValue(id, out var cols) ? ParseOffset(cols) : 0f;
+        }
+
+        /// <summary>
+        /// Size 列を読み取る。列が存在しない、もしくは不正な値の場合は Default とする（後方互換のため）。
+        /// </summary>
+        private static EnemySize ParseSize(string[] cols)
+        {
+            if (cols.Length <= SizeColumnIndex) return EnemySize.Default;
+
+            return Enum.TryParse<EnemySize>(cols[SizeColumnIndex].Trim(), out var size)
+                ? size
+                : EnemySize.Default;
+        }
+
+        /// <summary>
+        /// Offset 列を読み取る。列が存在しない、もしくは不正な値の場合は 0 とする（後方互換のため。基本値は 0）。
+        /// </summary>
+        private static float ParseOffset(string[] cols)
+        {
+            if (cols.Length <= OffsetColumnIndex) return 0f;
+
+            return float.TryParse(cols[OffsetColumnIndex].Trim(), out var offset)
+                ? offset
+                : 0f;
         }
     }
 }
