@@ -46,13 +46,6 @@ namespace EchoEdge.Presenter.Preparing
 
         private const float FadeInDuration = 1.0f;
         private const float MoveDuration = 0.5f;
-        private const float BlinkDuration = 0.8f;
-        private const float BlinkMinAlpha = 0.15f;
-
-        /// <summary>
-        /// 「Press Any Key」の点滅トゥイーン
-        /// </summary>
-        private Tween _blinkTween;
 
         private void Reset()
         {
@@ -80,7 +73,7 @@ namespace EchoEdge.Presenter.Preparing
         }
 
         /// <summary>
-        /// タイトルロゴ一式をフェードインさせ、「Press Any Key」の点滅を開始する。
+        /// タイトルロゴ一式をフェードインさせる。
         /// </summary>
         private async UniTask ShowAsync(CancellationToken cancellationToken)
         {
@@ -95,36 +88,6 @@ namespace EchoEdge.Presenter.Preparing
                     .SetEase(Ease.OutQuad)
                     .ToUniTask(cancellationToken: cancellationToken);
             }
-
-            StartBlink();
-        }
-
-        /// <summary>
-        /// 「Press Any Key」の点滅を開始する
-        /// </summary>
-        private void StartBlink()
-        {
-            if (_pressAnyKeyText == null) return;
-
-            _blinkTween?.Kill();
-            _blinkTween = _pressAnyKeyText.DOFade(BlinkMinAlpha, BlinkDuration)
-                .SetEase(Ease.InOutSine)
-                .SetLoops(-1, LoopType.Yoyo);
-        }
-
-        /// <summary>
-        /// 「Press Any Key」の点滅を停止し、完全に表示された状態へ戻す
-        /// </summary>
-        private void StopBlink()
-        {
-            _blinkTween?.Kill();
-            _blinkTween = null;
-
-            if (_pressAnyKeyText == null) return;
-
-            var color = _pressAnyKeyText.color;
-            color.a = 1f;
-            _pressAnyKeyText.color = color;
         }
 
         /// <summary>
@@ -183,17 +146,9 @@ namespace EchoEdge.Presenter.Preparing
         /// </summary>
         private async UniTask MoveToLeftAsync(CancellationToken cancellationToken)
         {
-            StopBlink();
-
             await _rectTransform.DOAnchorPosX(_movedAnchoredPositionX, MoveDuration)
                 .SetEase(Ease.OutQuad)
                 .ToUniTask(cancellationToken: cancellationToken);
-        }
-
-        private void OnDestroy()
-        {
-            _blinkTween?.Kill();
-            _blinkTween = null;
         }
     }
 }
