@@ -399,6 +399,8 @@ namespace EchoEdge.Domain.Battle
         {
             var result = await _battleStatus.Damage(damage);
 
+            await ReflectDamageToView(result);
+
             if (result.isDeath)
             {
                 await Dead();
@@ -411,12 +413,80 @@ namespace EchoEdge.Domain.Battle
         {
             var result = await _battleStatus.ConsumeHP(amount);
 
+            await ReflectDamageToView(result);
+
             if (result.isDeath)
             {
                 await Dead();
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// 自身を対象としたダメージ計算を BaseUnit 側から発火する。
+        /// View の OnTriggerEnter を起点とする既存の経路とは別に、
+        /// ドメイン側からでも通常攻撃と同じ計算（コンボ・反射・QTE 倍率込み）を行えるようにする。
+        /// </summary>
+        /// <param name="attackTypeRate">攻撃種類ごとのダメージ倍率</param>
+        /// <returns>(与えたダメージ量, 死亡したか)</returns>
+        public UniTask<(int damage, bool isDeath)> ActivateDamage(float attackTypeRate = 1.0f)
+        {
+            return ActivateDamage(() => BattleManager.EnemyDamage(attackTypeRate));
+        }
+
+        /// <summary>
+        /// 自身を対象とした「めちゃくちゃ早い一閃」のダメージ計算を BaseUnit 側から発火する。
+        /// </summary>
+        /// <param name="attackTypeRate">攻撃種類ごとのダメージ倍率</param>
+        /// <returns>(与えたダメージ量, 死亡したか)</returns>
+        public UniTask<(int damage, bool isDeath)> ActivateFlashDamage(float attackTypeRate = 1.0f)
+        {
+            return ActivateDamage(() => BattleManager.FlashAttackDamage(attackTypeRate));
+        }
+
+        /// <summary>
+        /// ダメージ計算を実行し、その結果を View に反映したうえで死亡処理まで行う。
+        /// </summary>
+        /// <param name="calculateDamage">実行するダメージ計算</param>
+        private async UniTask<(int damage, bool isDeath)> ActivateDamage(Func<UniTask<(int damage, bool isDeath)>> calculateDamage)
+        {
+            if (_battleStatus == null)
+            {
+                Debug.LogWarning("ステータスが読み込まれていないため、ダメージ計算を発火できません。");
+                return (0, false);
+            }
+
+            // BattleManager のダメージ計算対象を自身に切り替えてから計算させる
+            BattleManager.RegisterEnemy(_battleStatus);
+            var result = await calculateDamage();
+
+            await ReflectDamageToView(result);
+
+            if (result.isDeath)
+            {
+                await Dead();
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// ダメージ計算の結果を View に反映する（ダメージテキスト・HPゲージ・被弾／死亡アニメーション）。
+        /// View が反映に対応していない場合は何もしない。
+        /// </summary>
+        /// <param name="result">反映するダメージ計算の結果</param>
+        private async UniTask ReflectDamageToView((int damage, bool isDeath) result)
+        {
+            if (_view == null) return;
+
+            if (_view is IDamageReflectableView damageView)
+            {
+                await damageView.ReflectDamage(result.damage, result.isDeath, _battleStatus);
+                return;
+            }
+
+            Debug.LogWarning($"{_view.GetType().Name} は IDamageReflectableView を実装していないため、ダメージ結果を View に反映できません。");
         }
     }
 }
