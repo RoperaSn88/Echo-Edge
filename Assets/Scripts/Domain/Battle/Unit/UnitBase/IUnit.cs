@@ -59,6 +59,12 @@ namespace EchoEdge.Domain.Battle
         public UniTask<(int damage, bool isDeath)> ConsumeHP(int amount);
 
         /// <summary>
+        /// HPを回復する
+        /// </summary>
+        /// <param name="amount">回復量</param>
+        public UniTask Heal(int amount);
+
+        /// <summary>
         /// ターン開始時の行動
         /// </summary>
         public UniTask OnTurnStart();
