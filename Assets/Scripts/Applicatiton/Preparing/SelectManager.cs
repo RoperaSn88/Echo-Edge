@@ -23,6 +23,17 @@ namespace EchoEdge.App.Preparing
         public static SelectManager Instance;
 
         private const float FadeTime = 2.0f;
+
+        /// <summary>
+        /// タイトルロゴ表示後、選択肢を画面右側から出現させる際の移動時間
+        /// </summary>
+        private const float SelectableGroupSlideInDuration = 0.5f;
+
+        /// <summary>
+        /// 選択肢を待機させておく、既定位置からの X 方向のオフセット（画面外の右側）
+        /// </summary>
+        private const float SelectableGroupSlideInOffsetX = 800f;
+
         [SerializeField]
         private Image _panel;
 
@@ -34,6 +45,10 @@ namespace EchoEdge.App.Preparing
 
         [SerializeField] private Transform _defaultPosition;
         [SerializeField] private SelectableGroup _selectableGroup;
+
+        [SerializeField]
+        [Tooltip("起動時に表示するタイトルロゴ。操作されるまで選択肢を出現させない")]
+        private TitleLogoPresenter _titleLogoPresenter;
 
         [SerializeField]
         [Tooltip("ステージごとのシナリオ再生要否設定。StartText がステージ選択確定時に参照する")]
@@ -53,9 +68,34 @@ namespace EchoEdge.App.Preparing
         public RectTransform TopItem => _placingStack.Count > 0 ? _placingStack.Peek() : null;
 
         /// <summary>
+        /// 最初の選択肢グループの RectTransform
+        /// </summary>
+        private RectTransform _selectableGroupRectTransform;
+
+        /// <summary>
+        /// 最初の選択肢グループの本来の位置
+        /// </summary>
+        private Vector2 _selectableGroupDefaultAnchoredPosition;
+
+        /// <summary>
         /// 指定されたRectTransformがトップ配置スタックに含まれているか確認する
         /// </summary>
         public bool IsPlacedAtTop(RectTransform rect) => _placingStack.Contains(rect);
+
+        /// <summary>
+        /// 初期化時
+        /// </summary>
+        void Awake()
+        {
+            // 選択肢はタイトルロゴが操作された後に画面右側から出現させるため、
+            // あらかじめ画面外の右側へ退避させておく
+            _selectableGroupRectTransform = _selectableGroup.GetComponent<RectTransform>();
+            _selectableGroupDefaultAnchoredPosition = _selectableGroupRectTransform.anchoredPosition;
+
+            var hiddenAnchoredPosition = _selectableGroupDefaultAnchoredPosition;
+            hiddenAnchoredPosition.x += SelectableGroupSlideInOffsetX;
+            _selectableGroupRectTransform.anchoredPosition = hiddenAnchoredPosition;
+        }
 
         /// <summary>
         /// 起動時
@@ -85,7 +125,32 @@ namespace EchoEdge.App.Preparing
 
             await _panel.DOFade(0f,FadeTime);
             _panel.gameObject.SetActive(false);
+
+            // タイトルロゴを表示し、何らかの操作を受け付けてから選択肢を出現させる
+            if (_titleLogoPresenter != null)
+            {
+                await _titleLogoPresenter.PresentAsync();
+            }
+            else
+            {
+                Debug.LogWarning("TitleLogoPresenter が設定されていません。タイトルロゴの表示をスキップします。");
+            }
+
+            await ShowFirstSelectableGroup();
+
             Selecting().Forget();
+        }
+
+        /// <summary>
+        /// 退避させておいた最初の選択肢グループを、画面右側から本来の位置へ出現させる
+        /// </summary>
+        private async UniTask ShowFirstSelectableGroup()
+        {
+            _selectableGroupRectTransform.gameObject.SetActive(true);
+            await _selectableGroupRectTransform
+                .DOAnchorPos(_selectableGroupDefaultAnchoredPosition, SelectableGroupSlideInDuration)
+                .SetEase(Ease.OutQuad)
+                .ToUniTask();
         }
 
         /// <summary>
