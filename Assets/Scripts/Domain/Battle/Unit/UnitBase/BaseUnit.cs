@@ -87,7 +87,7 @@ namespace EchoEdge.Domain.Battle
         /// 死亡処理を行う。
         /// </summary>
         /// <param name="experienceReward">撃破報酬として与える経験値。犠牲など報酬が発生しない死に方では 0 を渡す</param>
-        private async UniTask Dead(int experienceReward)
+        protected async UniTask Dead(int experienceReward)
         {
             await _unitAction.Dead();
 
@@ -482,30 +482,6 @@ namespace EchoEdge.Domain.Battle
         }
 
         /// <summary>
-        /// 他ユニットのスキルコストとして自身を犠牲にする。
-        /// 防御力・無敵状態を無視して確実に死亡し、経験値・エナジーの撃破報酬は発生しない。
-        /// </summary>
-        public async UniTask Sacrifice()
-        {
-            if (_battleStatus == null)
-            {
-                Debug.LogWarning("ステータスが読み込まれていないため、犠牲にできません。");
-                return;
-            }
-
-            // 現在HP分を消費させることで、防御力・無敵状態に関係なく確実に死亡させる
-            // （MaxHP ではなく現在HPを渡すことで、表示されるダメージ量が実際に失ったHPと一致する）
-            var result = await _battleStatus.ConsumeHP(_battleStatus.HP);
-
-            await ReflectDamageToView(result, showEnergy: false);
-
-            if (result.isDeath)
-            {
-                await Dead(experienceReward: 0);
-            }
-        }
-
-        /// <summary>
         /// HPを回復し、その結果を View に反映する。
         /// </summary>
         /// <param name="amount">回復量</param>
@@ -525,8 +501,8 @@ namespace EchoEdge.Domain.Battle
         /// View が反映に対応していない場合は何もしない。
         /// </summary>
         /// <param name="result">反映するダメージ計算の結果</param>
-        /// <param name="showEnergy">エナジー獲得演出を出すか</param>
-        private async UniTask ReflectDamageToView((int damage, bool isDeath) result, bool showEnergy = true)
+        /// <param name="showEnergy">エナジー獲得演出を出すか。犠牲など報酬の対象外となる死に方では false を渡す</param>
+        protected async UniTask ReflectDamageToView((int damage, bool isDeath) result, bool showEnergy = true)
         {
             if (!TryGetDamageReflectableView(out var damageView)) return;
 

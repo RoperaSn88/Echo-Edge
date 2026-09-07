@@ -87,7 +87,7 @@ namespace EchoEdge.App.Battle
                     // マスの占有登録はコンストラクタ内（LoadStatus完了前）に行われるため、
                     // サイズはあらかじめCSVから取得しておく（2x2など複数マスを占有するエネミー対応）。
                     var size = await EnemyStatusLoader.TryLoadSize((int)placement.enemyKind);
-                    var unit = new BaseUnit(placement.height, placement.width, size);
+                    var unit = UnitFactory.Create(placement.enemyKind, placement.height, placement.width, size);
                     await unit.LoadStatus(placement.enemyKind);
                     UnitSpawner.Instance.SpawnView(unit, placement.enemyKind);
                 }

@@ -138,13 +138,18 @@ namespace EchoEdge.Domain.Battle
         /// <summary>
         /// 対象の『エナー』を犠牲にして死亡させる。
         /// 防御力・無敵状態は考慮せず確実に死亡し、経験値・エナジーの撃破報酬は発生しない。
-        /// 死亡演出・HPゲージ・マップからの除去は BaseUnit 側の犠牲処理が担当する。
+        /// 死亡演出・HPゲージ・マップからの除去は EnarUnit 側の犠牲処理が担当する。
         /// </summary>
         private static async UniTask KillSacrifice(IUnit target)
         {
-            if (target?.GetStatus() == null) return;
+            var sacrificable = target as ISacrificable;
+            if (sacrificable == null)
+            {
+                Debug.LogWarning($"{target?.GetType().Name} は ISacrificable を実装していないため、犠牲にできません。");
+                return;
+            }
 
-            await target.Sacrifice();
+            await sacrificable.Sacrifice();
         }
 
         /// <inheritdoc/>

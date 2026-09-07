@@ -59,12 +59,6 @@ namespace EchoEdge.Domain.Battle
         public UniTask<(int damage, bool isDeath)> ConsumeHP(int amount);
 
         /// <summary>
-        /// 他ユニットのスキルコストとして自身を犠牲にする。
-        /// 防御力・無敵状態を無視して確実に死亡し、経験値・エナジーの撃破報酬は発生しない。
-        /// </summary>
-        public UniTask Sacrifice();
-
-        /// <summary>
         /// HPを回復する
         /// </summary>
         /// <param name="amount">回復量</param>
