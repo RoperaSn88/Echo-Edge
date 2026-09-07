@@ -16,9 +16,17 @@ namespace EchoEdge.Domain.Battle
     /// 複数体で運用されることを想定した敵キャラで、通常攻撃は隣接時(width=0)のみ行う。
     /// スキルは場所を問わず発動でき、2マス以内に他の『エナー』がいる場合、
     /// そのうち1体を犠牲にして自身のステータスを強化＆回復する。
+    /// 吸収は1ターンにつき1回まで（エナー全体で共有する制限）。
     /// </summary>
     public class Enar : IUnitAction
     {
+        /// <summary>
+        /// このターンに既に吸収が行われたか。
+        /// エナーが複数体いても1ターンに1回しか吸収させないため、全個体で共有する。
+        /// 各個体の OnTurnStart（敵フェイズの行動開始前に全ユニット分が実行される）でリセットする。
+        /// </summary>
+        private static bool _hasAbsorbedThisTurn;
+
         private const float PlayerDamageRate = 1.0f;
         private const float SpecificRate = 0.3f;
         private const float QTETimeScale = 0.001f;
@@ -58,8 +66,9 @@ namespace EchoEdge.Domain.Battle
         /// <inheritdoc/>
         public UniTask<EnemyMoveKinds> Act(int selfHeight, int selfWidth)
         {
-            // スキルはどこにいても発動できるが、犠牲にできる他の『エナー』が近くにいる時のみ選択肢に入る
-            if (FindSacrificeCandidates(selfHeight, selfWidth).Count > 0) //  && UnityEngine.Random.value < SpecificRate
+            // スキルはどこにいても発動できるが、犠牲にできる他の『エナー』が近くにいて、
+            // かつこのターンにまだ吸収が行われていない時のみ選択肢に入る
+            if (!_hasAbsorbedThisTurn && FindSacrificeCandidates(selfHeight, selfWidth).Count > 0) //  && UnityEngine.Random.value < SpecificRate
             {
                 return UniTask.FromResult(EnemyMoveKinds.Specific);
             }
@@ -88,12 +97,17 @@ namespace EchoEdge.Domain.Battle
         public async UniTask Specific(int selfHeight, int selfWidth)
         {
             if (MapManager.Instance == null) return;
+            if (_hasAbsorbedThisTurn) return;
 
-            var selfStatus = MapManager.Instance.GetUnitAt(selfHeight, selfWidth)?.GetStatus();
-            if (selfStatus == null) return;
+            var selfUnit = MapManager.Instance.GetUnitAt(selfHeight, selfWidth);
+            var selfStatus = selfUnit?.GetStatus();
+            if (selfUnit == null || selfStatus == null) return;
 
             var candidates = FindSacrificeCandidates(selfHeight, selfWidth);
             if (candidates.Count == 0) return;
+
+            // 吸収の実行が確定した時点で、このターンの吸収枠を消費する
+            _hasAbsorbedThisTurn = true;
 
             var sacrifice = candidates[UnityEngine.Random.Range(0, candidates.Count)];
             await KillSacrifice(sacrifice.unit);
@@ -101,7 +115,7 @@ namespace EchoEdge.Domain.Battle
             // 自身のステータスを強化＆回復する
             selfStatus.ChangeAttack(SkillAttackBonus);
             selfStatus.ChangeDefend(SkillDefendBonus);
-            selfStatus.Heal(SkillHealAmount);
+            await selfUnit.Heal(SkillHealAmount);
 
             await UniTask.Delay(TimeSpan.FromSeconds(1f));
             await CameraManager.Instance.ActResetCameraTarget();
@@ -122,21 +136,23 @@ namespace EchoEdge.Domain.Battle
         }
 
         /// <summary>
-        /// 対象の『エナー』を、防御力を考慮しても確実に致死量となるダメージで死亡させる
+        /// 対象の『エナー』を犠牲にして死亡させる。
+        /// 防御力・無敵状態は考慮せず確実に死亡し、経験値・エナジーの撃破報酬は発生しない。
+        /// 死亡演出・HPゲージ・マップからの除去は BaseUnit 側の犠牲処理が担当する。
         /// </summary>
         private static async UniTask KillSacrifice(IUnit target)
         {
-            var status = target.GetStatus();
-            if (status == null) return;
+            if (target?.GetStatus() == null) return;
 
-            var lethalDamage = status.MaxHP + status.Defend;
-            BattleManager.RegisterEnemy(status);
-            
+            await target.Sacrifice();
         }
 
         /// <inheritdoc/>
         public UniTask OnTurnStart()
         {
+            // 敵フェイズの行動開始前に全ユニットの OnTurnStart が実行されるため、
+            // ここでリセットすればこのターンの吸収枠が必ず 1 回に戻る
+            _hasAbsorbedThisTurn = false;
             return UniTask.CompletedTask;
         }
 

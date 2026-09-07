@@ -78,6 +78,21 @@ namespace EchoEdge.Presenter.Battle
         /// </summary>
         private const float HealthBarTweenTime = 0.5f;
 
+        /// <summary>
+        /// エナジー演出なしで死亡演出を再生する際の待機時間
+        /// </summary>
+        private const float DeathEffectTime = 0.7f;
+
+        /// <summary>
+        /// エナジー演出なしで被弾演出を再生する際の待機時間
+        /// </summary>
+        private const float DamageEffectTime = 0.5f;
+
+        /// <summary>
+        /// 回復演出の待機時間
+        /// </summary>
+        private const float HealEffectTime = 0.5f;
+
         public async UniTask SetAnimator(EnemyKinds enemyID)
         {
             var data = await Addressables.LoadAssetAsync<RuntimeAnimatorController>(EnemyAnimPath + enemyID + ".controller").ToUniTask();
@@ -298,7 +313,7 @@ namespace EchoEdge.Presenter.Battle
         /// View の OnTriggerEnter から発火する ApplyDamage とは別経路のため、
         /// ここではダメージ計算やマップからの除去は行わず、見た目の更新だけを担当する。
         /// </remarks>
-        public async UniTask ReflectDamage(int damage, bool isDeath, BattleStatus status)
+        public async UniTask ReflectDamage(int damage, bool isDeath, BattleStatus status, bool showEnergy = true)
         {
             if (status == null) return;
 
@@ -317,13 +332,20 @@ namespace EchoEdge.Presenter.Battle
 
                 ReflectHealthBar(status);
 
-                if (isDeath)
+                if (showEnergy)
                 {
-                    await Death(status);
+                    if (isDeath)
+                    {
+                        await Death(status);
+                    }
+                    else
+                    {
+                        await Damage(status);
+                    }
                 }
                 else
                 {
-                    await Damage(status);
+                    await PlayDamageEffect(isDeath);
                 }
             }
             finally
@@ -335,6 +357,34 @@ namespace EchoEdge.Presenter.Battle
             {
                 ReleaseView();
             }
+        }
+
+        /// <inheritdoc/>
+        public async UniTask ReflectHeal(int amount, BattleStatus status)
+        {
+            if (status == null || amount <= 0) return;
+
+            if (UIPresenter.Instance != null)
+            {
+                UIPresenter.Instance.AppearDamageText($"+{amount}", transform.position).Forget();
+            }
+
+            ReflectHealthBar(status);
+
+            await UniTask.Delay(TimeSpan.FromSeconds(HealEffectTime), ignoreTimeScale: true);
+        }
+
+        /// <summary>
+        /// エナジー獲得演出を伴わない被弾／死亡演出を再生する。
+        /// 犠牲のように、撃破報酬が発生しない死に方で使う。
+        /// </summary>
+        /// <param name="isDeath">死亡演出を再生するか</param>
+        private async UniTask PlayDamageEffect(bool isDeath)
+        {
+            _animator.SetTrigger(isDeath ? "DeadT" : "DamageT");
+            AudioManager.Instance.PlaySe(isDeath ? SeAudioType.Attack : SeAudioType.Kill);
+            VFXEmitter.Instance.Emit(isDeath ? VFXKinds.Attack : VFXKinds.Defeat, transform.position);
+            await UniTask.Delay(TimeSpan.FromSeconds(isDeath ? DeathEffectTime : DamageEffectTime), ignoreTimeScale: true);
         }
 
         /// <summary>

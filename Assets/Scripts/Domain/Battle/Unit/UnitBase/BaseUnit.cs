@@ -78,7 +78,16 @@ namespace EchoEdge.Domain.Battle
             MapManager.Instance.RegisterUnit(this, h, w);
         }
 
-        public async UniTask Dead()
+        public UniTask Dead()
+        {
+            return Dead(_battleStatus.Experience);
+        }
+
+        /// <summary>
+        /// 死亡処理を行う。
+        /// </summary>
+        /// <param name="experienceReward">撃破報酬として与える経験値。犠牲など報酬が発生しない死に方では 0 を渡す</param>
+        private async UniTask Dead(int experienceReward)
         {
             await _unitAction.Dead();
 
@@ -89,7 +98,8 @@ namespace EchoEdge.Domain.Battle
             // ドメインイベントをディスパッチして、アプリケーション層のハンドラーに通知する
             // (直接 DefeatAllEnemiesStageClearTask を呼ぶのではなく、イベント経由で疎結合にする)
             // クリア条件成立時はここでクリア演出・シナリオ再生の完了まで待機する。
-            await DomainEventDispatcher.Dispatch(new EnemyDefeatedEvent(position, _battleStatus.Experience));
+            // 経験値が発生しない死に方でも、残り敵数の管理はイベント経由で行うためディスパッチ自体は必ず行う。
+            await DomainEventDispatcher.Dispatch(new EnemyDefeatedEvent(position, experienceReward));
         }
 
         public async UniTask Attack()
@@ -472,21 +482,83 @@ namespace EchoEdge.Domain.Battle
         }
 
         /// <summary>
+        /// 他ユニットのスキルコストとして自身を犠牲にする。
+        /// 防御力・無敵状態を無視して確実に死亡し、経験値・エナジーの撃破報酬は発生しない。
+        /// </summary>
+        public async UniTask Sacrifice()
+        {
+            if (_battleStatus == null)
+            {
+                Debug.LogWarning("ステータスが読み込まれていないため、犠牲にできません。");
+                return;
+            }
+
+            // 現在HP分を消費させることで、防御力・無敵状態に関係なく確実に死亡させる
+            // （MaxHP ではなく現在HPを渡すことで、表示されるダメージ量が実際に失ったHPと一致する）
+            var result = await _battleStatus.ConsumeHP(_battleStatus.HP);
+
+            await ReflectDamageToView(result, showEnergy: false);
+
+            if (result.isDeath)
+            {
+                await Dead(experienceReward: 0);
+            }
+        }
+
+        /// <summary>
+        /// HPを回復し、その結果を View に反映する。
+        /// </summary>
+        /// <param name="amount">回復量</param>
+        public async UniTask Heal(int amount)
+        {
+            if (_battleStatus == null) return;
+
+            var before = _battleStatus.HP;
+            _battleStatus.Heal(amount);
+
+            // 最大HPで頭打ちになるため、実際に回復した量を反映する
+            await ReflectHealToView(_battleStatus.HP - before);
+        }
+
+        /// <summary>
         /// ダメージ計算の結果を View に反映する（ダメージテキスト・HPゲージ・被弾／死亡アニメーション）。
         /// View が反映に対応していない場合は何もしない。
         /// </summary>
         /// <param name="result">反映するダメージ計算の結果</param>
-        private async UniTask ReflectDamageToView((int damage, bool isDeath) result)
+        /// <param name="showEnergy">エナジー獲得演出を出すか</param>
+        private async UniTask ReflectDamageToView((int damage, bool isDeath) result, bool showEnergy = true)
         {
-            if (_view == null) return;
+            if (!TryGetDamageReflectableView(out var damageView)) return;
 
-            if (_view is IDamageReflectableView damageView)
+            await damageView.ReflectDamage(result.damage, result.isDeath, _battleStatus, showEnergy);
+        }
+
+        /// <summary>
+        /// 回復量を View に反映する（回復量テキスト・HPゲージ）。
+        /// </summary>
+        /// <param name="amount">実際に回復した量</param>
+        private async UniTask ReflectHealToView(int amount)
+        {
+            if (amount <= 0) return;
+            if (!TryGetDamageReflectableView(out var damageView)) return;
+
+            await damageView.ReflectHeal(amount, _battleStatus);
+        }
+
+        /// <summary>
+        /// 紐づく View が HP 変化の反映に対応しているかを判定する。
+        /// </summary>
+        private bool TryGetDamageReflectableView(out IDamageReflectableView damageView)
+        {
+            damageView = _view as IDamageReflectableView;
+            if (damageView != null) return true;
+
+            if (_view != null)
             {
-                await damageView.ReflectDamage(result.damage, result.isDeath, _battleStatus);
-                return;
+                Debug.LogWarning($"{_view.GetType().Name} は IDamageReflectableView を実装していないため、HPの変化を View に反映できません。");
             }
 
-            Debug.LogWarning($"{_view.GetType().Name} は IDamageReflectableView を実装していないため、ダメージ結果を View に反映できません。");
+            return false;
         }
     }
 }

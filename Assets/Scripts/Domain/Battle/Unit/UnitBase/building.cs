@@ -102,5 +102,15 @@ namespace EchoEdge.Domain.Battle
         {
             throw new NotImplementedException();
         }
+
+        public UniTask Sacrifice()
+        {
+            throw new NotImplementedException();
+        }
+
+        public UniTask Heal(int amount)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

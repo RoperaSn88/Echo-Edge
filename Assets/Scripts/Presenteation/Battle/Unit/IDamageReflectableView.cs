@@ -18,6 +18,14 @@ namespace EchoEdge.Presenter.Battle
         /// <param name="damage">実際に与えたダメージ量</param>
         /// <param name="isDeath">この結果で死亡したか</param>
         /// <param name="status">反映対象ユニットのステータス（HPゲージの割合算出に使う）</param>
-        UniTask ReflectDamage(int damage, bool isDeath, BattleStatus status);
+        /// <param name="showEnergy">エナジー獲得演出を出すか。犠牲など報酬の対象外となる被弾では false を渡す</param>
+        UniTask ReflectDamage(int damage, bool isDeath, BattleStatus status, bool showEnergy = true);
+
+        /// <summary>
+        /// 回復結果を View に反映する（回復量テキスト・HPゲージ）。
+        /// </summary>
+        /// <param name="amount">実際に回復した量</param>
+        /// <param name="status">反映対象ユニットのステータス（HPゲージの割合算出に使う）</param>
+        UniTask ReflectHeal(int amount, BattleStatus status);
     }
 }
