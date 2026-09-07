@@ -123,18 +123,19 @@ namespace EchoEdge.App.Preparing
             c.a = 1f;
             _panel.color = c;
 
-            await _panel.DOFade(0f,FadeTime);
-            _panel.gameObject.SetActive(false);
-
+            UniTask presentTask = default;
             // タイトルロゴを表示し、何らかの操作を受け付けてから選択肢を出現させる
             if (_titleLogoPresenter != null)
             {
-                await _titleLogoPresenter.PresentAsync();
+                presentTask = _titleLogoPresenter.PresentAsync();
             }
             else
             {
                 Debug.LogWarning("TitleLogoPresenter が設定されていません。タイトルロゴの表示をスキップします。");
             }
+
+            await UniTask.WhenAll(_panel.DOFade(0f,FadeTime).ToUniTask(), presentTask);
+            _panel.gameObject.SetActive(false);
 
             await ShowFirstSelectableGroup();
 

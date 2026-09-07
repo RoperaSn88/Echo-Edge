@@ -45,7 +45,7 @@ namespace EchoEdge.Presenter.Preparing
         private float _movedAnchoredPositionX = 150f;
 
         private const float FadeInDuration = 1.0f;
-        private const float MoveDuration = 0.5f;
+        private const float MoveDuration = 1.5f;
 
         private void Reset()
         {
@@ -67,7 +67,7 @@ namespace EchoEdge.Presenter.Preparing
         /// </summary>
         public async UniTask PresentAsync()
         {
-            await ShowAsync(destroyCancellationToken);
+            Show();
             await WaitForAnyInputAsync(destroyCancellationToken);
             await MoveToLeftAsync(destroyCancellationToken);
         }
@@ -75,19 +75,10 @@ namespace EchoEdge.Presenter.Preparing
         /// <summary>
         /// タイトルロゴ一式をフェードインさせる。
         /// </summary>
-        private async UniTask ShowAsync(CancellationToken cancellationToken)
+        private void Show()
         {
             gameObject.SetActive(true);
-            if (_titleLogo != null) _titleLogo.gameObject.SetActive(true);
-            if (_pressAnyKeyText != null) _pressAnyKeyText.gameObject.SetActive(true);
-
-            if (_canvasGroup != null)
-            {
-                _canvasGroup.alpha = 0f;
-                await _canvasGroup.DOFade(1f, FadeInDuration)
-                    .SetEase(Ease.OutQuad)
-                    .ToUniTask(cancellationToken: cancellationToken);
-            }
+            _canvasGroup.alpha = 1f;
         }
 
         /// <summary>
@@ -146,9 +137,13 @@ namespace EchoEdge.Presenter.Preparing
         /// </summary>
         private async UniTask MoveToLeftAsync(CancellationToken cancellationToken)
         {
-            await _rectTransform.DOAnchorPosX(_movedAnchoredPositionX, MoveDuration)
-                .SetEase(Ease.OutQuad)
+            UniTask moveTask = _rectTransform.DOAnchorPosX(_movedAnchoredPositionX, MoveDuration)
+                .SetEase(Ease.InQuad)
                 .ToUniTask(cancellationToken: cancellationToken);
+            UniTask fadeTask = _canvasGroup.DOFade(0f, MoveDuration)
+                .SetEase(Ease.InQuad)
+                .ToUniTask(cancellationToken: cancellationToken);
+            await UniTask.WhenAll(moveTask, fadeTask);
         }
     }
 }
