@@ -59,20 +59,17 @@ namespace EchoEdge.App.Scenario
         /// 進行中のシナリオタスク（クリック待機ループ）をキャンセルしたうえで、
         /// 通常終了時と同様に画面と BGM を同時にフェードアウトし、完了してから画面を閉じる。
         /// </summary>
-        public void Skip()
+        public async UniTask Skip()
         {
-            SkipAsync().Forget();
+            await SkipAsync();
         }
 
         /// <summary>
         /// スキップ時のフェードアウト処理本体。
         /// キャンセルされた場合（連打などで <see cref="Hide"/> が先に呼ばれた場合）は何もしない。
         /// </summary>
-        private async UniTaskVoid SkipAsync()
+        private async UniTask SkipAsync()
         {
-            // クリック待機中のシナリオ進行ループを中断する。
-            _cts?.Cancel();
-
             try
             {
                 var screenFadeTask = _viewController.FadeOutAsync(destroyCancellationToken);
@@ -88,6 +85,8 @@ namespace EchoEdge.App.Scenario
             }
 
             Hide();
+            // クリック待機中のシナリオ進行ループを中断する。
+            _cts?.Cancel();
         }
 
         /// <summary>

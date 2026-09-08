@@ -6,6 +6,7 @@ using UnityEngine.InputSystem;
 
 using EchoEdge.Domain.Battle;
 using EchoEdge.Infra.Camera;
+using EchoEdge.Infra.Tutorial;
 using EchoEdge.Presenter.Actions;
 using EchoEdge.Presenter.Battle;
 using EchoEdge.Presenter.Player;
@@ -51,6 +52,17 @@ namespace EchoEdge.Domain.Phase
             using var cts = new CancellationTokenSource();
             await screen.InitializeAsync(cts.Token);
             await screen.OnShowAsync(cts.Token);
+            
+            if (TutorialSaveManager.TryBeginTutorial(TutorialKinds.Reflect))
+            {
+                try
+                {
+                    await TutorialActivator.Instance.StartTutorial(TutorialKinds.Reflect);
+                }catch (System.Exception)
+                {
+                    Debug.Log("チュートリアルを中止");
+                }
+            }
 
             PlayerActions playerActions = new PlayerActions();
             EnableController(playerActions);
@@ -112,10 +124,10 @@ namespace EchoEdge.Domain.Phase
             // マウスホイールの回転で、攻撃の種類を切り替える。
             // 上方向の回転で次、下方向の回転で前の種類へ。0付近のノイズは無視する。
             // 状態の保持はPlayerAttackPreparationViewModelに一本化し、表示への反映はViewControllerに任せる。
-            float scroll = context.ReadValue<float>();
-            if (Mathf.Approximately(scroll, 0f)) return;
-
-            PlayerAttackPreparationScreen.Instance.ScreenModel.CycleAttackMode(scroll > 0f);
+            // float scroll = context.ReadValue<float>();
+            // if (Mathf.Approximately(scroll, 0f)) return;
+            //
+            // PlayerAttackPreparationScreen.Instance.ScreenModel.CycleAttackMode(scroll > 0f);
         }
 
         private void OnPressToggleFlash(InputAction.CallbackContext context)

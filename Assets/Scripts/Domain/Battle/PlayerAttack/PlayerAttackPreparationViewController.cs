@@ -106,7 +106,7 @@ namespace EchoEdge.Domain.Battle
             switch (_viewModel.AttackKind)
             {
                 case PlayerAttackKinds.Reflect:
-                    return "反射攻撃の説明";
+                    return "壁に当たったとき、跳ね返る。\n跳ね返った回数分、攻撃力が上昇する。\n反射回数: 1回";
                 case PlayerAttackKinds.Pierce:
                     return "貫通攻撃の説明";
                 case PlayerAttackKinds.Bomb:

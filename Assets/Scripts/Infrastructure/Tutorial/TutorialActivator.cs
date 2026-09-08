@@ -17,9 +17,9 @@ namespace EchoEdge.Infra.Tutorial
             Instance = this;
         }
 
-        public async UniTask StartTutorial()
+        public async UniTask StartTutorial(TutorialKinds kind)
         {
-            await _textBasePresenter.StartTutorial();
+            await _textBasePresenter.StartTutorial(kind);
         }
     }
 }

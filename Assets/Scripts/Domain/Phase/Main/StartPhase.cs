@@ -17,7 +17,6 @@ namespace EchoEdge.Domain.Phase
     {
         private static StartPhase _instance;
         public static StartPhase Instance => _instance ??= new StartPhase();
-        public const string TutorialCompletedKey = "TutorialCompleted";
 
         public async UniTask<IPhase> WaitPhase()
         {
@@ -58,14 +57,11 @@ namespace EchoEdge.Domain.Phase
             await UIPresenter.Instance.FadeInAsync();
 
             // 4. チュートリアルが未完了の場合はチュートリアルを開始する
-            var isTutorial = PlayerPrefs.GetInt(TutorialCompletedKey, 0);
-            if (isTutorial == 0)
+            if (TutorialSaveManager.TryBeginTutorial(TutorialKinds.FirstBattle))
             {
-                PlayerPrefs.SetInt(TutorialCompletedKey, 1);
-                PlayerPrefs.Save();
                 try
                 {
-                    await TutorialActivator.Instance.StartTutorial();
+                    await TutorialActivator.Instance.StartTutorial(TutorialKinds.FirstBattle);
                 }catch (System.Exception)
                 {
                     Debug.Log("チュートリアルを中止");

@@ -4,6 +4,7 @@ using UnityEngine;
 
 using EchoEdge.App.Battle;
 using EchoEdge.Infra.Camera;
+using EchoEdge.Infra.Tutorial;
 using EchoEdge.Presenter.Player;
 
 namespace EchoEdge.Domain.Phase
@@ -31,6 +32,17 @@ namespace EchoEdge.Domain.Phase
 
             // プレイヤーの攻撃開始時に追尾を開始する
             CameraManager.Instance.StartTracking(PlayerController.Instance.transform);
+            
+            if (TutorialSaveManager.TryBeginTutorial(TutorialKinds.QTE))
+            {
+                try
+                {
+                    await TutorialActivator.Instance.StartTutorial(TutorialKinds.QTE);
+                }catch (System.Exception)
+                {
+                    Debug.Log("チュートリアルを中止");
+                }
+            }
 
             await PlayerController.Instance.ExecuteAttack(rch.point);
 

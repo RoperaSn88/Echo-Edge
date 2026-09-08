@@ -8,6 +8,7 @@ using EchoEdge.Domain.Scene;
 using EchoEdge.Infra.Audio;
 using EchoEdge.Infra.Battle;
 using EchoEdge.Infra.Preparing;
+using EchoEdge.Infra.Tutorial;
 
 namespace EchoEdge.App.Scene
 {
@@ -19,7 +20,7 @@ namespace EchoEdge.App.Scene
             PlayerSwordParameterSaveManager.DeleteAllSavedData();
             AudioVolumeSaveManager.DeleteAllSavedData();
             StageProgressSaveManager.DeleteAllSavedData();
-            PlayerPrefs.DeleteKey(StartPhase.TutorialCompletedKey);
+            TutorialSaveManager.DeleteAllSavedData();
             PlayerPrefs.Save();
             
             SceneLoader.AdditiveLoadAsync(GameScene.Preparing).Forget();

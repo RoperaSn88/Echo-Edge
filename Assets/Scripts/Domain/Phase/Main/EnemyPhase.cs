@@ -5,6 +5,7 @@ using EchoEdge.App.Battle;
 using EchoEdge.Domain.Battle;
 using EchoEdge.Domain.UI;
 using EchoEdge.Infra.Camera;
+using EchoEdge.Infra.Tutorial;
 using EchoEdge.Presenter.UI;
 
 namespace EchoEdge.Domain.Phase
@@ -38,6 +39,18 @@ namespace EchoEdge.Domain.Phase
 
             _clickFlug = false;
             await TurnChangeView.Instance.ShowTurnChange(TurnChangeKinds.EnemyTurn);
+            
+            if (TutorialSaveManager.TryBeginTutorial(TutorialKinds.Enemy))
+            {
+                try
+                {
+                    await TutorialActivator.Instance.StartTutorial(TutorialKinds.Enemy);
+                }catch (System.Exception)
+                {
+                    Debug.Log("チュートリアルを中止");
+                }
+            }
+            
             EnemyPhaseStartActivator.ExecuteEnemyPhaseStartActions();
             BuildingManager.Instance?.ExecuteTurnStartActions();
             await MapManager.Instance.ExecuteTurnStartActions();
@@ -48,7 +61,18 @@ namespace EchoEdge.Domain.Phase
             // 耐久クリア条件などのターン経過ハンドラーを await する。
             // クリア成立ならクリア演出・シナリオ再生の完了までここで止まる。
             await DomainEventDispatcher.Dispatch(new TurnEndEvent());
-
+            
+            if (TutorialSaveManager.TryBeginTutorial(TutorialKinds.Final))
+            {
+                try
+                {
+                    await TutorialActivator.Instance.StartTutorial(TutorialKinds.Final);
+                }catch (System.Exception)
+                {
+                    Debug.Log("チュートリアルを中止");
+                }
+            }
+            
             return PlayerPhase.Instance;
         }
     }

@@ -5,6 +5,9 @@ using CommonUI.Tutorial.Views;
 using UnityEngine;
 using UnityEngine.UI;
 using Cysharp.Threading.Tasks;
+using EchoEdge.Infra.Tutorial;
+using EchoEdge.Utils;
+using UnityEngine.AddressableAssets;
 
 namespace CommonUI.Tutorial
 {
@@ -46,13 +49,30 @@ namespace CommonUI.Tutorial
         /// <summary>
         /// チュートリアルの表示を開始する
         /// </summary>
-        public async UniTask StartTutorial()
+        public async UniTask StartTutorial(TutorialKinds kind)
         {
+            await LoadAssetAsync(kind);
             _mouseClick = new MouseClick();
             _mouseClick.Enable();
+            _cts?.Cancel();
+            _cts?.Dispose();
+            _cts = new CancellationTokenSource();
             gameObject.SetActive(true);
             await ShowTutorialAsync(_cts.Token);
             _mouseClick.Disable();
+        }
+        
+        private async UniTask LoadAssetAsync(TutorialKinds kind)
+        {
+            var address = string.Format(EchoEdgeConstants.TextBoxMasterDataPath, kind.ToString());
+            var textData = await Addressables.LoadAssetAsync<TextBoxMasterData>(address);
+            
+            if (textData == null)
+            {
+                Debug.LogWarning($"テキストデータのロードに失敗しました。kind: {kind}");
+                return;
+            }
+            _textData = textData;
         }
 
         /// <summary>

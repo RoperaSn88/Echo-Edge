@@ -15,6 +15,11 @@ MonoBehaviour:
   m_GroupName: Default Local Group
   m_GUID: 66a1a5f39fa4bad43a571f3a47cc6f39
   m_SerializeEntries:
+  - m_GUID: 004d422e39388d64ab6f59855f991986
+    m_Address: Assets/Addressables/Tutorials/TextBoxMasterData_Enemy.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 05e9e6f847abcd340b99ecf4c8f6a849
     m_Address: Assets/Addressables/Audio/SE/Kill.wav
     m_ReadOnly: 0
@@ -47,6 +52,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 28f71623dea101146b65d1378caeb306
     m_Address: Assets/Addressables/StageWaves/StageLayout_4.csv
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 293131d3e7c69ec4e832107cb0818e03
+    m_Address: Assets/Addressables/Tutorials/TextBoxMasterData_QTE.asset
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -110,6 +120,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 89acf34e3a58fb64dade9d3be0f67539
+    m_Address: Assets/Addressables/Tutorials/TextBoxMasterData_FirstBattle.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 8df917bb434b8ed47932fb901f78cc5a
     m_Address: Assets/Addressables/WeaponModels/1.asset
     m_ReadOnly: 0
@@ -135,6 +150,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9f0eaa60d79a59249a6c9597048246f9
+    m_Address: Assets/Addressables/Tutorials/TextBoxMasterData_Final.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 9f1c5d68e3cf4054829effa7c1e30237
     m_Address: Assets/Addressables/StageWaves/WaveSet/StageWaveSet_5.asset
     m_ReadOnly: 0
@@ -157,6 +177,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: b06037061f9081442acc3c88feb1d86a
     m_Address: Assets/Addressables/Audio/SE/QTE.wav
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b0a2ec8cad3f2c548bd8e594c3e2c61f
+    m_Address: Assets/Addressables/Tutorials/TextBoxMasterData_Reflect.asset
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
