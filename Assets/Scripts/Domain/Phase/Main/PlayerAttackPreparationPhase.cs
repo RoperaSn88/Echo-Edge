@@ -45,6 +45,8 @@ namespace EchoEdge.Domain.Phase
             // 初期条件
             _clickFlug = false;
             _attackGuideLine.SetMaterial(PlayerController.Instance.LineMaterial);
+            // 真上視点への遷移。トゥイーン半分経過時に直交投影＋敵スプライトの寝かせへ切り替わる。
+            // 復帰（透視投影・スプライト復帰）は ActMoveCameraToDefault 側で行う。
             CameraManager.Instance.ActMoveCameraToTopAngle();
 
             // 通常・一閃の切り替え状態はPlayerAttackPreparationViewModelを唯一のデータソースとする
@@ -84,6 +86,8 @@ namespace EchoEdge.Domain.Phase
             {
                 case ClickKinds.Left:
                     // 攻撃の種類（通常・一閃、反射・貫通・爆発）の切り替えはPlayerController側で一元管理する。
+                    // 透視投影・敵スプライトの復帰は、次の PlayerAttackPhase 冒頭の
+                    // ActMoveCameraToDefault によってトゥイーン半分経過時に行われる。
                     return PlayerAttackPhase.Instance;
                 case ClickKinds.Right:
                     await CameraManager.Instance.ActMoveCameraToDefault();

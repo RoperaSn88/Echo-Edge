@@ -43,6 +43,45 @@ namespace EchoEdge.Presenter.Battle
         private Vector3 _rendererBaseLocalPosition;
         private bool _rendererBaseLocalPositionCaptured;
 
+        /// <summary>
+        /// prefab 時点の sprite のローカル回転。真上視点用に寝かせた後はこの値へ戻す。
+        /// </summary>
+        private Quaternion _rendererBaseLocalRotation = Quaternion.identity;
+        private bool _rendererBaseLocalRotationCaptured;
+
+        /// <summary>
+        /// 真上視点(一閃準備フェーズ)で敵を見やすくするために sprite を寝かせる角度。
+        /// </summary>
+        private static readonly Quaternion TopDownSpriteLocalRotation = Quaternion.Euler(90f, 0f, 0f);
+
+        /// <summary>
+        /// 真上視点で寝かせる際、併せて画面下方向へずらす固定オフセット。
+        /// 真上カメラでは Y 移動は視線軸方向で見えないためローカル Z（画面の上下）で下げる。
+        /// また sprite 子の localPosition は Animator(Write Defaults)に毎フレーム固定されるため、
+        /// この移動はルート Transform 側に掛ける。
+        /// </summary>
+        private const float TopDownDownwardOffset = 0.59f;
+
+        /// <summary>
+        /// 真上視点の寝かせ＋下げをトゥイーンさせる時間。
+        /// </summary>
+        private const float TopDownPoseTweenTime = 0.25f;
+
+        /// <summary>
+        /// 真上視点の寝かせ＋下げのトゥイーン（sprite 回転とルート Z 移動を同時再生）。切り替え時に前のものを止める。
+        /// </summary>
+        private Tween _topDownPoseTween;
+
+        /// <summary>
+        /// 真上視点へ入る直前のルート localPosition.z。抜けるときはここへ戻す。
+        /// </summary>
+        private float _rootPreTopDownLocalY;
+
+        /// <summary>
+        /// 真上視点用の寝かせ＋下げが適用中かどうか。
+        /// </summary>
+        private bool _isTopDownSpriteActive;
+
         [SerializeField]
         private CanvasGroup _canvasGroup;
 
@@ -144,6 +183,13 @@ namespace EchoEdge.Presenter.Battle
                 var color = _renderer.color;
                 color.a = 1f;
                 _renderer.color = color;
+
+                // プール再利用時に、前回の真上視点の寝かせ・下げが残らないよう prefab 時点の向きへ戻す
+                // （下げオフセットの座標は直後の ApplySpriteOffset で上書きされる）
+                _topDownPoseTween?.Kill();
+                _isTopDownSpriteActive = false;
+                CaptureRendererBaseLocalRotation();
+                _renderer.transform.localRotation = _rendererBaseLocalRotation;
             }
 
             _healthBar.fillAmount = 1f;
@@ -178,6 +224,51 @@ namespace EchoEdge.Presenter.Battle
             }
 
             spriteTransform.localPosition = _rendererBaseLocalPosition + new Vector3(0f, offset, 0f);
+        }
+
+        /// <summary>
+        /// prefab 時点の sprite ローカル回転を一度だけ記録する。
+        /// </summary>
+        private void CaptureRendererBaseLocalRotation()
+        {
+            if (_renderer == null || _rendererBaseLocalRotationCaptured) return;
+
+            _rendererBaseLocalRotation = _renderer.transform.localRotation;
+            _rendererBaseLocalRotationCaptured = true;
+        }
+
+        /// <summary>
+        /// 真上視点フェーズ(一閃準備)用に sprite を寝かせる／prefab 時点の向きへ戻す。
+        /// sprite の回転（X=90°）と、ルート Transform を固定オフセット分ローカル Z 方向へ下げる移動を、
+        /// 同時にトゥイーンで行う。
+        /// </summary>
+        /// <param name="enable">true で寝かせて下げる、false で元の向き・位置へ戻す</param>
+        public void SetTopDownSpritePose(bool enable)
+        {
+            if (_renderer == null || _isTopDownSpriteActive == enable) return;
+            _isTopDownSpriteActive = enable;
+
+            CaptureRendererBaseLocalRotation();
+            var spriteTransform = _renderer.transform;
+            _topDownPoseTween?.Kill();
+
+            Quaternion targetRotation;
+            float targetRootLocalY;
+            if (enable)
+            {
+                targetRotation = TopDownSpriteLocalRotation;
+                _rootPreTopDownLocalY = transform.localPosition.y;
+                targetRootLocalY = _rootPreTopDownLocalY - TopDownDownwardOffset;
+            }
+            else
+            {
+                targetRotation = _rendererBaseLocalRotation;
+                targetRootLocalY = _rootPreTopDownLocalY;
+            }
+
+            _topDownPoseTween = DOTween.Sequence()
+                .Join(spriteTransform.DOLocalRotateQuaternion(targetRotation, TopDownPoseTweenTime).SetEase(Ease.OutQuad))
+                .Join(transform.DOLocalMoveY(targetRootLocalY, TopDownPoseTweenTime).SetEase(Ease.OutQuad));
         }
 
         /// <summary>

@@ -53,6 +53,25 @@ namespace EchoEdge.Presenter.Battle
             unit.SetView(view);
         }
 
+        /// <summary>
+        /// マップ上で稼働中の全ユニット View の sprite を、真上視点用に寝かせて下げる／元へ戻す。
+        /// 一閃準備フェーズの開始・終了時に呼ぶ。
+        /// </summary>
+        /// <param name="enable">true で寝かせて下げる、false で元へ戻す</param>
+        public void SetUnitsTopDownSpritePose(bool enable)
+        {
+            if (unitsParent == null) return;
+
+            foreach (Transform child in unitsParent)
+            {
+                if (!child.gameObject.activeSelf) continue;
+                if (child.TryGetComponent<BaseUnitView>(out var view))
+                {
+                    view.SetTopDownSpritePose(enable);
+                }
+            }
+        }
+
         public void ReturnView(BaseUnitView view)
         {
             if (view == null) return;

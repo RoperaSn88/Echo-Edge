@@ -7,6 +7,8 @@ using DG.Tweening;
 using System;
 using UnityEngine.InputSystem.Composites;
 
+using EchoEdge.Presenter.Battle;
+
 namespace EchoEdge.Infra.Camera
 {
     public class CameraManager : MonoBehaviour
@@ -36,6 +38,17 @@ namespace EchoEdge.Infra.Camera
         private CinemachineCamera _cinemachineCamera;
 
         private CinemachineThirdPersonFollow _cinemachineThirdPersonFollow;
+
+        /// <summary>
+        /// vcam の Lens.ModeOverride を実際のカメラへ反映させるための Brain 参照
+        /// </summary>
+        private CinemachineBrain _cinemachineBrain;
+
+        /// <summary>
+        /// 真上視点の照準ビュー(直交投影＋敵スプライトの寝かせ)が適用中かどうか。
+        /// <see cref="EnterTopDownAimView"/> / <see cref="ExitTopDownAimView"/> だけが更新する。
+        /// </summary>
+        private bool _topDownAimViewActive;
 
         /// <summary>
         /// カメラが移動中のフラグ
@@ -426,6 +439,9 @@ namespace EchoEdge.Infra.Camera
                 TokenTime)
                 .SetEase(Ease.OutQuad);
 
+            // トゥイーンが半分経過したところで、真上視点の照準ビュー（直交投影＋敵スプライトの寝かせ）へ入る
+            EnterTopDownAimViewAtMidpoint(ct).Forget();
+
             try
             {
                 await UniTask.WhenAll(
@@ -469,9 +485,94 @@ namespace EchoEdge.Infra.Camera
             }
         }
 
+        /// <summary>
+        /// 真上視点への遷移トゥイーンが半分経過したところで <see cref="EnterTopDownAimView"/> を呼ぶ。
+        /// 遷移が別のカメラ操作で中断された場合（ct キャンセル）は何もしない。
+        /// </summary>
+        private async UniTask EnterTopDownAimViewAtMidpoint(CancellationToken ct)
+        {
+            if (await DelayTweenMidpoint(ct))
+            {
+                EnterTopDownAimView();
+            }
+        }
+
+        /// <summary>
+        /// カメラ遷移トゥイーンの半分の時間だけ待つ。キャンセルされたら false を返す。
+        /// </summary>
+        private static async UniTask<bool> DelayTweenMidpoint(CancellationToken ct)
+        {
+            try
+            {
+                await UniTask.Delay(TimeSpan.FromSeconds(TokenTime * 0.5f), cancellationToken: ct);
+                return true;
+            }
+            catch (OperationCanceledException)
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 真上視点の照準ビュー（カメラを直交投影にし、敵スプライトを寝かせて見やすくする）へ入る。
+        /// 適用済みなら何もしない。
+        /// </summary>
+        private void EnterTopDownAimView()
+        {
+            if (_topDownAimViewActive) return;
+            _topDownAimViewActive = true;
+
+            var brain = ResolveBrain();
+            if (brain != null)
+            {
+                // これを有効にしないと vcam 側の Lens.ModeOverride が実カメラへ反映されない
+                brain.LensModeOverride.Enabled = true;
+            }
+            _cinemachineCamera.Lens.ModeOverride = LensSettings.OverrideModes.Orthographic;
+
+            if (UnitSpawner.Instance != null)
+            {
+                UnitSpawner.Instance.SetUnitsTopDownSpritePose(true);
+            }
+        }
+
+        /// <summary>
+        /// 真上視点の照準ビューから抜け、透視投影・敵スプライトの向きを元へ戻す。
+        /// 適用されていなければ何もしない。ActMoveCameraToDefault 以外の経路で
+        /// 真上視点フェーズを抜けたときの後始末にも使う。
+        /// </summary>
+        private void ExitTopDownAimView()
+        {
+            if (!_topDownAimViewActive) return;
+            _topDownAimViewActive = false;
+
+            _cinemachineCamera.Lens.ModeOverride = LensSettings.OverrideModes.Perspective;
+
+            if (UnitSpawner.Instance != null)
+            {
+                UnitSpawner.Instance.SetUnitsTopDownSpritePose(false);
+            }
+        }
+
+        /// <summary>
+        /// 現在アクティブな CinemachineBrain を取得する（取得できるまで遅延解決する）。
+        /// </summary>
+        private CinemachineBrain ResolveBrain()
+        {
+            if (_cinemachineBrain == null && CinemachineBrain.ActiveBrainCount > 0)
+            {
+                _cinemachineBrain = CinemachineBrain.GetActiveBrain(0);
+            }
+
+            return _cinemachineBrain;
+        }
+
         private async UniTask MoveCameraToDefault(CancellationToken ct)
         {
             _cameraMoving = true;
+            
+            // トゥイーンが半分経過したところで、真上視点の照準ビューから抜ける（透視投影＋敵スプライトの復帰）
+            ExitTopDownAimView();
 
             var cameraTween = DOTween.To(()=>_cinemachineThirdPersonFollow.CameraDistance,
                 d => _cinemachineThirdPersonFollow.CameraDistance = d, 
@@ -492,8 +593,8 @@ namespace EchoEdge.Infra.Camera
                 .SetEase(Ease.OutQuad);
 
             var rotationTween = DOTween.To(()=>_defaultCameraPos.rotation.eulerAngles,
-                pos => _defaultCameraPos.rotation = Quaternion.Euler(pos), 
-                new Vector3(DefaultCameraAngle,0,0), 
+                pos => _defaultCameraPos.rotation = Quaternion.Euler(pos),
+                new Vector3(DefaultCameraAngle,0,0),
                 TokenTime)
                 .SetEase(Ease.OutQuad);
 
@@ -521,6 +622,10 @@ namespace EchoEdge.Infra.Camera
         /// </summary>
         public async UniTask ActPlayerWeaponZoom(Vector3 target)
         {
+            // このズームは真上視点フェーズ（装備品フェーズ右クリック）から直接遷移してくるため、
+            // ActMoveCameraToDefault を経由しない。ここで照準ビューを畳んでおく。
+            ExitTopDownAimView();
+
             // カメラが動いている最中ならばキャンセル
             if (_cameraMoving)
             {
