@@ -14,5 +14,9 @@ namespace EchoEdge.Domain.Scene
         /// リタイア
         /// </summary>
         Retire,
+        
+        Reset,
+        
+        Invalid
     }
 }

@@ -1,6 +1,7 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
+using EchoEdge.Domain.Battle;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -73,6 +74,15 @@ namespace EchoEdge.App.Scene
         /// </summary>
         [SerializeField]
         private Button _closeButton;
+        
+        /// <summary>
+        /// リセットボタン
+        /// </summary>
+        [SerializeField]
+        private Button _resetButton;
+        
+        [SerializeField]
+        private TextMeshProUGUI _resetButtonText;
 
         private Vector2 _onScreenAnchoredPosition;
         private bool _closeRequested;
@@ -133,6 +143,7 @@ namespace EchoEdge.App.Scene
 
             // リタイアテキストの有効・無効設定
             SetRetireInteractable(canRetire);
+            SetResetButtonInteractable(!canRetire);
 
             // スライダーを現在の音量で初期化
             InitializeSliders();
@@ -147,6 +158,7 @@ namespace EchoEdge.App.Scene
             _retireRequested = false;
             _closeButton.onClick.AddListener(OnCloseClicked);
             if (canRetire) _retireButton.onClick.AddListener(OnRetireClicked);
+            if (!canRetire) _resetButton.onClick.AddListener(OnReset);
 
             // グループを画面外（左）からスライドイン
             var offScreenPosition = GetOffScreenAnchoredPosition();
@@ -166,6 +178,7 @@ namespace EchoEdge.App.Scene
             _seVolumeSlider.onValueChanged.RemoveListener(OnSeVolumeChanged);
             _closeButton.onClick.RemoveListener(OnCloseClicked);
             if (canRetire) _retireButton.onClick.RemoveListener(OnRetireClicked);
+            if (!canRetire) _resetButton.onClick.RemoveAllListeners();
 
             var result = _retireRequested ? OptionResult.Retire : OptionResult.Close;
 
@@ -197,6 +210,20 @@ namespace EchoEdge.App.Scene
                     var textColor = _retireText.color;
                     textColor.a = RetireDisabledAlpha;
                     _retireText.color = textColor;
+                }
+            }
+        }
+        
+        private void SetResetButtonInteractable(bool canReset)
+        {
+            _resetButton.interactable = canReset;
+            if (!canReset)
+            {
+                if (_resetButtonText != null)
+                {
+                    var textColor = _resetButtonText.color;
+                    textColor.a = RetireDisabledAlpha;
+                    _resetButtonText.color = textColor;
                 }
             }
         }
@@ -244,6 +271,11 @@ namespace EchoEdge.App.Scene
         private static void OnSeVolumeChanged(float value)
         {
             AudioManager.Instance?.SetSeVolume(value);
+        }
+
+        private static void OnReset()
+        {
+            EventResetService.Reset();
         }
     }
 }

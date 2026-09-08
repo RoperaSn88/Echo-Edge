@@ -29,6 +29,16 @@ namespace EchoEdge.Presenter.Battle
         UniTask Move(int y, int x);
 
         /// <summary>
+        /// 近距離攻撃時にプレイヤーの手前まで踏み込む
+        /// </summary>
+        UniTask ApproachPlayerForAttack();
+
+        /// <summary>
+        /// 踏み込む前の位置へ戻る
+        /// </summary>
+        UniTask ReturnFromApproach();
+
+        /// <summary>
         /// HPゲージの透明度を設定する
         /// </summary>
         /// <param name="value">透明度の値（0〜1）</param>

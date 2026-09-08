@@ -17,7 +17,7 @@ namespace EchoEdge.Domain.Preparing
         /// <summary>
         /// 用意されているステージの最大値
         /// </summary>
-        public const int MaxLevel = 10;
+        public const int MaxLevel = 6;
 
         /// <summary>
         /// ステージのレベル

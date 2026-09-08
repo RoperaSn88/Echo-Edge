@@ -114,9 +114,27 @@ namespace EchoEdge.Domain.Battle
                 _unitAction.BeforeAttack()
             );
 
-            await _view.WaitAttackAnim();
+            // 近距離(Width == 0)の敵はプレイヤーの手前まで踏み込んでから攻撃する
+            var shouldApproach = Width == 0;
+            if (shouldApproach)
+            {
+                await _view.ApproachPlayerForAttack();
+            }
 
-            await _unitAction.Attack();
+            try
+            {
+                await _view.WaitAttackAnim();
+
+                await _unitAction.Attack();
+            }
+            finally
+            {
+                // 踏み込んでいた場合は元の位置へ戻る（攻撃が中断されても戻す）
+                if (shouldApproach)
+                {
+                    await _view.ReturnFromApproach();
+                }
+            }
         }
 
         public async UniTask Specific()

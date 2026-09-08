@@ -10,6 +10,7 @@ using EchoEdge.Domain.Battle;
 using EchoEdge.Infra.Audio;
 using EchoEdge.Infra.Battle;
 using EchoEdge.Infra.Camera;
+using EchoEdge.Presenter.Player;
 using EchoEdge.Presenter.UI;
 using EchoEdge.Presenter.VFX;
 
@@ -69,6 +70,26 @@ namespace EchoEdge.Presenter.Battle
         private const float DeadFadeTime = 0.5f;
 
         /// <summary>
+        /// 近距離攻撃時にプレイヤーの手前へ踏み込む際、プレイヤーとの間に空けるワールド距離
+        /// </summary>
+        private const float ApproachGap = 1.2f;
+
+        /// <summary>
+        /// 踏み込み・後退の移動時間
+        /// </summary>
+        private const float ApproachMoveTime = 0.25f;
+
+        /// <summary>
+        /// 踏み込む直前のワールド座標。攻撃終了後にここへ戻る。
+        /// </summary>
+        private Vector3 _preApproachPosition;
+
+        /// <summary>
+        /// 現在プレイヤーの手前へ踏み込んでいるか
+        /// </summary>
+        private bool _hasApproachedForAttack;
+
+        /// <summary>
         /// ダメージ反映中のヒットストップに使う TimeScale
         /// </summary>
         private const float DamageHitStopTimeScale = 0.001f;
@@ -117,6 +138,7 @@ namespace EchoEdge.Presenter.Battle
             width = w;
             _isDeath = false;
             _animationFlag = false;
+            _hasApproachedForAttack = false;
             if (_renderer != null)
             {
                 var color = _renderer.color;
@@ -175,6 +197,34 @@ namespace EchoEdge.Presenter.Battle
             // 位置を更新する
             height = y;
             width = x;
+        }
+
+        /// <summary>
+        /// 近距離(Width==0)攻撃時に、自分の行・高さは保ったままプレイヤーの手前まで踏み込む。
+        /// </summary>
+        public virtual async UniTask ApproachPlayerForAttack()
+        {
+            var player = PlayerController.Instance;
+            if (player == null || player.PlayerTransform == null) return;
+
+            _preApproachPosition = transform.position;
+            _hasApproachedForAttack = true;
+
+            var playerPos = player.PlayerTransform.position;
+            var target = new Vector3(playerPos.x + ApproachGap, _preApproachPosition.y, _preApproachPosition.z);
+
+            await transform.DOMove(target, ApproachMoveTime).SetEase(Ease.OutQuad);
+        }
+
+        /// <summary>
+        /// <see cref="ApproachPlayerForAttack"/> で踏み込む前の位置へ戻る。踏み込んでいなければ何もしない。
+        /// </summary>
+        public virtual async UniTask ReturnFromApproach()
+        {
+            if (!_hasApproachedForAttack) return;
+            _hasApproachedForAttack = false;
+
+            await transform.DOMove(_preApproachPosition, ApproachMoveTime).SetEase(Ease.OutQuad);
         }
 
         /// <summary>
