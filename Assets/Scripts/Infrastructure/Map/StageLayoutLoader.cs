@@ -117,7 +117,8 @@ namespace EchoEdge.Infra.Map
                     objectKind = objectKind,
                     height = height,
                     width = width,
-                    enemyKind = EnemyKinds.Invalid
+                    enemyKind = EnemyKinds.Invalid,
+                    level = 0
                 };
 
                 if (objectKind == StageObjectKind.Unit)
@@ -141,6 +142,13 @@ namespace EchoEdge.Infra.Map
                     }
 
                     placement.enemyKind = enemyKind;
+
+                    // レベル列（任意・最終列）。ステージごとの難易度調整に使う。
+                    // 未記載・空欄・0 以下・不正な値の場合は 0（等倍）とする（後方互換のため）。
+                    if (cols.Length >= 5 && int.TryParse(cols[4].Trim(), out int level) && level > 0)
+                    {
+                        placement.level = level;
+                    }
                 }
 
                 placements.Add(placement);

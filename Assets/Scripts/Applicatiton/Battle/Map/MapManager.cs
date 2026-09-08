@@ -88,7 +88,7 @@ namespace EchoEdge.App.Battle
                     // サイズはあらかじめCSVから取得しておく（2x2など複数マスを占有するエネミー対応）。
                     var size = await EnemyStatusLoader.TryLoadSize((int)placement.enemyKind);
                     var unit = UnitFactory.Create(placement.enemyKind, placement.height, placement.width, size);
-                    await unit.LoadStatus(placement.enemyKind);
+                    await unit.LoadStatus(placement.enemyKind, placement.level);
                     UnitSpawner.Instance.SpawnView(unit, placement.enemyKind);
                 }
             }

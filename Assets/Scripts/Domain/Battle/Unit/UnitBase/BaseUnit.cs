@@ -44,9 +44,13 @@ namespace EchoEdge.Domain.Battle
         /// CSV から エネミー ID に対応するステータスを読み込む
         /// </summary>
         /// <param name="enemyId">EnemyInfo.csv の ID</param>
-        public async UniTask LoadStatus(EnemyKinds enemyId)
+        /// <param name="level">
+        /// ステージごとの難易度調整に使うレベル。1 以上で HP / Attack / Defend に補正がかかる。
+        /// 0 以下（既定）なら補正なし。
+        /// </param>
+        public async UniTask LoadStatus(EnemyKinds enemyId, int level = 0)
         {
-            var status = await EnemyStatusLoader.TryLoad((int)enemyId);
+            var status = await EnemyStatusLoader.TryLoad((int)enemyId, level);
             if (status == null)
             {
                 Debug.LogWarning($"enemyId {(int)enemyId} のステータスを読み込めませんでした。デフォルトステータスで起動します。");

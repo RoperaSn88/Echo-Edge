@@ -27,5 +27,10 @@ namespace EchoEdge.Domain.Map
         /// ユニット種別（壁の場合は Invalid）
         /// </summary>
         public EnemyKinds enemyKind;
+
+        /// <summary>
+        /// レベル（ステージごとの難易度調整用。0 以下は等倍。壁の場合は未使用）
+        /// </summary>
+        public int level;
     }
 }

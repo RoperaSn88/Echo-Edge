@@ -58,8 +58,12 @@ namespace EchoEdge.Infra.Battle
         /// 指定した ID に対応するパラメータを EnemyInfo.csv から読み取り、BattleStatus に反映する
         /// </summary>
         /// <param name="id">読み取る行の ID</param>
+        /// <param name="level">
+        /// ステージごとの難易度調整に使うレベル。1 以上を指定すると HP / Attack / Defend にレベル補正をかける。
+        /// 0 以下（既定）の場合は補正なし（CSV の値をそのまま使う）。
+        /// </param>
         /// <returns>読み取りに成功した場合は true</returns>
-        public static async UniTask<BattleStatus> TryLoad(int id)
+        public static async UniTask<BattleStatus> TryLoad(int id, int level = 0)
         {
             var cache = await GetCacheAsync();
 
@@ -81,7 +85,19 @@ namespace EchoEdge.Infra.Battle
                 int energy      = int.Parse(cols[7].Trim());
                 var size        = ParseSize(cols);
 
+                if (level > 0)
+                {
+                    // ステージごとの難易度をレベルで調整する。Move は補正しない。
+                    hp     = ApplyLevelScaling(hp, level, 100);
+                    attack = ApplyLevelScaling(attack, level, 150);
+                    defend = ApplyLevelScaling(defend, level, 150);
+                }
+
                 var status = new BattleStatus(hp, attack, defend, move, movePattern, experience, energy, size);
+                if (level > 0)
+                {
+                    status.SetLevel(level);
+                }
                 return status;
             }
             catch (Exception e)
@@ -89,6 +105,18 @@ namespace EchoEdge.Infra.Battle
                 Debug.LogError($"EnemyInfo.csv の ID {id} の行を解析できませんでした: {e.Message}");
                 return null;
             }
+        }
+
+        /// <summary>
+        /// パラメータにレベル補正をかける。
+        /// 補正式: value + floor((value / divisor) * level) + level
+        /// </summary>
+        /// <param name="value">補正前のパラメータ値</param>
+        /// <param name="level">レベル（1 以上）</param>
+        /// <param name="divisor">レベルあたりの増分を決める除数（HP は 100、Attack / Defend は 150）</param>
+        private static int ApplyLevelScaling(int value, int level, int divisor)
+        {
+            return value + Mathf.FloorToInt((value / (float)divisor) * level) + level;
         }
 
         /// <summary>
