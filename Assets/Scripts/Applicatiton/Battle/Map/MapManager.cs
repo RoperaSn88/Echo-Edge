@@ -160,6 +160,30 @@ namespace EchoEdge.App.Battle
         }
 
         /// <summary>
+        /// 移動先マス自身の重みを算出する。
+        /// そのマスの前1マス（左方向）・上1マス・下1マスの3マスを見て、
+        /// 壁が無いマスの個数分だけ重みを+1する（最大+3）。
+        /// マップ範囲外は壁があるものとして扱う。
+        /// </summary>
+        private int GetCellWeight(int h, int w)
+        {
+            var weight = 0;
+            if (!HasWall(h, w - 1)) weight++; // 前1マス（左方向）
+            if (!HasWall(h - 1, w)) weight++; // 上1マス
+            if (!HasWall(h + 1, w)) weight++; // 下1マス
+            return weight;
+        }
+
+        /// <summary>
+        /// 指定座標に壁（building）があるかどうかを判定する。範囲外は壁があるものとして扱う。
+        /// </summary>
+        private bool HasWall(int h, int w)
+        {
+            if (!IsInBounds(h, w)) return true;
+            return _mapGrid[h, w] is building;
+        }
+
+        /// <summary>
         /// 指定座標のユニットを削除します（座標が有効なら null を代入）。
         /// </summary>
         public void RemoveUnitAt(int h, int w)
@@ -254,7 +278,7 @@ namespace EchoEdge.App.Battle
                             if (!IsInBounds(nextH, nextW)) continue;
                             if (_mapGrid[nextH, nextW] != null) continue;
 
-                            var candidate = baseScore + dirScore[dir];
+                            var candidate = baseScore + dirScore[dir] + GetCellWeight(nextH, nextW);
                             if (candidate <= scoreByStep[step, nextH, nextW]) continue;
 
                             scoreByStep[step, nextH, nextW] = candidate;
