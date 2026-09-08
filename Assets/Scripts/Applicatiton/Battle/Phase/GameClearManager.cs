@@ -79,6 +79,17 @@ namespace EchoEdge.App.Battle
             _isClear = isClear;
         }
 
+        /// <summary>
+        /// 新しいバトル（MainGame シーン）の開始時に、前回のクリア演出シーケンスの状態をリセットする。
+        /// これを呼ばないと <see cref="IsGameClearSequenceRunning"/> が true のまま残り、
+        /// 2 回目以降の PhaseManager がフェーズループへ入らず、バトルが始まらない。
+        /// </summary>
+        public static void ResetGameClearSequenceState()
+        {
+            _gameClearAsyncStarted = false;
+            _isClear = false;
+        }
+
         public static bool GameClearCondition()
         {
             if (IsClear && WaveManager.HasNextWave) return true;
@@ -146,10 +157,16 @@ namespace EchoEdge.App.Battle
 
             EnhancementManager.AddStone(1);
 
-            await ScenarioStageLoader.PlayCurrentAfterStageScenarioAsync();
+            // 戻り値が true のときは Scenario シーンがロード済みなので、呼び出し側で必ずアンロードする
+            // （スキップ・通常終了どちらの経路でも Scenario シーンは残るため）。
+            var scenarioLoaded = await ScenarioStageLoader.PlayCurrentAfterStageScenarioAsync();
 
             // 6. MainGameをアンロードし、Preparingシーンを読み込む
             await SceneLoader.AdditiveLoadAsync(GameScene.Preparing);
+            if (scenarioLoaded)
+            {
+                SceneLoader.Unload(GameScene.Scenario);
+            }
             SceneLoader.Unload(GameScene.MainGame);
         }
 

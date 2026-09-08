@@ -131,6 +131,8 @@ namespace EchoEdge.App.Preparing
             c.a = 1f;
             _panel.color = c;
 
+            bool isFirstSelectableGroupActive = false;
+
             // タイトルコール（タイトルロゴ表示・Press Any Key待ち）はゲーム起動時
             // （同一起動中で最初に Preparing シーンへ来たとき）のみ行う。
             // MainGame から Preparing シーンへ戻ってきた場合など、2 回目以降は
@@ -149,11 +151,18 @@ namespace EchoEdge.App.Preparing
                     Debug.LogWarning("TitleLogoPresenter が設定されていません。タイトルロゴの表示をスキップします。");
                 }
             }
+            else
+            {
+                isFirstSelectableGroupActive = true;
+                presentTask = ShowFirstSelectableGroup();
+            }
 
             await UniTask.WhenAll(_panel.DOFade(0f, FadeTime).ToUniTask(), presentTask);
+            if (!isFirstSelectableGroupActive)
+            {
+                await ShowFirstSelectableGroup();
+            }
             _panel.gameObject.SetActive(false);
-
-            await ShowFirstSelectableGroup();
 
             Selecting().Forget();
         }
