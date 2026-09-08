@@ -126,20 +126,20 @@ namespace EchoEdge.App.Preparing
 
             await AudioManager.Instance.PlayBgm(BgmAudioType.Title, true);
 
-            // タイトルコールはゲーム起動時（同一起動中で最初に Preparing シーンへ来たとき）のみ表示する。
-            // MainGame から Preparing シーンへ戻ってきた場合など、2 回目以降はタイトルコールを省略し、
-            // いきなり選択肢（FirstSelect）を表示する。
+            _panel.gameObject.SetActive(true);
+            var c = _panel.color;
+            c.a = 1f;
+            _panel.color = c;
+
+            // タイトルコール（タイトルロゴ表示・Press Any Key待ち）はゲーム起動時
+            // （同一起動中で最初に Preparing シーンへ来たとき）のみ行う。
+            // MainGame から Preparing シーンへ戻ってきた場合など、2 回目以降は
+            // タイトルコールだけを省略する（パネルのフェードイン・アウトは毎回どおり行う）。
+            UniTask presentTask = default;
             if (!_hasPresentedTitleCall)
             {
                 _hasPresentedTitleCall = true;
 
-                _panel.gameObject.SetActive(true);
-                var c = _panel.color;
-                c.a = 1f;
-                _panel.color = c;
-
-                UniTask presentTask = default;
-                // タイトルロゴを表示し、何らかの操作を受け付けてから選択肢を出現させる
                 if (_titleLogoPresenter != null)
                 {
                     presentTask = _titleLogoPresenter.PresentAsync();
@@ -148,10 +148,10 @@ namespace EchoEdge.App.Preparing
                 {
                     Debug.LogWarning("TitleLogoPresenter が設定されていません。タイトルロゴの表示をスキップします。");
                 }
-
-                await UniTask.WhenAll(_panel.DOFade(0f, FadeTime).ToUniTask(), presentTask);
-                _panel.gameObject.SetActive(false);
             }
+
+            await UniTask.WhenAll(_panel.DOFade(0f, FadeTime).ToUniTask(), presentTask);
+            _panel.gameObject.SetActive(false);
 
             await ShowFirstSelectableGroup();
 
