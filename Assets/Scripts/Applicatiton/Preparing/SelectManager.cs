@@ -22,6 +22,14 @@ namespace EchoEdge.App.Preparing
     {
         public static SelectManager Instance;
 
+        /// <summary>
+        /// タイトルコール（タイトルロゴ表示）をゲーム起動時に表示済みかどうか。
+        /// static のため、MainGame から Preparing シーンへ戻ってきた場合など、
+        /// 同一起動中に Preparing シーンへ再度遷移してきた際は再表示されない。
+        /// アプリケーションを再起動すると false に戻り、次回起動時に再びタイトルコールが表示される。
+        /// </summary>
+        private static bool _hasPresentedTitleCall = false;
+
         private const float FadeTime = 2.0f;
 
         /// <summary>
@@ -118,24 +126,32 @@ namespace EchoEdge.App.Preparing
 
             await AudioManager.Instance.PlayBgm(BgmAudioType.Title, true);
 
-            _panel.gameObject.SetActive(true);
-            var c = _panel.color;
-            c.a = 1f;
-            _panel.color = c;
-
-            UniTask presentTask = default;
-            // タイトルロゴを表示し、何らかの操作を受け付けてから選択肢を出現させる
-            if (_titleLogoPresenter != null)
+            // タイトルコールはゲーム起動時（同一起動中で最初に Preparing シーンへ来たとき）のみ表示する。
+            // MainGame から Preparing シーンへ戻ってきた場合など、2 回目以降はタイトルコールを省略し、
+            // いきなり選択肢（FirstSelect）を表示する。
+            if (!_hasPresentedTitleCall)
             {
-                presentTask = _titleLogoPresenter.PresentAsync();
-            }
-            else
-            {
-                Debug.LogWarning("TitleLogoPresenter が設定されていません。タイトルロゴの表示をスキップします。");
-            }
+                _hasPresentedTitleCall = true;
 
-            await UniTask.WhenAll(_panel.DOFade(0f,FadeTime).ToUniTask(), presentTask);
-            _panel.gameObject.SetActive(false);
+                _panel.gameObject.SetActive(true);
+                var c = _panel.color;
+                c.a = 1f;
+                _panel.color = c;
+
+                UniTask presentTask = default;
+                // タイトルロゴを表示し、何らかの操作を受け付けてから選択肢を出現させる
+                if (_titleLogoPresenter != null)
+                {
+                    presentTask = _titleLogoPresenter.PresentAsync();
+                }
+                else
+                {
+                    Debug.LogWarning("TitleLogoPresenter が設定されていません。タイトルロゴの表示をスキップします。");
+                }
+
+                await UniTask.WhenAll(_panel.DOFade(0f, FadeTime).ToUniTask(), presentTask);
+                _panel.gameObject.SetActive(false);
+            }
 
             await ShowFirstSelectableGroup();
 
