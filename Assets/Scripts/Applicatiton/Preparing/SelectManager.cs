@@ -22,6 +22,14 @@ namespace EchoEdge.App.Preparing
     {
         public static SelectManager Instance;
 
+        /// <summary>
+        /// タイトルコール（タイトルロゴ表示）をゲーム起動時に表示済みかどうか。
+        /// static のため、MainGame から Preparing シーンへ戻ってきた場合など、
+        /// 同一起動中に Preparing シーンへ再度遷移してきた際は再表示されない。
+        /// アプリケーションを再起動すると false に戻り、次回起動時に再びタイトルコールが表示される。
+        /// </summary>
+        private static bool _hasPresentedTitleCall = false;
+
         private const float FadeTime = 2.0f;
 
         /// <summary>
@@ -123,18 +131,26 @@ namespace EchoEdge.App.Preparing
             c.a = 1f;
             _panel.color = c;
 
+            // タイトルコール（タイトルロゴ表示・Press Any Key待ち）はゲーム起動時
+            // （同一起動中で最初に Preparing シーンへ来たとき）のみ行う。
+            // MainGame から Preparing シーンへ戻ってきた場合など、2 回目以降は
+            // タイトルコールだけを省略する（パネルのフェードイン・アウトは毎回どおり行う）。
             UniTask presentTask = default;
-            // タイトルロゴを表示し、何らかの操作を受け付けてから選択肢を出現させる
-            if (_titleLogoPresenter != null)
+            if (!_hasPresentedTitleCall)
             {
-                presentTask = _titleLogoPresenter.PresentAsync();
-            }
-            else
-            {
-                Debug.LogWarning("TitleLogoPresenter が設定されていません。タイトルロゴの表示をスキップします。");
+                _hasPresentedTitleCall = true;
+
+                if (_titleLogoPresenter != null)
+                {
+                    presentTask = _titleLogoPresenter.PresentAsync();
+                }
+                else
+                {
+                    Debug.LogWarning("TitleLogoPresenter が設定されていません。タイトルロゴの表示をスキップします。");
+                }
             }
 
-            await UniTask.WhenAll(_panel.DOFade(0f,FadeTime).ToUniTask(), presentTask);
+            await UniTask.WhenAll(_panel.DOFade(0f, FadeTime).ToUniTask(), presentTask);
             _panel.gameObject.SetActive(false);
 
             await ShowFirstSelectableGroup();
