@@ -30,16 +30,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 1218d68554e14d139be3fc08ef0c4565
-    m_Address: Assets/Addressables/StageWaves/WaveSet/StageWaveSet_9.asset
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 139496ff95334c3e8d4520705201ca89
-    m_Address: Assets/Addressables/StageWaves/WaveSet/StageWaveSet_10.asset
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 16e55137533941339b7ae6413565df74
     m_Address: Assets/Addressables/StageWaves/WaveSet/StageWaveSet_3.asset
     m_ReadOnly: 0
@@ -67,11 +57,6 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 2ef71724583fbee4e8f8aa71ab03d239
     m_Address: Assets/Addressables/Audio/SE/NextWave.wav
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 3680a95fec21440db6d0c6a73bff80d1
-    m_Address: Assets/Addressables/StageWaves/WaveSet/StageWaveSet_7.asset
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -227,11 +212,6 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: c5ec3b28977efb14497bce479f0b3c26
     m_Address: Assets/Addressables/WeaponModels/2.asset
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: d00de0979fbf452ebbb8dc71fae8d9b7
-    m_Address: Assets/Addressables/StageWaves/WaveSet/StageWaveSet_8.asset
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
