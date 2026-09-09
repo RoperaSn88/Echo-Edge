@@ -31,6 +31,11 @@ namespace EchoEdge.Presenter.Preparing
         public override async UniTask OnDecide()
         {
             _group.SetBackSelectableGroup(_selectableGroup);
+            // このグループの決定済みアイテムとして自身を登録しておく。
+            // マネージャー(ルートグループ)側の _decidedItem には入るが、
+            // 実際に退避処理を行う _group 側には入らないため、ここで明示的にマークして
+            // MoveSelectables 内でサイズ(拡大表示)を元に戻せるようにする。
+            _group.MarkAsDecided(this);
             await _group.MoveSelectables();
 
             // Preparing シーン専用カメラを始点へ戻す

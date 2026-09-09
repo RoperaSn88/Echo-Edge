@@ -40,16 +40,16 @@ namespace EchoEdge.Domain.Battle
         /// <inheritdoc/>
         public UniTask<EnemyMoveKinds> Act(int selfHeight, int selfWidth)
         {
-            if (UnityEngine.Random.value < SpecificRate)
-            {
-                return UniTask.FromResult(EnemyMoveKinds.Specific);
-            }
-
             if (selfWidth == 0)
             {
                 return UniTask.FromResult(EnemyMoveKinds.Attack);
             }
             
+            if (UnityEngine.Random.value < SpecificRate)
+            {
+                return UniTask.FromResult(EnemyMoveKinds.Specific);
+            }
+
             return UniTask.FromResult(EnemyMoveKinds.None);
         }
 

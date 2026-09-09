@@ -7,7 +7,7 @@ namespace EchoEdge.Domain.Preparing
         /// <summary>
         /// カーソルで選択された場合の処理
         /// </summary>
-        public void OnSelect();
+        public UniTask OnSelect();
 
         /// <summary>
         /// クリックで決定された場合の処理

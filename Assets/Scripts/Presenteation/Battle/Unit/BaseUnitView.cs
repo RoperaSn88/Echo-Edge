@@ -302,7 +302,7 @@ namespace EchoEdge.Presenter.Battle
             _hasApproachedForAttack = true;
 
             var playerPos = player.PlayerTransform.position;
-            var target = new Vector3(playerPos.x + ApproachGap, _preApproachPosition.y, _preApproachPosition.z);
+            var target = new Vector3(playerPos.x + ApproachGap, _preApproachPosition.y, playerPos.z);
 
             await transform.DOMove(target, ApproachMoveTime).SetEase(Ease.OutQuad);
         }

@@ -14,12 +14,12 @@ namespace EchoEdge.Presenter.UI
     public class PlayerStatusPresenter : MonoBehaviour
     {
         public static PlayerStatusPresenter Instance;
-        
+
         /// <summary>
         /// 色の遷移の時間
         /// </summary>
         private const float ChangeColorTime = 0.5f;
-        
+
         /// <summary>
         /// スライダーの遷移の時間
         /// </summary>

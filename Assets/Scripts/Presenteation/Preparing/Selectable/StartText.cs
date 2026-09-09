@@ -44,18 +44,11 @@ namespace EchoEdge.Presenter.Preparing
                 AudioManager.Instance.FadeBGMAsync(_fadeDuration, CancellationToken.None)
             );
 
-            // 選択中ステージがシナリオ再生対象かどうかを SelectManager が保持する設定から判定する。
+            // 選択中ステージがシナリオ再生対象かどうかを判定する。
             // 対象なら Scenario シーンを読み込んで再生し、見終わってからメインゲームへ移行する。
             // 対象外（または設定未割り当て）なら Scenario シーンをロードせず、そのまま即メインゲームへ移行する。
-            var settings = SelectManager.Instance.StageScenarioPlaybackSettings;
-            if (settings == null)
-            {
-                Debug.LogWarning(
-                    "SelectManager に StageScenarioPlaybackSettings が割り当てられていないため、シナリオを再生します");
-            }
-
             var scenarioLoaded = false;
-            if (settings == null || settings.ShouldPlayScenario(StageData.Level))
+            if (StageScenarioPlayback.ShouldPlayScenario(StageData.Level))
             {
                 scenarioLoaded = await ScenarioStageLoader.PlayCurrentBeforeStageScenarioAsync();
             }

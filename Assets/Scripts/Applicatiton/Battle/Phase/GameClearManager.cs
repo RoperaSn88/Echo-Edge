@@ -8,6 +8,7 @@ using EchoEdge.App.Scenario;
 using EchoEdge.App.Scene;
 using EchoEdge.Domain.Phase;
 using EchoEdge.Domain.Preparing;
+using EchoEdge.Domain.Scenario;
 using EchoEdge.Domain.Scene;
 using EchoEdge.Infra.Audio;
 using EchoEdge.Infra.Camera;
@@ -159,8 +160,13 @@ namespace EchoEdge.App.Battle
 
             // 戻り値が true のときは Scenario シーンがロード済みなので、呼び出し側で必ずアンロードする
             // （スキップ・通常終了どちらの経路でも Scenario シーンは残るため）。
-            var scenarioLoaded = await ScenarioStageLoader.PlayCurrentAfterStageScenarioAsync();
-
+            // 再生要否は SelectManager が起動時に登録した設定を静的に参照して判定する
+            // （この時点で Preparing シーンはアンロード済みのため、インスタンス参照は使えない）。
+            var scenarioLoaded = false;
+            if (StageScenarioPlayback.ShouldPlayScenario(StageData.Level))
+            {
+                scenarioLoaded = await ScenarioStageLoader.PlayCurrentAfterStageScenarioAsync();
+            }
             // 6. MainGameをアンロードし、Preparingシーンを読み込む
             await SceneLoader.AdditiveLoadAsync(GameScene.Preparing);
             if (scenarioLoaded)

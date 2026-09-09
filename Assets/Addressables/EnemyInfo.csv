@@ -1,6 +1,6 @@
 ID,HP,Attack,Defend,Move,MovePattern,Experience,Energy,Size,Offset,Memo
 1,50,20,10,2,After,0,130,Default,0,スカイアのステータス
-2,10,50,12,3,After,0,150,Default,0,ビルダーのステータス
+2,60,50,12,3,After,0,150,Default,0,ビルダーのステータス
 3,60,35,12,3,Before,0,120,Default,0,ブースターのステータス
 4,80,60,15,4,After,0,160,Default,0,ブルートのステータス
 5,50,15,0,3,Before,0,90,Default,-0.45,エナーのステータス

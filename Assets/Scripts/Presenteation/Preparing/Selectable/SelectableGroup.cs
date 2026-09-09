@@ -42,6 +42,9 @@ namespace EchoEdge.Presenter.Preparing
         private RectTransform[] _children;
 
         private const float Duration = 0.5f;
+        
+        private const float MoveDisableOffsetX = 1000f;
+        private const float MoveEnableOffsetX = -200f;
 
         private void Start()
         {
@@ -99,6 +102,11 @@ namespace EchoEdge.Presenter.Preparing
             } while (selected == null || IsDecided(selected));
 
             MarkAsDecided(selected);
+            // クリックが OnSelect の拡大トゥイーン中に入ると、途中サイズのまま
+            // 後続の MoveSelectablesExcept で VerticalLayoutGroup が無効化され、
+            // 残りのトゥイーン分だけ文字が横にずれて画面外へ見切れる。
+            // 決定が確定したこの時点で選択トゥイーンを最終値へスナップさせておく。
+            if (selected is TMPSelectObject decidedObject) decidedObject.SnapToSelected();
             AudioManager.Instance.PlaySe(SeAudioType.Click);
 
             await UniTask.WhenAll(
@@ -130,11 +138,11 @@ namespace EchoEdge.Presenter.Preparing
 
                 if (selectable == _children[_children.Length - 1])
                 {
-                    await selectable.DOLocalMoveX(800f, Duration).SetEase(Ease.InQuad).ToUniTask();
+                    await selectable.DOLocalMoveX(MoveDisableOffsetX, Duration).SetEase(Ease.InQuad).ToUniTask();
                 }
                 else
                 {
-                    selectable.DOLocalMoveX(800f, Duration).SetEase(Ease.InQuad).ToUniTask();
+                    selectable.DOLocalMoveX(MoveDisableOffsetX, Duration).SetEase(Ease.InQuad).ToUniTask();
                     await UniTask.Delay(100);
                 }
             }
@@ -145,7 +153,11 @@ namespace EchoEdge.Presenter.Preparing
         /// </summary>
         public async UniTask MoveSelectables()
         {
-            await _rectTransform.DOLocalMoveX(_rectTransform.localPosition.x + 800f, Duration).SetEase(Ease.InQuad).ToUniTask();
+            await _rectTransform.DOLocalMoveX(_rectTransform.localPosition.x + MoveDisableOffsetX, Duration).SetEase(Ease.InQuad).ToUniTask();
+
+            // 戻りテキストなど、決定済みで選択状態(拡大サイズ)のままの選択肢を元のサイズへ戻す。
+            // これをしないと、退避したグループを再表示した際に文字が大きいまま残る。
+            _decidedItem?.ResetToDeselected();
 
             MarkAsDecided(null);
         }
@@ -179,7 +191,7 @@ namespace EchoEdge.Presenter.Preparing
                 }
                 if (child == topItem) continue;
 
-                child.DOLocalMoveX(-125f, Duration).SetEase(Ease.OutQuad);
+                child.DOAnchorPosX(MoveEnableOffsetX, Duration).SetEase(Ease.OutQuad);
             }
 
             // トップにある文字を元の位置に戻す
@@ -217,11 +229,11 @@ namespace EchoEdge.Presenter.Preparing
 
                 if (selectable == _children[_children.Length - 1])
                 {
-                    await selectable.DOLocalMoveX(-125f, Duration).SetEase(Ease.InQuad).ToUniTask();
+                    await selectable.DOAnchorPosX(MoveEnableOffsetX, Duration).SetEase(Ease.OutQuad).ToUniTask();
                 }
                 else
                 {
-                    selectable.DOLocalMoveX(-125f, Duration).SetEase(Ease.InQuad).ToUniTask().Forget();
+                    selectable.DOAnchorPosX(MoveEnableOffsetX, Duration).SetEase(Ease.OutQuad).ToUniTask().Forget();
                     await UniTask.Delay(100);
                 }
             }

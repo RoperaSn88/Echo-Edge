@@ -50,6 +50,19 @@ namespace EchoEdge.Presenter.Preparing
             AnimateToDeselected().Forget();
         }
 
+        /// <summary>
+        /// 進行中の選択トゥイーンを即座に打ち切り、選択状態(150 / SelectSize)へスナップさせる。
+        /// クリック決定が拡大トゥイーン中に入ると、途中サイズのまま
+        /// VerticalLayoutGroup が無効化され、残りのトゥイーンで文字が横にドリフトして
+        /// 画面外へ見切れる。決定確定時にこれを呼び、最終サイズを確定させておく。
+        /// </summary>
+        public void SnapToSelected()
+        {
+            ResetCancellationToken();
+            _text.fontSize = SelectedFontSize;
+            RectTransform.sizeDelta = SelectSize;
+        }
+
         private void Awake()
         {
             RectTransform = GetComponent<RectTransform>();
@@ -80,7 +93,7 @@ namespace EchoEdge.Presenter.Preparing
         /// <summary>
         /// カーソルで選択された場合の処理。文字サイズを90から150にDOTweenでアニメーションさせ、rect.heightも調整する。
         /// </summary>
-        public async void OnSelect()
+        public async UniTask OnSelect()
         {
             var ct = ResetCancellationToken();
             await UniTask.WhenAll(

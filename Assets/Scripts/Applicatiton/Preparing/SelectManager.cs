@@ -65,12 +65,6 @@ namespace EchoEdge.App.Preparing
         public Vector3 DefaultLocalPosition => _defaultPosition.localPosition;
 
         /// <summary>
-        /// ステージごとのシナリオ再生要否設定。
-        /// StartText がステージ選択確定時に、選択中ステージのシナリオを再生するか判定するために参照する。
-        /// </summary>
-        public StageScenarioPlaybackSettings StageScenarioPlaybackSettings => _stageScenarioPlaybackSettings;
-
-        /// <summary>
         /// スタックの最上位にあるRectTransform
         /// </summary>
         public RectTransform TopItem => _placingStack.Count > 0 ? _placingStack.Peek() : null;
@@ -95,6 +89,11 @@ namespace EchoEdge.App.Preparing
         /// </summary>
         void Awake()
         {
+            // シナリオ再生要否設定を静的に登録しておく。
+            // Preparing シーンがアンロードされた後（MainGame の GameClearManager など）でも
+            // インスタンスに依存せず再生要否を判定できるようにするため。
+            StageScenarioPlayback.RegisterSettings(_stageScenarioPlaybackSettings);
+
             // 選択肢はタイトルロゴが操作された後に画面右側から出現させるため、
             // あらかじめ画面外の右側へ退避させておく
             _selectableGroupRectTransform = _selectableGroup.GetComponent<RectTransform>();
