@@ -116,6 +116,10 @@ namespace EchoEdge.App.Preparing
                 throw new InvalidOperationException("AudioManager.Instance が見つかりません。シーンに AudioManager を配置してください。");
             }
 
+            // 起動時（初回ロード時）に、Addressablesに登録されているWaveSetの数から
+            // 選択可能なステージの最大値を確定させる
+            await StageData.InitializeMaxLevelAsync();
+
             // 初回起動時はプロローグシナリオを再生してから Preparing シーンを起動する。
             // 再生済みの場合は従来どおり Preparing シーンを直接起動する。
             if (!PrologueSaveManager.HasPlayedPrologue())
@@ -241,8 +245,17 @@ namespace EchoEdge.App.Preparing
         {
             try
             {
-                await ScenarioStageLoader.PlayPrologueScenarioAsync();
-                PrologueSaveManager.SaveProloguePlayed();
+                var played = await ScenarioStageLoader.PlayPrologueScenarioAsync();
+                if (played)
+                {
+                    PrologueSaveManager.SaveProloguePlayed();
+                }
+                else
+                {
+                    // Addressables のコンテンツビルド漏れなどでプロローグを再生できなかった場合は
+                    // 再生済みフラグを保存しない。次回起動時に再度再生を試みる。
+                    Debug.LogWarning("プロローグシナリオを再生できなかったため、再生済みフラグは保存しません。");
+                }
             }
             catch (Exception e)
             {

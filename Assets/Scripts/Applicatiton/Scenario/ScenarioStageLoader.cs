@@ -33,30 +33,41 @@ namespace EchoEdge.App.Scenario
         public static async UniTask<bool> PlayCurrentBeforeStageScenarioAsync()
         {
             var address = string.Format(ScenarioAddressBeforeFormat, StageData.Level);
-            return await PlayScenarioAsync(address);
+            var (sceneLoaded, _) = await PlayScenarioAsync(address);
+            return sceneLoaded;
         }
-        
+
         public static async UniTask<bool> PlayCurrentAfterStageScenarioAsync()
         {
             var address = string.Format(ScenarioAddressAfterFormat, StageData.Level);
-            return await PlayScenarioAsync(address);
+            var (sceneLoaded, _) = await PlayScenarioAsync(address);
+            return sceneLoaded;
         }
 
         /// <summary>
         /// 初回起動時のプロローグシナリオを Scenario シーンで再生し、再生が終了するまで待機する。
         /// 対応するシナリオデータが存在しない場合は何も表示せずに終了する。
         /// </summary>
-        public static async UniTask PlayPrologueScenarioAsync()
+        /// <returns>
+        /// プロローグシナリオが実際に再生された場合は true。
+        /// Addressables のロード失敗・空データ・シーンのロード失敗などで再生できなかった場合は false
+        /// （この場合、呼び出し元は「再生済み」として永続化してはならない）。
+        /// </returns>
+        public static async UniTask<bool> PlayPrologueScenarioAsync()
         {
-            await PlayScenarioAsync(PrologueScenarioAddress);
+            var (_, played) = await PlayScenarioAsync(PrologueScenarioAddress);
+            return played;
         }
 
         /// <summary>
         /// 指定した Addressable アドレスのシナリオデータを Scenario シーンで再生し、
         /// 再生が終了するまで待機する。
         /// </summary>
-        /// <returns>Scenario シーンがロードされている場合は true（呼び出し元でのアンロードが必要）。</returns>
-        private static async UniTask<bool> PlayScenarioAsync(string scenarioAddress)
+        /// <returns>
+        /// <c>sceneLoaded</c>: Scenario シーンがロードされている場合は true（呼び出し元でのアンロードが必要）。
+        /// <c>played</c>: 再生可能なシナリオデータを読み込んで実際に再生した場合は true。
+        /// </returns>
+        private static async UniTask<(bool sceneLoaded, bool played)> PlayScenarioAsync(string scenarioAddress)
         {
             await SceneLoader.AdditiveLoadAsync(GameScene.Scenario);
 
@@ -65,7 +76,7 @@ namespace EchoEdge.App.Scenario
             if (!SceneManager.GetSceneByBuildIndex((int)GameScene.Scenario).isLoaded)
             {
                 Debug.LogError("Scenario シーンのロードに失敗したため、シナリオの再生をスキップします");
-                return false;
+                return (false, false);
             }
 
             // ScenarioScreen は初期状態で非表示（非アクティブ）のため、非アクティブなオブジェクトも検索対象に含める
@@ -73,12 +84,20 @@ namespace EchoEdge.App.Scenario
             if (screen == null)
             {
                 Debug.LogError("Scenario シーンに ScenarioScreen が見つかりませんでした");
-                return true;
+                return (true, false);
             }
 
-            await screen.Initialize(scenarioAddress);
+            var hasContent = await screen.Initialize(scenarioAddress);
+            if (!hasContent)
+            {
+                // Addressables のコンテンツビルド漏れなどでシナリオデータが読み込めなかったケース。
+                // 画面を表示せずに終了し、呼び出し元が「再生済み」を保存しないようにする。
+                Debug.LogWarning($"シナリオデータを読み込めなかったため再生をスキップします (address: {scenarioAddress})");
+                return (true, false);
+            }
+
             await screen.ShowAndWaitForFinishAsync();
-            return true;
+            return (true, true);
         }
     }
 }

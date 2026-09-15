@@ -2,6 +2,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
+using EchoEdge.App.Battle;
 using EchoEdge.Presenter.Player;
 using EchoEdge.Utils;
 
@@ -106,13 +107,15 @@ namespace EchoEdge.Domain.Battle
             switch (_viewModel.AttackKind)
             {
                 case PlayerAttackKinds.Reflect:
-                    return "壁に当たったとき、跳ね返る。\n跳ね返った回数分、攻撃力が上昇する。\n反射回数: 1回";
+                    // 反射回数は固定値ではなく、現在のプレイヤーステータス(剣強化を含む反射回数)を反映する。
+                    // 実際の反射攻撃も BattleManager.PlayerStatus.Move を参照しているため、それに合わせる。
+                    return $"壁に当たったとき、跳ね返る。\n跳ね返った回数分、攻撃力が上昇する。\n反射回数: {BattleManager.PlayerStatus.Move}回";
                 case PlayerAttackKinds.Pierce:
-                    return "貫通攻撃の説明";
+                    return $"壁に当たったとき、壁の先まで移動する。\n外の壁は反射する。\n貫通・反射回数: {BattleManager.PlayerStatus.Move}回";
                 case PlayerAttackKinds.Bomb:
                     return "爆発攻撃の説明";
                 case PlayerAttackKinds.Curve:
-                    return "弧曲攻撃の説明";
+                    return $"現在位置からポインターの位置まで\n曲線を書いて移動する。壁はそのまま跳ね返る。\n反射回数: {BattleManager.PlayerStatus.Move}回";
                 default:
                     return "不明な攻撃の説明";
             }

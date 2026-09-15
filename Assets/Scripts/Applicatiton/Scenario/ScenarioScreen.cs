@@ -26,7 +26,11 @@ namespace EchoEdge.App.Scenario
         /// 画面を初期化し、指定したシナリオデータを Addressables から読み込んで先頭ページを表示する。
         /// </summary>
         /// <param name="scenarioAddress">読み込む ScenarioData の Addressable アドレス。</param>
-        public async UniTask Initialize(string scenarioAddress)
+        /// <returns>
+        /// 再生可能なシナリオデータを読み込めた場合は true。
+        /// Addressables のロード失敗や空データで再生するものが無い場合は false。
+        /// </returns>
+        public async UniTask<bool> Initialize(string scenarioAddress)
         {
             _viewController.LogUpdated -= OnLogUpdated;
             _viewController.LogUpdated += OnLogUpdated;
@@ -36,6 +40,7 @@ namespace EchoEdge.App.Scenario
 
             _viewController.Initialize(_screenModel.ScenarioViewModel);
             await _screenModel.InitializeAsync(scenarioAddress);
+            return _screenModel.ScenarioViewModel.HasLoadedContent;
         }
 
         /// <summary>

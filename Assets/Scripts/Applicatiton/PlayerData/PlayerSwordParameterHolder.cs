@@ -11,6 +11,21 @@ namespace EchoEdge.App.PlayerData
 
         static PlayerSwordParameterHolder()
         {
+            LoadFromSave();
+        }
+
+        /// <summary>
+        /// メモリ上のステータスをセーブデータから読み直す。
+        /// セーブデータを削除する「設定リセット」から呼ぶこと。static クラスのため
+        /// シーンを再読み込みしても自動では初期化されない。
+        /// </summary>
+        public static void ResetToDefault()
+        {
+            LoadFromSave();
+        }
+
+        private static void LoadFromSave()
+        {
             PlayerStatus = PlayerSwordParameterSaveManager.HasPlayerStatusData()
                 ? PlayerSwordParameterSaveManager.LoadPlayerStatus()
                 : new PlayerParameter(100, 20, 0, 0, 1);

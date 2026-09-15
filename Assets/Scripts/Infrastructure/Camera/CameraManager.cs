@@ -580,15 +580,16 @@ namespace EchoEdge.Infra.Camera
                 TokenTime)
                 .SetEase(Ease.OutQuad);
 
-            var positionTween = DOTween.To(()=>_defaultCameraPos.rotation.eulerAngles.x,
-                pos => _defaultCameraPos.rotation = Quaternion.Euler(pos,0,0), 
-                DefaultCameraAngle, 
-                TokenTime)
-                .SetEase(Ease.OutQuad);
+            var positionTween = DOTween.To(()=>_defaultCameraPos.position,
+                    pos => _defaultCameraPos.position = pos, 
+                    _baseCameraPos, 
+                    TokenTime)
+                .SetEase(Ease.OutQuad)
+                .SetUpdate(true);
 
-            var offsetTween = DOTween.To(()=>_cinemachineThirdPersonFollow.ShoulderOffset.z,
-                pos => _cinemachineThirdPersonFollow.ShoulderOffset = new Vector3(0,0,pos), 
-                DefaultCameraOffset.z, 
+            var offsetTween = DOTween.To(()=>_cinemachineThirdPersonFollow.ShoulderOffset,
+                pos => _cinemachineThirdPersonFollow.ShoulderOffset = pos,
+                DefaultCameraOffset,
                 TokenTime)
                 .SetEase(Ease.OutQuad);
 

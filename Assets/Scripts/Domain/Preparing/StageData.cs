@@ -1,5 +1,7 @@
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
+using EchoEdge.Infra.Map;
 using EchoEdge.Infra.Preparing;
 
 namespace EchoEdge.Domain.Preparing
@@ -15,9 +17,16 @@ namespace EchoEdge.Domain.Preparing
         public const int MinLevel = 1;
 
         /// <summary>
-        /// 用意されているステージの最大値
+        /// Addressablesからステージ数を取得できなかった場合に使う、用意されているステージ数の既定値
         /// </summary>
-        public const int MaxLevel = 6;
+        private const int DefaultMaxLevel = 6;
+
+        /// <summary>
+        /// 用意されているステージの最大値。
+        /// 初期値は <see cref="DefaultMaxLevel"/> で、<see cref="InitializeMaxLevelAsync"/> を
+        /// 呼び出すと Addressables に登録されている WaveSet の数に更新される。
+        /// </summary>
+        public static int MaxLevel { get; private set; } = DefaultMaxLevel;
 
         /// <summary>
         /// ステージのレベル
@@ -44,6 +53,39 @@ namespace EchoEdge.Domain.Preparing
         public static void DecrementLevel()
         {
             Level = Mathf.Max(MinLevel, Level - 1);
+        }
+
+        /// <summary>
+        /// Addressablesに登録されているWaveSetの数を数え、<see cref="MaxLevel"/> に反映する。
+        /// ゲーム起動時（初回ロード時）に1度呼び出すこと。
+        /// 1件も見つからない場合は <see cref="DefaultMaxLevel"/> のまま変更しない。
+        /// </summary>
+        public static async UniTask InitializeMaxLevelAsync()
+        {
+            var count = await StageWaveSetAvailabilityLoader.CountRegisteredStagesAsync();
+            if (count > 0)
+            {
+                MaxLevel = count;
+            }
+            else
+            {
+                Debug.LogWarning("Addressables から WaveSet が1件も見つからなかったため、MaxLevel は既定値のままにします。");
+            }
+        }
+
+        /// <summary>
+        /// メモリ上の状態をセーブデータから読み直す。
+        /// <para>
+        /// <see cref="Level"/> は最小値に戻し、<see cref="HighestClearedStage"/> は
+        /// 現在のセーブデータ（削除済みなら初期値）から再取得する。
+        /// セーブデータを削除する「設定リセット」から呼ぶこと。static クラスのため
+        /// シーンを再読み込みしても自動では初期化されない。
+        /// </para>
+        /// </summary>
+        public static void ResetToDefault()
+        {
+            Level = MinLevel;
+            HighestClearedStage = StageProgressSaveManager.LoadHighestClearedStage();
         }
 
         /// <summary>

@@ -65,15 +65,6 @@ namespace EchoEdge.Presenter.Player
                 // OverlapSphere・移動中の OnTriggerEnter によるダメージ計算で参照される。
                 BattleManager.SetReflectionCount(i);
 
-                if (i > 0)
-                {
-                    var colliders = Physics.OverlapSphere(ray.origin, ReflectionDamageCheckRadius);
-                    foreach (var collider in colliders)
-                    {
-                        OnTriggerEnter(collider);
-                    }
-                }
-
                 // 始点からdirection方向にrayを飛ばし、当たった位置を新たな_posとする。
                 if (Physics.Raycast(ray, out RaycastHit hit, math.INFINITY, player.LayerMask))
                 {
@@ -104,6 +95,15 @@ namespace EchoEdge.Presenter.Player
                         await UniTask.Delay(TimeSpan.FromSeconds(AwaitTime));
                         _direction = Vector3.Reflect(_direction, hit.normal);
                         if (i != reflectCount) _pos = player.PlayerTransform.position;
+                        
+                        if (i > 0)
+                        {
+                            var colliders = Physics.OverlapSphere(ray.origin, ReflectionDamageCheckRadius);
+                            foreach (var collider in colliders)
+                            {
+                                OnTriggerEnter(collider);
+                            }
+                        }
                     }
                 }
                 else

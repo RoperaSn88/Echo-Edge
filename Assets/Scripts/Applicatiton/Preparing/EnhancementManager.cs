@@ -33,6 +33,16 @@ namespace EchoEdge.App.Preparing
         }
 
         /// <summary>
+        /// メモリ上の石の所持数をセーブデータから読み直す。
+        /// セーブデータを削除する「設定リセット」から呼ぶこと。static クラスのため
+        /// シーンを再読み込みしても自動では初期化されない。
+        /// </summary>
+        public static void ResetToDefault()
+        {
+            _stone = PlayerSwordParameterSaveManager.LoadStone();
+        }
+
+        /// <summary>
         /// 石を追加して永続化する。
         /// </summary>
         /// <param name="amount">追加する石の数</param>

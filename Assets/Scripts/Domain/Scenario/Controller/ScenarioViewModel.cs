@@ -28,6 +28,13 @@ namespace EchoEdge.Domain.Scenario
         public bool IsFinished { get; private set; }
 
         /// <summary>
+        /// <see cref="OnInitializeAsync"/> で再生可能なシナリオデータ（イベントが1件以上）を
+        /// 読み込めたか。Addressables のロード失敗や空データの場合は false。
+        /// 「実際にシナリオが再生されたか」の判断に使う。
+        /// </summary>
+        public bool HasLoadedContent { get; private set; }
+
+        /// <summary>
         /// <see cref="CurrentEvents"/> が変化した際に発火する。
         /// </summary>
         public event Action<List<IScenarioEvent>> CurrentEventChanged;
@@ -68,6 +75,7 @@ namespace EchoEdge.Domain.Scenario
             CurrentEvents = null;
             IsFinished = false;
             HasStartedBgm = false;
+            HasLoadedContent = false;
 
             try
             {
@@ -85,6 +93,8 @@ namespace EchoEdge.Domain.Scenario
                 Finished?.Invoke();
                 return;
             }
+
+            HasLoadedContent = true;
 
             PlayBgmIfAssigned();
             ApplyStartupBackgroundIfAssigned();

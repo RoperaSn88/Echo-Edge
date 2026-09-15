@@ -12,6 +12,7 @@ namespace EchoEdge.Presenter.UI
     [RequireComponent(typeof(CanvasGroup))]
     public class PointerHoverFadeController : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
+        public static bool _IsActivePointerFading = false; 
         /// <summary>
         /// マウスカーソルが乗った際に適用するCanvasGroupのアルファ値。
         /// </summary>
@@ -45,6 +46,7 @@ namespace EchoEdge.Presenter.UI
         /// </summary>
         public void OnPointerEnter(PointerEventData eventData)
         {
+            if(!_IsActivePointerFading) return;
             _canvasGroup.DOKill();
             _canvasGroup.DOFade(_hoveredAlpha, _fadeDuration);
         }

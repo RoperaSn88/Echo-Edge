@@ -10,6 +10,7 @@ using EchoEdge.Infra.Tutorial;
 using EchoEdge.Presenter.Actions;
 using EchoEdge.Presenter.Battle;
 using EchoEdge.Presenter.Player;
+using EchoEdge.Presenter.UI;
 
 namespace EchoEdge.Domain.Phase
 {
@@ -66,6 +67,8 @@ namespace EchoEdge.Domain.Phase
                 }
             }
 
+            PointerHoverFadeController._IsActivePointerFading = true;
+            
             PlayerActions playerActions = new PlayerActions();
             EnableController(playerActions);
 
@@ -75,7 +78,8 @@ namespace EchoEdge.Domain.Phase
                 UpdateAttackGuideLine();
                 await UniTask.Yield();
             }
-
+            
+            PointerHoverFadeController._IsActivePointerFading = false;
             _attackGuideLine.Hide();
             _attackGuideLine.Destroy();
             ResetController(playerActions);
@@ -88,9 +92,13 @@ namespace EchoEdge.Domain.Phase
                     // 攻撃の種類（通常・一閃、反射・貫通・爆発）の切り替えはPlayerController側で一元管理する。
                     // 透視投影・敵スプライトの復帰は、次の PlayerAttackPhase 冒頭の
                     // ActMoveCameraToDefault によってトゥイーン半分経過時に行われる。
+#if UNITY_EDITOR
+                    UnityEditor.EditorApplication.isPaused = true;
+#endif
                     return PlayerAttackPhase.Instance;
                 case ClickKinds.Right:
-                    await CameraManager.Instance.ActMoveCameraToDefault();
+                    await CameraManager.Instance.ActMoveCameraToDefault(); 
+                    CameraManager.Instance.StopTracking();
                     return PlayerPhase.Instance;
             }
 
@@ -128,6 +136,7 @@ namespace EchoEdge.Domain.Phase
             // マウスホイールの回転で、攻撃の種類を切り替える。
             // 上方向の回転で次、下方向の回転で前の種類へ。0付近のノイズは無視する。
             // 状態の保持はPlayerAttackPreparationViewModelに一本化し、表示への反映はViewControllerに任せる。
+            
             // float scroll = context.ReadValue<float>();
             // if (Mathf.Approximately(scroll, 0f)) return;
             //

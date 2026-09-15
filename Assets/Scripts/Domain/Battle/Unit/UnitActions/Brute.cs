@@ -51,6 +51,7 @@ namespace EchoEdge.Domain.Battle
         /// <inheritdoc/>
         public UniTask<EnemyMoveKinds> Act(int selfHeight, int selfWidth)
         {
+            if (selfWidth == 0) return UniTask.FromResult(EnemyMoveKinds.None);
             return UniTask.FromResult(EnemyMoveKinds.Attack);
         }
 
