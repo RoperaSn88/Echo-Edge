@@ -21,7 +21,7 @@ namespace EchoEdge.Presenter.Player
 
         public static ReflectAttackAction Instance => _instance ??= new ReflectAttackAction();
 
-        private const float Speed = 23;
+        private const float Speed = 39;
         private const float ReflectionDamageCheckRadius = 0.5f;
 
         /// <summary>
