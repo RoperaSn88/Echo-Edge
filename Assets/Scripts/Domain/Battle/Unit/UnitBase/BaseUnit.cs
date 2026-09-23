@@ -280,6 +280,8 @@ namespace EchoEdge.Domain.Battle
             var scoreByStep = new int[count + 1, mapManager.Height, mapManager.Width];
             var prevH = new int[count + 1, mapManager.Height, mapManager.Width];
             var prevW = new int[count + 1, mapManager.Height, mapManager.Width];
+            // その状態に到達するのに使った移動方向（Uターン禁止の判定に使う。未到達/始点は -1）
+            var arrivalDir = new int[count + 1, mapManager.Height, mapManager.Width];
             var offset = count;
 
             // DP テーブルを初期化する。
@@ -294,6 +296,7 @@ namespace EchoEdge.Domain.Battle
                         scoreByStep[step, h, w] = minScore;
                         prevH[step, h, w] = -1;
                         prevW[step, h, w] = -1;
+                        arrivalDir[step, h, w] = -1;
                     }
                 }
             }
@@ -301,11 +304,13 @@ namespace EchoEdge.Domain.Battle
             scoreByStep[0, srcH, srcW] = 0;
 
             // 4 方向の移動定義。
-            // 左を強く優先する評価になっており、右移動にはペナルティを与える。
-            // 使うには、dirHとdirWに同じindexでアクセスする。例えば、dirH[0], dirW[0] は「上に移動」を表す。
+            // 左移動のみ加点、右移動のみ減点し、上下移動は評価に影響させない（回り込みを許容する）。
+            // 使うには、dirHとdirWに同じindexでアクセスする。例えば、dirH[0], dirW[0] は「左に移動」を表す。
             var dirH = new[] { 0, -1, 1, 0 };
             var dirW = new[] { -1, 0, 0, 1 };
-            var dirScore = new[] { 2, 1, 1, -1 };
+            var dirScore = new[] { 1, 0, 0, -1 };
+            // 各方向の逆方向（Uターン判定用）。左⇔右(0⇔3)、上⇔下(1⇔2)。
+            var reverseDir = new[] { 3, 2, 1, 0 };
 
             // 手数を 1 ずつ進めながら、到達可能マスの最大スコアを更新する。
             // 同時に「どこから来たか」を prev 配列に記録し、あとで経路復元できるようにする。
@@ -318,8 +323,19 @@ namespace EchoEdge.Domain.Battle
                         var baseScore = scoreByStep[step - 1, h, w];
                         if (baseScore == minScore) continue;
 
+                        // 2手目以降は、直前の移動を打ち消す方向（Uターン、＝1手前にいたマスへ戻る動き）を禁止する。
+                        // これにより「壁を避けるために迂回したら、そのまま元のマスへ戻ってしまう」不具合を防ぐ。
+                        var forbiddenDir = -1;
+                        if (step >= 2)
+                        {
+                            var lastDir = arrivalDir[step - 1, h, w];
+                            if (lastDir >= 0) forbiddenDir = reverseDir[lastDir];
+                        }
+
                         for (var dir = 0; dir < dirH.Length; dir++)
                         {
+                            if (dir == forbiddenDir) continue;
+
                             var nextH = h + dirH[dir];
                             var nextW = w + dirW[dir];
                             // 自身を除いた、占有する全マスの空き状況を確認する（2x2など複数マス対応）
@@ -331,6 +347,7 @@ namespace EchoEdge.Domain.Battle
                             scoreByStep[step, nextH, nextW] = candidate;
                             prevH[step, nextH, nextW] = h;
                             prevW[step, nextH, nextW] = w;
+                            arrivalDir[step, nextH, nextW] = dir;
                         }
                     }
                 }

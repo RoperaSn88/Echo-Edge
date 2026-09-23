@@ -12,7 +12,28 @@ namespace EchoEdge.Presenter.UI
     [RequireComponent(typeof(CanvasGroup))]
     public class PointerHoverFadeController : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
-        public static bool _IsActivePointerFading = false; 
+        private static bool _isActivePointerFading = false;
+
+        /// <summary>
+        /// 有効/無効が切り替わった際に通知するイベント。
+        /// </summary>
+        private static event System.Action<bool> _onActiveChanged;
+
+        /// <summary>
+        /// ホバー時の透過処理を有効にするかどうか。
+        /// 有効化した瞬間に既にカーソルが乗っていれば、その場で透過させる。
+        /// </summary>
+        public static bool IsActivePointerFading
+        {
+            get => _isActivePointerFading;
+            set
+            {
+                if (_isActivePointerFading == value) return;
+                _isActivePointerFading = value;
+                _onActiveChanged?.Invoke(value);
+            }
+        }
+
         /// <summary>
         /// マウスカーソルが乗った際に適用するCanvasGroupのアルファ値。
         /// </summary>
@@ -26,6 +47,11 @@ namespace EchoEdge.Presenter.UI
         private float _fadeDuration = 0.2f;
 
         private CanvasGroup _canvasGroup;
+
+        /// <summary>
+        /// カーソルが領域内にあるか。透過処理が無効な間も追跡しておく。
+        /// </summary>
+        private bool _isPointerInside;
 
         private void Awake()
         {
@@ -41,14 +67,34 @@ namespace EchoEdge.Presenter.UI
             }
         }
 
+        private void OnEnable()
+        {
+            _onActiveChanged += HandleActiveChanged;
+        }
+
+        private void OnDisable()
+        {
+            _onActiveChanged -= HandleActiveChanged;
+            _isPointerInside = false;
+        }
+
+        /// <summary>
+        /// 透過処理の有効/無効が切り替わった際、カーソルが乗っていれば透明度を即座に反映する。
+        /// </summary>
+        private void HandleActiveChanged(bool isActive)
+        {
+            if (!_isPointerInside) return;
+            FadeTo(isActive ? _hoveredAlpha : 1f);
+        }
+
         /// <summary>
         /// カーソルが乗った際に、まとめたUIの透明度を下げて背後を見やすくする。
         /// </summary>
         public void OnPointerEnter(PointerEventData eventData)
         {
-            if(!_IsActivePointerFading) return;
-            _canvasGroup.DOKill();
-            _canvasGroup.DOFade(_hoveredAlpha, _fadeDuration);
+            _isPointerInside = true;
+            if (!_isActivePointerFading) return;
+            FadeTo(_hoveredAlpha);
         }
 
         /// <summary>
@@ -56,8 +102,14 @@ namespace EchoEdge.Presenter.UI
         /// </summary>
         public void OnPointerExit(PointerEventData eventData)
         {
+            _isPointerInside = false;
+            FadeTo(1f);
+        }
+
+        private void FadeTo(float alpha)
+        {
             _canvasGroup.DOKill();
-            _canvasGroup.DOFade(1f, _fadeDuration);
+            _canvasGroup.DOFade(alpha, _fadeDuration);
         }
     }
 }

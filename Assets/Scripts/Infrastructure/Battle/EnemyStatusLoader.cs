@@ -21,6 +21,14 @@ namespace EchoEdge.Infra.Battle
         // Offset 列のインデックス（読み込み時に prefab の sprite の高さをこの値だけズラす。未記載なら 0）
         private const int OffsetColumnIndex = 9;
 
+        // TopDownOffsetY 列のインデックス（一閃準備の真上視点でルートをローカルY方向へずらす量。未記載なら既定値）
+        private const int TopDownOffsetYColumnIndex = 10;
+
+        /// <summary>
+        /// TopDownOffsetY 列が未記載・不正な場合に使う既定値
+        /// </summary>
+        public const float DefaultTopDownOffsetY = -0.59f;
+
         // CSV を初回読み込み時にキャッシュする (ID → 各列の値)
         private static Dictionary<int, string[]> _cache;
 
@@ -143,6 +151,18 @@ namespace EchoEdge.Infra.Battle
         }
 
         /// <summary>
+        /// 指定した ID のエネミーの TopDownOffsetY だけを取得する。
+        /// 一閃準備の真上視点で sprite を寝かせる際、ルートをこの値だけローカルY方向へずらすために使用する。
+        /// </summary>
+        /// <param name="id">読み取る行の ID</param>
+        /// <returns>TopDownOffsetY 値。列が存在しない、もしくは不正な値の場合は <see cref="DefaultTopDownOffsetY"/></returns>
+        public static async UniTask<float> TryLoadTopDownOffsetY(int id)
+        {
+            var cache = await GetCacheAsync();
+            return cache.TryGetValue(id, out var cols) ? ParseTopDownOffsetY(cols) : DefaultTopDownOffsetY;
+        }
+
+        /// <summary>
         /// Size 列を読み取る。列が存在しない、もしくは不正な値の場合は Default とする（後方互換のため）。
         /// </summary>
         private static EnemySize ParseSize(string[] cols)
@@ -164,6 +184,18 @@ namespace EchoEdge.Infra.Battle
             return float.TryParse(cols[OffsetColumnIndex].Trim(), out var offset)
                 ? offset
                 : 0f;
+        }
+
+        /// <summary>
+        /// TopDownOffsetY 列を読み取る。列が存在しない、もしくは不正な値の場合は既定値とする（後方互換のため）。
+        /// </summary>
+        private static float ParseTopDownOffsetY(string[] cols)
+        {
+            if (cols.Length <= TopDownOffsetYColumnIndex) return DefaultTopDownOffsetY;
+
+            return float.TryParse(cols[TopDownOffsetYColumnIndex].Trim(), out var offsetY)
+                ? offsetY
+                : DefaultTopDownOffsetY;
         }
     }
 }

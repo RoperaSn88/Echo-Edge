@@ -67,7 +67,7 @@ namespace EchoEdge.Domain.Phase
                 }
             }
 
-            PointerHoverFadeController._IsActivePointerFading = true;
+            PointerHoverFadeController.IsActivePointerFading = true;
             
             PlayerActions playerActions = new PlayerActions();
             EnableController(playerActions);
@@ -79,7 +79,7 @@ namespace EchoEdge.Domain.Phase
                 await UniTask.Yield();
             }
             
-            PointerHoverFadeController._IsActivePointerFading = false;
+            PointerHoverFadeController.IsActivePointerFading = false;
             _attackGuideLine.Hide();
             _attackGuideLine.Destroy();
             ResetController(playerActions);

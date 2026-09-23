@@ -55,12 +55,11 @@ namespace EchoEdge.Presenter.Battle
         private static readonly Quaternion TopDownSpriteLocalRotation = Quaternion.Euler(90f, 0f, 0f);
 
         /// <summary>
-        /// 真上視点で寝かせる際、併せて画面下方向へずらす固定オフセット。
-        /// 真上カメラでは Y 移動は視線軸方向で見えないためローカル Z（画面の上下）で下げる。
-        /// また sprite 子の localPosition は Animator(Write Defaults)に毎フレーム固定されるため、
+        /// 真上視点で寝かせる際、併せてルートをローカル Y 方向へずらす量（EnemyInfo.csv の TopDownOffsetY）。
+        /// sprite 子の localPosition は Animator(Write Defaults)に毎フレーム固定されるため、
         /// この移動はルート Transform 側に掛ける。
         /// </summary>
-        private const float TopDownDownwardOffset = 0.59f;
+        private float _topDownOffsetY = EnemyStatusLoader.DefaultTopDownOffsetY;
 
         /// <summary>
         /// 真上視点の寝かせ＋下げをトゥイーンさせる時間。
@@ -73,7 +72,7 @@ namespace EchoEdge.Presenter.Battle
         private Tween _topDownPoseTween;
 
         /// <summary>
-        /// 真上視点へ入る直前のルート localPosition.z。抜けるときはここへ戻す。
+        /// 真上視点へ入る直前のルート localPosition.y。抜けるときはここへ戻す。
         /// </summary>
         private float _rootPreTopDownLocalY;
 
@@ -203,6 +202,9 @@ namespace EchoEdge.Presenter.Battle
             // EnemyInfo.csv の Offset 分だけ sprite の高さをズラす（基本値 0）
             ApplySpriteOffset(await EnemyStatusLoader.TryLoadOffset((int)enemyID));
 
+            // 真上視点で寝かせる際にルートをずらす量をユニットごとに読み込む
+            _topDownOffsetY = await EnemyStatusLoader.TryLoadTopDownOffsetY((int)enemyID);
+
             await SetAnimator(enemyID);
             gameObject.SetActive(true);
         }
@@ -239,7 +241,7 @@ namespace EchoEdge.Presenter.Battle
 
         /// <summary>
         /// 真上視点フェーズ(一閃準備)用に sprite を寝かせる／prefab 時点の向きへ戻す。
-        /// sprite の回転（X=90°）と、ルート Transform を固定オフセット分ローカル Z 方向へ下げる移動を、
+        /// sprite の回転（X=90°）と、ルート Transform をユニットごとの TopDownOffsetY 分ローカル Y 方向へずらす移動を、
         /// 同時にトゥイーンで行う。
         /// </summary>
         /// <param name="enable">true で寝かせて下げる、false で元の向き・位置へ戻す</param>
@@ -258,7 +260,7 @@ namespace EchoEdge.Presenter.Battle
             {
                 targetRotation = TopDownSpriteLocalRotation;
                 _rootPreTopDownLocalY = transform.localPosition.y;
-                targetRootLocalY = _rootPreTopDownLocalY - TopDownDownwardOffset;
+                targetRootLocalY = _rootPreTopDownLocalY + _topDownOffsetY;
             }
             else
             {
