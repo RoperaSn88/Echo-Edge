@@ -114,11 +114,11 @@ namespace EchoEdge.Presenter.Player
                     if (TryDestroyWall(hit.collider))
                     {
                         // 破壊した壁の1マス先へ進み、同じ方向で移動を続ける。
+                        // 法線は軸に平行な単位ベクトルなので、逆方向へ1マス分進めば貫通先の位置になる。
+                        // (旧実装はcos(法線の偏角)で除算しており、法線がZ軸方向のときゼロ除算でNaN/Infinityになりプレイヤーが場外に飛ぶ不具合があった)
                         if (i != reflectCount)
                         {
-                            float rad = Mathf.Atan2(hit.normal.z, hit.normal.x);
-                            var rate = 1f / Mathf.Cos(rad);
-                            var moveVec = new Vector3(hit.normal.x * rate, 0, hit.normal.z * rate);
+                            Vector3 moveVec = -hit.normal;
 
                             _pos = hit.point + moveVec;
                             player.transform.position = _pos;

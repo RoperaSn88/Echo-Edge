@@ -81,10 +81,9 @@ namespace EchoEdge.Presenter.Player
                     if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Block") && i != reflectCount)
                     {
                         // Todo: 壁が2つ以上ならば、その先の距離まで貫通するか考える
-                        float rad = Mathf.Atan2(hit.normal.z, hit.normal.x);
-                        var rate = 1 / Mathf.Cos(rad);
-
-                        var moveVec = new Vector3(hit.normal.x * rate, 0, hit.normal.z * rate);
+                        // 法線は軸に平行な単位ベクトルなので、逆方向へ1マス分進めば貫通先の位置になる。
+                        // (旧実装はcos(法線の偏角)で除算しており、法線がZ軸方向のときゼロ除算でNaN/Infinityになりプレイヤーが場外に飛ぶ不具合があった)
+                        Vector3 moveVec = -hit.normal;
 
                         _pos = hit.point + moveVec;
                         player.transform.position = _pos;

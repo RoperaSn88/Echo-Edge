@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
+using EchoEdge.App.Scene;
 
 namespace EchoEdge.Presenter.UI
 {
@@ -40,6 +41,8 @@ namespace EchoEdge.Presenter.UI
         [SerializeField, Tooltip("フェード時間")]
         private float _fadeDuration = 1.0f;
 
+        [SerializeField] private CanvasGroup _canvasGroup;
+
         private bool _canFadeText;
         public bool CanFadeText => _canFadeText;
 
@@ -56,6 +59,8 @@ namespace EchoEdge.Presenter.UI
             {
                 Destroy(gameObject);
             }
+
+            MainGamePauseController.Instance._CanvasGroup = _canvasGroup;
         }
 
         public async UniTask<float> AppearQTE(QTEKinds kind)
@@ -128,6 +133,16 @@ namespace EchoEdge.Presenter.UI
             _fadePanel.color = c;
             _fadePanel.gameObject.SetActive(true);
             await _fadePanel.DOFade(1f, duration).SetUpdate(true).ToUniTask();
+        }
+        
+        private void OnDestroy()
+        {
+            if (Instance == this)
+            {
+                Instance = null;
+            }
+            
+            MainGamePauseController.Instance._CanvasGroup = null;
         }
     }
 }

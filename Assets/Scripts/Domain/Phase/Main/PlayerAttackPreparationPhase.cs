@@ -136,11 +136,11 @@ namespace EchoEdge.Domain.Phase
             // マウスホイールの回転で、攻撃の種類を切り替える。
             // 上方向の回転で次、下方向の回転で前の種類へ。0付近のノイズは無視する。
             // 状態の保持はPlayerAttackPreparationViewModelに一本化し、表示への反映はViewControllerに任せる。
-            
-            // float scroll = context.ReadValue<float>();
-            // if (Mathf.Approximately(scroll, 0f)) return;
-            //
-            // PlayerAttackPreparationScreen.Instance.ScreenModel.CycleAttackMode(scroll > 0f);
+
+            float scroll = context.ReadValue<float>();
+            if (Mathf.Approximately(scroll, 0f)) return;
+
+            PlayerAttackPreparationScreen.Instance.ScreenModel.CycleAttackMode(scroll > 0f);
         }
 
         private void OnPressToggleFlash(InputAction.CallbackContext context)

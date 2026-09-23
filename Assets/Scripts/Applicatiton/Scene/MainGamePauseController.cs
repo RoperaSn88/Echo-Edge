@@ -12,15 +12,20 @@ namespace EchoEdge.App.Scene
 {
     public class MainGamePauseController : MonoBehaviour
     {
+        public static MainGamePauseController Instance { get; private set; }
+        
         private const int OptionSceneBuildIndex = 3;
         private bool _isPauseOpening;
 
         [SerializeField]
-        private PlayerInput playerInput;
+        private PlayerInput _playerInput;
+        
+        public CanvasGroup _CanvasGroup;
 
         private void Awake()
         {
-            playerInput.actions["Pause"].performed += OpenPause;
+            Instance = this;
+            _playerInput.actions["Pause"].performed += OpenPause;
         }
         
         public void OpenPause(InputAction.CallbackContext context)
@@ -41,6 +46,12 @@ namespace EchoEdge.App.Scene
 
             try
             {
+                if (_CanvasGroup != null)
+                {
+                    _CanvasGroup.blocksRaycasts = false;
+                    _CanvasGroup.interactable = false;
+                }
+
                 Time.timeScale = 0f;
                 OptionSceneController.CanRetire = true;
                 await SceneLoader.AdditiveLoadAndWait(OptionSceneBuildIndex);
@@ -67,6 +78,12 @@ namespace EchoEdge.App.Scene
             }
             finally
             {
+                if (_CanvasGroup != null)
+                {
+                    _CanvasGroup.blocksRaycasts = true;
+                    _CanvasGroup.interactable = true;
+                }
+                
                 OptionSceneController.CanRetire = false;
                 if (shouldRestoreTimeScale)
                 {
