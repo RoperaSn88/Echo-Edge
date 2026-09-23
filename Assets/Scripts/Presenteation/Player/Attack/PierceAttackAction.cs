@@ -20,7 +20,7 @@ namespace EchoEdge.Presenter.Player
 
         public static PierceAttackAction Instance => _instance ??= new PierceAttackAction();
 
-        private const float Speed = 23;
+        private const float Speed = 39;
         private const float ReflectionDamageCheckRadius = 0.5f;
         private const float AwaitTime = 0.5f;
 

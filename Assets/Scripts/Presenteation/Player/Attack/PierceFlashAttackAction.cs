@@ -24,7 +24,7 @@ namespace EchoEdge.Presenter.Player
         public static PierceFlashAttackAction Instance => _instance ??= new PierceFlashAttackAction();
 
         /// <summary>
-        /// 一閃版の移動速度。通常の貫通攻撃(PierceAttackAction.Speed = 23)より速くする。
+        /// 一閃版の移動速度。通常の貫通攻撃(PierceAttackAction.Speed = 39)より速くする。
         /// </summary>
         private const float Speed = 60f;
 

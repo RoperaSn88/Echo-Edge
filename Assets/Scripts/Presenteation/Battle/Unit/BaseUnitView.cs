@@ -105,7 +105,7 @@ namespace EchoEdge.Presenter.Battle
         /// </summary>
         private bool _isDeath;
 
-        private const float MoveTime = 0.15f;
+        private const float MoveTime = 0.1f;
         private const float DeadFadeTime = 0.5f;
 
         /// <summary>
@@ -283,7 +283,7 @@ namespace EchoEdge.Presenter.Battle
 
             // 移動をする
             await transform.DOLocalMove(_moveVec, MoveTime).SetEase(Ease.OutQuad);
-            await UniTask.Delay(TimeSpan.FromSeconds(MoveTime * 3f));
+            await UniTask.Delay(TimeSpan.FromSeconds(MoveTime * 2f));
 
             // 位置を更新する
             height = y;

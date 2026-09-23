@@ -27,7 +27,7 @@ namespace EchoEdge.Presenter.Player
         /// <summary>
         /// 曲線移動の基準速度。端点間距離からおおよその移動時間を算出するのに使う。
         /// </summary>
-        private const float Speed = 23f;
+        private const float Speed = 39f;
 
         /// <summary>
         /// めちゃくちゃ早い一閃(Flash)版の基準速度。挙動は通常版と同じで、移動だけ速くする。
