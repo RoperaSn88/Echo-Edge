@@ -6,6 +6,7 @@ using EchoEdge.App.Battle;
 using EchoEdge.Infra.Camera;
 using EchoEdge.Infra.Tutorial;
 using EchoEdge.Presenter.Player;
+using EchoEdge.Presenter.UI;
 
 namespace EchoEdge.Domain.Phase
 {
@@ -25,6 +26,8 @@ namespace EchoEdge.Domain.Phase
 
         public async UniTask<IPhase> WaitPhase()
         {
+            OperateInfos.Instance.SetOperateInfo(PhaseKinds.Attack).Forget();
+
             // 今のポインターの先の位置を取得
             CameraManager.Instance.ActMoveCameraToDefault();
             Ray ray = Camera.main.ScreenPointToRay(CameraManager.Instance.GetMousePosition());

@@ -49,6 +49,8 @@ namespace EchoEdge.Domain.Phase
 
         public async UniTask<IPhase> WaitPhase()
         {
+            OperateInfos.Instance.SetOperateInfo(PhaseKinds.Equip).Forget();
+
             // 装備品のUIを非表示にする
             WeaponController.Instance.HideAllWeaponUIs();
 

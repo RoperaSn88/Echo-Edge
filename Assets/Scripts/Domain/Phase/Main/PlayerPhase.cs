@@ -35,7 +35,8 @@ namespace EchoEdge.Domain.Phase
         {
             // 初期条件
             _clickFlug = false;
-            await TurnChangeView.Instance.ShowTurnChange(TurnChangeKinds.PlayerTurn);
+            OperateInfos.Instance.SetOperateInfo(PhaseKinds.Player).Forget();
+
             PlayerActions playerActions = new PlayerActions();
             EnableController(playerActions);
 

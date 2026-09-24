@@ -38,6 +38,7 @@ namespace EchoEdge.Domain.Phase
             }
 
             _clickFlug = false;
+            OperateInfos.Instance.SetOperateInfo(PhaseKinds.Enemy).Forget();
             await TurnChangeView.Instance.ShowTurnChange(TurnChangeKinds.EnemyTurn);
             
             if (TutorialSaveManager.TryBeginTutorial(TutorialKinds.Enemy))
@@ -72,6 +73,8 @@ namespace EchoEdge.Domain.Phase
                     Debug.Log("チュートリアルを中止");
                 }
             }
+            
+            await TurnChangeView.Instance.ShowTurnChange(TurnChangeKinds.PlayerTurn);
             
             return PlayerPhase.Instance;
         }

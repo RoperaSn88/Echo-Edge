@@ -4,6 +4,7 @@ using UnityEngine;
 using EchoEdge.App.Battle;
 using EchoEdge.App.PlayerData;
 using EchoEdge.Domain.Battle;
+using EchoEdge.Domain.UI;
 using EchoEdge.Infra.Audio;
 using EchoEdge.Infra.Tutorial;
 using EchoEdge.Presenter.UI;
@@ -67,7 +68,9 @@ namespace EchoEdge.Domain.Phase
                     Debug.Log("チュートリアルを中止");
                 }
             }
-
+            
+            await TurnChangeView.Instance.ShowTurnChange(TurnChangeKinds.PlayerTurn);
+            
             return PlayerPhase.Instance;
         }
     }

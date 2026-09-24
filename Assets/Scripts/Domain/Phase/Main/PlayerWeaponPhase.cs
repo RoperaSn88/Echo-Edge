@@ -21,6 +21,8 @@ namespace EchoEdge.Domain.Phase
         public static PlayerWeaponPhase Instance => _instance ??= new PlayerWeaponPhase();
         public async UniTask<IPhase> WaitPhase()
         {
+            OperateInfos.Instance.SetOperateInfo(PhaseKinds.Weapon).Forget();
+
             await CameraManager.Instance.ActPlayerWeaponZoom(PlayerView.Instance.Transform.position);
 
             // 武器選びする
