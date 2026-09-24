@@ -24,5 +24,9 @@ namespace EchoEdge.Presenter.UI
         [SerializeField, Tooltip("武器のスプライト")]
         private Sprite _weaponSprite;
         public Sprite WeaponSprite => _weaponSprite;
+
+        [SerializeField, Tooltip("起動時のプレイヤーアニメーション番号（Animator の WeaponInteger。0 はデフォルトのアニメーション）")]
+        private int _animationNumber;
+        public int AnimationNumber => _animationNumber;
     }
 }

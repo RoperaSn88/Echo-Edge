@@ -47,6 +47,10 @@ namespace EchoEdge.Domain.Phase
             {
                 case 0: return new MagneticCore();
                 case 1: return new EnergyWall();
+                case 2: return new Pusher(PusherDirection.Up);
+                case 3: return new Pusher(PusherDirection.Down);
+                case 4: return new Pusher(PusherDirection.Left);
+                case 5: return new Pusher(PusherDirection.Right);
                 default: throw new InvalidOperationException($"不明な装備品インデックスです: {index}");
             }
         }

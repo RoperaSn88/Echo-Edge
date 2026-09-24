@@ -220,6 +220,26 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8807a8232ca44d588b4ad94d12c62261
+    m_Address: Assets/Addressables/WeaponModels/3.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 48b85be2d1f44f788cdc54a23fc569cf
+    m_Address: Assets/Addressables/WeaponModels/4.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f78508ff9ee44ebaaa6e1f3b2a45917a
+    m_Address: Assets/Addressables/WeaponModels/5.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 402799736c1c48a9a5e742f5d1bd9049
+    m_Address: Assets/Addressables/WeaponModels/6.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: d22ad34ae4c30744c9928f9e338ca0b4
     m_Address: Assets/Addressables/Animator/Enar.controller
     m_ReadOnly: 0

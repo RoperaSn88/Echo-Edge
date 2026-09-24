@@ -33,8 +33,8 @@ namespace EchoEdge.Presenter.UI
         
         private const string WeaponModelPath = "Assets/Addressables/WeaponModels/";
         
-        // 武器の最大数は2個
-        private const int MaxWeaponNum = 2;
+        // 武器の最大数は6個（マグネティックコア、エナジーウォール、プッシャー上下左右）
+        private const int MaxWeaponNum = 6;
         
 
         private void Start()
@@ -79,7 +79,7 @@ namespace EchoEdge.Presenter.UI
                 if (_targetModel != null)
                 {
                     // プレイヤーのアニメーション設定
-                    PlayerView.Instance.Animator.SetInteger($"WeaponInteger", _selectedWeaponIndex + 1);
+                    PlayerView.Instance.Animator.SetInteger($"WeaponInteger", _targetModel.AnimationNumber);
                     
                     // ビューにモデルを設定していく
                     SelectingPresenter.SetWeapon(_targetModel);

@@ -17,3 +17,4 @@ MonoBehaviour:
   _description: "\u7BC4\u56F2\u5185\u306E\u6575\u3092\u5BC4\u305B\u96C6\u3081\u308B"
   _weaponCost: 5
   _weaponSprite: {fileID: 21300000, guid: e6165e69c96b9fb4aacf7d0c2bfe52de, type: 3}
+  _animationNumber: 1
