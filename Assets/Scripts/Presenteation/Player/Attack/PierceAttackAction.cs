@@ -1,6 +1,5 @@
 using System;
 using Cysharp.Threading.Tasks;
-using DG.Tweening;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -73,9 +72,7 @@ namespace EchoEdge.Presenter.Player
                     // プレイヤーを移動する
                     Vector3 endVec = new Vector3(hit.point.x, hit.point.y, hit.point.z);
                     endVec = Vector3.Lerp(player.transform.position, endVec, 0.99f);
-                    player.ResetAfterimageAnchor();
-                    await player.transform.DOMove(endVec, distance / Speed)
-                        .OnUpdate(player.SpawnAfterimageIfNeeded);
+                    await player.MoveByVelocityAsync(endVec, distance / Speed);
 
                     // 1つのブロックオブジェクトならば、横方向に1つ動いた先の位置に移動する。
                     if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Block") && i != reflectCount)
