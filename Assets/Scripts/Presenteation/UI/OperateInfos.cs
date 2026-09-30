@@ -34,12 +34,12 @@ namespace EchoEdge.Presenter.UI
                 _cancellationTokenSource.Cancel();
                 _cancellationTokenSource.Dispose();
 
-                // 中断されたフェードが途中の透明度で残らないようにする
+                // 中断されたトゥイーンが途中の状態で残らないようにする
                 foreach (var info in _operateInfos)
                 {
                     if (info != _currentOperateInfo)
                     {
-                        info.SetAlpha(0);
+                        info.Hide();
                     }
                 }
             }

@@ -30,6 +30,7 @@ namespace EchoEdge.Domain.Battle
             StageData.ResetToDefault();
             PlayerSwordParameterHolder.ResetToDefault();
             EnhancementManager.ResetToDefault();
+            SelectManager.ResetTitleCall();
 
             SceneManager.LoadScene(0);
         }

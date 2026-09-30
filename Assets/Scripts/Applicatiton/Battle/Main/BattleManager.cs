@@ -158,7 +158,8 @@ namespace EchoEdge.App.Battle
                 _QTEFlug = true;
             } 
 
-            var result = await _playerStatus.Damage((int)(_enemyStatus.Attack * rate * _qteResult));
+            // 防御QTE大成功で切り捨てにより0ダメージにならないよう、最低1ダメージは与える
+            var result = await _playerStatus.Damage(Mathf.Max(1, (int)(_enemyStatus.Attack * rate * _qteResult)));
 
             var playerHpRate = (float)_playerStatus.HP / _playerStatus.MaxHP;
             if (playerHpRate < 0.3f)

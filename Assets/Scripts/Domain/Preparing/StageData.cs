@@ -19,7 +19,7 @@ namespace EchoEdge.Domain.Preparing
         /// <summary>
         /// Addressablesからステージ数を取得できなかった場合に使う、用意されているステージ数の既定値
         /// </summary>
-        private const int DefaultMaxLevel = 6;
+        private const int DefaultMaxLevel = 8;
 
         /// <summary>
         /// 用意されているステージの最大値。
@@ -100,5 +100,17 @@ namespace EchoEdge.Domain.Preparing
             HighestClearedStage = unlockedStage;
             StageProgressSaveManager.SaveHighestClearedStage(HighestClearedStage);
         }
+
+#if UNITY_EDITOR
+        /// <summary>
+        /// [デバッグ用 / Editor限定] 全ステージを選択可能にし、セーブデータにも反映する。
+        /// </summary>
+        public static void DebugUnlockAllStages()
+        {
+            HighestClearedStage = MaxLevel;
+            StageProgressSaveManager.SaveHighestClearedStage(HighestClearedStage);
+            Debug.Log($"[Debug] 全ステージを解禁しました (1〜{MaxLevel})");
+        }
+#endif
     }
 }

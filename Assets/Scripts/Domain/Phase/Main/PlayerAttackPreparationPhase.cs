@@ -93,9 +93,7 @@ namespace EchoEdge.Domain.Phase
                     // 攻撃の種類（通常・一閃、反射・貫通・爆発）の切り替えはPlayerController側で一元管理する。
                     // 透視投影・敵スプライトの復帰は、次の PlayerAttackPhase 冒頭の
                     // ActMoveCameraToDefault によってトゥイーン半分経過時に行われる。
-#if UNITY_EDITOR
-                    UnityEditor.EditorApplication.isPaused = true;
-#endif
+                    
                     return PlayerAttackPhase.Instance;
                 case ClickKinds.Right:
                     await CameraManager.Instance.ActMoveCameraToDefault(); 

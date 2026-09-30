@@ -2,6 +2,7 @@
 using UnityEngine;
 
 using EchoEdge.App.Battle;
+using EchoEdge.Domain.UI;
 using EchoEdge.Infra.Camera;
 using EchoEdge.Presenter.UI;
 
@@ -26,6 +27,8 @@ namespace EchoEdge.Domain.Phase
             await UniTask.Delay(1000);
 
             await NextWaveView.Instance.HideNextWave();
+            
+            await TurnChangeView.Instance.ShowTurnChange(TurnChangeKinds.PlayerTurn);
 
             return PlayerPhase.Instance;
         }

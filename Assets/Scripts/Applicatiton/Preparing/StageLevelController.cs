@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 
 using EchoEdge.Domain.Preparing;
 using EchoEdge.Presenter.Preparing;
@@ -58,6 +59,20 @@ namespace EchoEdge.App.Preparing
             UpdateLevelText();
             UpdateButtonInteractable();
         }
+
+#if UNITY_EDITOR
+        /// <summary>
+        /// [デバッグ用 / Editor限定] Qキーで全ステージを解禁する
+        /// </summary>
+        private void Update()
+        {
+            if (Keyboard.current == null || !Keyboard.current.qKey.wasPressedThisFrame) return;
+
+            StageData.DebugUnlockAllStages();
+            UpdateLevelText();
+            UpdateButtonInteractable();
+        }
+#endif
 
         private void OnDestroy()
         {

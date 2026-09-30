@@ -30,6 +30,15 @@ namespace EchoEdge.App.Preparing
         /// </summary>
         private static bool _hasPresentedTitleCall = false;
 
+        /// <summary>
+        /// タイトルコールの表示済みフラグを初期化する。
+        /// データリセット時に呼び出し、リセット後に再びタイトルロゴが表示されるようにする。
+        /// </summary>
+        public static void ResetTitleCall()
+        {
+            _hasPresentedTitleCall = false;
+        }
+
         private const float FadeTime = 2.0f;
 
         /// <summary>

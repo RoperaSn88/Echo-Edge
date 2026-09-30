@@ -138,7 +138,7 @@ namespace EchoEdge.Presenter.UI
                             _result = 1.3f;
                             break;
                         case QTEKinds.Defend:
-                            _result = 0f;
+                            _result = 0.2f;
                             break;
                     }
                     _mouseClick.Dispose();

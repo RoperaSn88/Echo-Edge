@@ -87,6 +87,15 @@ namespace EchoEdge.Presenter.Player
         /// </summary>
         private IPlayerAttackAction _currentAttackAction;
 
+        /// <summary>
+        /// プレイヤーが攻撃判定を持てるかどうか。ExecuteAttack実行中のみtrueにする。
+        /// 攻撃後に敵が移動してプレイヤーのコライダーに触れた場合など、
+        /// AttackPhase外でのOnTriggerEnter/OnCollisionEnterによるダメージを防ぐ。
+        /// </summary>
+        private bool _canAttack;
+
+        public bool CanAttack => _canAttack;
+
         public void Start()
         {
             Instance = this;
@@ -113,7 +122,15 @@ namespace EchoEdge.Presenter.Player
         public async UniTask ExecuteAttack(Vector3 targetPos)
         {
             _currentAttackAction = ResolveAttackAction();
-            await _currentAttackAction.ExecuteAsync(targetPos);
+            _canAttack = true;
+            try
+            {
+                await _currentAttackAction.ExecuteAsync(targetPos);
+            }
+            finally
+            {
+                _canAttack = false;
+            }
         }
 
         private IPlayerAttackAction ResolveAttackAction()
@@ -204,6 +221,7 @@ namespace EchoEdge.Presenter.Player
         /// <param name="other">相手の当たり判定</param>
         private void OnTriggerEnter(Collider other)
         {
+            if (!_canAttack) return;
             _currentAttackAction?.OnTriggerEnter(other);
         }
 
@@ -213,6 +231,7 @@ namespace EchoEdge.Presenter.Player
         /// <param name="collision"></param>
         void OnCollisionEnter(Collision collision)
         {
+            if (!_canAttack) return;
             _currentAttackAction?.OnCollisionEnter(collision);
         }
     }

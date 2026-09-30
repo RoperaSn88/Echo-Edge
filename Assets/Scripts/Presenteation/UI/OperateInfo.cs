@@ -12,33 +12,59 @@ namespace EchoEdge.Presenter.UI
         [SerializeField]
         private PhaseKinds _phaseKind;
         public PhaseKinds PhaseKind => _phaseKind;
-        
+
         [SerializeField]
         private CanvasGroup _canvasGroup;
+
+        [SerializeField]
+        private RectTransform _rectTransform;
         
-        private const float FadeDuration = 0.5f;
+        private const float SlideDistance = 50f;
+
+        private const float TweenDuration = 0.5f;
+
+        private Vector2 _shownPosition;
+        private Vector2 HiddenPosition => _shownPosition + Vector2.left * SlideDistance;
 
         private void Awake()
         {
-            SetAlpha(0);
+            if (_rectTransform == null)
+            {
+                _rectTransform = (RectTransform)transform;
+            }
+            _shownPosition = _rectTransform.anchoredPosition;
+            Hide();
         }
 
         /// <summary>
-        /// フェードを挟まずに透明度を即時設定する
+        /// トゥイーンを挟まずに即時非表示状態(透明・左側)にする
         /// </summary>
-        public void SetAlpha(float alpha)
+        public void Hide()
         {
-            _canvasGroup.alpha = alpha;
+            _canvasGroup.alpha = 0;
+            _rectTransform.anchoredPosition = HiddenPosition;
         }
 
+        /// <summary>
+        /// 左側からスライドしながら出現する
+        /// </summary>
         public UniTask OpenAsync(CancellationToken cancellationToken)
         {
-            return _canvasGroup.DOFade(1, FadeDuration).ToUniTask(cancellationToken: cancellationToken);
+            return DOTween.Sequence()
+                .Join(_canvasGroup.DOFade(1, TweenDuration))
+                .Join(_rectTransform.DOAnchorPos(_shownPosition, TweenDuration).SetEase(Ease.OutCubic))
+                .ToUniTask(cancellationToken: cancellationToken);
         }
 
+        /// <summary>
+        /// 左へスライドしながら消える
+        /// </summary>
         public UniTask CloseAsync(CancellationToken cancellationToken)
         {
-            return _canvasGroup.DOFade(0, FadeDuration).ToUniTask(cancellationToken: cancellationToken);
-        } 
+            return DOTween.Sequence()
+                .Join(_canvasGroup.DOFade(0, TweenDuration))
+                .Join(_rectTransform.DOAnchorPos(HiddenPosition, TweenDuration).SetEase(Ease.InCubic))
+                .ToUniTask(cancellationToken: cancellationToken);
+        }
     }
 }

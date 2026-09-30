@@ -109,10 +109,6 @@ namespace EchoEdge.Domain.Battle
         public async UniTask Attack()
         {
             BattleManager.RegisterEnemy(_battleStatus);
-            await UniTask.WhenAll(
-                _view.WaitToCameraZoom(),
-                _unitAction.BeforeAttack()
-            );
 
             // 近距離(Width == 0)の敵はプレイヤーの手前まで踏み込んでから攻撃する
             var shouldApproach = Width == 0;
@@ -123,6 +119,12 @@ namespace EchoEdge.Domain.Battle
 
             try
             {
+                // 踏み込み後の位置に対してカメラ移動・メッセージ表示を行う
+                await UniTask.WhenAll(
+                    _view.WaitToCameraZoom(),
+                    _unitAction.BeforeAttack()
+                );
+
                 await _view.WaitAttackAnim();
 
                 await _unitAction.Attack();

@@ -84,16 +84,10 @@ namespace EchoEdge.Domain.Battle
         /// <inheritdoc/>
         public async UniTask Specific(int selfHeight, int selfWidth)
         {
-            var status = MapManager.Instance?.GetUnitAt(selfHeight, selfWidth)?.GetStatus();
-
             if (!_isFlying)
             {
-                // 1ターン目：飛び上がり、ダメージ無効を有効化
+                // 1ターン目：飛び上がる
                 _isFlying = true;
-                if (status != null)
-                {
-                    status.IsInvincible = true;
-                }
             }
             else
             {
@@ -108,12 +102,8 @@ namespace EchoEdge.Domain.Battle
 
                 BattleManager.ResetQTE();
 
-                // 地上に戻り、ダメージ無効を解除
+                // 地上に戻る
                 _isFlying = false;
-                if (status != null)
-                {
-                    status.IsInvincible = false;
-                }
             }
             
             await UniTask.Delay(TimeSpan.FromSeconds(1f));
