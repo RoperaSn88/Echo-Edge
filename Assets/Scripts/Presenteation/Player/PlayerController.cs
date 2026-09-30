@@ -1,5 +1,6 @@
 using System;
 using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using UnityEngine;
 
 using EchoEdge.Domain.Battle;
@@ -167,6 +168,62 @@ namespace EchoEdge.Presenter.Player
         internal void ResetAfterimageAnchor()
         {
             _lastAfterimagePosition = transform.position;
+        }
+
+        /// <summary>
+        /// Rigidbodyのvelocityを使ったトゥイーンで、指定位置まで移動する。
+        /// DOMove(Transformの直接書き換え)だと、フレームレートが低い端末では1フレームの移動量が大きくなり
+        /// 敵のすり抜け(OnTriggerEnterが発生しない)が起きるため、物理ステップ(FixedUpdate)ごとに
+        /// 「次のステップで到達すべき位置」へ向かうvelocityを設定し、物理エンジンに移動させる。
+        /// 移動中は<see cref="SpawnAfterimageIfNeeded"/>で残像を出す。
+        /// </summary>
+        /// <param name="endPos">移動先</param>
+        /// <param name="duration">移動時間(秒)</param>
+        internal async UniTask MoveByVelocityAsync(Vector3 endPos, float duration)
+        {
+            // シーン上ではRigidbodyの位置が全軸固定されているため、移動中のみXZ平面の移動を許可する。
+            var originalConstraints = _rb.constraints;
+            var originalDetectionMode = _rb.collisionDetectionMode;
+            _rb.constraints = RigidbodyConstraints.FreezePositionY | RigidbodyConstraints.FreezeRotation;
+            _rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+
+            // 直前にtransform.positionで瞬間移動している場合(貫通時など)に備え、Rigidbodyの位置を同期しておく。
+            Vector3 startPos = transform.position;
+            _rb.position = startPos;
+            endPos.y = startPos.y;
+            Vector3 tweenPos = startPos;
+
+            ResetAfterimageAnchor();
+
+            try
+            {
+                await DOTween.To(
+                        () => tweenPos,
+                        pos =>
+                        {
+                            tweenPos = pos;
+                            // 次の物理ステップでトゥイーン上の位置へ到達するvelocityを設定する。
+                            _rb.linearVelocity = (tweenPos - _rb.position) / Time.fixedDeltaTime;
+                        },
+                        endPos,
+                        duration)
+                    .SetEase(Ease.Linear)
+                    .SetUpdate(UpdateType.Fixed)
+                    .OnUpdate(SpawnAfterimageIfNeeded)
+                    .ToUniTask(cancellationToken: this.GetCancellationTokenOnDestroy());
+
+                // 最後に設定したvelocityでの移動を1ステップ分反映させてから停止する。
+                await UniTask.WaitForFixedUpdate(this.GetCancellationTokenOnDestroy());
+            }
+            finally
+            {
+                if (_rb != null)
+                {
+                    _rb.linearVelocity = Vector3.zero;
+                    _rb.constraints = originalConstraints;
+                    _rb.collisionDetectionMode = originalDetectionMode;
+                }
+            }
         }
 
         /// <summary>
