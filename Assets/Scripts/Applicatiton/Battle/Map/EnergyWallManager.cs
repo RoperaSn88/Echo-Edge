@@ -14,6 +14,7 @@ namespace EchoEdge.App.Battle
         private class ActiveEnergyWall
         {
             public BuildingView View;
+            public SlopeWallView SlopeView;
             public int Height;
             public int Width;
             public int RemainingLifetime;
@@ -24,6 +25,14 @@ namespace EchoEdge.App.Battle
 
         private readonly List<ActiveEnergyWall> _activeEnergyWalls = new();
         private WallStack _energyWallStack;
+
+        /// <summary>
+        /// 向き選択中に表示しているプレビュー用の壁
+        /// </summary>
+        private BuildingView _previewWall;
+        private SlopeWallView _previewSlope;
+        private int _previewHeight;
+        private int _previewWidth;
 
         private EnergyWallManager()
         {
@@ -42,11 +51,19 @@ namespace EchoEdge.App.Battle
 
             _instance._activeEnergyWalls.Clear();
             _instance._energyWallStack = null;
+            _instance._previewWall = null;
+            _instance._previewSlope = null;
         }
 
-        public bool TrySetEnergyWall(int h, int w)
+        /// <summary>
+        /// 指定マスに斜面のエナジーウォールのプレビューを表示する。
+        /// マスが範囲外・使用中の場合は表示せず false を返す。
+        /// </summary>
+        public bool TryBeginPreview(int h, int w, EnergyWallDirection direction)
         {
-            if (MapManager.Instance == null)
+            CancelPreview();
+
+            if (MapManager.Instance == null || !MapManager.Instance.IsFootprintFree(h, w, 1, null))
             {
                 return false;
             }
@@ -56,23 +73,78 @@ namespace EchoEdge.App.Battle
                 return false;
             }
 
-            var wallUnit = new building();
-            if (!MapManager.Instance.PlaceUnitAt(wallUnit, h, w))
-            {
-                return false;
-            }
-
             var wallView = wallStack.GetTemporaryWall();
             if (wallView == null)
             {
-                MapManager.Instance.RemoveUnitAt(h, w);
                 return false;
             }
 
             wallView.Set(h, w);
+            _previewWall = wallView;
+            _previewSlope = SlopeWallView.GetOrAdd(wallView);
+            _previewSlope.ApplySlope(direction, true);
+            _previewHeight = h;
+            _previewWidth = w;
+            return true;
+        }
+
+        /// <summary>
+        /// プレビュー中の斜面の向きを変更する。
+        /// </summary>
+        public void SetPreviewDirection(EnergyWallDirection direction)
+        {
+            if (_previewSlope == null) return;
+            _previewSlope.ApplySlope(direction, true);
+        }
+
+        /// <summary>
+        /// プレビューを取り消し、壁をプールへ返す。
+        /// </summary>
+        public void CancelPreview()
+        {
+            if (_previewWall == null) return;
+
+            _previewSlope?.Restore();
+            if (TryGetEnergyWallStack(out var wallStack))
+            {
+                wallStack.ReturnTemporaryWall(_previewWall);
+            }
+
+            _previewWall = null;
+            _previewSlope = null;
+        }
+
+        /// <summary>
+        /// プレビュー中の壁を、当たり判定のある斜面の壁として確定する。
+        /// プレビューが無い場合は、指定マス・向きで新しく設置する。
+        /// </summary>
+        public bool TryConfirmPreview(int h, int w, EnergyWallDirection direction)
+        {
+            if (_previewWall == null || _previewHeight != h || _previewWidth != w)
+            {
+                if (!TryBeginPreview(h, w, direction))
+                {
+                    return false;
+                }
+            }
+
+            var wallUnit = new building();
+            if (MapManager.Instance == null || !MapManager.Instance.PlaceUnitAt(wallUnit, h, w))
+            {
+                CancelPreview();
+                return false;
+            }
+
+            var wallView = _previewWall;
+            var slopeView = _previewSlope;
+            _previewWall = null;
+            _previewSlope = null;
+
+            slopeView.ApplySlope(direction, false);
             _activeEnergyWalls.Add(new ActiveEnergyWall
             {
                 View = wallView,
+                SlopeView = slopeView,
                 Height = h,
                 Width = w,
                 RemainingLifetime = EnergyWallLifetime
@@ -103,6 +175,8 @@ namespace EchoEdge.App.Battle
                     MapManager.Instance.RemoveUnitAt(activeWall.Height, activeWall.Width);
                 }
 
+                // プールはビルダーの壁と共有しているため、キューブの壁に戻してから返す
+                activeWall.SlopeView?.Restore();
                 wallStack.ReturnTemporaryWall(activeWall.View);
                 _activeEnergyWalls.RemoveAt(i);
             }

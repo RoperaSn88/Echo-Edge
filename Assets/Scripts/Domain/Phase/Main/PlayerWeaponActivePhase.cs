@@ -25,6 +25,14 @@ namespace EchoEdge.Domain.Phase
 
         public async UniTask<IPhase> WaitPhase()
         {
+            IEquipEffect effect = CreateEquipEffect(WeaponController.Instance.SelectedWeaponIndex);
+
+            // エナジーウォールは真上視点のまま斜面の向きを選ぶ。取り消したらエナジーを消費せずマス選択へ戻る。
+            if (effect is EnergyWall energyWall && !await energyWall.SelectDirectionAsync())
+            {
+                return PlayerEquipPhase.Instance;
+            }
+
             // カメラをもとの位置に戻す
             await CameraManager.Instance.ActMoveCameraToDefault();
 
@@ -32,7 +40,6 @@ namespace EchoEdge.Domain.Phase
             var energyResult = EnergyManager.RemoveEnergy(WeaponController.TargetModel.WeaponCost);
             UIPresenter.Instance.PlayerStatusPresenter.SetEnergy(energyResult.gaugeValue, energyResult.energyCount);
 
-            IEquipEffect effect = CreateEquipEffect(WeaponController.Instance.SelectedWeaponIndex);
             await effect.Activate();
 
             return PlayerPhase.Instance;
