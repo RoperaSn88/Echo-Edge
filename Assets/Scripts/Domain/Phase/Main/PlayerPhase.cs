@@ -1,25 +1,13 @@
 using System;
 using Cysharp.Threading.Tasks;
-using UnityEngine.InputSystem;
 
-using EchoEdge.Domain.UI;
-using EchoEdge.Presenter.Actions;
+using EchoEdge.App.Battle;
 using EchoEdge.Presenter.UI;
 
 namespace EchoEdge.Domain.Phase
 {
     public class PlayerPhase: IPhase
     {
-        /// <summary>
-        /// クリックされたか検知するブール
-        /// </summary>
-        private bool _clickFlug;
-
-        /// <summary>
-        /// クリックの種類を保存する
-        /// </summary>
-        private ClickKinds _clickKind;
-
         /// <summary>
         /// プレイヤーフェーズのインスタンス
         /// </summary>
@@ -33,52 +21,34 @@ namespace EchoEdge.Domain.Phase
 
         public async UniTask<IPhase> WaitPhase()
         {
-            // 初期条件
-            _clickFlug = false;
             OperateInfos.Instance.SetOperateInfo(PhaseKinds.Player).Forget();
 
-            PlayerActions playerActions = new PlayerActions();
-            EnableController(playerActions);
+            // 前のターンに防御していた場合、このプレイヤーフェーズの反射回数を増やす
+            BattleManager.ApplyPendingReflectBonus();
 
-            await UniTask.WaitUntil(() => _clickFlug);
-            _clickFlug = false;
-            ResetController(playerActions);
-
-            switch (_clickKind)
+            if (PlayerPhaseController.Instance == null)
             {
-                case ClickKinds.Left:
-                    // 左クリック時は一閃の準備フェーズへ移行する
-                    return PlayerAttackPreparationPhase.Instance;
-                case ClickKinds.Right:
-                    // 右クリック時
-                    return PlayerWeaponPhase.Instance;
+                throw new InvalidOperationException("PlayerPhaseController がシーンに配置されていません");
             }
 
-            throw new InvalidOperationException("クリックがうまくできない謎のエラーです");
-        }
+            // 行動選択ボタンが押されるまで待機する
+            var action = await PlayerPhaseController.Instance.WaitSelectAction(BattleManager.HealRemaining);
 
-        public void EnableController(PlayerActions playerActions)
-        {
-            playerActions.PlayerPhase.Attack.started += OnPressAttack;
-            playerActions.PlayerPhase.Skill.started += OnPressSkill;
-            playerActions.Enable();
-        }
+            switch (action)
+            {
+                case PlayerActionKinds.Attack:
+                    // 一閃の準備フェーズへ移行する
+                    return PlayerAttackPreparationPhase.Instance;
+                case PlayerActionKinds.Weapon:
+                    // 装備品の選択フェーズへ移行する
+                    return PlayerWeaponPhase.Instance;
+                case PlayerActionKinds.Defend:
+                    return PlayerDefendPhase.Instance;
+                case PlayerActionKinds.Heal:
+                    return PlayerHealPhase.Instance;
+            }
 
-        public void ResetController(PlayerActions playerActions)
-        {
-            playerActions.Dispose();
-        }
-
-        public void OnPressAttack(InputAction.CallbackContext context)
-        {
-            _clickKind = ClickKinds.Left;
-            _clickFlug = true;
-        }
-
-        public void OnPressSkill(InputAction.CallbackContext context)
-        {
-            _clickKind = ClickKinds.Right;
-            _clickFlug = true;
+            throw new InvalidOperationException($"不明な行動です: {action}");
         }
     }
 }
