@@ -106,12 +106,6 @@ namespace EchoEdge.Infra.Map
                     continue;
                 }
 
-                if (!occupied.Add((height, width)))
-                {
-                    Debug.LogWarning($"StageLayout.csv の {i + 1} 行目は重複座標です。h:{height}, w:{width}");
-                    continue;
-                }
-
                 var placement = new StagePlacementData
                 {
                     objectKind = objectKind,
@@ -149,6 +143,13 @@ namespace EchoEdge.Infra.Map
                     {
                         placement.level = level;
                     }
+                }
+
+                // 盤面外に立つシーカーはマスを占有しないため、重複座標の確認・予約から外す
+                if (placement.enemyKind != EnemyKinds.Seeker && !occupied.Add((height, width)))
+                {
+                    Debug.LogWarning($"StageLayout.csv の {i + 1} 行目は重複座標です。h:{height}, w:{width}");
+                    continue;
                 }
 
                 placements.Add(placement);

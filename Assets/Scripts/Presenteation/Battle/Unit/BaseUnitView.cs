@@ -154,15 +154,24 @@ namespace EchoEdge.Presenter.Battle
 
         public async UniTask SetAnimator(EnemyKinds enemyID)
         {
-            var data = await Addressables.LoadAssetAsync<RuntimeAnimatorController>(EnemyAnimPath + enemyID + ".controller").ToUniTask();
-            if (data != null)
+            RuntimeAnimatorController data = null;
+            try
             {
-                _animator.runtimeAnimatorController = data;
+                data = await Addressables.LoadAssetAsync<RuntimeAnimatorController>(EnemyAnimPath + enemyID + ".controller").ToUniTask();
             }
-            else
+            catch (Exception e)
+            {
+                // アニメーター未登録でも Setup を最後まで進め、アニメーション無しで動かす
+                Debug.LogWarning($"EnemyAnimPath {EnemyAnimPath + enemyID + ".controller"} の読み込みに失敗しました: {e.Message}");
+            }
+
+            if (data == null)
             {
                 Debug.LogWarning($"EnemyAnimPath {EnemyAnimPath + enemyID + ".controller"} のアニメーターを読み込めませんでした。");
             }
+
+            // プールから再利用した View に前の敵のアニメーターを残さない
+            _animator.runtimeAnimatorController = data;
         }
 
         /// <summary>

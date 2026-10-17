@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
@@ -73,7 +74,15 @@ namespace EchoEdge.Presenter.Battle
         /// </summary>
         private async UniTaskVoid SetupOffBoardViewAsync(BaseUnitView view, BaseUnit unit, EnemyKinds enemyId, Transform standPoint)
         {
-            await view.Setup(unit.Height, unit.Width, enemyId);
+            try
+            {
+                await view.Setup(unit.Height, unit.Width, enemyId);
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"UnitSpawner: {enemyId} の View 初期化中に例外が発生しました: {e.Message}");
+            }
+
             if (view == null) return;
 
             if (standPoint != null)
