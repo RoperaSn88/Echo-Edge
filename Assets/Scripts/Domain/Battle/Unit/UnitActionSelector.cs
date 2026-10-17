@@ -24,6 +24,8 @@
                     return new Enar();
                 case EnemyKinds.BigEnar:
                     return new BigEnar();
+                case EnemyKinds.Seeker:
+                    return new Seeker();
 
                 default:
                     throw new System.ArgumentException($"Invalid UnitType: {enemyType}");

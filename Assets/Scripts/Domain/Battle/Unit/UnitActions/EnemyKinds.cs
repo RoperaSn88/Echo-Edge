@@ -8,6 +8,7 @@ namespace EchoEdge.Domain.Battle
         Booster,
         Brute,
         Enar,
-        BigEnar
+        BigEnar,
+        Seeker
     }
 }

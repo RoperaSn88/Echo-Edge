@@ -23,6 +23,18 @@ namespace EchoEdge.Domain.Battle
 
         private IUnitView _view;
 
+        /// <summary>
+        /// 紐づいている表示用 View
+        /// </summary>
+        protected IUnitView View => _view;
+
+        /// <summary>
+        /// マップのグリッドに登録せず、盤面の外に立つユニットか（『シーカー』など）。
+        /// true の場合はマスを占有せず、ダメージも受けない。
+        /// コンストラクタ内の Initialize から参照されるため、派生クラスでは定数を返すこと。
+        /// </summary>
+        protected virtual bool IsOffBoard => false;
+
         private BattleStatus _battleStatus;
         private IUnitAction _unitAction;
         private EnemyKinds _enemyKind = EnemyKinds.Invalid;
@@ -58,6 +70,8 @@ namespace EchoEdge.Domain.Battle
             }
 
             status.Initialize();
+            // 盤面外のユニットは一閃の対象にならないため、念のため無敵にしておく
+            if (IsOffBoard) status.IsInvincible = true;
             _battleStatus = status;
             _enemyKind = enemyId;
             _size = status.Size;
@@ -79,6 +93,11 @@ namespace EchoEdge.Domain.Battle
         {
             _position = new UnitPosition(h, w);
             await UniTask.WaitUntil(() => MapManager.Instance);
+            if (IsOffBoard)
+            {
+                MapManager.Instance.RegisterOffBoardUnit(this);
+                return;
+            }
             MapManager.Instance.RegisterUnit(this, h, w);
         }
 

@@ -193,6 +193,9 @@ namespace EchoEdge.Presenter.Battle
 
             _healthBar.fillAmount = 1f;
 
+            // プール再利用時に、前回の盤面外ユニット（『シーカー』）で切った当たり判定が残らないよう戻す
+            SetDamageable(true);
+
             transform.localPosition = new Vector3(w, 0, h);
 
             // 2x2など複数マスを占有するエネミーは、専用モデルが用意されるまでの暫定対応として見た目を拡大する
@@ -207,6 +210,19 @@ namespace EchoEdge.Presenter.Battle
 
             await SetAnimator(enemyID);
             gameObject.SetActive(true);
+        }
+
+        /// <summary>
+        /// 一閃の当たり判定（子を含む Collider）を有効化・無効化する。
+        /// 盤面外に立つユニット（『シーカー』）では無効にする。
+        /// </summary>
+        /// <param name="enable">true で当たり判定を有効にする</param>
+        public void SetDamageable(bool enable)
+        {
+            foreach (var col in GetComponentsInChildren<Collider>(true))
+            {
+                col.enabled = enable;
+            }
         }
 
         /// <summary>
@@ -344,6 +360,9 @@ namespace EchoEdge.Presenter.Battle
         /// </summary>
         public async UniTask WaitSpecificAnim()
         {
+            // アニメーターが未設定（素材がまだ無い『シーカー』など）の場合はアニメーションイベントが来ないため、待たずに進める
+            if (_animator.runtimeAnimatorController == null) return;
+
             _animator.SetTrigger("SkillT");
             _animationFlag = false;
 
