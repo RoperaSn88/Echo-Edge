@@ -12,7 +12,7 @@ using EchoEdge.Presenter.UI;
 namespace EchoEdge.Domain.Battle
 {
     [System.Serializable]
-    public class BaseUnit: IEnemyUnit, IDamagable
+    public class BaseUnit: IEnemyUnit, IDamagable, IForcedMoveReceiver
     {
         [SerializeField]
         private UnitPosition _position;
@@ -33,6 +33,16 @@ namespace EchoEdge.Domain.Battle
         /// コンストラクタで確定させておく（CSV読み込みは MapManager 側で先に行う）。
         /// </summary>
         private EnemySize _size;
+
+        /// <summary>
+        /// 移動できない残りフェーズ数。0 より大きい間はエネミーフェーズの移動をスキップする。
+        /// </summary>
+        private int _moveLockedPhases;
+
+        /// <summary>
+        /// マグネティックコアで飛行を解除されたときに移動できなくなるフェーズ数
+        /// </summary>
+        private const int MoveLockPhasesOnFlyingCancel = 1;
 
         public BaseUnit(int h, int w, EnemySize size = EnemySize.Default)
         {
@@ -186,6 +196,12 @@ namespace EchoEdge.Domain.Battle
             }
 
             await _unitAction.Specific(Height, Width);
+
+            // 飛行（溜め）中は一閃のダメージを受けない
+            if (_unitAction is IFlyingUnit flyingAfterSpecific && _battleStatus != null)
+            {
+                _battleStatus.IsInvincible = flyingAfterSpecific.IsFlying;
+            }
         }
 
         public async UniTask Act()
@@ -237,8 +253,13 @@ namespace EchoEdge.Domain.Battle
             // 移動
             try
             {
+                if (_moveLockedPhases > 0)
+                {
+                    // 移動不可の間はこのフェーズの移動をスキップする
+                    _moveLockedPhases--;
+                }
                 // もし飛行中ならナシ
-                if (_unitAction is IFlyingUnit fly)
+                else if (_unitAction is IFlyingUnit fly)
                 {
                     if(!fly.IsFlying) await TryMoveByScoreMap(_battleStatus.Move);
                 }
@@ -426,6 +447,34 @@ namespace EchoEdge.Domain.Battle
             }
         }
 
+        /// <summary>
+        /// 指定したフェーズ数だけ、エネミーフェーズの移動をできなくする
+        /// </summary>
+        /// <param name="phases">移動できないフェーズ数</param>
+        public void LockMove(int phases)
+        {
+            _moveLockedPhases = Math.Max(_moveLockedPhases, phases);
+        }
+
+        /// <inheritdoc/>
+        public async UniTask OnPulledByMagneticCore()
+        {
+            // 飛行（溜め）中に引き寄せられた場合は、溜めと無敵を解除して着陸させ、次のフェーズは移動できなくする
+            if (_unitAction is not IFlyingUnit flyingUnit || !flyingUnit.IsFlying) return;
+
+            flyingUnit.CancelFlying();
+            if (_battleStatus != null)
+            {
+                _battleStatus.IsInvincible = false;
+            }
+            LockMove(MoveLockPhasesOnFlyingCancel);
+
+            if (_view is IFlyingUnitView flyingView)
+            {
+                await flyingView.WaitLandAnim();
+            }
+        }
+
         public async UniTask Move(int y, int x)
         {
             _position = new UnitPosition(y, x);
@@ -505,6 +554,12 @@ namespace EchoEdge.Domain.Battle
             if (_battleStatus == null)
             {
                 Debug.LogWarning("ステータスが読み込まれていないため、ダメージ計算を発火できません。");
+                return (0, false);
+            }
+
+            // 飛行中など無敵状態の間は一閃が当たらない
+            if (_battleStatus.IsInvincible)
+            {
                 return (0, false);
             }
 

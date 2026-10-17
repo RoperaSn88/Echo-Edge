@@ -43,5 +43,12 @@ namespace EchoEdge.Presenter.Battle
             await UniTask.WaitUntil(() => AnimationFlag);
             await transform.DOLocalMoveY(_groundY, FlyTime).SetEase(Ease.InQuad);
         }
+
+        /// <inheritdoc/>
+        public async UniTask WaitLandAnim()
+        {
+            transform.DOKill();
+            await transform.DOLocalMoveY(_groundY, FlyTime).SetEase(Ease.InQuad);
+        }
     }
 }

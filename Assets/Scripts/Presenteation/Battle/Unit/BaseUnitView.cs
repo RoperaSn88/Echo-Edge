@@ -392,6 +392,13 @@ namespace EchoEdge.Presenter.Battle
             }
 
             var targetStatus = targetUnit.GetStatus();
+            if (targetStatus == null || targetStatus.IsInvincible)
+            {
+                // 飛行中など無敵状態の敵には一閃が当たらない（コンボ・QTE・エナジー獲得も発生させない）
+                Time.timeScale = 1.0f;
+                return;
+            }
+
             BattleManager.RegisterEnemy(targetStatus);
             var damageValue = await calculateDamage();
 
