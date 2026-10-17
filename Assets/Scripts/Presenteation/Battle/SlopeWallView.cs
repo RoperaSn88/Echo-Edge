@@ -5,13 +5,21 @@ using EchoEdge.Domain.Battle;
 namespace EchoEdge.Presenter.Battle
 {
     /// <summary>
-    /// 壁(BuildingView)の見た目と当たり判定を、斜面の板に切り替えるクラス。
-    /// 壁のプールはビルダーの壁と共有しているため、プールへ返す前に必ず <see cref="Restore"/> で元に戻す。
-    /// プレハブに付けなくても、<see cref="GetOrAdd"/> で実行時に追加して使える。
+    /// 斜面のエナジーウォールのプレハブに付けるクラス。
+    /// 子の板（Body）を Y 軸で ±45° 回して向き（／・＼）を表し、向き選択中のプレビュー表示も切り替える。
     /// </summary>
+    [RequireComponent(typeof(BuildingView))]
     public class SlopeWallView : MonoBehaviour
     {
-        private const string SlopeObjectName = "EnergyWallSlope";
+        /// <summary>
+        /// ／ 向きのときの板の Y 軸回転。板の長辺（ローカル X 軸）がマスの左下から右上へ伸びる
+        /// </summary>
+        private const float SlashYaw = -45f;
+
+        /// <summary>
+        /// ＼ 向きのときの板の Y 軸回転
+        /// </summary>
+        private const float BackSlashYaw = 45f;
 
         /// <summary>
         /// プレビュー中に乗算する透明度
@@ -28,22 +36,33 @@ namespace EchoEdge.Presenter.Battle
         /// </summary>
         private const float MinPassThroughCos = 0.2f;
 
-        private Renderer[] _originalRenderers;
-        private Collider[] _originalColliders;
+        /// <summary>
+        /// 出口が求まらなかったときに使う、板の厚さの見積もり
+        /// </summary>
+        private const float FallbackThickness = 0.12f;
 
-        private GameObject _slopeObject;
-        private MeshFilter _slopeMeshFilter;
-        private MeshRenderer _slopeRenderer;
-        private MeshCollider _slopeCollider;
+        /// <summary>
+        /// 回転させる板（薄い Cube）。Renderer と Collider を持つ
+        /// </summary>
+        [SerializeField]
+        private Transform _body;
+
+        [SerializeField]
+        private Renderer _bodyRenderer;
+
+        [SerializeField]
+        private Collider _bodyCollider;
+
+        private BuildingView _buildingView;
         private MaterialPropertyBlock _propertyBlock;
 
-        public bool IsSlope { get; private set; }
+        public BuildingView BuildingView => _buildingView ??= GetComponent<BuildingView>();
 
         public EnergyWallDirection Direction { get; private set; }
 
         /// <summary>
         /// 貫通攻撃で斜面の壁を通り抜けたあとの位置を求める。
-        /// 斜面は法線が斜めなので、従来の「法線の逆方向へ1マス進む」処理ではなく、進行方向に板の厚さ分だけ進める。
+        /// 斜面は法線が斜めなので、従来の「法線の逆方向へ1マス進む」処理ではなく、進行方向に沿って板の出口まで進める。
         /// </summary>
         /// <returns>当たった壁が斜面なら true</returns>
         public static bool TryGetPassThroughPosition(RaycastHit hit, Vector3 direction, out Vector3 position)
@@ -52,7 +71,7 @@ namespace EchoEdge.Presenter.Battle
             if (hit.collider == null) return false;
 
             var slopeView = hit.collider.GetComponentInParent<SlopeWallView>();
-            if (slopeView == null || !slopeView.IsSlope) return false;
+            if (slopeView == null) return false;
 
             Vector3 flatDirection = new Vector3(direction.x, 0f, direction.z).normalized;
 
@@ -68,146 +87,53 @@ namespace EchoEdge.Presenter.Battle
 
             // 出口が求まらない場合は、厚さと入射角から通り抜け距離を見積もる
             float cos = Mathf.Max(Mathf.Abs(Vector3.Dot(flatDirection, hit.normal)), MinPassThroughCos);
-            position = hit.point + flatDirection * (SlopeWallMeshBuilder.Thickness / cos + PassThroughMargin);
+            position = hit.point + flatDirection * (FallbackThickness / cos + PassThroughMargin);
             return true;
         }
 
-        public static SlopeWallView GetOrAdd(BuildingView wall)
-        {
-            if (wall == null) return null;
-            if (!wall.TryGetComponent<SlopeWallView>(out var view))
-            {
-                view = wall.gameObject.AddComponent<SlopeWallView>();
-            }
-            return view;
-        }
-
         /// <summary>
-        /// 斜面の壁に切り替える。
+        /// 斜面の向きと、プレビューかどうかを設定する。
         /// </summary>
         /// <param name="direction">斜面の向き</param>
         /// <param name="isPreview">true のときは当たり判定を無効にして半透明で表示する（向き選択中のプレビュー）</param>
-        public void ApplySlope(EnergyWallDirection direction, bool isPreview)
+        public void Apply(EnergyWallDirection direction, bool isPreview)
         {
-            EnsureSlopeObject();
-            CacheOriginals();
+            if (_body == null)
+            {
+                Debug.LogError($"{nameof(SlopeWallView)}: Body が未設定です。");
+                return;
+            }
 
-            SetOriginalsEnabled(false);
+            float yaw = direction == EnergyWallDirection.Slash ? SlashYaw : BackSlashYaw;
+            _body.localRotation = Quaternion.Euler(0f, yaw, 0f);
 
-            var mesh = SlopeWallMeshBuilder.Get(direction);
-            _slopeMeshFilter.sharedMesh = mesh;
-
-            // MeshCollider はメッシュを差し替えたら再設定しないと形状が更新されない
-            _slopeCollider.sharedMesh = null;
-            _slopeCollider.sharedMesh = mesh;
-            _slopeCollider.enabled = !isPreview;
+            if (_bodyCollider != null)
+            {
+                _bodyCollider.enabled = !isPreview;
+            }
 
             ApplyPreviewColor(isPreview);
-
-            _slopeObject.layer = gameObject.layer;
-
-            // 攻撃ガイドラインは "Wall" タグの当たり判定だけを壁として扱うため、元の当たり判定のタグを引き継ぐ
-            _slopeObject.tag = _originalColliders != null && _originalColliders.Length > 0 && _originalColliders[0] != null
-                ? _originalColliders[0].gameObject.tag
-                : gameObject.tag;
-            _slopeObject.SetActive(true);
-
             Direction = direction;
-            IsSlope = true;
-        }
-
-        /// <summary>
-        /// 元の壁（キューブ）の見た目と当たり判定に戻す。
-        /// </summary>
-        public void Restore()
-        {
-            if (_slopeObject != null)
-            {
-                _slopeObject.SetActive(false);
-            }
-
-            if (_originalRenderers != null || _originalColliders != null)
-            {
-                SetOriginalsEnabled(true);
-            }
-
-            IsSlope = false;
-        }
-
-        private void EnsureSlopeObject()
-        {
-            if (_slopeObject != null) return;
-
-            _slopeObject = new GameObject(SlopeObjectName);
-            _slopeObject.transform.SetParent(transform, false);
-            _slopeObject.transform.localPosition = Vector3.zero;
-            _slopeObject.transform.localRotation = Quaternion.identity;
-            _slopeObject.transform.localScale = Vector3.one;
-
-            _slopeMeshFilter = _slopeObject.AddComponent<MeshFilter>();
-            _slopeRenderer = _slopeObject.AddComponent<MeshRenderer>();
-            _slopeCollider = _slopeObject.AddComponent<MeshCollider>();
-
-            // 元の壁と同じマテリアルで描画する
-            var originalRenderer = GetComponent<Renderer>();
-            if (originalRenderer != null)
-            {
-                _slopeRenderer.sharedMaterials = originalRenderer.sharedMaterials;
-                _slopeRenderer.shadowCastingMode = originalRenderer.shadowCastingMode;
-                _slopeRenderer.receiveShadows = originalRenderer.receiveShadows;
-            }
-
-            _slopeObject.SetActive(false);
-        }
-
-        private void CacheOriginals()
-        {
-            if (_originalRenderers != null) return;
-
-            // 斜面オブジェクト自身は除外する
-            _originalRenderers = System.Array.FindAll(
-                GetComponentsInChildren<Renderer>(true),
-                r => _slopeObject == null || !r.transform.IsChildOf(_slopeObject.transform));
-            _originalColliders = System.Array.FindAll(
-                GetComponentsInChildren<Collider>(true),
-                c => _slopeObject == null || !c.transform.IsChildOf(_slopeObject.transform));
-        }
-
-        private void SetOriginalsEnabled(bool isEnabled)
-        {
-            if (_originalRenderers != null)
-            {
-                foreach (var r in _originalRenderers)
-                {
-                    if (r != null) r.enabled = isEnabled;
-                }
-            }
-
-            if (_originalColliders != null)
-            {
-                foreach (var c in _originalColliders)
-                {
-                    if (c != null) c.enabled = isEnabled;
-                }
-            }
         }
 
         private void ApplyPreviewColor(bool isPreview)
         {
-            _propertyBlock ??= new MaterialPropertyBlock();
-            _slopeRenderer.GetPropertyBlock(_propertyBlock);
+            if (_bodyRenderer == null) return;
 
-            var material = _slopeRenderer.sharedMaterial;
+            _propertyBlock ??= new MaterialPropertyBlock();
+
+            var material = _bodyRenderer.sharedMaterial;
             if (isPreview && material != null && material.HasProperty("_BaseColor"))
             {
+                _bodyRenderer.GetPropertyBlock(_propertyBlock);
                 var color = material.GetColor("_BaseColor");
                 color.a *= PreviewAlpha;
                 _propertyBlock.SetColor("_BaseColor", color);
-                _slopeRenderer.SetPropertyBlock(_propertyBlock);
+                _bodyRenderer.SetPropertyBlock(_propertyBlock);
             }
             else
             {
-                _slopeRenderer.SetPropertyBlock(null);
+                _bodyRenderer.SetPropertyBlock(null);
             }
         }
     }
