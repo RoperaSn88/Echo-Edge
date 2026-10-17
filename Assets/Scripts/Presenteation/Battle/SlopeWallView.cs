@@ -55,6 +55,18 @@ namespace EchoEdge.Presenter.Battle
             if (slopeView == null || !slopeView.IsSlope) return false;
 
             Vector3 flatDirection = new Vector3(direction.x, 0f, direction.z).normalized;
+
+            // 板の端（木口）や浅い角度で当たった場合も確実に抜けられるよう、
+            // 板の外側から逆向きにレイを飛ばして実際の出口を求める
+            float reach = hit.collider.bounds.size.magnitude + 1f;
+            var backRay = new Ray(hit.point + flatDirection * reach, -flatDirection);
+            if (hit.collider.Raycast(backRay, out RaycastHit exitHit, reach))
+            {
+                position = exitHit.point + flatDirection * PassThroughMargin;
+                return true;
+            }
+
+            // 出口が求まらない場合は、厚さと入射角から通り抜け距離を見積もる
             float cos = Mathf.Max(Mathf.Abs(Vector3.Dot(flatDirection, hit.normal)), MinPassThroughCos);
             position = hit.point + flatDirection * (SlopeWallMeshBuilder.Thickness / cos + PassThroughMargin);
             return true;
@@ -93,6 +105,11 @@ namespace EchoEdge.Presenter.Battle
             ApplyPreviewColor(isPreview);
 
             _slopeObject.layer = gameObject.layer;
+
+            // 攻撃ガイドラインは "Wall" タグの当たり判定だけを壁として扱うため、元の当たり判定のタグを引き継ぐ
+            _slopeObject.tag = _originalColliders != null && _originalColliders.Length > 0 && _originalColliders[0] != null
+                ? _originalColliders[0].gameObject.tag
+                : gameObject.tag;
             _slopeObject.SetActive(true);
 
             Direction = direction;
