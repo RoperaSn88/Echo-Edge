@@ -284,11 +284,11 @@ namespace EchoEdge.App.Battle
                 _QTEFlug = true;
             } 
 
-            // 防御中は被ダメージを半減する
+            // 防御中は、防御力で軽減した後の被ダメージを半減する
             var defendRate = _isDefending ? DefendDamageRate : 1.0f;
 
             // 防御QTE大成功で切り捨てにより0ダメージにならないよう、最低1ダメージは与える
-            var result = await _playerStatus.Damage(Mathf.Max(1, (int)(_enemyStatus.Attack * rate * _qteResult * defendRate)));
+            var result = await _playerStatus.Damage(Mathf.Max(1, (int)(_enemyStatus.Attack * rate * _qteResult)), defendRate);
 
             var playerHpRate = (float)_playerStatus.HP / _playerStatus.MaxHP;
             if (playerHpRate < PinchHpRate)

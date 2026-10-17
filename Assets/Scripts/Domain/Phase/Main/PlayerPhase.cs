@@ -1,7 +1,9 @@
 using System;
 using Cysharp.Threading.Tasks;
+using UnityEngine;
 
 using EchoEdge.App.Battle;
+using EchoEdge.Presenter.Actions;
 using EchoEdge.Presenter.UI;
 
 namespace EchoEdge.Domain.Phase
@@ -26,13 +28,18 @@ namespace EchoEdge.Domain.Phase
             // 前のターンに防御していた場合、このプレイヤーフェーズの反射回数を増やす
             BattleManager.ApplyPendingReflectBonus();
 
+            PlayerActionKinds action;
             if (PlayerPhaseController.Instance == null)
             {
-                throw new InvalidOperationException("PlayerPhaseController がシーンに配置されていません");
+                // シーンにボタンが未配置の間も進行が止まらないよう、従来のクリック操作（左: 一閃、右: 装備品）で代用する
+                Debug.LogWarning("PlayerPhaseController がシーンに配置されていないため、クリック操作で行動を選択します");
+                action = await WaitClickAction();
             }
-
-            // 行動選択ボタンが押されるまで待機する
-            var action = await PlayerPhaseController.Instance.WaitSelectAction(BattleManager.HealRemaining);
+            else
+            {
+                // 行動選択ボタンが押されるまで待機する
+                action = await PlayerPhaseController.Instance.WaitSelectAction(BattleManager.HealRemaining);
+            }
 
             switch (action)
             {
@@ -49,6 +56,27 @@ namespace EchoEdge.Domain.Phase
             }
 
             throw new InvalidOperationException($"不明な行動です: {action}");
+        }
+
+        /// <summary>
+        /// PlayerPhaseController が無い場合の代替入力。左クリックで一閃、右クリックで装備品を選ぶ。
+        /// </summary>
+        private async UniTask<PlayerActionKinds> WaitClickAction()
+        {
+            var source = new UniTaskCompletionSource<PlayerActionKinds>();
+            var playerActions = new PlayerActions();
+            playerActions.PlayerPhase.Attack.started += _ => source.TrySetResult(PlayerActionKinds.Attack);
+            playerActions.PlayerPhase.Skill.started += _ => source.TrySetResult(PlayerActionKinds.Weapon);
+            playerActions.Enable();
+
+            try
+            {
+                return await source.Task;
+            }
+            finally
+            {
+                playerActions.Dispose();
+            }
         }
     }
 }

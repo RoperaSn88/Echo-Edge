@@ -242,12 +242,22 @@ namespace EchoEdge.Domain.Battle
         /// <returns>(与えたダメージ量, 死亡したか)</returns>
         public UniTask<(int damage, bool isDeath)> Damage(int targetAttack)
         {
+            return Damage(targetAttack, 1.0f);
+        }
+
+        /// <summary>
+        /// 防御力で軽減した後のダメージに倍率を掛けてHPを減らす（プレイヤーの防御行動による半減など）
+        /// </summary>
+        /// <param name="targetAttack">攻撃側の攻撃力</param>
+        /// <param name="damageRate">防御力で軽減した後のダメージに掛ける倍率</param>
+        public UniTask<(int damage, bool isDeath)> Damage(int targetAttack, float damageRate)
+        {
             if (IsInvincible)
             {
                 return UniTask.FromResult((0, false));
             }
 
-            int damage = DamageCalculationService.Calculate(targetAttack, _defend);
+            int damage = (int)(DamageCalculationService.Calculate(targetAttack, _defend) * damageRate);
             _hp = _hp.TakeDamage(damage);
 
             return UniTask.FromResult((damage, _hp.IsDead));
