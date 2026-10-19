@@ -89,8 +89,8 @@ namespace EchoEdge.App.Battle
 
                 if (placement.objectKind == StageObjectKind.Unit)
                 {
-                    // 盤面外のユニット（『シーカー』）は倒す対象ではないため、全滅条件の敵数に数えない
-                    if (placement.enemyKind != EnemyKinds.Seeker) initialEnemyCount++;
+                    // 倒す対象ではないエネミー（『シーカー』など）は全滅条件の敵数に数えない
+                    if (placement.enemyKind.IsDefeatTarget()) initialEnemyCount++;
                     // マスの占有登録はコンストラクタ内（LoadStatus完了前）に行われるため、
                     // サイズはあらかじめCSVから取得しておく（2x2など複数マスを占有するエネミー対応）。
                     var size = await EnemyStatusLoader.TryLoadSize((int)placement.enemyKind);

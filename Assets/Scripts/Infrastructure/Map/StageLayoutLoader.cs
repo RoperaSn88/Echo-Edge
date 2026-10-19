@@ -145,8 +145,8 @@ namespace EchoEdge.Infra.Map
                     }
                 }
 
-                // 盤面外に立つシーカーはマスを占有しないため、重複座標の確認・予約から外す
-                if (placement.enemyKind != EnemyKinds.Seeker && !occupied.Add((height, width)))
+                // 盤面外に立つエネミー（『シーカー』など）はマスを占有しないため、重複座標の確認・予約から外す
+                if (!placement.enemyKind.IsOffBoard() && !occupied.Add((height, width)))
                 {
                     Debug.LogWarning($"StageLayout.csv の {i + 1} 行目は重複座標です。h:{height}, w:{width}");
                     continue;

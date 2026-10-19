@@ -57,7 +57,7 @@ namespace EchoEdge.Presenter.Battle
                 return;
             }
 
-            if (enemyId == EnemyKinds.Seeker)
+            if (enemyId.IsOffBoard())
             {
                 unit.SetView(view);
                 SetupOffBoardViewAsync(view, unit, enemyId, seekerStandPoint).Forget();
