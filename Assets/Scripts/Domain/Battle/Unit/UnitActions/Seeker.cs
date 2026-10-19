@@ -15,8 +15,11 @@ namespace EchoEdge.Domain.Battle
     /// <summary>
     /// 『シーカー』の行動を定義するクラス。
     /// ステージの奥地（盤面の外）に立つ中ボスで、攻撃も移動もしない。
-    /// 毎エネミーフェーズ、『エナー』を1〜3体、自身の周辺のマスに召喚する。
-    /// 召喚後、確率で盤面上の『エナー』全員の攻撃力・防御力・移動量のいずれか1つを上昇させる（効果は重ねがけされる）。
+    /// 毎エネミーフェーズ、盤面上の『エナー』の数に応じて、召喚かバフのどちらか一方を行う。
+    /// - エナーが2体未満なら、エナーを1〜3体召喚する
+    /// - エナーが2体以上なら、(5 - エナー数) / 5 の確率で召喚し、それ以外はバフを行う
+    /// バフは盤面上の『エナー』全員の攻撃力・防御力・移動量のいずれか1つ（等確率）を上昇させる（効果は重ねがけされる）。
+    /// 召喚するエナーのレベルは、エナーを2体召喚するごとに+1される。
     /// </summary>
     public class Seeker : IUnitAction
     {
@@ -27,9 +30,19 @@ namespace EchoEdge.Domain.Battle
         private const int MaxSummonCount = 3;
 
         /// <summary>
-        /// 召喚後に強化を行う確率
+        /// 盤面上のエナーがこの数未満なら、必ず召喚する
         /// </summary>
-        private const float EnhanceRate = 0.5f;
+        private const int AlwaysSummonBelow = 2;
+
+        /// <summary>
+        /// エナーが2体以上いるときの召喚確率の分母。召喚確率は (SummonRateBase - エナー数) / SummonRateBase
+        /// </summary>
+        private const int SummonRateBase = 5;
+
+        /// <summary>
+        /// この数だけエナーを召喚するごとに、召喚するレベルを+1する
+        /// </summary>
+        private const int SummonsPerLevelUp = 2;
 
         /// <summary>
         /// 強化1回あたりの上昇量。重ねがけできるよう、期限つきのバフではなくステータスを直接上げる
@@ -39,12 +52,12 @@ namespace EchoEdge.Domain.Battle
         private const int MoveBonus = 1;
 
         /// <summary>
-        /// 召喚した『エナー』に適用するレベル。召喚直後は弱く、シーカーの強化で育つ想定のため補正なし(0)
+        /// 最初に召喚する『エナー』のレベル（補正なし）
         /// </summary>
-        private const int SummonLevel = 0;
+        private const int BaseSummonLevel = 0;
 
         /// <summary>
-        /// 召喚後に抽選される強化一覧（1つだけ抽選）
+        /// バフで抽選される強化一覧（等確率で1つだけ抽選）
         /// </summary>
         private static readonly (Action<BattleStatus> apply, string label)[] EnhanceOptions =
         {
@@ -52,6 +65,11 @@ namespace EchoEdge.Domain.Battle
             (status => status.ChangeDefend(DefendBonus), $"防御力+{DefendBonus}"),
             (status => status.ChangeMove(MoveBonus), $"移動量+{MoveBonus}"),
         };
+
+        /// <summary>
+        /// このシーカーがこれまでに召喚した『エナー』の数。召喚レベルの計算に使う
+        /// </summary>
+        private int _summonedCount;
 
         /// <inheritdoc/>
         public UniTask Attack()
@@ -75,7 +93,7 @@ namespace EchoEdge.Domain.Battle
         /// <inheritdoc/>
         public UniTask<EnemyMoveKinds> Act(int selfHeight, int selfWidth)
         {
-            // 毎フェーズ必ず召喚する
+            // 毎フェーズ、召喚かバフのどちらかを行う（どちらにするかは Specific で抽選する）
             return UniTask.FromResult(EnemyMoveKinds.Specific);
         }
 
@@ -90,13 +108,52 @@ namespace EchoEdge.Domain.Battle
         {
             if (MapManager.Instance == null || UnitSpawner.Instance == null) return;
 
+            if (ShouldSummon(CountEnarsOnBoard()))
+            {
+                await SummonEnars(selfHeight, selfWidth);
+            }
+            else
+            {
+                await EnhanceEnars();
+            }
+
+            await CameraManager.Instance.ActResetCameraTarget();
+        }
+
+        /// <summary>
+        /// 召喚するかどうかを決める。
+        /// エナーが2体未満なら必ず召喚し、2体以上なら (5 - エナー数) / 5 の確率で召喚する（それ以外はバフ）。
+        /// </summary>
+        private static bool ShouldSummon(int enarCount)
+        {
+            if (enarCount < AlwaysSummonBelow) return true;
+
+            var summonRate = Mathf.Clamp01((SummonRateBase - enarCount) / (float)SummonRateBase);
+            return UnityEngine.Random.value < summonRate;
+        }
+
+        private static int CountEnarsOnBoard()
+        {
+            return MapManager.Instance.GetUnitPositionsSnapshot()
+                .Count(info => info.unit.GetEnemyKind() == EnemyKinds.Enar);
+        }
+
+        /// <summary>
+        /// 召喚する『エナー』のレベル。エナーを2体召喚するごとに+1する
+        /// </summary>
+        private int CurrentSummonLevel => BaseSummonLevel + _summonedCount / SummonsPerLevelUp;
+
+        /// <summary>
+        /// 基準マスの近くに『エナー』を1〜3体召喚する
+        /// </summary>
+        private async UniTask SummonEnars(int selfHeight, int selfWidth)
+        {
             var summonCount = UnityEngine.Random.Range(MinSummonCount, MaxSummonCount + 1);
             var cells = FindSummonCells(selfHeight, selfWidth, summonCount);
             if (cells.Count == 0)
             {
                 await MessagePresenter.Instance.AppearMessage("エナーを呼び出す場所がない");
                 await UniTask.Delay(TimeSpan.FromSeconds(1f));
-                await CameraManager.Instance.ActResetCameraTarget();
                 return;
             }
 
@@ -105,8 +162,9 @@ namespace EchoEdge.Domain.Battle
             foreach (var (h, w) in cells)
             {
                 var unit = UnitFactory.Create(EnemyKinds.Enar, h, w, size);
-                await unit.LoadStatus(EnemyKinds.Enar, SummonLevel);
+                await unit.LoadStatus(EnemyKinds.Enar, CurrentSummonLevel);
                 UnitSpawner.Instance.SpawnView(unit, EnemyKinds.Enar);
+                _summonedCount++;
 
                 // 全滅クリア条件の残り敵数を増やす
                 await DomainEventDispatcher.Dispatch(new EnemySpawnedEvent(new UnitPosition(h, w)));
@@ -114,13 +172,6 @@ namespace EchoEdge.Domain.Battle
 
             await MessagePresenter.Instance.AppearMessage($"エナーが{cells.Count}体現れた！");
             await UniTask.Delay(TimeSpan.FromSeconds(1f));
-
-            if (UnityEngine.Random.value < EnhanceRate)
-            {
-                await EnhanceEnars();
-            }
-
-            await CameraManager.Instance.ActResetCameraTarget();
         }
 
         /// <summary>
