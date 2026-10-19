@@ -460,10 +460,6 @@ namespace EchoEdge.App.Battle
         [Button("動かす")]
         public async UniTask MoveUnit()
         {
-            // 盤面上のユニットの順番は、盤面外のユニットが召喚する前に確定させておく。
-            // これにより『シーカー』が召喚した『エナー』は、召喚されたターンには動かない。
-            var unitsOnBoard = GetUnitsInMapOrderSnapshot();
-
             // 盤面外のユニット（『シーカー』、行動順は前）は盤面上のユニットより先に行動する
             foreach (var unit in _offBoardUnits.ToList())
             {
@@ -473,7 +469,9 @@ namespace EchoEdge.App.Battle
                 }
             }
 
-            foreach (var unit in unitsOnBoard)
+            // 盤面上のユニットの順番は、盤面外のユニットの行動が終わってから確定させる。
+            // これにより『シーカー』が召喚した『エナー』も、召喚されたターンに動く。
+            foreach (var unit in GetUnitsInMapOrderSnapshot())
             {
                 if (_unitPositions.ContainsKey(unit) && unit.CanMove())
                 {
