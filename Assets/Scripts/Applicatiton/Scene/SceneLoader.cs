@@ -104,6 +104,33 @@ namespace EchoEdge.App.Scene
             }
         }
 
+        /// <summary>
+        /// シーンをアンロードし、アンロード完了まで待機します。
+        /// 同じシーンを読み込み直す前に、古いインスタンスを確実に破棄したいときに使います。
+        /// </summary>
+        public static async UniTask UnloadAsync(GameScene scene)
+        {
+            if (!TryGetSceneIndex(scene, out var sceneIndex))
+            {
+                return;
+            }
+
+            if (!SceneManager.GetSceneByBuildIndex(sceneIndex).isLoaded)
+            {
+                Debug.LogWarning($"アンロード対象シーンがロードされていません: {scene}");
+                return;
+            }
+
+            var unloadOperation = SceneManager.UnloadSceneAsync(sceneIndex);
+            if (unloadOperation == null)
+            {
+                Debug.LogError($"シーンのアンロード開始に失敗しました: {scene}");
+                return;
+            }
+
+            await unloadOperation.ToUniTask();
+        }
+
         private static bool TryGetSceneIndex(GameScene scene, out int sceneIndex)
         {
             sceneIndex = (int)scene;
