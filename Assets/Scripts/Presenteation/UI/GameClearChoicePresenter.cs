@@ -86,11 +86,12 @@ namespace EchoEdge.Presenter.UI
             gameObject.SetActive(true);
             transform.SetAsLastSibling();
 
-            await _canvasGroup.DOFade(1f, FadeDuration).SetUpdate(true).ToUniTask();
-
+            // フェード中に押されても取りこぼさないよう、フェード前にリスナーを登録する
             var tcs = new UniTaskCompletionSource<GameClearChoice>();
             _continueButton.onClick.AddListener(() => tcs.TrySetResult(GameClearChoice.Continue));
             _restButton.onClick.AddListener(() => tcs.TrySetResult(GameClearChoice.Rest));
+
+            _canvasGroup.DOFade(1f, FadeDuration).SetUpdate(true);
 
             var choice = await tcs.Task;
 

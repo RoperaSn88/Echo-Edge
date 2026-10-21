@@ -224,15 +224,26 @@ namespace EchoEdge.App.Battle
             }
 
             // シーンの入れ替えは待たずに走らせる。
-            // この演出は敵撃破の処理から await されているため、ここで MainGame を破棄してしまうと
-            // 呼び出し元が破棄済みのオブジェクトに触れてしまう。先に呼び出し元を戻し、
-            // 旧 PhaseManager のループを（IsGameClearSequenceRunning により）抜けさせてから入れ替える。
+            // この演出は敵撃破・ターン終了の処理から await されており、戻った後も実行中のフェーズ
+            // （攻撃の残り、エネミーフェーズのターン表示など）がシーン内のオブジェクトや
+            // static な Instance を触る。先に呼び出し元を戻し、旧 PhaseManager のループが
+            // （IsGameClearSequenceRunning により）抜けきるのを待ってから入れ替える。
             ReloadMainGameAsync(beforeScenarioLoaded).Forget();
         }
 
+        /// <summary>
+        /// 旧フェーズループの終了を待つ上限。フェーズが止まったままでもクリア後に進めなくならないようにする。
+        /// </summary>
+        private const float PhaseLoopExitTimeoutSeconds = 10f;
+
         private static async UniTask ReloadMainGameAsync(bool scenarioLoaded)
         {
-            await UniTask.Yield();
+            var timedOut = await UniTask.WaitUntil(() => !PhaseManager.IsPhaseLoopRunning)
+                .TimeoutWithoutException(TimeSpan.FromSeconds(PhaseLoopExitTimeoutSeconds), DelayType.Realtime);
+            if (timedOut)
+            {
+                Debug.LogWarning("旧 MainGame のフェーズループが終わらないまま、シーンを読み込み直します。");
+            }
 
             // 同じシーンを追加ロードするので、旧 MainGame のシングルトン等が残らないよう破棄を待ってから読み込む
             await SceneLoader.UnloadAsync(GameScene.MainGame);
