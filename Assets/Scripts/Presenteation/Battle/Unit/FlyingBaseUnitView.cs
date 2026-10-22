@@ -56,9 +56,16 @@ namespace EchoEdge.Presenter.Battle
             Animator.ResetTrigger("SkillT");
             Animator.ResetTrigger("BeamT");
             Animator.Play(IdleStateName, 0, 0f);
+            Animator.SetTrigger("FallT");
 
             transform.DOKill();
             await transform.DOLocalMoveY(_groundY, FlyTime).SetEase(Ease.InQuad);
+        }
+
+        /// <inheritdoc/>
+        public void PlayInitialAnim()
+        {
+            Animator.SetTrigger("InitialT");
         }
     }
 }

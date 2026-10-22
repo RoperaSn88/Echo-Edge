@@ -257,6 +257,10 @@ namespace EchoEdge.Domain.Battle
                 {
                     // 移動不可の間はこのフェーズの移動をスキップする
                     _moveLockedPhases--;
+                    if (_view is IFlyingUnitView lockedFlyingView)
+                    {
+                        lockedFlyingView.PlayInitialAnim();
+                    }
                 }
                 // もし飛行中ならナシ
                 else if (_unitAction is IFlyingUnit fly)
