@@ -10,14 +10,17 @@ namespace EchoEdge.Domain.Battle
 {
     /// <summary>
     /// エナジーウォールの効果クラス。
-    /// 選択したマスに、向き（／ か ＼）を選べる斜面の壁を1ターン設置する。
+    /// 選択したマスに、向き（斜面が向く方向を4方向から選べる）三角柱の壁を1ターン設置する。
     /// </summary>
     public class EnergyWall : IEquipEffect
     {
         /// <summary>
         /// 前回選んだ向き。次に使うときの初期値にする。
+        /// 最初はプレイヤー側（左）へ斜面を向けておく
         /// </summary>
-        private static EnergyWallDirection _lastDirection = EnergyWallDirection.Slash;
+        private static EnergyWallDirection _lastDirection = EnergyWallDirection.UpLeft;
+
+        private const int DirectionCount = 4;
 
         private EnergyWallDirection _direction = _lastDirection;
 
@@ -26,7 +29,8 @@ namespace EchoEdge.Domain.Battle
 
         /// <summary>
         /// 床マスを選んだ後に、斜面の向きを選ぶ。
-        /// ホイールの回転・押し込みで向きを切り替え、左クリックで確定、右クリックで取り消す。
+        /// ホイールの回転で向きを 90° ずつ回し（上で時計回り、下で反時計回り）、ホイールの押し込みでも時計回りに回す。
+        /// 左クリックで確定、右クリックで取り消す。
         /// </summary>
         /// <returns>確定したら true、取り消したり設置できないマスだったら false</returns>
         public async UniTask<bool> SelectDirectionAsync()
@@ -88,11 +92,13 @@ namespace EchoEdge.Domain.Battle
             return targetFloorPos.x != int.MinValue && targetFloorPos.y != int.MinValue;
         }
 
-        private void ToggleDirection()
+        /// <summary>
+        /// 向きを 90° ずつ回す
+        /// </summary>
+        /// <param name="step">1 で時計回り、-1 で反時計回り</param>
+        private void RotateDirection(int step)
         {
-            _direction = _direction == EnergyWallDirection.Slash
-                ? EnergyWallDirection.BackSlash
-                : EnergyWallDirection.Slash;
+            _direction = (EnergyWallDirection)(((int)_direction + step + DirectionCount) % DirectionCount);
             EnergyWallManager.Instance.SetPreviewDirection(_direction);
         }
 
@@ -110,12 +116,12 @@ namespace EchoEdge.Domain.Battle
         {
             float scroll = context.ReadValue<float>();
             if (Mathf.Approximately(scroll, 0f)) return;
-            ToggleDirection();
+            RotateDirection(scroll > 0f ? 1 : -1);
         }
 
         private void OnPressToggle(InputAction.CallbackContext context)
         {
-            ToggleDirection();
+            RotateDirection(1);
         }
     }
 }

@@ -5,21 +5,22 @@ using EchoEdge.Domain.Battle;
 namespace EchoEdge.Presenter.Battle
 {
     /// <summary>
-    /// 斜面のエナジーウォールのプレハブに付けるクラス。
-    /// 子の板（Body）を Y 軸で ±45° 回して向き（／・＼）を表し、向き選択中のプレビュー表示も切り替える。
+    /// 三角柱のエナジーウォールのプレハブに付けるクラス。
+    /// 子の三角柱（Body）を Y 軸で 90° ずつ回して向きを表し、向き選択中のプレビュー表示も切り替える。
     /// </summary>
     [RequireComponent(typeof(BuildingView))]
     public class SlopeWallView : MonoBehaviour
     {
         /// <summary>
-        /// ／ 向きのときの板の Y 軸回転。板の長辺（ローカル X 軸）がマスの左下から右上へ伸びる
+        /// <see cref="EnergyWallDirection.UpRight"/> のときの Y 軸回転。
+        /// 三角柱のメッシュ（EnergySlopeWall.obj）は回転 0 で斜面が右上（+X, +Z）を向くように作ってある
         /// </summary>
-        private const float SlashYaw = -45f;
+        private const float BaseYaw = 0f;
 
         /// <summary>
-        /// ＼ 向きのときの板の Y 軸回転
+        /// 向きが1つ進むごとの Y 軸回転（時計回り）
         /// </summary>
-        private const float BackSlashYaw = 45f;
+        private const float YawPerDirection = 90f;
 
         /// <summary>
         /// プレビュー中に乗算する透明度
@@ -27,7 +28,7 @@ namespace EchoEdge.Presenter.Battle
         private const float PreviewAlpha = 0.5f;
 
         /// <summary>
-        /// 貫通時、板を通り抜けた先にさらに空ける距離
+        /// 貫通時、三角柱を通り抜けた先にさらに空ける距離
         /// </summary>
         private const float PassThroughMargin = 0.1f;
 
@@ -37,12 +38,12 @@ namespace EchoEdge.Presenter.Battle
         private const float MinPassThroughCos = 0.2f;
 
         /// <summary>
-        /// 出口が求まらなかったときに使う、板の厚さの見積もり
+        /// 出口が求まらなかったときに使う、三角柱を通り抜ける距離の見積もり
         /// </summary>
-        private const float FallbackThickness = 0.12f;
+        private const float FallbackThickness = 0.7f;
 
         /// <summary>
-        /// 回転させる板（薄い Cube）。Renderer と Collider を持つ
+        /// 回転させる三角柱。Renderer と Collider（凸の MeshCollider）を持つ
         /// </summary>
         [SerializeField]
         private Transform _body;
@@ -62,7 +63,7 @@ namespace EchoEdge.Presenter.Battle
 
         /// <summary>
         /// 貫通攻撃で斜面の壁を通り抜けたあとの位置を求める。
-        /// 斜面は法線が斜めなので、従来の「法線の逆方向へ1マス進む」処理ではなく、進行方向に沿って板の出口まで進める。
+        /// 斜面は法線が斜めなので、従来の「法線の逆方向へ1マス進む」処理ではなく、進行方向に沿って三角柱の出口まで進める。
         /// </summary>
         /// <returns>当たった壁が斜面なら true</returns>
         public static bool TryGetPassThroughPosition(RaycastHit hit, Vector3 direction, out Vector3 position)
@@ -75,8 +76,8 @@ namespace EchoEdge.Presenter.Battle
 
             Vector3 flatDirection = new Vector3(direction.x, 0f, direction.z).normalized;
 
-            // 板の端（木口）や浅い角度で当たった場合も確実に抜けられるよう、
-            // 板の外側から逆向きにレイを飛ばして実際の出口を求める
+            // 角や浅い角度で当たった場合も確実に抜けられるよう、
+            // 三角柱の外側から逆向きにレイを飛ばして実際の出口を求める
             float reach = hit.collider.bounds.size.magnitude + 1f;
             var backRay = new Ray(hit.point + flatDirection * reach, -flatDirection);
             if (hit.collider.Raycast(backRay, out RaycastHit exitHit, reach))
@@ -85,7 +86,7 @@ namespace EchoEdge.Presenter.Battle
                 return true;
             }
 
-            // 出口が求まらない場合は、厚さと入射角から通り抜け距離を見積もる
+            // 出口が求まらない場合は、見積もりの厚さと入射角から通り抜け距離を求める
             float cos = Mathf.Max(Mathf.Abs(Vector3.Dot(flatDirection, hit.normal)), MinPassThroughCos);
             position = hit.point + flatDirection * (FallbackThickness / cos + PassThroughMargin);
             return true;
@@ -104,7 +105,7 @@ namespace EchoEdge.Presenter.Battle
                 return;
             }
 
-            float yaw = direction == EnergyWallDirection.Slash ? SlashYaw : BackSlashYaw;
+            float yaw = BaseYaw + (int)direction * YawPerDirection;
             _body.localRotation = Quaternion.Euler(0f, yaw, 0f);
 
             if (_bodyCollider != null)
