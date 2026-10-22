@@ -29,7 +29,7 @@ namespace EchoEdge.Domain.Phase
             BattleManager.ApplyPendingReflectBonus();
 
             PlayerActionKinds action;
-            if (PlayerPhaseController.Instance == null)
+            if (PlayerPhaseViewController.Instance == null)
             {
                 // シーンにボタンが未配置の間も進行が止まらないよう、従来のクリック操作（左: 一閃、右: 装備品）で代用する
                 Debug.LogWarning("PlayerPhaseController がシーンに配置されていないため、クリック操作で行動を選択します");
@@ -38,7 +38,7 @@ namespace EchoEdge.Domain.Phase
             else
             {
                 // 行動選択ボタンが押されるまで待機する
-                action = await PlayerPhaseController.Instance.WaitSelectAction(BattleManager.HealRemaining);
+                action = await PlayerPhaseViewController.Instance.WaitSelectAction(BattleManager.HealRemaining);
             }
 
             switch (action)
