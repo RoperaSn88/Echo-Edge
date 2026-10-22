@@ -46,6 +46,22 @@
             return (_currentEnergyGauge / 100f, _currentEnergy);
         }
 
+        /// <summary>
+        /// エナジーの所持数を直接増やす（ゲージは変化しない）。防御などで使う。最大数を超えた分は切り捨てる。
+        /// </summary>
+        /// <param name="count">増やすエナジーの個数</param>
+        public static (float gaugeValue, int energyCount) AddEnergyCount(int count)
+        {
+            _currentEnergy = System.Math.Min(MaxEnergy, _currentEnergy + System.Math.Max(0, count));
+
+            if (_currentEnergy == MaxEnergy)
+            {
+                return (1f, MaxEnergy);
+            }
+
+            return (_currentEnergyGauge / 100f, _currentEnergy);
+        }
+
         public static (float gaugeValue, int energyCount) RemoveEnergy(int energy)
         {
             _currentEnergy -= energy;

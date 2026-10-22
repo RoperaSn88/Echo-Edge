@@ -81,7 +81,11 @@ namespace EchoEdge.Domain.Battle
                     continue;
                 }
 
-                await MapManager.Instance.TryMoveUnitTo(unitInfo.unit, destination.h, destination.w);
+                var moved = await MapManager.Instance.TryMoveUnitTo(unitInfo.unit, destination.h, destination.w);
+                if (moved && unitInfo.unit is IForcedMoveReceiver receiver)
+                {
+                    await receiver.OnPulledByMagneticCore();
+                }
             }
         }
 

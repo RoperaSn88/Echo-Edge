@@ -43,5 +43,23 @@ namespace EchoEdge.Presenter.Battle
             await UniTask.WaitUntil(() => AnimationFlag);
             await transform.DOLocalMoveY(_groundY, FlyTime).SetEase(Ease.InQuad);
         }
+
+        /// <inheritdoc/>
+        public async UniTask WaitLandAnim()
+        {
+            // ビームを撃たずに落下アニメーションへ遷移させる
+            Animator.ResetTrigger("SkillT");
+            Animator.ResetTrigger("BeamT");
+            Animator.SetBool("FallB", true);
+
+            transform.DOKill();
+            await transform.DOLocalMoveY(_groundY, FlyTime).SetEase(Ease.InQuad);
+        }
+
+        /// <inheritdoc/>
+        public void EndFallAnim()
+        {
+            Animator.SetBool("FallB", false);
+        }
     }
 }
