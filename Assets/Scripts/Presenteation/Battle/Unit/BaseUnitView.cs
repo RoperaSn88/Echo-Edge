@@ -381,17 +381,23 @@ namespace EchoEdge.Presenter.Battle
 
         private async UniTask ApplyDamage(Func<UniTask<(int damage, bool isDeath)>> calculateDamage)
         {
-            Time.timeScale = 0.001f;
-            CameraManager.Instance.ActSetCameraTarget(transform.position).Forget();
-
+            // 対象を先に確かめ、当たらない敵ではカメラやヒットストップ（共有状態）を変えない
             var targetUnit = MapManager.Instance.GetUnitAt(height, width);
             if (targetUnit == null)
             {
-                Time.timeScale = 1.0f;
                 return;
             }
 
             var targetStatus = targetUnit.GetStatus();
+            if (targetStatus == null || targetStatus.IsInvincible)
+            {
+                // 飛行中など無敵状態の敵には一閃が当たらない（コンボ・QTE・エナジー獲得も発生させない）
+                return;
+            }
+
+            Time.timeScale = 0.001f;
+            CameraManager.Instance.ActSetCameraTarget(transform.position).Forget();
+
             BattleManager.RegisterEnemy(targetStatus);
             var damageValue = await calculateDamage();
 
