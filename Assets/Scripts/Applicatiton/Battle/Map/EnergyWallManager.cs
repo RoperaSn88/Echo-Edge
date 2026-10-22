@@ -26,7 +26,7 @@ namespace EchoEdge.App.Battle
         private EnergyWallStack _energyWallStack;
 
         /// <summary>
-        /// 向き選択中に表示しているプレビュー用の壁
+        /// 床マスを選んでいる間、カーソルの下に表示しているプレビュー用の壁
         /// </summary>
         private SlopeWallView _previewWall;
         private int _previewHeight;
@@ -53,32 +53,33 @@ namespace EchoEdge.App.Battle
         }
 
         /// <summary>
-        /// 指定マスに斜面のエナジーウォールのプレビューを表示する。
-        /// マスが範囲外・使用中の場合は表示せず false を返す。
+        /// 指定マスにエナジーウォールのプレビューを表示する。表示中のプレビューがあれば、そのまま指定マスへ動かす。
+        /// マスが範囲外・使用中の場合はプレビューを片付けて false を返す。
         /// </summary>
-        public bool TryBeginPreview(int h, int w, EnergyWallDirection direction)
+        public bool MovePreview(int h, int w, EnergyWallDirection direction)
         {
-            CancelPreview();
-
             if (MapManager.Instance == null || !MapManager.Instance.IsFootprintFree(h, w, 1, null))
             {
+                CancelPreview();
                 return false;
             }
 
-            if (!TryGetEnergyWallStack(out var wallStack))
+            if (_previewWall == null)
             {
-                return false;
+                if (!TryGetEnergyWallStack(out var wallStack))
+                {
+                    return false;
+                }
+
+                _previewWall = wallStack.GetWall();
+                if (_previewWall == null)
+                {
+                    return false;
+                }
             }
 
-            var wallView = wallStack.GetWall();
-            if (wallView == null)
-            {
-                return false;
-            }
-
-            wallView.BuildingView.Set(h, w);
-            wallView.Apply(direction, true);
-            _previewWall = wallView;
+            _previewWall.BuildingView.Set(h, w);
+            _previewWall.Apply(direction, true);
             _previewHeight = h;
             _previewWidth = w;
             return true;
@@ -116,7 +117,7 @@ namespace EchoEdge.App.Battle
         {
             if (_previewWall == null || _previewHeight != h || _previewWidth != w)
             {
-                if (!TryBeginPreview(h, w, direction))
+                if (!MovePreview(h, w, direction))
                 {
                     return false;
                 }

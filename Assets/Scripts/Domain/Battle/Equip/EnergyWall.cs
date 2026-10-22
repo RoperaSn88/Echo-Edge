@@ -1,18 +1,17 @@
 using Cysharp.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 using EchoEdge.App.Battle;
 using EchoEdge.Domain.Phase;
-using EchoEdge.Presenter.Actions;
 
 namespace EchoEdge.Domain.Battle
 {
     /// <summary>
     /// エナジーウォールの効果クラス。
-    /// 選択したマスに、向き（斜面が向く方向を4方向から選べる）三角柱の壁を1ターン設置する。
+    /// 床マスを選んでいる間はカーソルの下に半透明の三角柱を出し、ホイールで向き（斜面が向く方向を4方向）を回す。
+    /// 左クリックしたマスに、その向きの三角柱の壁を1ターン設置する。
     /// </summary>
-    public class EnergyWall : IEquipEffect
+    public class EnergyWall : IEquipEffect, IEquipPlacementPreview
     {
         /// <summary>
         /// 前回選んだ向き。次に使うときの初期値にする。
@@ -24,49 +23,36 @@ namespace EchoEdge.Domain.Battle
 
         private EnergyWallDirection _direction = _lastDirection;
 
-        private bool _isDecided;
-        private bool _isCanceled;
-
-        /// <summary>
-        /// 床マスを選んだ後に、斜面の向きを選ぶ。
-        /// ホイールの回転で向きを 90° ずつ回し（上で時計回り、下で反時計回り）、ホイールの押し込みでも時計回りに回す。
-        /// 左クリックで確定、右クリックで取り消す。
-        /// </summary>
-        /// <returns>確定したら true、取り消したり設置できないマスだったら false</returns>
-        public async UniTask<bool> SelectDirectionAsync()
+        /// <inheritdoc/>
+        public bool ShowPreviewAt(int h, int w)
         {
-            if (EnergyWallManager.Instance == null || !TryGetTargetFloorPos(out int h, out int w))
-            {
-                return false;
-            }
+            return EnergyWallManager.Instance.MovePreview(h, w, _direction);
+        }
 
-            if (!EnergyWallManager.Instance.TryBeginPreview(h, w, _direction))
-            {
-                return false;
-            }
+        /// <inheritdoc/>
+        public void HidePreview()
+        {
+            EnergyWallManager.Instance.CancelPreview();
+        }
 
-            _isDecided = false;
-            _isCanceled = false;
+        /// <inheritdoc/>
+        public void OnScroll(float scroll)
+        {
+            if (Mathf.Approximately(scroll, 0f)) return;
+            // 上で時計回り、下で反時計回り
+            RotateDirection(scroll > 0f ? 1 : -1);
+        }
 
-            PlayerActions playerActions = new PlayerActions();
-            playerActions.PlayerPhase.Attack.started += OnPressDecide;
-            playerActions.PlayerPhase.Skill.started += OnPressCancel;
-            playerActions.PlayerPhase.Scroll.performed += OnScroll;
-            playerActions.PlayerPhase.ToggleFlash.started += OnPressToggle;
-            playerActions.Enable();
+        /// <inheritdoc/>
+        public void OnPressWheel()
+        {
+            RotateDirection(1);
+        }
 
-            await UniTask.WaitUntil(() => _isDecided || _isCanceled);
-
-            playerActions.Dispose();
-
-            if (_isCanceled)
-            {
-                EnergyWallManager.Instance.CancelPreview();
-                return false;
-            }
-
-            _lastDirection = _direction;
-            return true;
+        /// <inheritdoc/>
+        public void CancelPreview()
+        {
+            EnergyWallManager.Instance.CancelPreview();
         }
 
         /// <summary>
@@ -74,22 +60,16 @@ namespace EchoEdge.Domain.Battle
         /// </summary>
         public async UniTask Activate()
         {
-            if (MapManager.Instance == null || !TryGetTargetFloorPos(out int h, out int w))
+            Vector2Int targetFloorPos = PlayerEquipPhase.Instance.TargetFloorPos;
+            if (MapManager.Instance == null || targetFloorPos.x == int.MinValue || targetFloorPos.y == int.MinValue)
             {
-                EnergyWallManager.Instance?.CancelPreview();
+                EnergyWallManager.Instance.CancelPreview();
                 return;
             }
 
-            EnergyWallManager.Instance.TryConfirmPreview(h, w, _direction);
+            EnergyWallManager.Instance.TryConfirmPreview(targetFloorPos.y, targetFloorPos.x, _direction);
+            _lastDirection = _direction;
             await UniTask.CompletedTask;
-        }
-
-        private static bool TryGetTargetFloorPos(out int h, out int w)
-        {
-            Vector2Int targetFloorPos = PlayerEquipPhase.Instance.TargetFloorPos;
-            h = targetFloorPos.y;
-            w = targetFloorPos.x;
-            return targetFloorPos.x != int.MinValue && targetFloorPos.y != int.MinValue;
         }
 
         /// <summary>
@@ -100,28 +80,6 @@ namespace EchoEdge.Domain.Battle
         {
             _direction = (EnergyWallDirection)(((int)_direction + step + DirectionCount) % DirectionCount);
             EnergyWallManager.Instance.SetPreviewDirection(_direction);
-        }
-
-        private void OnPressDecide(InputAction.CallbackContext context)
-        {
-            _isDecided = true;
-        }
-
-        private void OnPressCancel(InputAction.CallbackContext context)
-        {
-            _isCanceled = true;
-        }
-
-        private void OnScroll(InputAction.CallbackContext context)
-        {
-            float scroll = context.ReadValue<float>();
-            if (Mathf.Approximately(scroll, 0f)) return;
-            RotateDirection(scroll > 0f ? 1 : -1);
-        }
-
-        private void OnPressToggle(InputAction.CallbackContext context)
-        {
-            RotateDirection(1);
         }
     }
 }
