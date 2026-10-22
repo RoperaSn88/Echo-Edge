@@ -115,9 +115,13 @@ namespace EchoEdge.Presenter.Player
                         // (旧実装はcos(法線の偏角)で除算しており、法線がZ軸方向のときゼロ除算でNaN/Infinityになりプレイヤーが場外に飛ぶ不具合があった)
                         if (i != reflectCount)
                         {
-                            Vector3 moveVec = -hit.normal;
+                            // エナジーウォールの斜面は法線が斜めなので、進行方向へ板の厚さ分だけ進める
+                            if (!SlopeWallView.TryGetPassThroughPosition(hit, _direction, out _pos))
+                            {
+                                Vector3 moveVec = -hit.normal;
+                                _pos = hit.point + moveVec;
+                            }
 
-                            _pos = hit.point + moveVec;
                             player.transform.position = _pos;
                         }
 

@@ -5,6 +5,7 @@ using UnityEngine;
 
 using EchoEdge.App.Battle;
 using EchoEdge.Domain.Battle;
+using EchoEdge.Presenter.Battle;
 using EchoEdge.Presenter.UI;
 
 namespace EchoEdge.Presenter.Player
@@ -80,9 +81,13 @@ namespace EchoEdge.Presenter.Player
                         // Todo: 壁が2つ以上ならば、その先の距離まで貫通するか考える
                         // 法線は軸に平行な単位ベクトルなので、逆方向へ1マス分進めば貫通先の位置になる。
                         // (旧実装はcos(法線の偏角)で除算しており、法線がZ軸方向のときゼロ除算でNaN/Infinityになりプレイヤーが場外に飛ぶ不具合があった)
-                        Vector3 moveVec = -hit.normal;
+                        // エナジーウォールの斜面は法線が斜めなので、進行方向へ板の厚さ分だけ進める
+                        if (!SlopeWallView.TryGetPassThroughPosition(hit, _direction, out _pos))
+                        {
+                            Vector3 moveVec = -hit.normal;
+                            _pos = hit.point + moveVec;
+                        }
 
-                        _pos = hit.point + moveVec;
                         player.transform.position = _pos;
                     }
                     // 壁なら普通に反射
