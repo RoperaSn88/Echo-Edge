@@ -243,6 +243,17 @@ namespace EchoEdge.Domain.Battle
 
         public async UniTask MoveTurn()
         {
+            if (_moveLockedPhases > 0)
+            {
+                // 落下中（移動不可）の間はこのフェーズの行動をすべてスキップし、落下状態を解除する
+                _moveLockedPhases--;
+                if (_moveLockedPhases == 0 && _view is IFlyingUnitView fallenView)
+                {
+                    fallenView.EndFallAnim();
+                }
+                return;
+            }
+
             if (_battleStatus.MovePattern == MovePattern.Before)
             {
                 // 攻撃をするが、遠距離か近距離かで攻撃するか変更する
@@ -253,17 +264,8 @@ namespace EchoEdge.Domain.Battle
             // 移動
             try
             {
-                if (_moveLockedPhases > 0)
-                {
-                    // 移動不可の間はこのフェーズの移動をスキップする
-                    _moveLockedPhases--;
-                    if (_view is IFlyingUnitView lockedFlyingView)
-                    {
-                        lockedFlyingView.PlayInitialAnim();
-                    }
-                }
                 // もし飛行中ならナシ
-                else if (_unitAction is IFlyingUnit fly)
+                if (_unitAction is IFlyingUnit fly)
                 {
                     if(!fly.IsFlying) await TryMoveByScoreMap(_battleStatus.Move);
                 }

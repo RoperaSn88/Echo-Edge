@@ -21,11 +21,6 @@ namespace EchoEdge.Presenter.Battle
         private const float FlyHeight = 2f;
         private const float FlyTime = 0.5f;
 
-        /// <summary>
-        /// 着地時に戻すアニメーターの待機状態（Skya.controller の既定状態）
-        /// </summary>
-        private const string IdleStateName = "Base Layer.New State";
-
         /// <inheritdoc/>
         public override async UniTask Setup(int h, int w, EnemyKinds enemyID)
         {
@@ -52,20 +47,19 @@ namespace EchoEdge.Presenter.Battle
         /// <inheritdoc/>
         public async UniTask WaitLandAnim()
         {
-            // 溜め状態は BeamT でしか抜けないため、ビームを撃たずに待機状態へ直接戻す
+            // ビームを撃たずに落下アニメーションへ遷移させる
             Animator.ResetTrigger("SkillT");
             Animator.ResetTrigger("BeamT");
-            Animator.Play(IdleStateName, 0, 0f);
-            Animator.SetTrigger("FallT");
+            Animator.SetBool("FallB", true);
 
             transform.DOKill();
             await transform.DOLocalMoveY(_groundY, FlyTime).SetEase(Ease.InQuad);
         }
 
         /// <inheritdoc/>
-        public void PlayInitialAnim()
+        public void EndFallAnim()
         {
-            Animator.SetTrigger("InitialT");
+            Animator.SetBool("FallB", false);
         }
     }
 }

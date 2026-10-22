@@ -24,8 +24,8 @@ namespace EchoEdge.Presenter.Battle
         public UniTask WaitLandAnim();
 
         /// <summary>
-        /// 初期状態のアニメーションへ戻す（飛行解除後の移動不可フェーズ時）
+        /// 落下状態のアニメーションを解除する（飛行解除後の行動不可フェーズ経過時）
         /// </summary>
-        public void PlayInitialAnim();
+        public void EndFallAnim();
     }
 }
