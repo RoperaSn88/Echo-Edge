@@ -1,5 +1,7 @@
+using System;
 using UnityEngine;
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 
 using EchoEdge.Domain.Battle;
 
@@ -20,6 +22,12 @@ namespace EchoEdge.Presenter.Battle
 
         [SerializeField]
         private Transform unitsParent;
+
+        /// <summary>
+        /// 『シーカー』を立たせる位置（盤面の外、ステージの奥地）。未設定の場合は CSV の座標のマスに表示する。
+        /// </summary>
+        [SerializeField]
+        private Transform seekerStandPoint;
 
         [SerializeField, Min(0)]
         private int initialPoolSize = 8;
@@ -49,8 +57,44 @@ namespace EchoEdge.Presenter.Battle
                 return;
             }
 
+            if (enemyId.IsOffBoard())
+            {
+                unit.SetView(view);
+                SetupOffBoardViewAsync(view, unit, enemyId, seekerStandPoint).Forget();
+                return;
+            }
+
             view.Setup(unit.Height, unit.Width, enemyId);
             unit.SetView(view);
+        }
+
+        /// <summary>
+        /// 盤面の外に立つユニット（『シーカー』）の View を、指定した Transform の位置に立たせる。
+        /// 一閃が当たらないよう当たり判定も切る。
+        /// </summary>
+        private async UniTaskVoid SetupOffBoardViewAsync(BaseUnitView view, BaseUnit unit, EnemyKinds enemyId, Transform standPoint)
+        {
+            try
+            {
+                await view.Setup(unit.Height, unit.Width, enemyId);
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"UnitSpawner: {enemyId} の View 初期化中に例外が発生しました: {e.Message}");
+            }
+
+            if (view == null) return;
+
+            if (standPoint != null)
+            {
+                view.transform.position = standPoint.position;
+            }
+            else
+            {
+                Debug.LogWarning($"UnitSpawner: {enemyId} の立ち位置が設定されていないため、CSV の座標に表示します。");
+            }
+
+            view.SetDamageable(false);
         }
 
         /// <summary>
