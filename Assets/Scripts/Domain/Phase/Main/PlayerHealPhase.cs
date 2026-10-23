@@ -1,6 +1,8 @@
 using Cysharp.Threading.Tasks;
 
 using EchoEdge.App.Battle;
+using EchoEdge.Infra.Camera;
+using EchoEdge.Presenter.Player;
 using EchoEdge.Presenter.UI;
 
 namespace EchoEdge.Domain.Phase
@@ -35,6 +37,11 @@ namespace EchoEdge.Domain.Phase
             }
 
             int healed = BattleManager.HealPlayer(HealRate);
+
+            // 装備品と同じようにカメラをプレイヤーへ寄せ、パーティクルが終わったら元に戻す
+            await CameraManager.Instance.ActPlayerWeaponZoom(PlayerView.Instance.Transform.position);
+            await PlayerView.Instance.PlayHealParticle();
+            await CameraManager.Instance.ActResetCameraTargetWithRotate();
 
             await MessagePresenter.Instance.AppearMessage($"HPが{healed}回復した");
             await MessagePresenter.Instance.DisappearMessage();
