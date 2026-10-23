@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using Unity.Mathematics;
 using UnityEngine;
@@ -39,6 +40,12 @@ namespace EchoEdge.Presenter.Player
         /// </summary>
         private Vector3 _direction;
 
+        /// <summary>
+        /// 現在のセグメント(壁から壁までの移動)でダメージを与えた敵。
+        /// OnTriggerEnter と移動経路の判定(<see cref="DamageEnemiesOnPath"/>)で同じ敵に二重にダメージを与えないようにする。
+        /// </summary>
+        private readonly HashSet<IDamageActivator> _damagedEnemies = new();
+
         public async UniTask ExecuteAsync(Vector3 targetPos)
         {
             var player = PlayerController.Instance;
@@ -64,6 +71,7 @@ namespace EchoEdge.Presenter.Player
                 // このセグメントに到達するまでに発生した反射回数を記録する。
                 // OverlapSphere・移動中の OnTriggerEnter によるダメージ計算で参照される。
                 BattleManager.SetReflectionCount(i);
+                _damagedEnemies.Clear();
 
                 // 始点からdirection方向にrayを飛ばし、当たった位置を新たな_posとする。
                 if (Physics.Raycast(ray, out RaycastHit hit, math.INFINITY, player.LayerMask))
@@ -73,7 +81,9 @@ namespace EchoEdge.Presenter.Player
                     // プレイヤーを移動する
                     Vector3 endVec = new Vector3(hit.point.x, hit.point.y, hit.point.z);
                     endVec = Vector3.Lerp(player.transform.position, endVec, 0.99f);
+                    Vector3 startVec = player.transform.position;
                     await player.MoveByVelocityAsync(endVec, distance / Speed);
+                    DamageEnemiesOnPath(startVec, endVec);
 
                     // 1つのブロックオブジェクトならば、横方向に1つ動いた先の位置に移動する。
                     if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Block") && i != reflectCount)
@@ -129,6 +139,30 @@ namespace EchoEdge.Presenter.Player
         }
 
         /// <summary>
+        /// 移動した経路上の敵にダメージを与える。
+        /// 貫通時の瞬間移動の直後などは OnTriggerEnter が発生せず敵を素通りしてしまうことがあるため、
+        /// 移動後に経路を SphereCast で調べ、まだダメージを与えていない敵にダメージを与える。
+        /// </summary>
+        /// <param name="start">移動の始点</param>
+        /// <param name="end">移動の終点</param>
+        private void DamageEnemiesOnPath(Vector3 start, Vector3 end)
+        {
+            Vector3 path = end - start;
+            path.y = 0;
+            float distance = path.magnitude;
+            if (distance <= 0f)
+            {
+                return;
+            }
+
+            var hits = Physics.SphereCastAll(start, ReflectionDamageCheckRadius, path / distance, distance, ~0, QueryTriggerInteraction.Collide);
+            foreach (var hit in hits)
+            {
+                OnTriggerEnter(hit.collider);
+            }
+        }
+
+        /// <summary>
         /// ダメージ処理
         /// </summary>
         /// <param name="other">相手の当たり判定</param>
@@ -139,11 +173,13 @@ namespace EchoEdge.Presenter.Player
                 return;
             }
 
-            PlayerView.Instance.Animator.SetTrigger("AttackT");
-            if (other.TryGetComponent<IDamageActivator>(out var status))
+            if (!other.TryGetComponent<IDamageActivator>(out var status) || !_damagedEnemies.Add(status))
             {
-                status.Damage(DamageRate).Forget();
+                return;
             }
+
+            PlayerView.Instance.Animator.SetTrigger("AttackT");
+            status.Damage(DamageRate).Forget();
         }
 
         public void OnCollisionEnter(Collision collision)
