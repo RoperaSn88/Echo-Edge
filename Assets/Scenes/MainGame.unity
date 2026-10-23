@@ -68768,6 +68768,7 @@ GameObject:
   - component: {fileID: 589817759}
   - component: {fileID: 589817760}
   - component: {fileID: 589817761}
+  - component: {fileID: 589817762}
   m_Layer: 0
   m_Name: buildingManager
   m_TagString: Untagged
@@ -68789,6 +68790,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BuildingManager
   wallStack: {fileID: 589817759}
   builderWallStack: {fileID: 589817760}
+  slopeWallStack: {fileID: 589817762}
 --- !u!4 &589817758
 Transform:
   m_ObjectHideFlags: 0
@@ -68851,6 +68853,21 @@ MonoBehaviour:
   slopeWallPrefab: {fileID: 7431008132372300712, guid: 30e8fb5001154ec41b7c11604608b342, type: 3}
   wallsParent: {fileID: 1076311551}
   initialPoolSize: 2
+--- !u!114 &589817762
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 589817756}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d9e030142489455d8143d4673759c840, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EchoEdge.Presenter.Battle.SlopeWallStack
+  slopeWallPrefab: {fileID: 4639667114935805552, guid: eac828a6fa5b0b943a740d7995350199, type: 3}
+  wallsParent: {fileID: 1076311551}
+  initialPoolSize: 4
 --- !u!1001 &591410220
 PrefabInstance:
   m_ObjectHideFlags: 0
