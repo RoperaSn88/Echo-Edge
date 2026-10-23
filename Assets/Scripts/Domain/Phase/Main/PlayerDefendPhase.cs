@@ -1,6 +1,8 @@
 using Cysharp.Threading.Tasks;
 
 using EchoEdge.App.Battle;
+using EchoEdge.Infra.Camera;
+using EchoEdge.Presenter.Player;
 using EchoEdge.Presenter.UI;
 
 namespace EchoEdge.Domain.Phase
@@ -33,7 +35,13 @@ namespace EchoEdge.Domain.Phase
             var energyResult = EnergyManager.AddEnergyCount(DefendEnergyCount);
             PlayerStatusPresenter.Instance.SetEnergy(energyResult.gaugeValue, energyResult.energyCount);
 
-            await MessagePresenter.Instance.AppearMessage("防御の構えをとった");
+            // メッセージ表示と同時にカメラをプレイヤーへ寄せ、パーティクルが終わったら元に戻す
+            await UniTask.WhenAll(
+                MessagePresenter.Instance.AppearMessage("防御の構えをとった"),
+                CameraManager.Instance.ActPlayerWeaponZoom(PlayerView.Instance.Transform.position));
+            await PlayerView.Instance.PlayDefendParticle();
+            await CameraManager.Instance.ActResetCameraTargetWithRotate();
+
             await MessagePresenter.Instance.DisappearMessage();
 
             return EnemyPhase.Instance;
