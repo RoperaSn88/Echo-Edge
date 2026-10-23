@@ -39,7 +39,7 @@ namespace EchoEdge.Presenter.Player
         private ParticleSystem _healParticle;
 
         /// <summary>
-        /// パーティクルがループ設定だった場合に打ち切るまでの最大待ち時間（秒）
+        /// パーティクルがループ設定だった場合に打ち切るまでの最大待ち時間（秒）。ループしないものには適用しない
         /// </summary>
         private const float MaxParticleWaitTime = 5f;
 
@@ -80,7 +80,8 @@ namespace EchoEdge.Presenter.Player
 
         /// <summary>
         /// パーティクルを再生し、子も含めて全て消えるまで待つ。
-        /// 未設定なら何もしない。ループ設定でも最大待ち時間で止める。
+        /// 未設定なら何もしない。ループ設定のものを含む場合だけ最大待ち時間で止める。
+        /// PlayerView が破棄されたら待機をキャンセルする。
         /// </summary>
         private async UniTask PlayParticleAndWait(ParticleSystem particle, CancellationToken ct)
         {
@@ -89,18 +90,31 @@ namespace EchoEdge.Presenter.Player
                 return;
             }
 
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct, destroyCancellationToken);
+            var token = cts.Token;
+
+            bool hasLoop = false;
+            foreach (var ps in particle.GetComponentsInChildren<ParticleSystem>(true))
+            {
+                if (ps.main.loop)
+                {
+                    hasLoop = true;
+                    break;
+                }
+            }
+
             particle.Play(true);
 
             float elapsed = 0f;
             while (particle.IsAlive(true))
             {
-                if (elapsed >= MaxParticleWaitTime)
+                if (hasLoop && elapsed >= MaxParticleWaitTime)
                 {
                     particle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
                     break;
                 }
 
-                await UniTask.Yield(PlayerLoopTiming.Update, ct);
+                await UniTask.Yield(PlayerLoopTiming.Update, token);
                 elapsed += Time.deltaTime;
             }
         }
