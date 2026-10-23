@@ -38,10 +38,26 @@ namespace CommonUI.Tutorial
         private static MouseClick _mouseClick;
         public static MouseClick MouseClick => _mouseClick;
 
-        private void Start()
+        /// <summary>
+        /// チュートリアル再生中かどうか.
+        /// </summary>
+        private bool _isPlaying;
+
+        private void Awake()
         {
             // スキップボタンの登録
+            // (シーン上で非アクティブな場合、Start は初回の StartTutorial でアクティブにした後に呼ばれるため Awake で登録する)
             _skipButton.OnSkip += OnSkip;
+        }
+
+        private void Start()
+        {
+            // 初回の StartTutorial でアクティブにされた直後に Start が呼ばれると、
+            // ここで非アクティブにすると再生中のチュートリアルが消えてしまうため、再生中は何もしない.
+            if (_isPlaying)
+            {
+                return;
+            }
 
             gameObject.SetActive(false);
         }
@@ -57,9 +73,21 @@ namespace CommonUI.Tutorial
             _cts?.Cancel();
             _cts?.Dispose();
             _cts = new CancellationTokenSource();
+            _isPlaying = true;
             gameObject.SetActive(true);
-            await ShowTutorialAsync(_cts.Token);
-            _mouseClick.Disable();
+            try
+            {
+                await ShowTutorialAsync(_cts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                // スキップは正常終了として扱う.
+            }
+            finally
+            {
+                _isPlaying = false;
+                _mouseClick.Disable();
+            }
         }
         
         private async UniTask LoadAssetAsync(TutorialKinds kind)
