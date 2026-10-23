@@ -44,6 +44,19 @@ namespace EchoEdge.Infra.Tutorial
         }
 
         /// <summary>
+        /// すべてのチュートリアルを再生済みとして保存する。
+        /// チュートリアルをスキップしたとき、以降のチュートリアルも再生しないために使う。
+        /// </summary>
+        public static void MarkAllCompleted()
+        {
+            foreach (TutorialKinds kind in Enum.GetValues(typeof(TutorialKinds)))
+            {
+                PlayerPrefs.SetInt(GetKey(kind), 1);
+            }
+            PlayerPrefs.Save();
+        }
+
+        /// <summary>
         /// チュートリアルをこれから再生すべきかどうかを判定する。
         /// 未再生の場合は再生済みフラグを先に立てたうえで true を返し、
         /// 再生済みの場合は何もせず false を返す。

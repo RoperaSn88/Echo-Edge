@@ -149,6 +149,9 @@ namespace CommonUI.Tutorial
 
         private void OnSkip()
         {
+            // 一度スキップしたら、以降のチュートリアルもすべて再生しない
+            TutorialSaveManager.MarkAllCompleted();
+
             _cts?.Cancel();
             _cts?.Dispose();
             _cts = null;
