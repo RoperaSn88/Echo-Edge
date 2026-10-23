@@ -118,6 +118,9 @@ namespace EchoEdge.Presenter.Player
                 {
                     firstWallResolved = true;
 
+                    // 壊すとプールへ返されて非アクティブになり、斜面かどうかを判定できなくなるので先に通り抜け先を求めておく
+                    bool isSlope = SlopeWallView.TryGetPassThroughPosition(hit, _direction, out var slopePassPos);
+
                     if (TryDestroyWall(hit.collider))
                     {
                         // 破壊した壁の1マス先へ進み、同じ方向で移動を続ける。
@@ -126,7 +129,11 @@ namespace EchoEdge.Presenter.Player
                         if (i != reflectCount)
                         {
                             // エナジーウォールの斜面は法線が斜めなので、進行方向へ板の厚さ分だけ進める
-                            if (!SlopeWallView.TryGetPassThroughPosition(hit, _direction, out _pos))
+                            if (isSlope)
+                            {
+                                _pos = slopePassPos;
+                            }
+                            else
                             {
                                 Vector3 moveVec = -hit.normal;
                                 _pos = hit.point + moveVec;
@@ -161,7 +168,7 @@ namespace EchoEdge.Presenter.Player
 
         /// <summary>
         /// 当たったコライダーが破壊可能な壁(<see cref="BuildingView"/>)なら破壊してプールへ返す。
-        /// 破壊した場合は true、対象外(外周壁など)なら false を返す。
+        /// 破壊した場合は true、対象外(外周壁など)や登録されていない壁なら false を返す。
         /// </summary>
         private static bool TryDestroyWall(Collider wallCollider)
         {
@@ -181,8 +188,9 @@ namespace EchoEdge.Presenter.Player
             int w = Mathf.RoundToInt(local.x);
             int h = Mathf.RoundToInt(local.z);
 
-            BuildingManager.Instance.TryRemoveWallAt(h, w);
-            return true;
+            // ステージの壁・ビルダーの壁・エナジーウォールのどれかとして登録されていれば壊す。
+            // どれにも登録されていない場合は壊せないので、通常どおり反射させる
+            return BuildingManager.Instance.TryRemoveWallAt(h, w) || EnergyWallManager.Instance.TryRemoveAt(h, w);
         }
 
         /// <summary>

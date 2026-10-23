@@ -145,6 +145,34 @@ namespace EchoEdge.App.Battle
             return true;
         }
 
+        /// <summary>
+        /// 指定マスのエナジーウォールを消してプールへ返す（貫通一閃で壊されたときなど）。
+        /// </summary>
+        /// <returns>消した場合は true</returns>
+        public bool TryRemoveAt(int h, int w)
+        {
+            for (int i = _activeEnergyWalls.Count - 1; i >= 0; i--)
+            {
+                var activeWall = _activeEnergyWalls[i];
+                if (activeWall.Height != h || activeWall.Width != w) continue;
+
+                if (MapManager.Instance != null)
+                {
+                    MapManager.Instance.RemoveUnitAt(h, w);
+                }
+
+                if (TryGetEnergyWallStack(out var wallStack))
+                {
+                    wallStack.ReturnWall(activeWall.View);
+                }
+
+                _activeEnergyWalls.RemoveAt(i);
+                return true;
+            }
+
+            return false;
+        }
+
         public void OnEnemyPhaseStart()
         {
             if (!TryGetEnergyWallStack(out var wallStack))

@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 656529038344979610}
   - component: {fileID: 7431008132372300712}
   m_Layer: 0
-  m_Name: SlopeWall
+  m_Name: SlopeEnergyWall
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

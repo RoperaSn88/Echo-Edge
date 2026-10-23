@@ -32,5 +32,10 @@ namespace EchoEdge.Domain.Map
         /// レベル（ステージごとの難易度調整用。0 以下は等倍。壁の場合は未使用）
         /// </summary>
         public int level;
+
+        /// <summary>
+        /// 斜面の向き（<see cref="StageObjectKind.SlopeWall"/> のときだけ使う）
+        /// </summary>
+        public EnergyWallDirection slopeDirection;
     }
 }

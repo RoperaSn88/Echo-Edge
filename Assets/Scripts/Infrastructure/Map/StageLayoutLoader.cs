@@ -90,7 +90,7 @@ namespace EchoEdge.Infra.Map
 
                 if (!Enum.TryParse(cols[0].Trim(), true, out StageObjectKind objectKind))
                 {
-                    Debug.LogWarning($"StageLayout.csv の {i + 1} 行目の objectKind が不正です: {cols[0]}。有効値: Wall, Unit");
+                    Debug.LogWarning($"StageLayout.csv の {i + 1} 行目の objectKind が不正です: {cols[0]}。有効値: Wall, Unit, SlopeWall");
                     continue;
                 }
 
@@ -151,10 +151,55 @@ namespace EchoEdge.Infra.Map
                     }
                 }
 
+                if (objectKind == StageObjectKind.SlopeWall)
+                {
+                    if (cols.Length < 4)
+                    {
+                        occupied.Remove((height, width));
+                        Debug.LogWarning($"StageLayout.csv の {i + 1} 行目の角度列が不足しています");
+                        continue;
+                    }
+
+                    if (!int.TryParse(cols[3].Trim(), out int angle) || !TryGetSlopeDirection(angle, out var slopeDirection))
+                    {
+                        occupied.Remove((height, width));
+                        Debug.LogWarning($"StageLayout.csv の {i + 1} 行目の角度が不正です: {cols[3]}。有効値: 45, 135, -135, -45");
+                        continue;
+                    }
+
+                    placement.slopeDirection = slopeDirection;
+                }
+
                 placements.Add(placement);
             }
 
             return placements;
+        }
+
+        /// <summary>
+        /// CSV の角度を斜面の向きに変換します。
+        /// 角度は真上から見て右（+X）を 0° とした反時計回りで、斜面が向いている方向を表します（45 = 右上、135 = 左上、-135 = 左下、-45 = 右下）。
+        /// </summary>
+        private static bool TryGetSlopeDirection(int angle, out EnergyWallDirection direction)
+        {
+            switch (angle)
+            {
+                case 45:
+                    direction = EnergyWallDirection.UpRight;
+                    return true;
+                case 135:
+                    direction = EnergyWallDirection.UpLeft;
+                    return true;
+                case -135:
+                    direction = EnergyWallDirection.DownLeft;
+                    return true;
+                case -45:
+                    direction = EnergyWallDirection.DownRight;
+                    return true;
+                default:
+                    direction = default;
+                    return false;
+            }
         }
     }
 }
