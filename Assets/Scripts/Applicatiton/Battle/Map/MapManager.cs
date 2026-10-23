@@ -81,6 +81,14 @@ namespace EchoEdge.App.Battle
                     continue;
                 }
 
+                if (placement.objectKind == StageObjectKind.SlopeWall)
+                {
+                    var buildingUnit = new building();
+                    RegisterWall(buildingUnit, placement.height, placement.width);
+                    BuildingManager.Instance.SetSlopeWall(placement.height, placement.width, placement.slopeDirection);
+                    continue;
+                }
+
                 if (placement.objectKind == StageObjectKind.Unit)
                 {
                     initialEnemyCount++;
