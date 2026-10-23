@@ -50,9 +50,9 @@ namespace EchoEdge.Domain.Phase
                 try
                 {
                     await TutorialActivator.Instance.StartTutorial(TutorialKinds.Enemy);
-                }catch (System.Exception)
+                }catch (System.Exception e)
                 {
-                    Debug.Log("チュートリアルを中止");
+                    Debug.LogWarning($"チュートリアルを中止: {e}");
                 }
             }
             
@@ -75,9 +75,9 @@ namespace EchoEdge.Domain.Phase
                 try
                 {
                     await TutorialActivator.Instance.StartTutorial(TutorialKinds.Final);
-                }catch (System.Exception)
+                }catch (System.Exception e)
                 {
-                    Debug.Log("チュートリアルを中止");
+                    Debug.LogWarning($"チュートリアルを中止: {e}");
                 }
             }
             
