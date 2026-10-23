@@ -108,6 +108,9 @@ namespace EchoEdge.Presenter.Player
                 {
                     firstWallResolved = true;
 
+                    // 壊すとプールへ返されて非アクティブになり、斜面かどうかを判定できなくなるので先に通り抜け先を求めておく
+                    bool isSlope = SlopeWallView.TryGetPassThroughPosition(hit, _direction, out var slopePassPos);
+
                     if (TryDestroyWall(hit.collider))
                     {
                         // 破壊した壁の1マス先へ進み、同じ方向で移動を続ける。
@@ -116,7 +119,11 @@ namespace EchoEdge.Presenter.Player
                         if (i != reflectCount)
                         {
                             // エナジーウォールの斜面は法線が斜めなので、進行方向へ板の厚さ分だけ進める
-                            if (!SlopeWallView.TryGetPassThroughPosition(hit, _direction, out _pos))
+                            if (isSlope)
+                            {
+                                _pos = slopePassPos;
+                            }
+                            else
                             {
                                 Vector3 moveVec = -hit.normal;
                                 _pos = hit.point + moveVec;
