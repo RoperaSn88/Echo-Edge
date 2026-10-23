@@ -98,43 +98,52 @@ namespace EchoEdge.App.Battle
         }
 
         /// <summary>
-        /// 指定座標の壁（斜面の壁を含む）を削除し、プールに返却します。
+        /// 指定座標の壁（ステージの斜面の壁・ビルダーの壁を含む）を削除し、プールに返却します。
         /// </summary>
-        public void TryRemoveWallAt(int h, int w)
+        /// <returns>壁を削除できた場合は true</returns>
+        public bool TryRemoveWallAt(int h, int w)
         {
-            if (slopeWallStack != null)
+            if (slopeWallStack != null && TryRemoveFrom(_activeSlopeWalls, h, w, out var slopeWall))
             {
-                for (int i = _activeSlopeWalls.Count - 1; i >= 0; i--)
-                {
-                    var slopeWall = _activeSlopeWalls[i];
-                    if (slopeWall.h == h && slopeWall.w == w)
-                    {
-                        if (MapManager.Instance != null)
-                        {
-                            MapManager.Instance.RemoveUnitAt(h, w);
-                        }
-                        slopeWallStack.ReturnWall(slopeWall.view);
-                        _activeSlopeWalls.RemoveAt(i);
-                        return;
-                    }
-                }
+                slopeWallStack.ReturnWall(slopeWall);
+                return true;
             }
 
-            if (wallStack == null) return;
-            for (int i = _activeWalls.Count - 1; i >= 0; i--)
+            if (wallStack != null && TryRemoveFrom(_activeWalls, h, w, out var wall))
             {
-                var wall = _activeWalls[i];
-                if (wall.h == h && wall.w == w)
-                {
-                    if (MapManager.Instance != null)
-                    {
-                        MapManager.Instance.RemoveUnitAt(h, w);
-                    }
-                    wallStack.ReturnWall(wall.view);
-                    _activeWalls.RemoveAt(i);
-                    return;
-                }
+                wallStack.ReturnWall(wall);
+                return true;
             }
+
+            if (builderWallStack != null && TryRemoveFrom(_activeBuilderWalls, h, w, out var builderWall))
+            {
+                builderWallStack.ReturnBuilderWall(builderWall);
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// 指定座標の壁をリストから取り除き、マップの占有も解除します。
+        /// </summary>
+        private static bool TryRemoveFrom<T>(List<(T view, int h, int w)> walls, int h, int w, out T view)
+        {
+            for (int i = walls.Count - 1; i >= 0; i--)
+            {
+                if (walls[i].h != h || walls[i].w != w) continue;
+
+                if (MapManager.Instance != null)
+                {
+                    MapManager.Instance.RemoveUnitAt(h, w);
+                }
+                view = walls[i].view;
+                walls.RemoveAt(i);
+                return true;
+            }
+
+            view = default;
+            return false;
         }
 
         /// <summary>

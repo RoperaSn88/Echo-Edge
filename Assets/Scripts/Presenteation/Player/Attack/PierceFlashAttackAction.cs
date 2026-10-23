@@ -158,7 +158,7 @@ namespace EchoEdge.Presenter.Player
 
         /// <summary>
         /// 当たったコライダーが破壊可能な壁(<see cref="BuildingView"/>)なら破壊してプールへ返す。
-        /// 破壊した場合は true、対象外(外周壁など)なら false を返す。
+        /// 破壊した場合は true、対象外(外周壁など)や登録されていない壁なら false を返す。
         /// </summary>
         private static bool TryDestroyWall(Collider wallCollider)
         {
@@ -178,8 +178,9 @@ namespace EchoEdge.Presenter.Player
             int w = Mathf.RoundToInt(local.x);
             int h = Mathf.RoundToInt(local.z);
 
-            BuildingManager.Instance.TryRemoveWallAt(h, w);
-            return true;
+            // ステージの壁・ビルダーの壁・エナジーウォールのどれかとして登録されていれば壊す。
+            // どれにも登録されていない場合は壊せないので、通常どおり反射させる
+            return BuildingManager.Instance.TryRemoveWallAt(h, w) || EnergyWallManager.Instance.TryRemoveAt(h, w);
         }
 
         /// <summary>
