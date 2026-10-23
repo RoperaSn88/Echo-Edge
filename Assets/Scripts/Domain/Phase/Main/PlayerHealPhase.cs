@@ -38,12 +38,13 @@ namespace EchoEdge.Domain.Phase
 
             int healed = BattleManager.HealPlayer(HealRate);
 
-            // 装備品と同じようにカメラをプレイヤーへ寄せ、パーティクルが終わったら元に戻す
-            await CameraManager.Instance.ActPlayerWeaponZoom(PlayerView.Instance.Transform.position);
+            // メッセージ表示と同時にカメラをプレイヤーへ寄せ、パーティクルが終わったら元に戻す
+            await UniTask.WhenAll(
+                MessagePresenter.Instance.AppearMessage($"HPが{healed}回復した"),
+                CameraManager.Instance.ActPlayerWeaponZoom(PlayerView.Instance.Transform.position));
             await PlayerView.Instance.PlayHealParticle();
             await CameraManager.Instance.ActResetCameraTargetWithRotate();
 
-            await MessagePresenter.Instance.AppearMessage($"HPが{healed}回復した");
             await MessagePresenter.Instance.DisappearMessage();
 
             return EnemyPhase.Instance;

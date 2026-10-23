@@ -219,6 +219,9 @@ namespace EchoEdge.Domain.Battle
                     await Specific();
                     break;
             }
+
+            // 行動で出たダメージテキストを消す（攻撃せずに敵フェーズへ来た場合もフェード許可が立つように）
+            UIPresenter.Instance.FadeTexts();
         }
 
         public async UniTask OnTurnStart()
@@ -286,6 +289,10 @@ namespace EchoEdge.Domain.Battle
                 await Act();
                 await MessagePresenter.Instance.DisappearMessage();
             }
+            
+            // 敵フェーズ中のダメージテキスト（被ダメージ等）は表示後すぐ消えるようにする。
+            // 攻撃せずに防御・回復でターンを終えた場合はフェード許可が立っていないため、ここで立てておく。
+            UIPresenter.Instance.FadeTexts();
         } 
 
         private async UniTask TryMoveByScoreMap(int count)

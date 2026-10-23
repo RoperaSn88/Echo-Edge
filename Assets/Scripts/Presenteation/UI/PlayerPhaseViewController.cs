@@ -74,7 +74,7 @@ namespace EchoEdge.Presenter.UI
         private const float ShownAlpha = 1f;
         private const float HiddenAlpha = 0f;
         private const float SlideStartPosX = 600f;
-        private const float SlideEndPosX = 500f;
+        private const float SlideEndPosX = 450f;
         private const float SlideTime = 0.3f;
         private const float SlideInterval = 0.05f;
         private const float FadeTime = 0.2f;
@@ -132,7 +132,7 @@ namespace EchoEdge.Presenter.UI
             _healButton.Interactable = healRemaining > 0;
             if (_healCountText != null)
             {
-                _healCountText.text = $"残り{Math.Max(0, healRemaining)}回";
+                _healCountText.text = $"{Math.Max(0, healRemaining)}";
             }
 
             if (_isFirstShow)
