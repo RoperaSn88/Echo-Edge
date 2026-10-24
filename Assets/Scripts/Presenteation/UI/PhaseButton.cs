@@ -69,9 +69,9 @@ namespace EchoEdge.Presenter.UI
 
         private async UniTask OnPointerEnterAsync(CancellationToken token)
         {
-            var sizeTween = DOTween.To(() => _text.fontSize, x => _text.fontSize = x, SelectableTextSize, TweenTime).ToUniTask(cancellationToken: token);
-            var alphaTween = DOTween.To(() => _canvasGroup.alpha, x => _canvasGroup.alpha = x, SelectableAlpha, TweenTime).ToUniTask(cancellationToken: token);
-            var heightTween = DOTween.To(() => _rectTransform.sizeDelta.y, x => _rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, x), SelectableHeight, TweenTime).ToUniTask(cancellationToken: token);
+            var sizeTween = DOTween.To(() => _text.fontSize, x => _text.fontSize = x, SelectableTextSize, TweenTime).SetUpdate(true).ToUniTask(cancellationToken: token);
+            var alphaTween = DOTween.To(() => _canvasGroup.alpha, x => _canvasGroup.alpha = x, SelectableAlpha, TweenTime).SetUpdate(true).ToUniTask(cancellationToken: token);
+            var heightTween = DOTween.To(() => _rectTransform.sizeDelta.y, x => _rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, x), SelectableHeight, TweenTime).SetUpdate(true).ToUniTask(cancellationToken: token);
             await UniTask.WhenAll(sizeTween, alphaTween, heightTween);
         }
 
@@ -85,9 +85,9 @@ namespace EchoEdge.Presenter.UI
         
         private async UniTask OnPointerExitAsync(CancellationToken token)
         {
-            var sizeTween = DOTween.To(() => _text.fontSize, x => _text.fontSize = x, NonSelectableTextSize, TweenTime).ToUniTask(cancellationToken: token);
-            var alphaTween = DOTween.To(() => _canvasGroup.alpha, x => _canvasGroup.alpha = x, NonSelectableAlpha, TweenTime).ToUniTask(cancellationToken: token);
-            var heightTween = DOTween.To(() => _rectTransform.sizeDelta.y, x => _rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, x), NonSelectableHeight, TweenTime).ToUniTask(cancellationToken: token);
+            var sizeTween = DOTween.To(() => _text.fontSize, x => _text.fontSize = x, NonSelectableTextSize, TweenTime).SetUpdate(true).ToUniTask(cancellationToken: token);
+            var alphaTween = DOTween.To(() => _canvasGroup.alpha, x => _canvasGroup.alpha = x, NonSelectableAlpha, TweenTime).SetUpdate(true).ToUniTask(cancellationToken: token);
+            var heightTween = DOTween.To(() => _rectTransform.sizeDelta.y, x => _rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, x), NonSelectableHeight, TweenTime).SetUpdate(true).ToUniTask(cancellationToken: token);
             await UniTask.WhenAll(sizeTween, alphaTween, heightTween);
         }
     }

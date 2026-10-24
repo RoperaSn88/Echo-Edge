@@ -18,7 +18,7 @@ using EchoEdge.Presenter.UI;
 namespace EchoEdge.App.Battle
 {
     /// <summary>
-    /// ゲームクリアの演出を管理するクラス。
+    /// ゲームクリアの演出と、クリア後の「続ける」「休む」の分岐を管理するクラス。
     /// </summary>
     public static class GameClearManager
     {
@@ -132,16 +132,10 @@ namespace EchoEdge.App.Battle
             CameraManager.Instance.StartCameraShake();
             await GameClearRewardPresenter.Instance.ShowAsync(reward.level, reward.gainedExperience, reward.currentExperience);
 
-            // クリックを待つ
-            var mouseActions = new MouseClick();
-            mouseActions.Enable();
-            var tcs = new UniTaskCompletionSource();
-            mouseActions.Mouse.MouseClick.started += _ => tcs.TrySetResult();
-            await tcs.Task;
-            mouseActions.Mouse.Disable();
-            mouseActions.Dispose();
+            // 6. 「続ける」「休む」の選択を待つ（最終ステージでは「続ける」を出さない）
+            var choice = await WaitForChoiceAsync(StageData.HasNextStage);
 
-            // クリック時: カメラをもとの位置に戻して揺らすのをやめる
+            // 選択時: カメラをもとの位置に戻して揺らすのをやめる
             CameraManager.Instance.StopCameraShake();
             var t1 = UIPresenter.Instance.FadeOutAsync(0.5f);
             var t2 = GameClearRewardPresenter.Instance.CloseAsync();
@@ -151,8 +145,11 @@ namespace EchoEdge.App.Battle
             var t4 = AudioManager.Instance != null
                 ? AudioManager.Instance.FadeAddedBGMAsync(0.5f, CancellationToken.None)
                 : UniTask.CompletedTask;
+            var t5 = GameClearChoicePresenter.Instance != null
+                ? GameClearChoicePresenter.Instance.CloseAsync()
+                : UniTask.CompletedTask;
 
-            await UniTask.WhenAll(t1, t2, t3, t4);
+            await UniTask.WhenAll(t1, t2, t3, t4, t5);
 
             Time.timeScale = 1.0f;
 
@@ -167,13 +164,94 @@ namespace EchoEdge.App.Battle
             {
                 scenarioLoaded = await ScenarioStageLoader.PlayCurrentAfterStageScenarioAsync();
             }
-            // 6. MainGameをアンロードし、Preparingシーンを読み込む
+
+            if (choice == GameClearChoice.Continue)
+            {
+                await PrepareNextStageAsync(scenarioLoaded);
+                return;
+            }
+
+            // 7. MainGameをアンロードし、Preparingシーンを読み込む
             await SceneLoader.AdditiveLoadAsync(GameScene.Preparing);
             if (scenarioLoaded)
             {
                 SceneLoader.Unload(GameScene.Scenario);
             }
             SceneLoader.Unload(GameScene.MainGame);
+        }
+
+        /// <summary>
+        /// 選択肢を表示して選ばれた行動を返す。
+        /// 選択肢UIがシーンに無い場合は、従来どおりクリックを待って「休む」扱いにする。
+        /// </summary>
+        private static async UniTask<GameClearChoice> WaitForChoiceAsync(bool canContinue)
+        {
+            if (GameClearChoicePresenter.Instance != null)
+            {
+                return await GameClearChoicePresenter.Instance.ShowAndWaitAsync(canContinue);
+            }
+
+            Debug.LogWarning("GameClearChoicePresenter がシーンに無いため、クリックで準備シーンへ戻ります。");
+            var mouseActions = new MouseClick();
+            mouseActions.Enable();
+            var tcs = new UniTaskCompletionSource();
+            mouseActions.Mouse.MouseClick.started += _ => tcs.TrySetResult();
+            await tcs.Task;
+            mouseActions.Mouse.Disable();
+            mouseActions.Dispose();
+            return GameClearChoice.Rest;
+        }
+
+        /// <summary>
+        /// 「続ける」を選んだとき: ステージナンバーを+1し、次ステージの開始前シナリオを再生してから
+        /// MainGame シーンを読み込み直す。
+        /// </summary>
+        private static async UniTask PrepareNextStageAsync(bool afterScenarioLoaded)
+        {
+            // クリア済み登録（RegisterStageCleared）で次のステージは解禁済みなので、ここで +1 できる
+            StageData.IncrementLevel();
+
+            // Scenario シーンを二重にロードしないよう、クリア後シナリオのシーンを先に閉じる
+            if (afterScenarioLoaded)
+            {
+                await SceneLoader.UnloadAsync(GameScene.Scenario);
+            }
+
+            var beforeScenarioLoaded = false;
+            if (StageScenarioPlayback.ShouldPlayScenario(StageData.Level))
+            {
+                beforeScenarioLoaded = await ScenarioStageLoader.PlayCurrentBeforeStageScenarioAsync();
+            }
+
+            // シーンの入れ替えは待たずに走らせる。
+            // この演出は敵撃破・ターン終了の処理から await されており、戻った後も実行中のフェーズ
+            // （攻撃の残り、エネミーフェーズのターン表示など）がシーン内のオブジェクトや
+            // static な Instance を触る。先に呼び出し元を戻し、旧 PhaseManager のループが
+            // （IsGameClearSequenceRunning により）抜けきるのを待ってから入れ替える。
+            ReloadMainGameAsync(beforeScenarioLoaded).Forget();
+        }
+
+        /// <summary>
+        /// 旧フェーズループの終了を待つ上限。フェーズが止まったままでもクリア後に進めなくならないようにする。
+        /// </summary>
+        private const float PhaseLoopExitTimeoutSeconds = 10f;
+
+        private static async UniTask ReloadMainGameAsync(bool scenarioLoaded)
+        {
+            var timedOut = await UniTask.WaitUntil(() => !PhaseManager.IsPhaseLoopRunning)
+                .TimeoutWithoutException(TimeSpan.FromSeconds(PhaseLoopExitTimeoutSeconds), DelayType.Realtime);
+            if (timedOut)
+            {
+                Debug.LogWarning("旧 MainGame のフェーズループが終わらないまま、シーンを読み込み直します。");
+            }
+
+            // 同じシーンを追加ロードするので、旧 MainGame のシングルトン等が残らないよう破棄を待ってから読み込む
+            await SceneLoader.UnloadAsync(GameScene.MainGame);
+            await SceneLoader.AdditiveLoadAsync(GameScene.MainGame);
+            if (scenarioLoaded)
+            {
+                SceneLoader.Unload(GameScene.Scenario);
+            }
         }
 
         private static void RemoveWallsNearLastEnemy()

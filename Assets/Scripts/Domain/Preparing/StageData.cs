@@ -48,6 +48,11 @@ namespace EchoEdge.Domain.Preparing
         }
 
         /// <summary>
+        /// 現在のステージの次に用意されているステージがあるか
+        /// </summary>
+        public static bool HasNextStage => Level < MaxLevel;
+
+        /// <summary>
         /// レベルを1減少させる（最小値は1）
         /// </summary>
         public static void DecrementLevel()

@@ -34,7 +34,7 @@ namespace EchoEdge.Presenter.UI
 
             _rectTransform.DOScale(Vector3.one * 1.5f, 0.8f).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask().Forget();
             await _qteText.DOFade(1f, 0.2f).SetUpdate(true).ToUniTask();
-            await UniTask.Delay(TimeSpan.FromSeconds(0.3f));
+            await UniTask.Delay(TimeSpan.FromSeconds(0.3f), ignoreTimeScale: true);
             await _qteText.DOFade(0f, 0.2f).SetUpdate(true).ToUniTask();
         }
 
