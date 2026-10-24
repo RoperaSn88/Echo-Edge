@@ -1,7 +1,6 @@
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace EchoEdge.Presenter.UI
 {
@@ -29,6 +28,9 @@ namespace EchoEdge.Presenter.UI
         private const float FadeDuration = 0.3f;
 
         private static GameClearChoicePresenter _instance;
+        
+        [SerializeField]
+        private RectTransform _rectTransform;
 
         [SerializeField]
         private CanvasGroup _canvasGroup;
@@ -37,15 +39,18 @@ namespace EchoEdge.Presenter.UI
         /// 「続ける」ボタン。最終ステージでは非表示にする。
         /// </summary>
         [SerializeField]
-        private Button _continueButton;
+        private PhaseButton _continueButton;
 
         /// <summary>
         /// 「休む」ボタン。
         /// </summary>
         [SerializeField]
-        private Button _restButton;
+        private PhaseButton _restButton;
 
         public static GameClearChoicePresenter Instance => _instance;
+
+        private const float InitialPositionX = -100f;
+        private const float TargetPositionX = -270f;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetStatic()
@@ -78,27 +83,33 @@ namespace EchoEdge.Presenter.UI
         public async UniTask<GameClearChoice> ShowAndWaitAsync(bool canContinue)
         {
             _continueButton.gameObject.SetActive(canContinue);
-            _continueButton.interactable = true;
-            _restButton.interactable = true;
+            _continueButton.Initialize();
+            _restButton.Initialize();
+            _continueButton.Interactable = true;
+            _restButton.Interactable = true;
 
             _canvasGroup.DOKill();
             _canvasGroup.alpha = 0f;
+            _rectTransform.anchoredPosition = new Vector2(InitialPositionX, _rectTransform.anchoredPosition.y); 
             gameObject.SetActive(true);
             transform.SetAsLastSibling();
 
             // フェード中に押されても取りこぼさないよう、フェード前にリスナーを登録する
             var tcs = new UniTaskCompletionSource<GameClearChoice>();
-            _continueButton.onClick.AddListener(() => tcs.TrySetResult(GameClearChoice.Continue));
-            _restButton.onClick.AddListener(() => tcs.TrySetResult(GameClearChoice.Rest));
+            _continueButton.OnClick = () => tcs.TrySetResult(GameClearChoice.Continue);
+            _restButton.OnClick = () => tcs.TrySetResult(GameClearChoice.Rest);
 
-            _canvasGroup.DOFade(1f, FadeDuration).SetUpdate(true);
+            var task1 = _canvasGroup.DOFade(1f, FadeDuration).SetUpdate(true).ToUniTask();
+            var task2 = _rectTransform.DOAnchorPosX(TargetPositionX, FadeDuration).SetUpdate(true).ToUniTask();
+            
+            await UniTask.WhenAll(task1, task2);
 
             var choice = await tcs.Task;
 
-            _continueButton.onClick.RemoveAllListeners();
-            _restButton.onClick.RemoveAllListeners();
-            _continueButton.interactable = false;
-            _restButton.interactable = false;
+            _continueButton.OnClick = null;
+            _restButton.OnClick = null;
+            _continueButton.Interactable = false;
+            _restButton.Interactable = false;
 
             return choice;
         }
