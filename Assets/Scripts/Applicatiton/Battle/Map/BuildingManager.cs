@@ -17,8 +17,15 @@ namespace EchoEdge.App.Battle
         [SerializeField]
         private WallStack builderWallStack;
 
+        /// <summary>
+        /// ステージ CSV の SlopeWall 用のプール（エナジーウォール用の <see cref="EnergyWallStack"/> とは別）
+        /// </summary>
+        [SerializeField]
+        private SlopeWallStack slopeWallStack;
+
         private readonly List<(BuildingView view, int h, int w)> _activeBuilderWalls = new();
         private readonly List<(BuildingView view, int h, int w)> _activeWalls = new();
+        private readonly List<(SlopeWallView view, int h, int w)> _activeSlopeWalls = new();
 
         void Start()
         {
@@ -36,6 +43,17 @@ namespace EchoEdge.App.Battle
             {
                 builderWallStack = wallStack;
                 Debug.LogWarning("Builder専用WallStackが未設定のため、通常WallStack内のBuilder専用プールを使用します。");
+            }
+
+            if (slopeWallStack == null)
+            {
+                foreach (var stack in FindObjectsByType<SlopeWallStack>(FindObjectsSortMode.None))
+                {
+                    // エナジーウォール用のプールは使わない
+                    if (stack is EnergyWallStack) continue;
+                    slopeWallStack = stack;
+                    break;
+                }
             }
 
             RegisterTurnStartAction(ReturnAllBuilderWalls);
@@ -59,25 +77,73 @@ namespace EchoEdge.App.Battle
         }
 
         /// <summary>
-        /// 指定座標の壁を削除し、プールに返却します。
+        /// ステージ CSV の斜面の壁を指定座標・向きで配置します。
         /// </summary>
-        public void TryRemoveWallAt(int h, int w)
+        public void SetSlopeWall(int h, int w, EnergyWallDirection direction)
         {
-            if (wallStack == null) return;
-            for (int i = _activeWalls.Count - 1; i >= 0; i--)
+            if (slopeWallStack == null)
             {
-                var wall = _activeWalls[i];
-                if (wall.h == h && wall.w == w)
-                {
-                    if (MapManager.Instance != null)
-                    {
-                        MapManager.Instance.RemoveUnitAt(h, w);
-                    }
-                    wallStack.ReturnWall(wall.view);
-                    _activeWalls.RemoveAt(i);
-                    return;
-                }
+                Debug.LogError("SlopeWallStack が見つかりません。");
+                return;
             }
+
+            var v = slopeWallStack.GetWall();
+            if (v == null)
+            {
+                return;
+            }
+            v.BuildingView.Set(h, w);
+            v.Apply(direction, false);
+            _activeSlopeWalls.Add((v, h, w));
+        }
+
+        /// <summary>
+        /// 指定座標の壁（ステージの斜面の壁・ビルダーの壁を含む）を削除し、プールに返却します。
+        /// </summary>
+        /// <returns>壁を削除できた場合は true</returns>
+        public bool TryRemoveWallAt(int h, int w)
+        {
+            if (slopeWallStack != null && TryRemoveFrom(_activeSlopeWalls, h, w, out var slopeWall))
+            {
+                slopeWallStack.ReturnWall(slopeWall);
+                return true;
+            }
+
+            if (wallStack != null && TryRemoveFrom(_activeWalls, h, w, out var wall))
+            {
+                wallStack.ReturnWall(wall);
+                return true;
+            }
+
+            if (builderWallStack != null && TryRemoveFrom(_activeBuilderWalls, h, w, out var builderWall))
+            {
+                builderWallStack.ReturnBuilderWall(builderWall);
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// 指定座標の壁をリストから取り除き、マップの占有も解除します。
+        /// </summary>
+        private static bool TryRemoveFrom<T>(List<(T view, int h, int w)> walls, int h, int w, out T view)
+        {
+            for (int i = walls.Count - 1; i >= 0; i--)
+            {
+                if (walls[i].h != h || walls[i].w != w) continue;
+
+                if (MapManager.Instance != null)
+                {
+                    MapManager.Instance.RemoveUnitAt(h, w);
+                }
+                view = walls[i].view;
+                walls.RemoveAt(i);
+                return true;
+            }
+
+            view = default;
+            return false;
         }
 
         /// <summary>
@@ -93,6 +159,15 @@ namespace EchoEdge.App.Battle
                 }
             }
             _activeWalls.Clear();
+
+            if (slopeWallStack != null)
+            {
+                foreach (var slopeWall in _activeSlopeWalls)
+                {
+                    slopeWallStack.ReturnWall(slopeWall.view);
+                }
+            }
+            _activeSlopeWalls.Clear();
         }
 
         public bool TrySetBuilderWall(int h, int w)

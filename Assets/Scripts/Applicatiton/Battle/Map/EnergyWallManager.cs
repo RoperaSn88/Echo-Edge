@@ -13,7 +13,7 @@ namespace EchoEdge.App.Battle
 
         private class ActiveEnergyWall
         {
-            public BuildingView View;
+            public SlopeWallView View;
             public int Height;
             public int Width;
             public int RemainingLifetime;
@@ -23,7 +23,14 @@ namespace EchoEdge.App.Battle
         public static EnergyWallManager Instance => _instance ??= new EnergyWallManager();
 
         private readonly List<ActiveEnergyWall> _activeEnergyWalls = new();
-        private WallStack _energyWallStack;
+        private EnergyWallStack _energyWallStack;
+
+        /// <summary>
+        /// 床マスを選んでいる間、カーソルの下に表示しているプレビュー用の壁
+        /// </summary>
+        private SlopeWallView _previewWall;
+        private int _previewHeight;
+        private int _previewWidth;
 
         private EnergyWallManager()
         {
@@ -42,34 +49,91 @@ namespace EchoEdge.App.Battle
 
             _instance._activeEnergyWalls.Clear();
             _instance._energyWallStack = null;
+            _instance._previewWall = null;
         }
 
-        public bool TrySetEnergyWall(int h, int w)
+        /// <summary>
+        /// 指定マスにエナジーウォールのプレビューを表示する。表示中のプレビューがあれば、そのまま指定マスへ動かす。
+        /// マスが範囲外・使用中の場合はプレビューを片付けて false を返す。
+        /// </summary>
+        public bool MovePreview(int h, int w, EnergyWallDirection direction)
         {
-            if (MapManager.Instance == null)
+            if (MapManager.Instance == null || !MapManager.Instance.IsFootprintFree(h, w, 1, null))
             {
+                CancelPreview();
                 return false;
             }
 
-            if (!TryGetEnergyWallStack(out var wallStack))
+            if (_previewWall == null)
             {
-                return false;
+                if (!TryGetEnergyWallStack(out var wallStack))
+                {
+                    return false;
+                }
+
+                _previewWall = wallStack.GetWall();
+                if (_previewWall == null)
+                {
+                    return false;
+                }
+            }
+
+            _previewWall.BuildingView.Set(h, w);
+            _previewWall.Apply(direction, true);
+            _previewHeight = h;
+            _previewWidth = w;
+            return true;
+        }
+
+        /// <summary>
+        /// プレビュー中の斜面の向きを変更する。
+        /// </summary>
+        public void SetPreviewDirection(EnergyWallDirection direction)
+        {
+            if (_previewWall == null) return;
+            _previewWall.Apply(direction, true);
+        }
+
+        /// <summary>
+        /// プレビューを取り消し、壁をプールへ返す。
+        /// </summary>
+        public void CancelPreview()
+        {
+            if (_previewWall == null) return;
+
+            if (TryGetEnergyWallStack(out var wallStack))
+            {
+                wallStack.ReturnWall(_previewWall);
+            }
+
+            _previewWall = null;
+        }
+
+        /// <summary>
+        /// プレビュー中の壁を、当たり判定のある斜面の壁として確定する。
+        /// プレビューが無い場合は、指定マス・向きで新しく設置する。
+        /// </summary>
+        public bool TryConfirmPreview(int h, int w, EnergyWallDirection direction)
+        {
+            if (_previewWall == null || _previewHeight != h || _previewWidth != w)
+            {
+                if (!MovePreview(h, w, direction))
+                {
+                    return false;
+                }
             }
 
             var wallUnit = new building();
-            if (!MapManager.Instance.PlaceUnitAt(wallUnit, h, w))
+            if (MapManager.Instance == null || !MapManager.Instance.PlaceUnitAt(wallUnit, h, w))
             {
+                CancelPreview();
                 return false;
             }
 
-            var wallView = wallStack.GetTemporaryWall();
-            if (wallView == null)
-            {
-                MapManager.Instance.RemoveUnitAt(h, w);
-                return false;
-            }
+            var wallView = _previewWall;
+            _previewWall = null;
 
-            wallView.Set(h, w);
+            wallView.Apply(direction, false);
             _activeEnergyWalls.Add(new ActiveEnergyWall
             {
                 View = wallView,
@@ -79,6 +143,34 @@ namespace EchoEdge.App.Battle
             });
 
             return true;
+        }
+
+        /// <summary>
+        /// 指定マスのエナジーウォールを消してプールへ返す（貫通一閃で壊されたときなど）。
+        /// </summary>
+        /// <returns>消した場合は true</returns>
+        public bool TryRemoveAt(int h, int w)
+        {
+            for (int i = _activeEnergyWalls.Count - 1; i >= 0; i--)
+            {
+                var activeWall = _activeEnergyWalls[i];
+                if (activeWall.Height != h || activeWall.Width != w) continue;
+
+                if (MapManager.Instance != null)
+                {
+                    MapManager.Instance.RemoveUnitAt(h, w);
+                }
+
+                if (TryGetEnergyWallStack(out var wallStack))
+                {
+                    wallStack.ReturnWall(activeWall.View);
+                }
+
+                _activeEnergyWalls.RemoveAt(i);
+                return true;
+            }
+
+            return false;
         }
 
         public void OnEnemyPhaseStart()
@@ -103,29 +195,24 @@ namespace EchoEdge.App.Battle
                     MapManager.Instance.RemoveUnitAt(activeWall.Height, activeWall.Width);
                 }
 
-                wallStack.ReturnTemporaryWall(activeWall.View);
+                wallStack.ReturnWall(activeWall.View);
                 _activeEnergyWalls.RemoveAt(i);
             }
         }
 
-        private bool TryGetEnergyWallStack(out WallStack wallStack)
+        private bool TryGetEnergyWallStack(out EnergyWallStack wallStack)
         {
-            if (_energyWallStack != null)
+            if (_energyWallStack == null)
             {
-                wallStack = _energyWallStack;
-                return true;
+                _energyWallStack = Object.FindFirstObjectByType<EnergyWallStack>();
+                if (_energyWallStack == null)
+                {
+                    Debug.LogWarning("EnergyWallStack がシーンに配置されていないため、エナジーウォールを設置できません。");
+                }
             }
 
-            var wallStacks = Object.FindObjectsByType<WallStack>(FindObjectsSortMode.None);
-            if (wallStacks.Length == 0)
-            {
-                wallStack = null;
-                return false;
-            }
-
-            _energyWallStack = wallStacks[0];
             wallStack = _energyWallStack;
-            return true;
+            return wallStack != null;
         }
     }
 }

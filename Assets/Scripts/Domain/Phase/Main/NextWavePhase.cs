@@ -17,6 +17,9 @@ namespace EchoEdge.Domain.Phase
         {
             CameraManager.Instance.ActResetCameraTarget();
 
+            // プレイヤーのターンが終わったので、防御による反射回数の増加を元に戻す
+            BattleManager.ClearReflectBonus();
+
             await UniTask.WhenAll(
                 NextWaveView.Instance.ShowNextWave(),
                 MapManager.Instance.BuildStageFromCsv()

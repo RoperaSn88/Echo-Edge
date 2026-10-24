@@ -17,5 +17,15 @@ namespace EchoEdge.Presenter.Battle
         /// ビームエフェクトを表示し地上に戻るアニメーションを実行する
         /// </summary>
         public UniTask WaitAnimAfterFlying();
+
+        /// <summary>
+        /// ビームを撃たずに地上へ戻るアニメーションを実行する（飛行の強制解除時）
+        /// </summary>
+        public UniTask WaitLandAnim();
+
+        /// <summary>
+        /// 落下状態のアニメーションを解除する（飛行解除後の行動不可フェーズ経過時）
+        /// </summary>
+        public void EndFallAnim();
     }
 }
