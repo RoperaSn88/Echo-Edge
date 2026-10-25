@@ -23,5 +23,10 @@ namespace EchoEdge.Domain.Battle
         /// </summary>
         /// <returns></returns>
         public UniTask WaitFlyingMessage();
+
+        /// <summary>
+        /// 飛行（溜め）状態を強制的に解除し、着陸状態に戻す
+        /// </summary>
+        public void CancelFlying();
     }
 }

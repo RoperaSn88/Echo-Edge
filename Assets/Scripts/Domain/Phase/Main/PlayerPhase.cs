@@ -1,8 +1,8 @@
 using System;
 using Cysharp.Threading.Tasks;
-using UnityEngine.InputSystem;
+using UnityEngine;
 
-using EchoEdge.Domain.UI;
+using EchoEdge.App.Battle;
 using EchoEdge.Presenter.Actions;
 using EchoEdge.Presenter.UI;
 
@@ -10,16 +10,6 @@ namespace EchoEdge.Domain.Phase
 {
     public class PlayerPhase: IPhase
     {
-        /// <summary>
-        /// クリックされたか検知するブール
-        /// </summary>
-        private bool _clickFlug;
-
-        /// <summary>
-        /// クリックの種類を保存する
-        /// </summary>
-        private ClickKinds _clickKind;
-
         /// <summary>
         /// プレイヤーフェーズのインスタンス
         /// </summary>
@@ -33,52 +23,60 @@ namespace EchoEdge.Domain.Phase
 
         public async UniTask<IPhase> WaitPhase()
         {
-            // 初期条件
-            _clickFlug = false;
             OperateInfos.Instance.SetOperateInfo(PhaseKinds.Player).Forget();
 
-            PlayerActions playerActions = new PlayerActions();
-            EnableController(playerActions);
+            // 前のターンに防御していた場合、このプレイヤーフェーズの反射回数を増やす
+            BattleManager.ApplyPendingReflectBonus();
 
-            await UniTask.WaitUntil(() => _clickFlug);
-            _clickFlug = false;
-            ResetController(playerActions);
-
-            switch (_clickKind)
+            PlayerActionKinds action;
+            if (PlayerPhaseViewController.Instance == null)
             {
-                case ClickKinds.Left:
-                    // 左クリック時は一閃の準備フェーズへ移行する
-                    return PlayerAttackPreparationPhase.Instance;
-                case ClickKinds.Right:
-                    // 右クリック時
-                    return PlayerWeaponPhase.Instance;
+                // シーンにボタンが未配置の間も進行が止まらないよう、従来のクリック操作（左: 一閃、右: 装備品）で代用する
+                Debug.LogWarning("PlayerPhaseController がシーンに配置されていないため、クリック操作で行動を選択します");
+                action = await WaitClickAction();
+            }
+            else
+            {
+                // 行動選択ボタンが押されるまで待機する
+                action = await PlayerPhaseViewController.Instance.WaitSelectAction(BattleManager.HealRemaining);
             }
 
-            throw new InvalidOperationException("クリックがうまくできない謎のエラーです");
+            switch (action)
+            {
+                case PlayerActionKinds.Attack:
+                    // 一閃の準備フェーズへ移行する
+                    return PlayerAttackPreparationPhase.Instance;
+                case PlayerActionKinds.Weapon:
+                    // 装備品の選択フェーズへ移行する
+                    return PlayerWeaponPhase.Instance;
+                case PlayerActionKinds.Defend:
+                    return PlayerDefendPhase.Instance;
+                case PlayerActionKinds.Heal:
+                    return PlayerHealPhase.Instance;
+            }
+
+            throw new InvalidOperationException($"不明な行動です: {action}");
         }
 
-        public void EnableController(PlayerActions playerActions)
+        /// <summary>
+        /// PlayerPhaseController が無い場合の代替入力。左クリックで一閃、右クリックで装備品を選ぶ。
+        /// </summary>
+        private async UniTask<PlayerActionKinds> WaitClickAction()
         {
-            playerActions.PlayerPhase.Attack.started += OnPressAttack;
-            playerActions.PlayerPhase.Skill.started += OnPressSkill;
+            var source = new UniTaskCompletionSource<PlayerActionKinds>();
+            var playerActions = new PlayerActions();
+            playerActions.PlayerPhase.Attack.started += _ => source.TrySetResult(PlayerActionKinds.Attack);
+            playerActions.PlayerPhase.Skill.started += _ => source.TrySetResult(PlayerActionKinds.Weapon);
             playerActions.Enable();
-        }
 
-        public void ResetController(PlayerActions playerActions)
-        {
-            playerActions.Dispose();
-        }
-
-        public void OnPressAttack(InputAction.CallbackContext context)
-        {
-            _clickKind = ClickKinds.Left;
-            _clickFlug = true;
-        }
-
-        public void OnPressSkill(InputAction.CallbackContext context)
-        {
-            _clickKind = ClickKinds.Right;
-            _clickFlug = true;
+            try
+            {
+                return await source.Task;
+            }
+            finally
+            {
+                playerActions.Dispose();
+            }
         }
     }
 }

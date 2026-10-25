@@ -69,6 +69,48 @@ namespace EchoEdge.App.Battle
 
         private static CancellationTokenSource _cancellationTokenSource;
 
+        /// <summary>
+        /// 防御中の被ダメージ倍率
+        /// </summary>
+        private const float DefendDamageRate = 0.5f;
+
+        /// <summary>
+        /// 防御した次のプレイヤーフェーズで増える反射回数
+        /// </summary>
+        private const int DefendReflectBonus = 1;
+
+        /// <summary>
+        /// 1回の戦闘（ステージ）で回復できる回数
+        /// </summary>
+        private const int MaxHealCount = 2;
+
+        /// <summary>
+        /// ピンチBGMに切り替えるHPの割合
+        /// </summary>
+        private const float PinchHpRate = 0.3f;
+
+        /// <summary>
+        /// 防御中か。防御したターンのエネミーフェーズの間だけ true になり、被ダメージを半減する。
+        /// </summary>
+        private static bool _isDefending;
+        public static bool IsDefending => _isDefending;
+
+        /// <summary>
+        /// 次のプレイヤーフェーズで反射回数を増やす予約があるか
+        /// </summary>
+        private static bool _isReflectBonusPending;
+
+        /// <summary>
+        /// 現在、防御による反射回数の増加がプレイヤーのステータスに反映されているか
+        /// </summary>
+        private static bool _isReflectBonusActive;
+
+        /// <summary>
+        /// 回復の残り回数
+        /// </summary>
+        private static int _healRemaining = MaxHealCount;
+        public static int HealRemaining => _healRemaining;
+
         public static void RegisterEnemy(BattleStatus targetStatus)
         {
             _enemyStatus = targetStatus;
@@ -78,6 +120,90 @@ namespace EchoEdge.App.Battle
         {
             _playerStatus = targetStatus;
             _isPlayerDeathStarted = false;
+
+            // 新しい戦闘の開始時に、防御・回復の状態を初期化する
+            _isDefending = false;
+            _isReflectBonusPending = false;
+            _isReflectBonusActive = false;
+            _healRemaining = MaxHealCount;
+        }
+
+        /// <summary>
+        /// 防御を開始する。このターンのエネミーフェーズの被ダメージを半減し、次のプレイヤーフェーズの反射回数を増やす予約をする。
+        /// </summary>
+        public static void StartDefend()
+        {
+            _isDefending = true;
+            _isReflectBonusPending = true;
+        }
+
+        /// <summary>
+        /// 防御による被ダメージ半減を終了する。エネミーフェーズの終了時に呼ぶ。
+        /// </summary>
+        public static void EndDefend()
+        {
+            _isDefending = false;
+        }
+
+        /// <summary>
+        /// 予約されている反射回数の増加をプレイヤーのステータスに反映する。プレイヤーフェーズの開始時に呼ぶ。
+        /// 同じターン内で何度呼ばれても1回だけ反映する。
+        /// </summary>
+        public static void ApplyPendingReflectBonus()
+        {
+            if (!_isReflectBonusPending || _isReflectBonusActive || _playerStatus == null) return;
+
+            _playerStatus.ChangeMove(DefendReflectBonus);
+            _isReflectBonusPending = false;
+            _isReflectBonusActive = true;
+        }
+
+        /// <summary>
+        /// 反映中の反射回数の増加を元に戻す。プレイヤーのターンが終わったとき（エネミーフェーズ開始時・次ウェーブ移行時）に呼ぶ。
+        /// </summary>
+        public static void ClearReflectBonus()
+        {
+            if (!_isReflectBonusActive || _playerStatus == null) return;
+
+            _playerStatus.ChangeMove(-DefendReflectBonus);
+            _isReflectBonusActive = false;
+        }
+
+        /// <summary>
+        /// 回復の回数を1回消費する。
+        /// </summary>
+        /// <returns>消費できたか（残り回数が0なら false）</returns>
+        public static bool TryConsumeHeal()
+        {
+            if (_healRemaining <= 0) return false;
+
+            _healRemaining--;
+            return true;
+        }
+
+        /// <summary>
+        /// プレイヤーのHPを最大HPに対する割合で回復し、HPの表示とピンチBGMを更新する。
+        /// </summary>
+        /// <param name="rate">最大HPに対する回復量の割合</param>
+        /// <returns>実際に回復した量</returns>
+        public static int HealPlayer(float rate)
+        {
+            var before = _playerStatus.HP;
+            _playerStatus.Heal((int)(_playerStatus.MaxHP * rate));
+            var healed = _playerStatus.HP - before;
+
+            PlayerStatusPresenter.Instance.SetPlayerHP(_playerStatus.HP, _playerStatus.MaxHP);
+
+            // ピンチを脱した場合はピンチBGMを止める
+            var playerHpRate = (float)_playerStatus.HP / _playerStatus.MaxHP;
+            if (playerHpRate >= PinchHpRate && AudioManager.Instance != null)
+            {
+                _cancellationTokenSource?.Cancel();
+                _cancellationTokenSource = new();
+                AudioManager.Instance.FadeAddedBGMAsync(0.5f, _cancellationTokenSource.Token).Forget();
+            }
+
+            return healed;
         }
 
         public static void ResetQTE()
@@ -158,11 +284,14 @@ namespace EchoEdge.App.Battle
                 _QTEFlug = true;
             } 
 
+            // 防御中は、防御力で軽減した後の被ダメージを半減する
+            var defendRate = _isDefending ? DefendDamageRate : 1.0f;
+
             // 防御QTE大成功で切り捨てにより0ダメージにならないよう、最低1ダメージは与える
-            var result = await _playerStatus.Damage(Mathf.Max(1, (int)(_enemyStatus.Attack * rate * _qteResult)));
+            var result = await _playerStatus.Damage(Mathf.Max(1, (int)(_enemyStatus.Attack * rate * _qteResult)), defendRate);
 
             var playerHpRate = (float)_playerStatus.HP / _playerStatus.MaxHP;
-            if (playerHpRate < 0.3f)
+            if (playerHpRate < PinchHpRate)
             {
                 AudioManager.Instance.AddPlayBgmAsync(BgmAudioType.Pinch, true, _cancellationTokenSource.Token).Forget();
             }

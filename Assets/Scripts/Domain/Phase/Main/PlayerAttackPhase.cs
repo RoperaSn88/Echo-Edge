@@ -41,9 +41,9 @@ namespace EchoEdge.Domain.Phase
                 try
                 {
                     await TutorialActivator.Instance.StartTutorial(TutorialKinds.QTE);
-                }catch (System.Exception)
+                }catch (System.Exception e)
                 {
-                    Debug.Log("チュートリアルを中止");
+                    Debug.LogWarning($"チュートリアルを中止: {e}");
                 }
             }
 

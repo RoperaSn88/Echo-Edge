@@ -37,6 +37,13 @@ namespace EchoEdge.Domain.Battle
         {
             await MessagePresenter.Instance.AppearMessage("スカイアはビームを放つ");
         }
+
+        /// <inheritdoc/>
+        public void CancelFlying()
+        {
+            // 溜めていたビームは破棄して地上に戻る
+            _isFlying = false;
+        }
         
         /// <inheritdoc/>
         public async UniTask Attack()

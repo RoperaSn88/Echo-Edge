@@ -1,4 +1,3 @@
-using System;
 using Cysharp.Threading.Tasks;
 
 using EchoEdge.App.Battle;
@@ -25,6 +24,10 @@ namespace EchoEdge.Domain.Phase
 
         public async UniTask<IPhase> WaitPhase()
         {
+            // 床マス選択で作った効果を使う（エナジーウォールはプレビューの向きを持っている）
+            IEquipEffect effect = PlayerEquipPhase.Instance.SelectedEffect
+                ?? EquipEffectFactory.Create(WeaponController.Instance.SelectedWeaponIndex);
+
             // カメラをもとの位置に戻す
             await CameraManager.Instance.ActMoveCameraToDefault();
 
@@ -32,27 +35,9 @@ namespace EchoEdge.Domain.Phase
             var energyResult = EnergyManager.RemoveEnergy(WeaponController.TargetModel.WeaponCost);
             UIPresenter.Instance.PlayerStatusPresenter.SetEnergy(energyResult.gaugeValue, energyResult.energyCount);
 
-            IEquipEffect effect = CreateEquipEffect(WeaponController.Instance.SelectedWeaponIndex);
             await effect.Activate();
 
             return PlayerPhase.Instance;
-        }
-
-        /// <summary>
-        /// インデックスに対応する装備品エフェクトを生成する
-        /// </summary>
-        private IEquipEffect CreateEquipEffect(int index)
-        {
-            switch (index)
-            {
-                case 0: return new MagneticCore();
-                case 1: return new EnergyWall();
-                case 2: return new Pusher(PusherDirection.Up);
-                case 3: return new Pusher(PusherDirection.Down);
-                case 4: return new Pusher(PusherDirection.Left);
-                case 5: return new Pusher(PusherDirection.Right);
-                default: throw new InvalidOperationException($"不明な装備品インデックスです: {index}");
-            }
         }
     }
 }

@@ -62,6 +62,11 @@ namespace EchoEdge.Presenter.Player
         private const float SkinWidth = 0.05f;
 
         /// <summary>
+        /// 法線のx・z成分の比がこれより大きければ斜めの面（エナジーウォールの斜面など）とみなす
+        /// </summary>
+        private const float DiagonalNormalThreshold = 0.5f;
+
+        /// <summary>
         /// この攻撃のダメージ倍率。反射攻撃(基準値1.0)より弱くするため0.7倍とする。
         /// </summary>
         private const float DamageRate = 0.7f;
@@ -235,6 +240,15 @@ namespace EchoEdge.Presenter.Player
         /// </summary>
         private static Vector3 ReflectVelocityOnAxis(Vector3 velocity, Vector3 normal)
         {
+            // エナジーウォールの斜面のように法線が斜めの面は、主軸ではなく法線に沿って反射する
+            Vector3 flatNormal = new Vector3(normal.x, 0f, normal.z);
+            float minAxis = Mathf.Min(Mathf.Abs(flatNormal.x), Mathf.Abs(flatNormal.z));
+            float maxAxis = Mathf.Max(Mathf.Abs(flatNormal.x), Mathf.Abs(flatNormal.z));
+            if (maxAxis > 0f && minAxis / maxAxis > DiagonalNormalThreshold)
+            {
+                return Vector3.Reflect(velocity, flatNormal.normalized);
+            }
+
             if (Mathf.Abs(normal.x) >= Mathf.Abs(normal.z))
             {
                 velocity.x = -velocity.x;

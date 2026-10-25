@@ -38,6 +38,10 @@ namespace EchoEdge.Domain.Phase
             }
 
             _clickFlug = false;
+
+            // プレイヤーのターンが終わったので、防御による反射回数の増加を元に戻す
+            BattleManager.ClearReflectBonus();
+
             OperateInfos.Instance.SetOperateInfo(PhaseKinds.Enemy).Forget();
             await TurnChangeView.Instance.ShowTurnChange(TurnChangeKinds.EnemyTurn);
             
@@ -46,9 +50,9 @@ namespace EchoEdge.Domain.Phase
                 try
                 {
                     await TutorialActivator.Instance.StartTutorial(TutorialKinds.Enemy);
-                }catch (System.Exception)
+                }catch (System.Exception e)
                 {
-                    Debug.Log("チュートリアルを中止");
+                    Debug.LogWarning($"チュートリアルを中止: {e}");
                 }
             }
             
@@ -62,15 +66,18 @@ namespace EchoEdge.Domain.Phase
             // 耐久クリア条件などのターン経過ハンドラーを await する。
             // クリア成立ならクリア演出・シナリオ再生の完了までここで止まる。
             await DomainEventDispatcher.Dispatch(new TurnEndEvent());
+
+            // 防御による被ダメージ半減はこのエネミーフェーズまで
+            BattleManager.EndDefend();
             
             if (TutorialSaveManager.TryBeginTutorial(TutorialKinds.Final))
             {
                 try
                 {
                     await TutorialActivator.Instance.StartTutorial(TutorialKinds.Final);
-                }catch (System.Exception)
+                }catch (System.Exception e)
                 {
-                    Debug.Log("チュートリアルを中止");
+                    Debug.LogWarning($"チュートリアルを中止: {e}");
                 }
             }
             
