@@ -113,7 +113,7 @@ namespace EchoEdge.Domain.Battle
             // (直接 DefeatAllEnemiesStageClearTask を呼ぶのではなく、イベント経由で疎結合にする)
             // クリア条件成立時はここでクリア演出・シナリオ再生の完了まで待機する。
             // 経験値が発生しない死に方でも、残り敵数の管理はイベント経由で行うためディスパッチ自体は必ず行う。
-            await DomainEventDispatcher.Dispatch(new EnemyDefeatedEvent(position, experienceReward));
+            await DomainEventDispatcher.Dispatch(new EnemyDefeatedEvent(position, experienceReward, _enemyKind));
         }
 
         public async UniTask Attack()

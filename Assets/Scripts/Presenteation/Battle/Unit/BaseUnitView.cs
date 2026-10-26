@@ -423,7 +423,7 @@ namespace EchoEdge.Presenter.Battle
                 if (targetUnit is IEnemyUnit)
                 {
                     // クリア条件成立時はクリア演出・シナリオ再生の完了まで await する。
-                    await DomainEventDispatcher.Dispatch(new EnemyDefeatedEvent(new UnitPosition(height, width), targetStatus.Experience));
+                    await DomainEventDispatcher.Dispatch(new EnemyDefeatedEvent(new UnitPosition(height, width), targetStatus.Experience, targetUnit.GetEnemyKind()));
                 }
                 //Destroyするが、後でオブジェクトプールにする
                 Dispose();
