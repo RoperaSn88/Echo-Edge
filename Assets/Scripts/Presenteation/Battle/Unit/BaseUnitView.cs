@@ -383,6 +383,15 @@ namespace EchoEdge.Presenter.Battle
             _animationFlag = true;
         }
 
+        /// <summary>
+        /// 『シーカー』のスキルアニメーションで、フラスコが手から離れるフレームにアニメーションイベントから呼ぶ。
+        /// 予約されているフラスコを、このユニットの位置から投げる。
+        /// </summary>
+        public void ThrowFlask()
+        {
+            FlaskThrower.Instance?.ThrowReserved(transform);
+        }
+
         public async UniTask Attack()
         {
 

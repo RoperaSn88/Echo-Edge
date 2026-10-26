@@ -29,6 +29,20 @@ namespace EchoEdge.Presenter.Battle
         [SerializeField]
         private Transform seekerStandPoint;
 
+        /// <summary>
+        /// 『シーカー』を立たせる位置（未設定なら null）
+        /// </summary>
+        public Transform SeekerStandPoint => seekerStandPoint;
+
+        /// <summary>
+        /// マスに置いたユニットの View が立つワールド座標（BaseUnitView.Setup と同じ基準）
+        /// </summary>
+        public Vector3 GetCellWorldPosition(int h, int w)
+        {
+            var local = new Vector3(w, 0f, h);
+            return unitsParent != null ? unitsParent.TransformPoint(local) : local;
+        }
+
         [SerializeField, Min(0)]
         private int initialPoolSize = 8;
 

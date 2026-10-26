@@ -20,6 +20,7 @@ namespace EchoEdge.Domain.Battle
     /// - エナーが2体以上なら、(5 - エナー数) / 5 の確率で召喚し、それ以外はバフを行う
     /// バフは盤面上の『エナー』全員の攻撃力・防御力・移動量のいずれか1つ（等確率）を上昇させる（効果は重ねがけされる）。
     /// 召喚するエナーのレベルは、エナーを2体召喚するごとに+1される。
+    /// 召喚では、スキルアニメーションのイベントで召喚先のマスへフラスコを投げ、着地したマスにエナーが現れる。
     /// </summary>
     public class Seeker : IUnitAction
     {
@@ -71,6 +72,16 @@ namespace EchoEdge.Domain.Battle
         /// </summary>
         private int _summonedCount;
 
+        /// <summary>
+        /// このフェーズに召喚するか（false ならバフ）。<see cref="Act"/> で決める
+        /// </summary>
+        private bool _willSummon;
+
+        /// <summary>
+        /// このフェーズの召喚先のマス。<see cref="Act"/> で決め、フラスコの投げ先として予約する
+        /// </summary>
+        private List<(int h, int w)> _summonCells = new();
+
         /// <inheritdoc/>
         public UniTask Attack()
         {
@@ -93,7 +104,22 @@ namespace EchoEdge.Domain.Battle
         /// <inheritdoc/>
         public UniTask<EnemyMoveKinds> Act(int selfHeight, int selfWidth)
         {
-            // 毎フェーズ、召喚かバフのどちらかを行う（どちらにするかは Specific で抽選する）
+            // 毎フェーズ、召喚かバフのどちらかを行う。
+            // フラスコはスキルアニメーションの途中で投げるため、召喚先はアニメーションより前のここで決めて予約しておく
+            _summonCells.Clear();
+            _willSummon = MapManager.Instance != null && ShouldSummon(CountEnarsOnBoard());
+            if (_willSummon)
+            {
+                var summonCount = UnityEngine.Random.Range(MinSummonCount, MaxSummonCount + 1);
+                _summonCells = FindSummonCells(selfHeight, selfWidth, summonCount);
+            }
+
+            // バフのときは空の予約にして、前の予約が残らないようにする
+            if (FlaskThrower.Instance != null && UnitSpawner.Instance != null)
+            {
+                FlaskThrower.Instance.Reserve(_summonCells.Select(cell => UnitSpawner.Instance.GetCellWorldPosition(cell.h, cell.w)));
+            }
+
             return UniTask.FromResult(EnemyMoveKinds.Specific);
         }
 
@@ -108,9 +134,9 @@ namespace EchoEdge.Domain.Battle
         {
             if (MapManager.Instance == null || UnitSpawner.Instance == null) return;
 
-            if (ShouldSummon(CountEnarsOnBoard()))
+            if (_willSummon)
             {
-                await SummonEnars(selfHeight, selfWidth);
+                await SummonEnars();
             }
             else
             {
@@ -144,12 +170,11 @@ namespace EchoEdge.Domain.Battle
         private int CurrentSummonLevel => BaseSummonLevel + _summonedCount / SummonsPerLevelUp;
 
         /// <summary>
-        /// 基準マスの近くに『エナー』を1〜3体召喚する
+        /// <see cref="Act"/> で決めたマスへ投げたフラスコの着地を待ち、そこに『エナー』を召喚する
         /// </summary>
-        private async UniTask SummonEnars(int selfHeight, int selfWidth)
+        private async UniTask SummonEnars()
         {
-            var summonCount = UnityEngine.Random.Range(MinSummonCount, MaxSummonCount + 1);
-            var cells = FindSummonCells(selfHeight, selfWidth, summonCount);
+            var cells = _summonCells;
             if (cells.Count == 0)
             {
                 await MessagePresenter.Instance.AppearMessage("エナーを呼び出す場所がない");
@@ -157,10 +182,20 @@ namespace EchoEdge.Domain.Battle
                 return;
             }
 
-            // 召喚先は先にまとめて決めておく（同じマスへの重複登録を防ぐ）
+            // スキルアニメーションでまだ投げていなければここで投げ、全部の着地を待つ
+            if (FlaskThrower.Instance != null)
+            {
+                await FlaskThrower.Instance.WaitLandedAsync(UnitSpawner.Instance.SeekerStandPoint);
+            }
+
+            // 召喚先は Act でまとめて決めてある（同じマスへの重複登録を防ぐ）
             var size = await EnemyStatusLoader.TryLoadSize((int)EnemyKinds.Enar);
+            var summoned = 0;
             foreach (var (h, w) in cells)
             {
+                // 予約してから着地までの間にふさがったマスには出さない
+                if (MapManager.Instance.GetUnitAt(h, w) != null) continue;
+
                 var unit = UnitFactory.Create(EnemyKinds.Enar, h, w, size);
                 await unit.LoadStatus(EnemyKinds.Enar, CurrentSummonLevel);
                 UnitSpawner.Instance.SpawnView(unit, EnemyKinds.Enar);
@@ -168,9 +203,10 @@ namespace EchoEdge.Domain.Battle
 
                 // 全滅クリア条件の残り敵数を増やす
                 await DomainEventDispatcher.Dispatch(new EnemySpawnedEvent(new UnitPosition(h, w)));
+                summoned++;
             }
 
-            await MessagePresenter.Instance.AppearMessage($"エナーが{cells.Count}体現れた！");
+            await MessagePresenter.Instance.AppearMessage($"エナーが{summoned}体現れた！");
             await UniTask.Delay(TimeSpan.FromSeconds(1f));
         }
 
