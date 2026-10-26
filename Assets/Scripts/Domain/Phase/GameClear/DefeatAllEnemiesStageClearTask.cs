@@ -32,11 +32,24 @@ namespace EchoEdge.Domain.Phase
         public void Subscribe()
         {
             DomainEventDispatcher.Register<EnemyDefeatedEvent>(OnEnemyDefeated);
+            DomainEventDispatcher.Register<EnemySpawnedEvent>(OnEnemySpawned);
         }
 
         public void Unsubscribe()
         {
             DomainEventDispatcher.Unregister<EnemyDefeatedEvent>(OnEnemyDefeated);
+            DomainEventDispatcher.Unregister<EnemySpawnedEvent>(OnEnemySpawned);
+        }
+
+        /// <summary>
+        /// バトル中に敵が増えた（『シーカー』の召喚など）ときは、倒すべき敵の数も増やす。
+        /// これをしないと、召喚された敵を倒した分だけ残り数が先に減り、敵が残ったままクリアになってしまう。
+        /// </summary>
+        private UniTask OnEnemySpawned(EnemySpawnedEvent e)
+        {
+            _remainingEnemyCount++;
+            GameClearManager.UpdateText(ObjectiveBaseText, _remainingEnemyCount);
+            return UniTask.CompletedTask;
         }
 
         private async UniTask OnEnemyDefeated(EnemyDefeatedEvent e)

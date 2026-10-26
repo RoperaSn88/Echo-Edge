@@ -5,3 +5,4 @@ ID,HP,Attack,Defend,Move,MovePattern,Experience,Energy,Size,Offset,TopDownOffset
 4,80,60,15,4,After,0,160,Default,0,-0.59,ブルートのステータス
 5,50,15,0,3,Before,0,90,Default,-0.45,-0.24,エナーのステータス
 6,500,30,0,2,Before,0,400,Large,-0.31,-0.52,でかエナーのステータス（2x2マス）
+7,1,0,0,0,Before,0,0,Default,0,-0.59,シーカーのステータス（盤面外に立ち攻撃・移動しない。無敵のためHPは表示用の仮値）
