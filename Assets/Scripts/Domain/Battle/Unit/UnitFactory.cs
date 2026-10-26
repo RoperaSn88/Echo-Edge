@@ -21,6 +21,9 @@ namespace EchoEdge.Domain.Battle
                 case EnemyKinds.Enar:
                     return new EnarUnit(h, w, size);
 
+                case EnemyKinds.Seeker:
+                    return new SeekerUnit(h, w, size);
+
                 default:
                     return new BaseUnit(h, w, size);
             }

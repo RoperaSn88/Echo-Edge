@@ -255,11 +255,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: fa43b59874d41ab45923ba9d9d1cc087
-    m_Address: Assets/Addressables/StageWaves/WaveSet/StageWaveSet_1.asset
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: e357f78e625a44b6867df0c13c5e8076
     m_Address: Assets/Addressables/StageWaves/WaveSet/StageWaveSet_2.asset
     m_ReadOnly: 0
@@ -277,6 +272,16 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: f62f6a2c4db546f882dfcfc4375f9660
     m_Address: Assets/Addressables/StageWaves/StageLayout.csv
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fa43b59874d41ab45923ba9d9d1cc087
+    m_Address: Assets/Addressables/StageWaves/WaveSet/StageWaveSet_1.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fe4d0f48ebf77154cbe9ecb5b04a66cc
+    m_Address: Assets/Addressables/Animator/Seeker.controller
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

@@ -35,6 +35,12 @@ namespace EchoEdge.App.Battle
         private readonly Dictionary<IUnit, (int h, int w)> _unitPositions = new();
 
         /// <summary>
+        /// グリッドに登録せず盤面の外に立つユニット（『シーカー』など）。
+        /// マスは占有しないが、ターンの行動は行う。
+        /// </summary>
+        private readonly List<IUnit> _offBoardUnits = new();
+
+        /// <summary>
         /// マップ配置のベースとなるオブジェクトのTransform
         /// </summary>
         [SerializeField]
@@ -91,7 +97,8 @@ namespace EchoEdge.App.Battle
 
                 if (placement.objectKind == StageObjectKind.Unit)
                 {
-                    initialEnemyCount++;
+                    // 倒す対象ではないエネミー（『シーカー』など）は全滅条件の敵数に数えない
+                    if (placement.enemyKind.IsDefeatTarget()) initialEnemyCount++;
                     // マスの占有登録はコンストラクタ内（LoadStatus完了前）に行われるため、
                     // サイズはあらかじめCSVから取得しておく（2x2など複数マスを占有するエネミー対応）。
                     var size = await EnemyStatusLoader.TryLoadSize((int)placement.enemyKind);
@@ -130,6 +137,15 @@ namespace EchoEdge.App.Battle
         /// 指定した位置を左上として、size マス四方（2x2など）がすべて範囲内かつ空きマスか判定する。
         /// ignoreUnit を指定すると、そのユニット自身が占有しているマスは空きとして扱う（自己参照による移動判定用）。
         /// </summary>
+        /// <summary>
+        /// 盤面の外に立つユニットを登録する。グリッドのマスは占有しない。
+        /// </summary>
+        public void RegisterOffBoardUnit(IUnit unit)
+        {
+            if (unit == null || _offBoardUnits.Contains(unit)) return;
+            _offBoardUnits.Add(unit);
+        }
+
         public bool IsFootprintFree(int anchorH, int anchorW, int size, IUnit ignoreUnit)
         {
             for (var dh = 0; dh < size; dh++)
@@ -452,6 +468,17 @@ namespace EchoEdge.App.Battle
         [Button("動かす")]
         public async UniTask MoveUnit()
         {
+            // 盤面外のユニット（『シーカー』、行動順は前）は盤面上のユニットより先に行動する
+            foreach (var unit in _offBoardUnits.ToList())
+            {
+                if (_offBoardUnits.Contains(unit) && unit.CanMove())
+                {
+                    await unit.MoveTurn();
+                }
+            }
+
+            // 盤面上のユニットの順番は、盤面外のユニットの行動が終わってから確定させる。
+            // これにより『シーカー』が召喚した『エナー』も、召喚されたターンに動く。
             foreach (var unit in GetUnitsInMapOrderSnapshot())
             {
                 if (_unitPositions.ContainsKey(unit) && unit.CanMove())
@@ -463,6 +490,11 @@ namespace EchoEdge.App.Battle
 
         public async UniTask ExecuteTurnStartActions()
         {
+            foreach (var unit in _offBoardUnits.ToList())
+            {
+                await unit.OnTurnStart();
+            }
+
             foreach (var unit in GetUnitsInMapOrderSnapshot())
             {
                 if (_unitPositions.ContainsKey(unit))
@@ -474,6 +506,11 @@ namespace EchoEdge.App.Battle
 
         public async UniTask ExecuteTurnEndActions()
         {
+            foreach (var unit in _offBoardUnits.ToList())
+            {
+                await unit.OnTurnEnd();
+            }
+
             foreach (var unit in GetUnitsInMapOrderSnapshot())
             {
                 if (_unitPositions.ContainsKey(unit))
@@ -495,6 +532,13 @@ namespace EchoEdge.App.Battle
         {
             _mapGrid = new IUnit[MapHeight, MapWidth];
             _unitPositions.Clear();
+
+            // 盤面外のユニットは倒されずに残るため、ウェーブの切り替え時に表示を片付ける
+            foreach (var unit in _offBoardUnits)
+            {
+                if (unit is IOffBoardUnit offBoardUnit) offBoardUnit.Despawn();
+            }
+            _offBoardUnits.Clear();
         }
     }
 }
