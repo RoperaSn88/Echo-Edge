@@ -16,7 +16,7 @@ using EchoEdge.Presenter.VFX;
 
 namespace EchoEdge.Presenter.Battle
 {
-    public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDamageReflectableView, IDisposable
+    public class BaseUnitView: MonoBehaviour, IDamageActivator, IUnitView, IDamageReflectableView, ISoundEffectEventReceiver, IDisposable
     {
         private const string EnemyAnimPath = "Assets/Addressables/Animator/";
 
@@ -473,6 +473,15 @@ namespace EchoEdge.Presenter.Battle
                     gameObject.SetActive(false);
                 }
             }
+        }
+
+        /// <summary>
+        /// アニメーションイベントから呼ばれ、指定した SE を再生する
+        /// </summary>
+        public void SoundEffectPlay(SeAudioType seType)
+        {
+            if (AudioManager.Instance == null) return;
+            AudioManager.Instance.PlaySe(seType);
         }
 
         public async UniTask Death(BattleStatus targetStatus)
