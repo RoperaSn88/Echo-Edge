@@ -11,10 +11,14 @@ namespace EchoEdge.Domain.Battle
         /// <summary>撃破によって得られる経験値</summary>
         public int ExperienceReward { get; }
 
-        public EnemyDefeatedEvent(UnitPosition position, int experienceReward)
+        /// <summary>撃破された敵の種別。特定の敵の撃破をクリア条件にする場合に使う</summary>
+        public EnemyKinds EnemyKind { get; }
+
+        public EnemyDefeatedEvent(UnitPosition position, int experienceReward, EnemyKinds enemyKind = EnemyKinds.Invalid)
         {
             Position = position;
             ExperienceReward = experienceReward;
+            EnemyKind = enemyKind;
         }
     }
 }

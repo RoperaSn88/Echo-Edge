@@ -108,9 +108,10 @@ namespace EchoEdge.App.Battle
                 }
             }
 
-            // 敵撃破数以外の値（耐久ターン数、連続攻撃回数）を必要とする条件はCSVの値を使う
+            // 敵撃破数以外の値（耐久ターン数、連続撃破数、ボスの敵ID）を必要とする条件はCSVの値を使う
             var needsConditionValueFromCsv = clearCondition.conditionType == StageClearConditionType.Endurance
-                || clearCondition.conditionType == StageClearConditionType.DefeatInARow;
+                || clearCondition.conditionType == StageClearConditionType.DefeatInARow
+                || clearCondition.conditionType == StageClearConditionType.DefeatBoss;
             GameClearManager.Initialize(needsConditionValueFromCsv ? clearCondition.conditionValue : initialEnemyCount);
         }
 
