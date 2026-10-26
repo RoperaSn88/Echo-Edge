@@ -27,6 +27,9 @@ namespace EchoEdge.Domain.Phase
 
             GameClearManager.SetStageClearCondition(false);
 
+            // 通常ウェーブとボスウェーブが切り替わる場合はBGMを変える
+            await BattleBgmController.ChangeWaveBgmAsync();
+
             await UniTask.Delay(1000);
 
             await NextWaveView.Instance.HideNextWave();
