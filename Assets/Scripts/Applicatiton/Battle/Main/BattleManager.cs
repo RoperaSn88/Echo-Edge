@@ -34,6 +34,11 @@ namespace EchoEdge.App.Battle
         private static float _qteResult;
 
         /// <summary>
+        /// 防御QTEの判定。被ダメージ SE の出し分けに使う
+        /// </summary>
+        private static QTEResults _defendQteResultLevel;
+
+        /// <summary>
         /// 現在のコンボ数
         /// </summary>
         private static int _combo = 0;
@@ -280,7 +285,7 @@ namespace EchoEdge.App.Battle
 
             if (!_QTEFlug)
             {
-                _qteResult = await UIPresenter.Instance.AppearQTE(QTEKinds.Defend);
+                (_qteResult, _defendQteResultLevel) = await UIPresenter.Instance.AppearQTEWithLevel(QTEKinds.Defend);
                 _QTEFlug = true;
             } 
 
@@ -303,7 +308,7 @@ namespace EchoEdge.App.Battle
 
             PlayerStatusPresenter.Instance.SetPlayerHP(_playerStatus.HP, _playerStatus.MaxHP);
             PlayerView.Instance.Animator.SetTrigger("DamageT");
-            AudioManager.Instance.PlaySe(BattleSeType.Damage);
+            AudioManager.Instance.PlaySe(GetPlayerDamageSe(_defendQteResultLevel));
 
             if (result.isDeath)
             {
@@ -311,6 +316,22 @@ namespace EchoEdge.App.Battle
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// 防御QTEの判定に応じた被ダメージ SE
+        /// </summary>
+        private static BattleSeType GetPlayerDamageSe(QTEResults level)
+        {
+            switch (level)
+            {
+                case QTEResults.Perfect:
+                    return BattleSeType.Damage_Perfect;
+                case QTEResults.Good:
+                    return BattleSeType.Damage_Good;
+                default:
+                    return BattleSeType.Damage_Bad;
+            }
         }
 
         private static async UniTask StartPlayerDeathSequenceAsync()

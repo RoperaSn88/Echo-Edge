@@ -21,5 +21,12 @@
 
 ## プレイヤーの被ダメージ SE
 
-プレイヤーがダメージを受けたとき（`BattleManager.PlayerDamage`）に `BattleSeType.Damage` を鳴らします。
-`Assets/Addressables/Audio/SE/Battle/Damage.wav` を置いて Addressables に登録してください。ファイルが無い間は、コンソールに「SE がロードされていません: Battle/Damage」と警告が出て音は鳴りません。
+プレイヤーに敵の攻撃が当たったとき（`BattleManager.PlayerDamage`）に、防御QTEの判定に合わせて SE を鳴らします。
+
+| 防御QTE | SE | ファイル |
+|---|---|---|
+| 失敗 | `BattleSeType.Damage_Bad` | `Assets/Addressables/Audio/SE/Battle/Damage_Bad.wav` |
+| 成功 | `BattleSeType.Damage_Good` | `Assets/Addressables/Audio/SE/Battle/Damage_Good.wav` |
+| 大成功 | `BattleSeType.Damage_Perfect` | `Assets/Addressables/Audio/SE/Battle/Damage_Perfect.wav` |
+
+3つのファイルを置いて Addressables に登録してください。ファイルが無い間は、コンソールに「SE がロードされていません: Battle/Damage_Bad」などの警告が出て音は鳴りません。

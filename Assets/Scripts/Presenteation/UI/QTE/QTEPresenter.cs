@@ -50,6 +50,13 @@ namespace EchoEdge.Presenter.UI
 
         public float Result => _result;
 
+        private QTEResults _resultLevel;
+
+        /// <summary>
+        /// QTE の判定（失敗/成功/大成功）
+        /// </summary>
+        public QTEResults ResultLevel => _resultLevel;
+
         public QTEKinds Kind;
 
         public async override UniTask Appear()
@@ -95,6 +102,7 @@ namespace EchoEdge.Presenter.UI
                 if(endTime - timer < GreatSuccessTime && endTime - timer > SuccessTime)
                 {
                     // 成功
+                    _resultLevel = QTEResults.Good;
                     AudioManager.Instance.PlaySe(BattleSeType.QTE_Good);
                     UIPresenter.Instance.AppearQTEResult(QTEResults.Good).Forget();
 
@@ -122,6 +130,7 @@ namespace EchoEdge.Presenter.UI
                 else if (endTime - timer < WaitTime && endTime - timer >= GreatSuccessTime)
                 {
                     // 大成功
+                    _resultLevel = QTEResults.Perfect;
                     AudioManager.Instance.PlaySe(BattleSeType.QTE_Perfect);
                     UIPresenter.Instance.AppearQTEResult(QTEResults.Perfect).Forget();
 
@@ -147,6 +156,7 @@ namespace EchoEdge.Presenter.UI
             }
 
             // 失敗
+            _resultLevel = QTEResults.Failed;
             AudioManager.Instance.PlaySe(BattleSeType.QTE_Bad);
 
             UIPresenter.Instance.AppearQTEResult(QTEResults.Failed).Forget();
