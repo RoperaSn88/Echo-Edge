@@ -67,6 +67,8 @@ namespace EchoEdge.App.Battle
             {
                 case StageClearConditionType.Endurance:
                     return new EndureStageClearTask();
+                case StageClearConditionType.DefeatBoss:
+                    return new DefeatBossStageClearTask();
                 case StageClearConditionType.DefeatAllEnemies:
                 default:
                     return new DefeatAllEnemiesStageClearTask();
