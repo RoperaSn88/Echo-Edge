@@ -14,5 +14,9 @@ namespace EchoEdge.Infra.Audio
         QTE_Good,
         QTE_Perfect,
         TurnChange,
+        Booster_whistle,
+        HeavyDamage,
+        ModerateDamage,
+        ShortDamage
     }
 }
