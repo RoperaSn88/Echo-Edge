@@ -326,11 +326,11 @@ namespace EchoEdge.App.Battle
             switch (level)
             {
                 case QTEResults.Perfect:
-                    return BattleSeType.Damage_Perfect;
+                    return BattleSeType.ShortDamage;
                 case QTEResults.Good:
-                    return BattleSeType.Damage_Good;
+                    return BattleSeType.ModerateDamage;
                 default:
-                    return BattleSeType.Damage_Bad;
+                    return BattleSeType.HeavyDamage;
             }
         }
 

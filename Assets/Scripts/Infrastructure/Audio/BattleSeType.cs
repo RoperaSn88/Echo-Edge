@@ -17,6 +17,9 @@ namespace EchoEdge.Infra.Audio
         Booster_whistle,
         HeavyDamage,
         ModerateDamage,
-        ShortDamage
+        ShortDamage,
+        SkyaFly,
+        SkyaBeam,
+        BuilderBuild
     }
 }
