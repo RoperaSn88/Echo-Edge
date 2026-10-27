@@ -303,6 +303,7 @@ namespace EchoEdge.App.Battle
 
             PlayerStatusPresenter.Instance.SetPlayerHP(_playerStatus.HP, _playerStatus.MaxHP);
             PlayerView.Instance.Animator.SetTrigger("DamageT");
+            AudioManager.Instance.PlaySe(BattleSeType.Damage);
 
             if (result.isDeath)
             {
