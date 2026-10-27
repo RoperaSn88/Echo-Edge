@@ -72,6 +72,11 @@ namespace EchoEdge.Presenter.Battle
         private Tween _topDownPoseTween;
 
         /// <summary>
+        /// 攻撃時にカメラへ渡す対象（自分とプレイヤー）。攻撃のたびに配列を作らないよう使い回す
+        /// </summary>
+        private readonly Transform[] _cameraTargets = new Transform[2];
+
+        /// <summary>
         /// 真上視点へ入る直前のルート localPosition.y。抜けるときはここへ戻す。
         /// </summary>
         private float _rootPreTopDownLocalY;
@@ -351,6 +356,23 @@ namespace EchoEdge.Presenter.Battle
         public async UniTask WaitToCameraZoom()
         {
             await CameraManager.Instance.ActSetCameraTarget(transform.position);
+        }
+
+        /// <summary>
+        /// 攻撃アニメーションを実行する前に、自分とプレイヤーが同時に映るようカメラを動かす
+        /// </summary>
+        public async UniTask WaitToCameraZoomWithPlayer()
+        {
+            var player = PlayerController.Instance;
+            if (player == null || player.PlayerTransform == null)
+            {
+                await WaitToCameraZoom();
+                return;
+            }
+
+            _cameraTargets[0] = transform;
+            _cameraTargets[1] = player.PlayerTransform;
+            await CameraManager.Instance.ActSetCameraTargets(_cameraTargets);
         }
 
         /// <summary>

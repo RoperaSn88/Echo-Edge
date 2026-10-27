@@ -148,9 +148,9 @@ namespace EchoEdge.Domain.Battle
 
             try
             {
-                // 踏み込み後の位置に対してカメラ移動・メッセージ表示を行う
+                // 踏み込み後の位置に対して、自分とプレイヤーが同時に映るようカメラ移動・メッセージ表示を行う
                 await UniTask.WhenAll(
-                    _view.WaitToCameraZoom(),
+                    _view.WaitToCameraZoomWithPlayer(),
                     _unitAction.BeforeAttack()
                 );
 
