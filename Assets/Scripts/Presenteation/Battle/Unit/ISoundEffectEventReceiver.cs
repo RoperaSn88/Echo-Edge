@@ -13,6 +13,6 @@ namespace EchoEdge.Presenter.Battle
         /// 指定した SE を再生する（アニメーションイベント用）
         /// </summary>
         /// <param name="seType">再生する SE の種類</param>
-        void SoundEffectPlay(SeAudioType seType);
+        void SoundEffectPlay(BattleSeType seType);
     }
 }

@@ -107,7 +107,7 @@ namespace EchoEdge.Presenter.Preparing
             // 残りのトゥイーン分だけ文字が横にずれて画面外へ見切れる。
             // 決定が確定したこの時点で選択トゥイーンを最終値へスナップさせておく。
             if (selected is TMPSelectObject decidedObject) decidedObject.SnapToSelected();
-            AudioManager.Instance.PlaySe(SeAudioType.Click);
+            AudioManager.Instance.PlaySe(PreparingSeType.Click);
 
             await UniTask.WhenAll(
                 MoveSelectablesExcept(),

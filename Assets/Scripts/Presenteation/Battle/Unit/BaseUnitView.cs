@@ -478,7 +478,7 @@ namespace EchoEdge.Presenter.Battle
         /// <summary>
         /// アニメーションイベントから呼ばれ、指定した SE を再生する
         /// </summary>
-        public void SoundEffectPlay(SeAudioType seType)
+        public void SoundEffectPlay(BattleSeType seType)
         {
             if (AudioManager.Instance == null) return;
             AudioManager.Instance.PlaySe(seType);
@@ -488,7 +488,7 @@ namespace EchoEdge.Presenter.Battle
         {
             _animator.SetTrigger("DeadT");
             UIPresenter.Instance.AppearEnergy(transform.position, targetStatus.Energy).Forget();
-            AudioManager.Instance.PlaySe(SeAudioType.Attack);
+            AudioManager.Instance.PlaySe(BattleSeType.Attack);
             VFXEmitter.Instance.Emit(VFXKinds.Attack, transform.position);
             await UniTask.Delay(TimeSpan.FromSeconds(0.7f), ignoreTimeScale:true);
         }
@@ -497,7 +497,7 @@ namespace EchoEdge.Presenter.Battle
         {
             _animator.SetTrigger("DamageT");
             UIPresenter.Instance.AppearEnergy(transform.position, targetStatus.Energy / 2).Forget();
-            AudioManager.Instance.PlaySe(SeAudioType.Kill);
+            AudioManager.Instance.PlaySe(BattleSeType.Kill);
             VFXEmitter.Instance.Emit(VFXKinds.Defeat, transform.position);
             await UniTask.Delay(TimeSpan.FromSeconds(0.5f), ignoreTimeScale:true);
         }
@@ -577,7 +577,7 @@ namespace EchoEdge.Presenter.Battle
         private async UniTask PlayDamageEffect(bool isDeath)
         {
             _animator.SetTrigger(isDeath ? "DeadT" : "DamageT");
-            AudioManager.Instance.PlaySe(isDeath ? SeAudioType.Attack : SeAudioType.Kill);
+            AudioManager.Instance.PlaySe(isDeath ? BattleSeType.Attack : BattleSeType.Kill);
             VFXEmitter.Instance.Emit(isDeath ? VFXKinds.Attack : VFXKinds.Defeat, transform.position);
             await UniTask.Delay(TimeSpan.FromSeconds(isDeath ? DeathEffectTime : DamageEffectTime), ignoreTimeScale: true);
         }

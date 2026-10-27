@@ -69,7 +69,7 @@ namespace EchoEdge.Presenter.UI
             _qteText.alpha = 0f;
 
             // 出現
-            AudioManager.Instance.PlaySe(SeAudioType.QTE);
+            AudioManager.Instance.PlaySe(BattleSeType.QTE);
 
             await UniTask.WhenAll(
                 _frameRect.DOScale(Vector3.one, InitializeTime).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask(),
@@ -95,7 +95,7 @@ namespace EchoEdge.Presenter.UI
                 if(endTime - timer < GreatSuccessTime && endTime - timer > SuccessTime)
                 {
                     // 成功
-                    AudioManager.Instance.PlaySe(SeAudioType.QTE_Good);
+                    AudioManager.Instance.PlaySe(BattleSeType.QTE_Good);
                     UIPresenter.Instance.AppearQTEResult(QTEResults.Good).Forget();
 
                     await UniTask.WhenAll(
@@ -122,7 +122,7 @@ namespace EchoEdge.Presenter.UI
                 else if (endTime - timer < WaitTime && endTime - timer >= GreatSuccessTime)
                 {
                     // 大成功
-                    AudioManager.Instance.PlaySe(SeAudioType.QTE_Perfect);
+                    AudioManager.Instance.PlaySe(BattleSeType.QTE_Perfect);
                     UIPresenter.Instance.AppearQTEResult(QTEResults.Perfect).Forget();
 
                     await UniTask.WhenAll(
@@ -147,7 +147,7 @@ namespace EchoEdge.Presenter.UI
             }
 
             // 失敗
-            AudioManager.Instance.PlaySe(SeAudioType.QTE_Bad);
+            AudioManager.Instance.PlaySe(BattleSeType.QTE_Bad);
 
             UIPresenter.Instance.AppearQTEResult(QTEResults.Failed).Forget();
             await UniTask.WhenAll(
