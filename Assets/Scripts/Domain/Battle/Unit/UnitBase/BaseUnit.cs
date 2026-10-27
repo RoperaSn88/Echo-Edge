@@ -230,11 +230,11 @@ namespace EchoEdge.Domain.Battle
             switch (pattern)
             {
                 case EnemyMoveKinds.Attack:
-                    AudioManager.Instance.PlaySe(SeAudioType.EnemyTurn);
+                    AudioManager.Instance.PlaySe(BattleSeType.EnemyTurn);
                     await Attack();
                     break;
                 case EnemyMoveKinds.Specific:
-                    AudioManager.Instance.PlaySe(SeAudioType.EnemyTurn);
+                    AudioManager.Instance.PlaySe(BattleSeType.EnemyTurn);
                     await Specific();
                     break;
             }

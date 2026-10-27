@@ -5,6 +5,8 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using UnityEngine.ResourceManagement.ResourceLocations;
+using EchoEdge.Domain.Scene;
 
 namespace EchoEdge.Infra.Audio
 {
@@ -18,7 +20,8 @@ namespace EchoEdge.Infra.Audio
         private const string AudioExtension = ".wav";
 
         private static readonly Dictionary<BgmAudioType, string> BgmPathCache = BuildBgmPathCache();
-        private static readonly Dictionary<SeAudioType, string> SePathCache = BuildSePathCache();
+        private static readonly string[] BattleSeNames = System.Enum.GetNames(typeof(BattleSeType));
+        private static readonly string[] PreparingSeNames = System.Enum.GetNames(typeof(PreparingSeType));
 
         [SerializeField] private AudioSource _bgmSource;
         [SerializeField] private AudioSource _additionalBgmSource;
@@ -27,9 +30,11 @@ namespace EchoEdge.Infra.Audio
 
         private readonly List<AudioSource> _seSources = new();
         private readonly Dictionary<string, AsyncOperationHandle<AudioClip>> _audioClipHandleCache = new();
+        private readonly Dictionary<SeCategory, SeBank> _seBanks = new();
+        // SE をロード済みのシーン。同じシーンで二重にロード・解放しないために使う
+        private readonly HashSet<GameScene> _seLoadedScenes = new();
 
         private CancellationTokenSource _addBgmFadeCancellation;
-        private UniTask _sePreloadTask = UniTask.CompletedTask;
         private int _nextSeSourceIndex;
 
         private float _masterVolume = 1.0f;
@@ -82,8 +87,52 @@ namespace EchoEdge.Infra.Audio
             {
                 if (source != null) source.volume = _seVolume;
             }
+        }
 
-            _sePreloadTask = PreloadSeAudioClipsAsync().Preserve();
+        /// <summary>
+        /// シーンで使う SE をロードする。シーンをロードする前に呼び、完了を待つこと。
+        /// SE を使わないシーンでは何もしない。
+        /// </summary>
+        public UniTask LoadSeAsync(GameScene scene)
+        {
+            if (!TryGetSeCategory(scene, out var category) || !_seLoadedScenes.Add(scene))
+            {
+                return UniTask.CompletedTask;
+            }
+
+            return AcquireSeBankAsync(category);
+        }
+
+        /// <summary>
+        /// LoadSeAsync でロードしたシーンの SE を解放する。
+        /// </summary>
+        public void ReleaseSe(GameScene scene)
+        {
+            if (!_seLoadedScenes.Remove(scene) || !TryGetSeCategory(scene, out var category))
+            {
+                return;
+            }
+
+            ReleaseSeBank(category);
+        }
+
+        /// <summary>
+        /// シーンで使う SE のフォルダ。ここに無いシーンでは SE をロードしない
+        /// </summary>
+        private static bool TryGetSeCategory(GameScene scene, out SeCategory category)
+        {
+            switch (scene)
+            {
+                case GameScene.MainGame:
+                    category = SeCategory.Battle;
+                    return true;
+                case GameScene.Preparing:
+                    category = SeCategory.Preparing;
+                    return true;
+                default:
+                    category = default;
+                    return false;
+            }
         }
 
         /// <summary>
@@ -182,9 +231,58 @@ namespace EchoEdge.Infra.Audio
             _bgmSource.Stop();
         }
 
-        public void PlaySe(SeAudioType seType)
+        /// <summary>
+        /// SE/Battle の SE を再生する。MainGame シーンがロードされていないと再生されない。
+        /// </summary>
+        public void PlaySe(BattleSeType seType)
         {
-            PlaySeAsync(seType).Forget();
+            PlayLoadedSe(SeCategory.Battle, BattleSeNames[(int)seType]);
+        }
+
+        /// <summary>
+        /// SE/Preparing の SE を再生する。Preparing シーンがロードされていないと再生されない。
+        /// </summary>
+        public void PlaySe(PreparingSeType seType)
+        {
+            PlayLoadedSe(SeCategory.Preparing, PreparingSeNames[(int)seType]);
+        }
+
+        /// <summary>
+        /// 指定したフォルダ(SE/{category}/)以下の SE をすべてロードする。
+        /// 同じフォルダを複数回ロードした場合は、同じ回数 ReleaseSeBank を呼ぶまで解放されない。
+        /// </summary>
+        private UniTask AcquireSeBankAsync(SeCategory category)
+        {
+            if (_seBanks.TryGetValue(category, out var bank))
+            {
+                bank.RefCount++;
+                return bank.LoadTask;
+            }
+
+            bank = new SeBank { RefCount = 1 };
+            _seBanks[category] = bank;
+            bank.LoadTask = LoadSeBankAsync(category, bank).Preserve();
+            return bank.LoadTask;
+        }
+
+        /// <summary>
+        /// AcquireSeBankAsync でロードした SE を解放する。
+        /// </summary>
+        private void ReleaseSeBank(SeCategory category)
+        {
+            if (!_seBanks.TryGetValue(category, out var bank))
+            {
+                return;
+            }
+
+            bank.RefCount--;
+            if (bank.RefCount > 0)
+            {
+                return;
+            }
+
+            _seBanks.Remove(category);
+            bank.Release();
         }
 
         public void PlaySe(AudioClip clip)
@@ -294,24 +392,87 @@ namespace EchoEdge.Infra.Audio
             }
         }
 
-        private async UniTaskVoid PlaySeAsync(SeAudioType seType)
+        private void PlayLoadedSe(SeCategory category, string seName)
         {
-            if (!InitializeSeAudioSources())
+            if (!_seBanks.TryGetValue(category, out var bank) || !bank.Clips.TryGetValue(seName, out var clip))
             {
-                Debug.LogError("SE 用 AudioSource の初期化に失敗しました");
+                Debug.LogWarning(ZString.Concat("SE がロードされていません: ", category, "/", seName));
                 return;
             }
 
-            await _sePreloadTask;
+            PlaySe(clip);
+        }
 
-            var clip = await LoadAudioClipAsync(GetSeAddressablesPath(seType));
-            if (clip == null)
+        private static async UniTask LoadSeBankAsync(SeCategory category, SeBank bank)
+        {
+            await Addressables.InitializeAsync();
+
+            var folderPath = ZString.Concat(AudioBasePath, SeRelativePath, category, "/");
+            var locations = FindAudioClipLocations(folderPath);
+            if (locations.Count == 0)
+            {
+                Debug.LogWarning(ZString.Concat("Addressables に SE が登録されていません: ", folderPath));
+                return;
+            }
+
+            // ロード待ちの間に ReleaseSeBank されていた場合
+            if (bank.IsReleased)
             {
                 return;
             }
 
-            var source = GetNextSeAudioSource();
-            source.PlayOneShot(clip);
+            bank.Handle = Addressables.LoadAssetsAsync<AudioClip>(locations, null);
+            await bank.Handle;
+
+            if (bank.IsReleased)
+            {
+                return;
+            }
+
+            if (bank.Handle.Status != AsyncOperationStatus.Succeeded)
+            {
+                Debug.LogError(ZString.Concat("SE の読み込みに失敗しました: ", folderPath));
+                return;
+            }
+
+            foreach (var clip in bank.Handle.Result)
+            {
+                if (clip != null)
+                {
+                    bank.Clips[clip.name] = clip;
+                }
+            }
+        }
+
+        /// <summary>
+        /// アドレスが folderPath で始まる AudioClip の位置情報をすべて集める
+        /// </summary>
+        private static List<IResourceLocation> FindAudioClipLocations(string folderPath)
+        {
+            var locations = new List<IResourceLocation>();
+            var foundIds = new HashSet<string>();
+            foreach (var locator in Addressables.ResourceLocators)
+            {
+                foreach (var key in locator.Keys)
+                {
+                    if (key is not string address ||
+                        !address.StartsWith(folderPath, System.StringComparison.Ordinal) ||
+                        !locator.Locate(address, typeof(AudioClip), out var found))
+                    {
+                        continue;
+                    }
+
+                    foreach (var location in found)
+                    {
+                        if (foundIds.Add(location.InternalId))
+                        {
+                            locations.Add(location);
+                        }
+                    }
+                }
+            }
+
+            return locations;
         }
 
         private async UniTask<AudioClip> LoadAudioClipAsync(string addressablesPath)
@@ -349,23 +510,9 @@ namespace EchoEdge.Infra.Audio
             return clip;
         }
 
-        private async UniTask PreloadSeAudioClipsAsync()
-        {
-            var seTypes = (SeAudioType[])System.Enum.GetValues(typeof(SeAudioType));
-            foreach (var seType in seTypes)
-            {
-                await LoadAudioClipAsync(GetSeAddressablesPath(seType));
-            }
-        }
-
         private static string GetBgmAddressablesPath(BgmAudioType bgmType)
         {
             return BgmPathCache[bgmType];
-        }
-
-        private static string GetSeAddressablesPath(SeAudioType seType)
-        {
-            return SePathCache[seType];
         }
 
         private AudioSource GetNextSeAudioSource()
@@ -420,18 +567,6 @@ namespace EchoEdge.Infra.Audio
             return cache;
         }
 
-        private static Dictionary<SeAudioType, string> BuildSePathCache()
-        {
-            var cache = new Dictionary<SeAudioType, string>();
-            var seTypes = (SeAudioType[])System.Enum.GetValues(typeof(SeAudioType));
-            foreach (var seType in seTypes)
-            {
-                cache[seType] = ZString.Concat(AudioBasePath, SeRelativePath, seType.ToString(), AudioExtension);
-            }
-
-            return cache;
-        }
-
         private static async UniTask FadeVolumeAsync(AudioSource source, float from, float to, float durationSeconds, CancellationToken cancellationToken)
         {
             if (source == null)
@@ -477,6 +612,37 @@ namespace EchoEdge.Infra.Audio
             }
 
             _audioClipHandleCache.Clear();
+
+            _seLoadedScenes.Clear();
+
+            foreach (var bank in _seBanks.Values)
+            {
+                bank.Release();
+            }
+
+            _seBanks.Clear();
+        }
+
+        /// <summary>
+        /// 1 フォルダ分のロード済み SE
+        /// </summary>
+        private sealed class SeBank
+        {
+            public readonly Dictionary<string, AudioClip> Clips = new();
+            public AsyncOperationHandle<IList<AudioClip>> Handle;
+            public UniTask LoadTask;
+            public int RefCount;
+            public bool IsReleased { get; private set; }
+
+            public void Release()
+            {
+                IsReleased = true;
+                Clips.Clear();
+                if (Handle.IsValid())
+                {
+                    Addressables.Release(Handle);
+                }
+            }
         }
     }
 }

@@ -42,7 +42,7 @@ namespace EchoEdge.Presenter.UI
 
         public async UniTask ShowTurnChange(TurnChangeKinds turnChangeKind)
         {
-            AudioManager.Instance.PlaySe(SeAudioType.TurnChange);
+            AudioManager.Instance.PlaySe(BattleSeType.TurnChange);
             _turnChangeText.gameObject.SetActive(true);
             _turnChangeText.text = turnChangeKind == TurnChangeKinds.PlayerTurn ? "Player Turn" : "Enemy Turn";
             _turnChangeText.transform.localScale = Vector3.one * 2f;
