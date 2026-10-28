@@ -22,7 +22,7 @@
         /// </summary>
         public static void Reset()
         {
-            _currentEnergy = 10;
+            _currentEnergy = 3;
             _currentEnergyGauge = 0;
         }
 

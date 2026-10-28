@@ -1,0 +1,13 @@
+0,0
+ObjectKind,Height(0~8),Width(0~15),EnemyKind,Level(0=等倍)
+Wall,6,13,
+Wall,5,13,
+Wall,5,10,
+Wall,4,10,
+Wall,3,10,
+Wall,6,5,
+Wall,7,8,
+Wall,6,2,
+Wall,5,2,
+Unit,2,5,Skya
+Unit,6,14,Booster, 2

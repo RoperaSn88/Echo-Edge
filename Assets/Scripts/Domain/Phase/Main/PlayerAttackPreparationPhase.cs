@@ -108,7 +108,7 @@ namespace EchoEdge.Domain.Phase
         {
             playerActions.PlayerPhase.Attack.started += OnPressAttack;
             playerActions.PlayerPhase.Skill.started += OnPressSkill;
-            playerActions.PlayerPhase.Scroll.performed += OnScroll;
+            // playerActions.PlayerPhase.Scroll.performed += OnScroll;
             playerActions.PlayerPhase.ToggleFlash.started += OnPressToggleFlash;
             playerActions.Enable();
         }
