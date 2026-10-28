@@ -65,10 +65,19 @@ namespace EchoEdge.Presenter.UI
 
         public async UniTask<float> AppearQTE(QTEKinds kind)
         {
+            var result = await AppearQTEWithLevel(kind);
+            return result.rate;
+        }
+
+        /// <summary>
+        /// QTE を出し、倍率と判定（失敗/成功/大成功）を返す
+        /// </summary>
+        public async UniTask<(float rate, QTEResults level)> AppearQTEWithLevel(QTEKinds kind)
+        {
             var QTEObject = (QTEPresenter)await Instance.QtePool.GetPooledObject();
             QTEObject.Kind = kind;
             await QTEObject.Appear();
-            var result = QTEObject.Result;
+            var result = (QTEObject.Result, QTEObject.ResultLevel);
             QTEObject.Release();
             return result;
         }

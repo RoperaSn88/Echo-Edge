@@ -34,6 +34,11 @@ namespace EchoEdge.App.Battle
         private static float _qteResult;
 
         /// <summary>
+        /// 防御QTEの判定。被ダメージ SE の出し分けに使う
+        /// </summary>
+        private static QTEResults _defendQteResultLevel;
+
+        /// <summary>
         /// 現在のコンボ数
         /// </summary>
         private static int _combo = 0;
@@ -67,8 +72,6 @@ namespace EchoEdge.App.Battle
         /// </summary>
         public static int ReflectionCount => _reflectionCount;
 
-        private static CancellationTokenSource _cancellationTokenSource;
-
         /// <summary>
         /// 防御中の被ダメージ倍率
         /// </summary>
@@ -83,11 +86,6 @@ namespace EchoEdge.App.Battle
         /// 1回の戦闘（ステージ）で回復できる回数
         /// </summary>
         private const int MaxHealCount = 2;
-
-        /// <summary>
-        /// ピンチBGMに切り替えるHPの割合
-        /// </summary>
-        private const float PinchHpRate = 0.3f;
 
         /// <summary>
         /// 防御中か。防御したターンのエネミーフェーズの間だけ true になり、被ダメージを半減する。
@@ -194,14 +192,8 @@ namespace EchoEdge.App.Battle
 
             PlayerStatusPresenter.Instance.SetPlayerHP(_playerStatus.HP, _playerStatus.MaxHP);
 
-            // ピンチを脱した場合はピンチBGMを止める
-            var playerHpRate = (float)_playerStatus.HP / _playerStatus.MaxHP;
-            if (playerHpRate >= PinchHpRate && AudioManager.Instance != null)
-            {
-                _cancellationTokenSource?.Cancel();
-                _cancellationTokenSource = new();
-                AudioManager.Instance.FadeAddedBGMAsync(0.5f, _cancellationTokenSource.Token).Forget();
-            }
+            // ピンチを脱した場合はピンチBGMを止める（ボス戦では通常のボスBGMを最初から再生する）
+            BattleBgmController.UpdatePinch((float)_playerStatus.HP / _playerStatus.MaxHP);
 
             return healed;
         }
@@ -270,9 +262,6 @@ namespace EchoEdge.App.Battle
 
         public async static UniTask<(int damage, bool isDeath)> PlayerDamage(float rate)
         {
-            _cancellationTokenSource?.Cancel();
-            _cancellationTokenSource = new();
-
             if (_isPlayerDeathStarted)
             {
                 return (0, true);
@@ -280,29 +269,24 @@ namespace EchoEdge.App.Battle
 
             if (!_QTEFlug)
             {
-                _qteResult = await UIPresenter.Instance.AppearQTE(QTEKinds.Defend);
+                (_qteResult, _defendQteResultLevel) = await UIPresenter.Instance.AppearQTEWithLevel(QTEKinds.Defend);
                 _QTEFlug = true;
             } 
 
             // 防御中は、防御力で軽減した後の被ダメージを半減する
             var defendRate = _isDefending ? DefendDamageRate : 1.0f;
 
+            // ピンチ状態でなければ、致死ダメージを受けてもHPを1残す（食いしばり）
+            var isPinchBeforeDamage = BattleBgmController.IsPinch((float)_playerStatus.HP / _playerStatus.MaxHP);
+
             // 防御QTE大成功で切り捨てにより0ダメージにならないよう、最低1ダメージは与える
-            var result = await _playerStatus.Damage(Mathf.Max(1, (int)(_enemyStatus.Attack * rate * _qteResult)), defendRate);
+            var result = await _playerStatus.Damage(Mathf.Max(1, (int)(_enemyStatus.Attack * rate * _qteResult)), defendRate, !isPinchBeforeDamage);
 
-            var playerHpRate = (float)_playerStatus.HP / _playerStatus.MaxHP;
-            if (playerHpRate < PinchHpRate)
-            {
-                AudioManager.Instance.AddPlayBgmAsync(BgmAudioType.Pinch, true, _cancellationTokenSource.Token).Forget();
-            }
-            else
-            {
-                AudioManager.Instance.FadeAddedBGMAsync(0.5f, _cancellationTokenSource.Token).Forget();
-            }
-
+            BattleBgmController.UpdatePinch((float)_playerStatus.HP / _playerStatus.MaxHP);
 
             PlayerStatusPresenter.Instance.SetPlayerHP(_playerStatus.HP, _playerStatus.MaxHP);
             PlayerView.Instance.Animator.SetTrigger("DamageT");
+            AudioManager.Instance.PlaySe(GetPlayerDamageSe(_defendQteResultLevel));
 
             if (result.isDeath)
             {
@@ -310,6 +294,22 @@ namespace EchoEdge.App.Battle
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// 防御QTEの判定に応じた被ダメージ SE
+        /// </summary>
+        private static BattleSeType GetPlayerDamageSe(QTEResults level)
+        {
+            switch (level)
+            {
+                case QTEResults.Perfect:
+                    return BattleSeType.ShortDamage;
+                case QTEResults.Good:
+                    return BattleSeType.ModerateDamage;
+                default:
+                    return BattleSeType.HeavyDamage;
+            }
         }
 
         private static async UniTask StartPlayerDeathSequenceAsync()

@@ -20,11 +20,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 05e9e6f847abcd340b99ecf4c8f6a849
-    m_Address: Assets/Addressables/Audio/SE/Kill.wav
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 0a53567cea2b2cb47a630ae4f8912e51
     m_Address: Assets/Addressables/Animator/Brute.controller
     m_ReadOnly: 0
@@ -60,11 +55,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 2ef71724583fbee4e8f8aa71ab03d239
-    m_Address: Assets/Addressables/Audio/SE/NextWave.wav
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 46a2bb1a910b4ba9ad1050a72c83349c
     m_Address: Assets/Addressables/StageWaves/WaveSet/StageWaveSet_3.asset
     m_ReadOnly: 0
@@ -72,11 +62,6 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 4ebaa9c5c06a22d4bb7e29536a5219f8
     m_Address: Assets/Addressables/StageWaves/StageLayout_8.csv
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 507be74afe7fa8e4583396c1ca50c8f7
-    m_Address: Assets/Addressables/Audio/SE/Click.wav
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -100,16 +85,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 6c93672461e3ba94f966059807cac3fa
-    m_Address: Assets/Addressables/Audio/SE/EnemyTurn.wav
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 7ca5feea7b6e0024cac5ef2ae54876ea
-    m_Address: Assets/Addressables/Audio/SE/QTE_Bad.wav
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 7d23db7ac90df6f42970b8cf10daad93
     m_Address: Assets/Addressables/StageWaves/StageLayout_3.csv
     m_ReadOnly: 0
@@ -130,11 +105,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 8f7112dd074ceeb42966c3b4a70b4518
-    m_Address: Assets/Addressables/Audio/SE/TurnChange.wav
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 8fc8f33b102d4103aa7a1e27b832be74
     m_Address: Assets/Addressables/StageWaves/WaveSet/StageWaveSet_5.asset
     m_ReadOnly: 0
@@ -142,11 +112,6 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 94ca6728b004b6f4cba1b9cd572ce6e0
     m_Address: Assets/Addressables/Scenario/ScenarioData_Prologue.asset
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 9cb6074127301604692f33d2b6875d27
-    m_Address: Assets/Addressables/Audio/SE/QTE_Good.wav
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -180,18 +145,8 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: b06037061f9081442acc3c88feb1d86a
-    m_Address: Assets/Addressables/Audio/SE/QTE.wav
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: b0a2ec8cad3f2c548bd8e594c3e2c61f
     m_Address: Assets/Addressables/Tutorials/TextBoxMasterData_Reflect.asset
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: b0a3b7f67f3984648b044f44ff33b217
-    m_Address: Assets/Addressables/Audio/SE/Decide.wav
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -245,11 +200,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: de59da08bd7212d4dab62e142014941c
-    m_Address: Assets/Addressables/Audio/SE/Attack.wav
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: e20284c36052d1e499b65362a4fbc21f
     m_Address: Assets/Addressables/EnemyInfo.csv
     m_ReadOnly: 0
@@ -257,11 +207,6 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: e357f78e625a44b6867df0c13c5e8076
     m_Address: Assets/Addressables/StageWaves/WaveSet/StageWaveSet_2.asset
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: e8c654728f08893459120d0d042d5b13
-    m_Address: Assets/Addressables/Audio/SE/QTE_Perfect.wav
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

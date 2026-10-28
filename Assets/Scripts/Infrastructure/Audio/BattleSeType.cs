@@ -1,0 +1,25 @@
+namespace EchoEdge.Infra.Audio
+{
+    /// <summary>
+    /// SE/Battle フォルダの SE。値の名前がファイル名(拡張子なし)と一致する。
+    /// </summary>
+    public enum BattleSeType
+    {
+        Attack,
+        EnemyTurn,
+        Kill,
+        NextWave,
+        QTE,
+        QTE_Bad,
+        QTE_Good,
+        QTE_Perfect,
+        TurnChange,
+        Booster_whistle,
+        HeavyDamage,
+        ModerateDamage,
+        ShortDamage,
+        SkyaFly,
+        SkyaBeam,
+        BuilderBuild
+    }
+}

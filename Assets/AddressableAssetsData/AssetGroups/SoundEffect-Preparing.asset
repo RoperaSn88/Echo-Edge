@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: SoundEffect-Preparing
+  m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
+  m_GroupName: SoundEffect-Preparing
+  m_GUID: 9a7732a7664d1714084bbd4ad89d1812
+  m_SerializeEntries:
+  - m_GUID: 507be74afe7fa8e4583396c1ca50c8f7
+    m_Address: Assets/Addressables/Audio/SE/Preparing/Click.mp3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b0a3b7f67f3984648b044f44ff33b217
+    m_Address: Assets/Addressables/Audio/SE/Preparing/Decide.mp3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 56be8421adbaf81499fc7d42631ef10d, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 03c864da1e07d0a49ace4cfa872db3c3, type: 2}
+    - {fileID: 11400000, guid: 1cd96fad4cba0d9458a563292b2927b0, type: 2}
