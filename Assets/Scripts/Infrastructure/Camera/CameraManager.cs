@@ -79,6 +79,17 @@ namespace EchoEdge.Infra.Camera
         private MousePosition _mousePosition;
 
         /// <summary>
+        /// 複数の対象を同時に映すときに使うターゲットグループ
+        /// </summary>
+        [SerializeField]
+        private CinemachineTargetGroup _targetGroup;
+
+        /// <summary>
+        /// ターゲットグループの中心を追尾中のフラグ
+        /// </summary>
+        private bool _isGroupFraming;
+
+        /// <summary>
         /// 通常状態のカメラの角度
         /// </summary>
         private const float DefaultCameraAngle = 10;
@@ -146,6 +157,16 @@ namespace EchoEdge.Infra.Camera
 
         private const float PlayerWeaponTokenTime = 0.4f;
 
+        /// <summary>
+        /// ターゲットグループに追加する対象1つあたりの半径
+        /// </summary>
+        private const float GroupMemberRadius = 1f;
+
+        /// <summary>
+        /// ターゲットグループを映すときの画面端の余白（倍率）
+        /// </summary>
+        private const float GroupFramingPadding = 1.2f;
+
 
 
         void Start()
@@ -161,6 +182,11 @@ namespace EchoEdge.Infra.Camera
             if (_isTracking && _trackingTarget != null)
             {
                 _defaultCameraPos.position = _trackingTarget.position;
+            }
+            else if (_isGroupFraming && _targetGroup != null && !_targetGroup.IsEmpty)
+            {
+                // 対象が動いても（踏み込みなど）全員が映るよう、グループの中心を追い続ける
+                _defaultCameraPos.position = _targetGroup.transform.position;
             }
         }
 
@@ -207,6 +233,8 @@ namespace EchoEdge.Infra.Camera
         /// </summary>
         public async UniTask ActSetCameraTarget(Vector3 target)
         {
+            StopGroupFraming();
+
             // カメラが動いている最中ならばキャンセル
             if (_cameraMoving)
             {
@@ -277,6 +305,148 @@ namespace EchoEdge.Infra.Camera
         }
 
         /// <summary>
+        /// 渡した対象をターゲットグループに追加し、全員が同時に映るようにカメラを動かし始める。
+        /// 以降はグループの中心を追尾し続け、<see cref="StopGroupFraming"/> か他のカメラ操作で解除される。
+        /// </summary>
+        /// <param name="targets">同時に映したい対象（例: 攻撃する敵とプレイヤー）</param>
+        public UniTask ActSetCameraTargets(ReadOnlySpan<Transform> targets)
+        {
+            if (_targetGroup == null)
+            {
+                // 未割り当てでも、寄せる位置と距離は計算できるので一度だけ寄せる（追尾はしない）
+                Debug.LogWarning("CameraManager に CinemachineTargetGroup が割り当てられていません。");
+            }
+
+            StopGroupFraming();
+
+            var hasTarget = false;
+            var bounds = new Bounds();
+            foreach (var target in targets)
+            {
+                if (target == null) continue;
+
+                if (_targetGroup != null)
+                {
+                    _targetGroup.AddMember(target, 1f, GroupMemberRadius);
+                }
+
+                var memberBounds = new Bounds(target.position, Vector3.one * (GroupMemberRadius * 2f));
+                if (hasTarget)
+                {
+                    bounds.Encapsulate(memberBounds);
+                }
+                else
+                {
+                    bounds = memberBounds;
+                    hasTarget = true;
+                }
+            }
+
+            if (!hasTarget) return UniTask.CompletedTask;
+
+            // Span は async メソッドへ持ち込めないので、必要な値だけ計算してから渡す
+            return ActSetCameraTargetsInternal(bounds.center, CalculateFramingDistance(bounds.extents.magnitude));
+        }
+
+        /// <summary>
+        /// ターゲットグループの追尾を止め、グループを空に戻す。
+        /// カメラの位置は動かさないので、元に戻すときは <see cref="ActResetCameraTarget"/> などを使う。
+        /// </summary>
+        public void StopGroupFraming()
+        {
+            _isGroupFraming = false;
+
+            if (_targetGroup == null) return;
+            _targetGroup.Targets.Clear();
+        }
+
+        /// <summary>
+        /// 半径 <paramref name="radius"/> の球が画面に収まるカメラの距離を求める。
+        /// </summary>
+        private float CalculateFramingDistance(float radius)
+        {
+            var lens = _cinemachineCamera.Lens;
+            var halfVertical = lens.FieldOfView * 0.5f * Mathf.Deg2Rad;
+            var halfHorizontal = Mathf.Atan(Mathf.Tan(halfVertical) * lens.Aspect);
+            var halfFov = Mathf.Min(halfVertical, halfHorizontal);
+
+            var distance = radius * GroupFramingPadding / Mathf.Sin(halfFov);
+            return Mathf.Clamp(distance, ZoomCameraDistance, DefaultCameraDistance);
+        }
+
+        private async UniTask ActSetCameraTargetsInternal(Vector3 center, float distance)
+        {
+            // カメラが動いている最中ならばキャンセル
+            if (_cameraMoving)
+            {
+                Debug.Log("キャンセルだ");
+                _cts.Cancel();
+            }
+
+            // CancekkationTokenSourceを初期化
+            _cts = new CancellationTokenSource();
+            _target = center;
+
+            try
+            {
+                await SetCameraTargets(distance, _cts.Token);
+            }
+            catch(OperationCanceledException)
+            {
+                Debug.Log("キャンセル");
+            }
+        }
+
+        /// <summary>
+        /// カメラをターゲットグループ全体が映る位置へ動かす。
+        /// </summary>
+        private async UniTask SetCameraTargets(float distance, CancellationToken ct)
+        {
+            _cameraMoving = true;
+
+            var cameraTween = DOTween.To(()=>_cinemachineThirdPersonFollow.CameraDistance,
+                d => _cinemachineThirdPersonFollow.CameraDistance = d, 
+                distance, 
+                TokenTime)
+                .SetEase(Ease.OutQuad)
+                .SetUpdate(true);
+
+            var positionTween = DOTween.To(()=>_defaultCameraPos.position,
+                pos => _defaultCameraPos.position = pos, 
+                _target, 
+                TokenTime)
+                .SetEase(Ease.OutQuad)
+                .SetUpdate(true);
+
+            var offsetTween = DOTween.To(()=>_cinemachineThirdPersonFollow.ShoulderOffset,
+                pos => _cinemachineThirdPersonFollow.ShoulderOffset = pos, 
+                ZoomCameraOffset, 
+                TokenTime)
+                .SetEase(Ease.OutQuad)
+                .SetUpdate(true);
+
+            try
+            {
+                await UniTask.WhenAll(
+                    cameraTween.ToUniTask(cancellationToken: ct),
+                    offsetTween.ToUniTask(cancellationToken: ct),
+                    positionTween.ToUniTask(cancellationToken: ct)
+                );
+                _cameraMoving = false;
+
+                // 寄り終わったら、以降はグループの中心を追尾する
+                _isGroupFraming = true;
+            }
+            catch(Exception)
+            {
+                cameraTween.Complete();
+                positionTween.Complete();
+                offsetTween.Complete();
+                _cameraMoving = false;
+            }
+        }
+
+        /// <summary>
         /// カメラをもとの位置に戻し始める。
         /// </summary>
         [Button("リセット")]
@@ -295,6 +465,8 @@ namespace EchoEdge.Infra.Camera
 
         private async UniTask ActResetCameraTargetInternal(bool withRotate)
         {
+            StopGroupFraming();
+
             // カメラが動いている最中ならばキャンセル
             if (_cameraMoving)
             {
@@ -392,6 +564,8 @@ namespace EchoEdge.Infra.Camera
         /// </summary>
         public async void ActMoveCameraToTopAngle()
         {
+            StopGroupFraming();
+
             // カメラが動いている最中ならばキャンセル
             if (_cameraMoving)
             {
@@ -465,6 +639,8 @@ namespace EchoEdge.Infra.Camera
         /// </summary>
         public async UniTask ActMoveCameraToDefault()
         {
+            StopGroupFraming();
+
             // カメラが動いている最中ならばキャンセル
             if (_cameraMoving)
             {
@@ -626,6 +802,7 @@ namespace EchoEdge.Infra.Camera
             // このズームは真上視点フェーズ（装備品フェーズ右クリック）から直接遷移してくるため、
             // ActMoveCameraToDefault を経由しない。ここで照準ビューを畳んでおく。
             ExitTopDownAimView();
+            StopGroupFraming();
 
             // カメラが動いている最中ならばキャンセル
             if (_cameraMoving)
@@ -719,6 +896,7 @@ namespace EchoEdge.Infra.Camera
         /// <param name="playerPos">プレイヤーのワールド座標</param>
         public void SetGameClearCamera(Vector3 playerPos)
         {
+            StopGroupFraming();
             _defaultCameraPos.position = playerPos;
             _cinemachineThirdPersonFollow.CameraDistance = GameClearCameraDistance;
             _cinemachineThirdPersonFollow.ShoulderOffset = GameClearCameraOffset;

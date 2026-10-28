@@ -14,6 +14,11 @@ namespace EchoEdge.Presenter.Battle
         UniTask WaitToCameraZoom();
 
         /// <summary>
+        /// 攻撃アニメーション前に、自分とプレイヤーが同時に映るようカメラを動かす
+        /// </summary>
+        UniTask WaitToCameraZoomWithPlayer();
+
+        /// <summary>
         /// 攻撃アニメーションを実行する
         /// </summary>
         UniTask WaitAttackAnim();
