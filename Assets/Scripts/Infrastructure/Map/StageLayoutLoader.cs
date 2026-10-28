@@ -182,7 +182,7 @@ namespace EchoEdge.Infra.Map
         /// CSV の角度を斜面の向きに変換します。
         /// 角度は真上から見て右（+X）を 0° とした反時計回りで、斜面が向いている方向を表します（45 = 右上、135 = 左上、-135 = 左下、-45 = 右下）。
         /// </summary>
-        private static bool TryGetSlopeDirection(int angle, out EnergyWallDirection direction)
+        public static bool TryGetSlopeDirection(int angle, out EnergyWallDirection direction)
         {
             switch (angle)
             {
@@ -201,6 +201,29 @@ namespace EchoEdge.Infra.Map
                 default:
                     direction = default;
                     return false;
+            }
+        }
+
+        /// <summary>
+        /// CSV に書ける斜面の角度の一覧（<see cref="TryGetSlopeDirection"/> が受け付ける値）
+        /// </summary>
+        public static readonly int[] SlopeAngles = { 45, 135, -135, -45 };
+
+        /// <summary>
+        /// 斜面の向きを CSV の角度に変換します（<see cref="TryGetSlopeDirection"/> の逆変換）。
+        /// </summary>
+        public static int GetSlopeAngle(EnergyWallDirection direction)
+        {
+            switch (direction)
+            {
+                case EnergyWallDirection.UpLeft:
+                    return 135;
+                case EnergyWallDirection.DownLeft:
+                    return -135;
+                case EnergyWallDirection.DownRight:
+                    return -45;
+                default:
+                    return 45;
             }
         }
     }

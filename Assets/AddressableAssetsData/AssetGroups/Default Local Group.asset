@@ -65,11 +65,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 4ebaa9c5c06a22d4bb7e29536a5219f8
-    m_Address: Assets/Addressables/StageWaves/StageLayout_8.csv
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 5904b36af8417ca4ba797f1dddf3506f
     m_Address: Assets/Addressables/Animator/BigEnar.controller
     m_ReadOnly: 0
@@ -77,11 +72,6 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 5b2f35d08578e4147b7e7aad756bdd3a
     m_Address: Assets/Addressables/StageWaves/WaveSet/StageWaveSet_7.asset
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 5cca891ffc476c84ea2888d1a1ab9ae6
-    m_Address: Assets/Addressables/StageWaves/StageLayout_10.csv
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -160,11 +150,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: b87db50eacdbd8a4ba6d4404320d070e
-    m_Address: Assets/Addressables/StageWaves/StageLayout_6.csv
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: be8012406dd343340aca3562035593b0
     m_Address: Assets/Addressables/WeaponModels/3.asset
     m_ReadOnly: 0
@@ -180,18 +165,13 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: c14eb6ce10bfb6a4eaa9c72d4aa4d6a9
-    m_Address: Assets/Addressables/StageWaves/StageLayout_9.csv
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: c34d46641704e75479f98debc78e1177
     m_Address: Assets/Addressables/Audio/BGM/Pinch.wav
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: c4f217bc87d539f43a85ec8bc3947e22
-    m_Address: Assets/Addressables/StageWaves/StageLayout_7.csv
+    m_Address: Assets/Addressables/StageWaves/StageLayout_6.csv
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
