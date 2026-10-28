@@ -13,7 +13,7 @@ namespace EchoEdge.Infra.Battle
     /// </summary>
     public static class EnemyStatusLoader
     {
-        private const string CsvPath = "Assets/Addressables/EnemyInfo.csv";
+        public const string CsvPath = "Assets/Addressables/EnemyInfo.csv";
 
         // Size 列のインデックス（未記載の古い行との後方互換のため、存在チェックしてから読む）
         private const int SizeColumnIndex = 8;
@@ -36,17 +36,27 @@ namespace EchoEdge.Infra.Battle
         {
             if (_cache != null) return _cache;
 
-            _cache = new Dictionary<int, string[]>();
-
             var csv = await Addressables.LoadAssetAsync<TextAsset>(CsvPath);
             if (csv == null)
             {
                 Debug.LogError("EnemyInfo.csv が見つかりません");
+                _cache = new Dictionary<int, string[]>();
                 return _cache;
             }
 
+            _cache = ParseRows(csv.text);
+            return _cache;
+        }
+
+        /// <summary>
+        /// EnemyInfo.csv のテキストを (ID → 各列の値) に分解する。1行目はヘッダーとして読み飛ばす。
+        /// </summary>
+        public static Dictionary<int, string[]> ParseRows(string text)
+        {
+            var rows = new Dictionary<int, string[]>();
+
             // Windows (\r\n) と Unix (\n) の両改行に対応
-            var lines = csv.text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            var lines = text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
             // 1行目はヘッダーなのでスキップ
             for (int i = 1; i < lines.Length; i++)
@@ -56,10 +66,10 @@ namespace EchoEdge.Infra.Battle
 
                 if (!int.TryParse(cols[0].Trim(), out int rowId)) continue;
 
-                _cache[rowId] = cols;
+                rows[rowId] = cols;
             }
 
-            return _cache;
+            return rows;
         }
 
         /// <summary>
@@ -83,36 +93,48 @@ namespace EchoEdge.Infra.Battle
 
             try
             {
-                int hp          = int.Parse(cols[1].Trim());
-                int attack      = int.Parse(cols[2].Trim());
-                int defend      = int.Parse(cols[3].Trim());
-                int parsedMove  = int.Parse(cols[4].Trim());
-                byte move       = (byte)Mathf.Clamp(parsedMove, byte.MinValue, byte.MaxValue);
-                var movePattern = (MovePattern)Enum.Parse(typeof(MovePattern), cols[5].Trim());
-                int experience  = int.Parse(cols[6].Trim());
-                int energy      = int.Parse(cols[7].Trim());
-                var size        = ParseSize(cols);
-
-                if (level > 0)
-                {
-                    // ステージごとの難易度をレベルで調整する。Move は補正しない。
-                    hp     = ApplyLevelScaling(hp, level, 100);
-                    attack = ApplyLevelScaling(attack, level, 150);
-                    defend = ApplyLevelScaling(defend, level, 150);
-                }
-
-                var status = new BattleStatus(hp, attack, defend, move, movePattern, experience, energy, size);
-                if (level > 0)
-                {
-                    status.SetLevel(level);
-                }
-                return status;
+                return ParseStatus(cols, level);
             }
             catch (Exception e)
             {
                 Debug.LogError($"EnemyInfo.csv の ID {id} の行を解析できませんでした: {e.Message}");
                 return null;
             }
+        }
+
+        /// <summary>
+        /// EnemyInfo.csv の 1 行分の列から BattleStatus を作る（レベル補正込み）。
+        /// エディタ拡張（ステージエディタ）からも同じ計算でステータスを表示するために公開している。
+        /// </summary>
+        /// <param name="cols">EnemyInfo.csv の 1 行をカンマで分割した列</param>
+        /// <param name="level">1 以上で HP / Attack / Defend にレベル補正をかける。0 以下なら補正なし</param>
+        /// <exception cref="FormatException">数値・列挙値として読めない列がある場合</exception>
+        public static BattleStatus ParseStatus(string[] cols, int level = 0)
+        {
+            int hp          = int.Parse(cols[1].Trim());
+            int attack      = int.Parse(cols[2].Trim());
+            int defend      = int.Parse(cols[3].Trim());
+            int parsedMove  = int.Parse(cols[4].Trim());
+            byte move       = (byte)Mathf.Clamp(parsedMove, byte.MinValue, byte.MaxValue);
+            var movePattern = (MovePattern)Enum.Parse(typeof(MovePattern), cols[5].Trim());
+            int experience  = int.Parse(cols[6].Trim());
+            int energy      = int.Parse(cols[7].Trim());
+            var size        = ParseSize(cols);
+
+            if (level > 0)
+            {
+                // ステージごとの難易度をレベルで調整する。Move は補正しない。
+                hp     = ApplyLevelScaling(hp, level, 100);
+                attack = ApplyLevelScaling(attack, level, 150);
+                defend = ApplyLevelScaling(defend, level, 150);
+            }
+
+            var status = new BattleStatus(hp, attack, defend, move, movePattern, experience, energy, size);
+            if (level > 0)
+            {
+                status.SetLevel(level);
+            }
+            return status;
         }
 
         /// <summary>

@@ -21,12 +21,12 @@ namespace EchoEdge.App.Battle
         /// <summary>
         /// マップの縦
         /// </summary>
-        private const int MapHeight = 9;
+        public const int MapHeight = 9;
 
         /// <summary>
         /// マップの横
         /// </summary>
-        private const int MapWidth = 16;
+        public const int MapWidth = 16;
 
         /// <summary>
         /// マップ全体
