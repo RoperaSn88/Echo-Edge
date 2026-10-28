@@ -272,7 +272,7 @@ namespace EchoEdge.Domain.Battle
             int damage = (int)(DamageCalculationService.Calculate(targetAttack, _defend) * damageRate);
             if (surviveLethal && damage >= _hp.Current)
             {
-                damage = Mathf.Max(0, _hp.Current - 1);
+                damage = _hp.Current - 1;
             }
             _hp = _hp.TakeDamage(damage);
 
