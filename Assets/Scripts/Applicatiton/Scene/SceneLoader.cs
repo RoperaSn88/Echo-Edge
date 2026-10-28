@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 using EchoEdge.Domain.Scene;
+using EchoEdge.Infra.Audio;
 
 namespace EchoEdge.App.Scene
 {
@@ -29,7 +30,7 @@ namespace EchoEdge.App.Scene
         }
 
         /// <summary>
-        /// シーンを追加ロードし、ロード完了まで待機します。
+        /// シーンで使う SE をロードしてからシーンを追加ロードし、ロード完了まで待機します。
         /// </summary>
         public static async UniTask AdditiveLoadAsync(GameScene scene)
         {
@@ -38,6 +39,7 @@ namespace EchoEdge.App.Scene
                 return;
             }
 
+            await LoadSeAsync(scene);
             await AdditiveLoadAsync(sceneIndex);
         }
 
@@ -56,7 +58,7 @@ namespace EchoEdge.App.Scene
         }
 
         /// <summary>
-        /// シーンを追加ロードし、そのシーンがアンロードされるまで待機します。
+        /// シーンで使う SE をロードしてからシーンを追加ロードし、そのシーンがアンロードされるまで待機します。
         /// </summary>
         public static async UniTask AdditiveLoadAndWait(GameScene scene)
         {
@@ -65,7 +67,9 @@ namespace EchoEdge.App.Scene
                 return;
             }
 
+            await LoadSeAsync(scene);
             await AdditiveLoadAndWait(sceneIndex);
+            ReleaseSe(scene);
         }
 
         /// <summary>
@@ -101,7 +105,11 @@ namespace EchoEdge.App.Scene
             if (unloadOperation == null)
             {
                 Debug.LogError($"シーンのアンロード開始に失敗しました: {scene}");
+                return;
             }
+
+            // アンロード中のシーンのオブジェクトが SE を鳴らせるよう、完了してから解放する
+            unloadOperation.completed += _ => ReleaseSe(scene);
         }
 
         /// <summary>
@@ -129,6 +137,27 @@ namespace EchoEdge.App.Scene
             }
 
             await unloadOperation.ToUniTask();
+            ReleaseSe(scene);
+        }
+
+        private static UniTask LoadSeAsync(GameScene scene)
+        {
+            if (AudioManager.Instance == null)
+            {
+                return UniTask.CompletedTask;
+            }
+
+            return AudioManager.Instance.LoadSeAsync(scene);
+        }
+
+        private static void ReleaseSe(GameScene scene)
+        {
+            if (AudioManager.Instance == null)
+            {
+                return;
+            }
+
+            AudioManager.Instance.ReleaseSe(scene);
         }
 
         private static bool TryGetSceneIndex(GameScene scene, out int sceneIndex)

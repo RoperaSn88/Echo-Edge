@@ -33,7 +33,7 @@ namespace EchoEdge.Presenter.UI
 
         public async UniTask ShowNextWave() 
         {
-            AudioManager.Instance.PlaySe(SeAudioType.NextWave);
+            AudioManager.Instance.PlaySe(BattleSeType.NextWave);
             _particleSystem.Play();
             _canvasGroup.gameObject.SetActive(true);
             _textRect.anchoredPosition = new Vector2(TextMoveDistance * 1.5f, _textRect.anchoredPosition.y);
