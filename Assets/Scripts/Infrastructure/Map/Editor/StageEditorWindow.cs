@@ -53,6 +53,9 @@ namespace EchoEdge.Infra.Map
         private const string DefaultConditionLine = "0, 0";
         private const string DefaultHeaderLine = "ObjectKind,Height,Width,EnemyKind,Level";
 
+        // StageClearConditionType の値の順
+        private static readonly string[] ClearConditionLabels = { "0: 全滅", "1: 耐久", "2: 連続撃破", "3: ボス撃破" };
+
         private static readonly string[] CellKindLabels = { "0: 空", "1: 通常の壁", "2: スロープの壁", "3: 敵" };
 
         private static readonly Dictionary<EnemyKinds, string> EnemyNames = new()
@@ -135,10 +138,12 @@ namespace EchoEdge.Infra.Map
                 return;
             }
 
+            DrawClearCondition();
+            EditorGUILayout.Space();
+
             _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition);
 
             DrawToolbar();
-            DrawClearCondition();
             EditorGUILayout.Space();
 
             DrawTurnControls();
@@ -269,15 +274,59 @@ namespace EchoEdge.Infra.Map
         {
             if (_clearCondition == null) return;
 
-            var text = _clearCondition.conditionType switch
+            EditorGUILayout.LabelField("クリア条件（1行目）", EditorStyles.boldLabel);
+            using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
             {
-                StageClearConditionType.DefeatAllEnemies => "全滅",
-                StageClearConditionType.Endurance => $"耐久（{_clearCondition.conditionValue} ターン）",
-                StageClearConditionType.DefeatInARow => $"連続撃破（{_clearCondition.conditionValue} 体）",
-                StageClearConditionType.DefeatBoss => $"ボス撃破（{GetEnemyName((EnemyKinds)_clearCondition.conditionValue)}）",
-                _ => _clearCondition.conditionType.ToString(),
-            };
-            EditorGUILayout.LabelField("クリア条件（1行目）", text);
+                // 描画時の補正（範囲外の値の丸めなど）だけでは保存対象にしないよう、入力があったときだけ反映する
+                EditorGUI.BeginChangeCheck();
+                var type = (StageClearConditionType)EditorGUILayout.Popup(
+                    "種類", (int)_clearCondition.conditionType, ClearConditionLabels);
+                var value = _clearCondition.conditionValue;
+
+                switch (type)
+                {
+                    case StageClearConditionType.Endurance:
+                        value = Mathf.Max(1, EditorGUILayout.IntField("耐久ターン数", value));
+                        break;
+                    case StageClearConditionType.DefeatInARow:
+                        value = Mathf.Max(1, EditorGUILayout.IntField("連続撃破数", value));
+                        EditorGUILayout.HelpBox("連続撃破はゲーム側が未実装のため、全滅として扱われます。", MessageType.Warning);
+                        break;
+                    case StageClearConditionType.DefeatBoss:
+                        value = DrawBossField(value);
+                        break;
+                    default:
+                        value = 0;
+                        break;
+                }
+
+                if (EditorGUI.EndChangeCheck())
+                {
+                    _clearCondition.conditionType = type;
+                    _clearCondition.conditionValue = value;
+                    _conditionLine = $"{(int)type}, {value}";
+                    _isDirty = true;
+                }
+            }
+        }
+
+        /// <summary>
+        /// ボス撃破条件のボス（敵ID）を選ぶ。倒せない敵（『シーカー』など）は選べない
+        /// </summary>
+        private int DrawBossField(int enemyId)
+        {
+            var kinds = SelectableEnemyKinds.Where(k => k.IsDefeatTarget()).ToArray();
+            var labels = kinds.Select(k => $"{GetEnemyName(k)} (ID {(int)k})").ToArray();
+            var index = Array.IndexOf(kinds, (EnemyKinds)enemyId);
+            var newIndex = EditorGUILayout.Popup("ボス", Math.Max(0, index), labels);
+            var boss = kinds[newIndex];
+
+            if (!_placements.Any(p => p.kind == StageObjectKind.Unit && p.enemyKind == boss))
+            {
+                EditorGUILayout.HelpBox($"盤面に{GetEnemyName(boss)}が配置されていません。", MessageType.Warning);
+            }
+
+            return (int)boss;
         }
 
         #endregion
