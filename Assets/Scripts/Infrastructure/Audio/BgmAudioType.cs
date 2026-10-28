@@ -5,5 +5,7 @@ namespace EchoEdge.Infra.Audio
         Title,
         Battle,
         Pinch,
+        Boss,
+        BossPinch,
     }
 }

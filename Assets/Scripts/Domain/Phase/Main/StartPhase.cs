@@ -5,7 +5,6 @@ using EchoEdge.App.Battle;
 using EchoEdge.App.PlayerData;
 using EchoEdge.Domain.Battle;
 using EchoEdge.Domain.UI;
-using EchoEdge.Infra.Audio;
 using EchoEdge.Infra.Tutorial;
 using EchoEdge.Presenter.UI;
 
@@ -50,11 +49,8 @@ namespace EchoEdge.Domain.Phase
             await WaveManager.LoadStageWavesAsync();
             await MapManager.Instance.BuildStageFromCsv();
 
-            // 3. Panelをフェードイン
-            if (AudioManager.Instance)
-            {
-                await AudioManager.Instance.PlayBgm(BgmAudioType.Battle, true);
-            }
+            // 3. Panelをフェードイン（最初のウェーブがボス戦ならボスBGMを流す）
+            await BattleBgmController.PlayStageStartBgmAsync();
             await UIPresenter.Instance.FadeInAsync();
 
             // 4. チュートリアルが未完了の場合はチュートリアルを開始する
