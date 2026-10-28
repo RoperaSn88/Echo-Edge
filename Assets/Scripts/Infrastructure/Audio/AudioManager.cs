@@ -174,6 +174,14 @@ namespace EchoEdge.Infra.Audio
             await PlayBgmAsync(bgmType, isLoop);
         }
 
+        /// <summary>
+        /// BGM の AudioClip を再生せずに読み込んでおく。切り替え時に読み込み待ちで無音にならないようにする。
+        /// </summary>
+        public async UniTask PreloadBgmAsync(BgmAudioType bgmType)
+        {
+            await LoadAudioClipAsync(GetBgmAddressablesPath(bgmType));
+        }
+
         public void PlayBgm(AudioClip clip, bool isLoop)
         {
             if (clip == null)

@@ -23,6 +23,11 @@ namespace EchoEdge.App.Battle
     public static class GameClearManager
     {
         private static IStageClearTask _currentTask;
+
+        /// <summary>
+        /// 現在のウェーブのクリア条件の種類
+        /// </summary>
+        public static StageClearConditionType CurrentConditionType { get; private set; }
         private static bool _isClear;
         public static bool IsClear => _isClear;
 
@@ -41,6 +46,7 @@ namespace EchoEdge.App.Battle
         public static void SetStageClearConditionType(StageClearConditionType conditionType)
         {
             _currentTask?.Unsubscribe();
+            CurrentConditionType = conditionType;
             _currentTask = CreateTask(conditionType);
             _currentTask.Subscribe();
             _isClear = false;

@@ -72,8 +72,6 @@ namespace EchoEdge.App.Battle
         /// </summary>
         public static int ReflectionCount => _reflectionCount;
 
-        private static CancellationTokenSource _cancellationTokenSource;
-
         /// <summary>
         /// 防御中の被ダメージ倍率
         /// </summary>
@@ -88,11 +86,6 @@ namespace EchoEdge.App.Battle
         /// 1回の戦闘（ステージ）で回復できる回数
         /// </summary>
         private const int MaxHealCount = 2;
-
-        /// <summary>
-        /// ピンチBGMに切り替えるHPの割合
-        /// </summary>
-        private const float PinchHpRate = 0.3f;
 
         /// <summary>
         /// 防御中か。防御したターンのエネミーフェーズの間だけ true になり、被ダメージを半減する。
@@ -199,14 +192,8 @@ namespace EchoEdge.App.Battle
 
             PlayerStatusPresenter.Instance.SetPlayerHP(_playerStatus.HP, _playerStatus.MaxHP);
 
-            // ピンチを脱した場合はピンチBGMを止める
-            var playerHpRate = (float)_playerStatus.HP / _playerStatus.MaxHP;
-            if (playerHpRate >= PinchHpRate && AudioManager.Instance != null)
-            {
-                _cancellationTokenSource?.Cancel();
-                _cancellationTokenSource = new();
-                AudioManager.Instance.FadeAddedBGMAsync(0.5f, _cancellationTokenSource.Token).Forget();
-            }
+            // ピンチを脱した場合はピンチBGMを止める（ボス戦では通常のボスBGMを最初から再生する）
+            BattleBgmController.UpdatePinch((float)_playerStatus.HP / _playerStatus.MaxHP);
 
             return healed;
         }
@@ -275,9 +262,6 @@ namespace EchoEdge.App.Battle
 
         public async static UniTask<(int damage, bool isDeath)> PlayerDamage(float rate)
         {
-            _cancellationTokenSource?.Cancel();
-            _cancellationTokenSource = new();
-
             if (_isPlayerDeathStarted)
             {
                 return (0, true);
@@ -295,16 +279,7 @@ namespace EchoEdge.App.Battle
             // 防御QTE大成功で切り捨てにより0ダメージにならないよう、最低1ダメージは与える
             var result = await _playerStatus.Damage(Mathf.Max(1, (int)(_enemyStatus.Attack * rate * _qteResult)), defendRate);
 
-            var playerHpRate = (float)_playerStatus.HP / _playerStatus.MaxHP;
-            if (playerHpRate < PinchHpRate)
-            {
-                AudioManager.Instance.AddPlayBgmAsync(BgmAudioType.Pinch, true, _cancellationTokenSource.Token).Forget();
-            }
-            else
-            {
-                AudioManager.Instance.FadeAddedBGMAsync(0.5f, _cancellationTokenSource.Token).Forget();
-            }
-
+            BattleBgmController.UpdatePinch((float)_playerStatus.HP / _playerStatus.MaxHP);
 
             PlayerStatusPresenter.Instance.SetPlayerHP(_playerStatus.HP, _playerStatus.MaxHP);
             PlayerView.Instance.Animator.SetTrigger("DamageT");
