@@ -277,7 +277,7 @@ namespace EchoEdge.App.Battle
             var defendRate = _isDefending ? DefendDamageRate : 1.0f;
 
             // ピンチ状態でなければ、致死ダメージを受けてもHPを1残す（食いしばり）
-            var isPinchBeforeDamage = (float)_playerStatus.HP / _playerStatus.MaxHP < PinchHpRate;
+            var isPinchBeforeDamage = BattleBgmController.IsPinch((float)_playerStatus.HP / _playerStatus.MaxHP);
 
             // 防御QTE大成功で切り捨てにより0ダメージにならないよう、最低1ダメージは与える
             var result = await _playerStatus.Damage(Mathf.Max(1, (int)(_enemyStatus.Attack * rate * _qteResult)), defendRate, !isPinchBeforeDamage);

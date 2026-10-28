@@ -90,12 +90,18 @@ namespace EchoEdge.App.Battle
         }
 
         /// <summary>
+        /// HPの割合がピンチ状態か
+        /// </summary>
+        /// <param name="hpRate">最大HPに対する現在HPの割合</param>
+        public static bool IsPinch(float hpRate) => hpRate < PinchHpRate;
+
+        /// <summary>
         /// プレイヤーのHPが変わったときに呼ぶ。ピンチに入った / 脱したときだけ BGM を切り替える。
         /// </summary>
         /// <param name="hpRate">最大HPに対する現在HPの割合</param>
         public static void UpdatePinch(float hpRate)
         {
-            var isPinch = hpRate < PinchHpRate;
+            var isPinch = IsPinch(hpRate);
             if (isPinch == _isPinch || AudioManager.Instance == null) return;
 
             _isPinch = isPinch;
