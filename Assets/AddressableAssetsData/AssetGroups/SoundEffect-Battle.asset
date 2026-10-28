@@ -1,0 +1,103 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: SoundEffect-Battle
+  m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
+  m_GroupName: SoundEffect-Battle
+  m_GUID: 10bb6fae3750de248873ee51eaf3efc4
+  m_SerializeEntries:
+  - m_GUID: 020a040cae3996642abd805a83ac47f3
+    m_Address: Assets/Addressables/Audio/SE/Battle/Booster_whistle.mp3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 05e9e6f847abcd340b99ecf4c8f6a849
+    m_Address: Assets/Addressables/Audio/SE/Battle/Kill.wav
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2ef71724583fbee4e8f8aa71ab03d239
+    m_Address: Assets/Addressables/Audio/SE/Battle/NextWave.wav
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6c93672461e3ba94f966059807cac3fa
+    m_Address: Assets/Addressables/Audio/SE/Battle/EnemyTurn.wav
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 77cff966ecb424f4085ca8367fcfb3fa
+    m_Address: Assets/Addressables/Audio/SE/Battle/HeavyDamage.wav
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7ca5feea7b6e0024cac5ef2ae54876ea
+    m_Address: Assets/Addressables/Audio/SE/Battle/QTE_Bad.wav
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8f7112dd074ceeb42966c3b4a70b4518
+    m_Address: Assets/Addressables/Audio/SE/Battle/TurnChange.mp3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 92a70c43aef5f88449797c30e15b5510
+    m_Address: Assets/Addressables/Audio/SE/Battle/ShortDamage.wav
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9cb6074127301604692f33d2b6875d27
+    m_Address: Assets/Addressables/Audio/SE/Battle/QTE_Good.wav
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a8c4ee1eeed3fc1418bf6aa5a006c8de
+    m_Address: Assets/Addressables/Audio/SE/Battle/ModerateDamage.wav
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b06037061f9081442acc3c88feb1d86a
+    m_Address: Assets/Addressables/Audio/SE/Battle/QTE.mp3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b458016cb88383241bf533f433a5c945
+    m_Address: Assets/Addressables/Audio/SE/Battle/SkyaFly.mp3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c7f1dc4db59c04c4291fd9bad8498961
+    m_Address: Assets/Addressables/Audio/SE/Battle/SkyaBream.wav
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d96599fd3b56a1c45973316ceb090d1c
+    m_Address: Assets/Addressables/Audio/SE/Battle/BuilderBuild.wav
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: de59da08bd7212d4dab62e142014941c
+    m_Address: Assets/Addressables/Audio/SE/Battle/Attack.wav
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e8c654728f08893459120d0d042d5b13
+    m_Address: Assets/Addressables/Audio/SE/Battle/QTE_Perfect.wav
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 56be8421adbaf81499fc7d42631ef10d, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 0d2fe31218cff2b4a9e90115e84813ee, type: 2}
+    - {fileID: 11400000, guid: 4d4f31a19f3208e449dc668c0afd5a53, type: 2}
