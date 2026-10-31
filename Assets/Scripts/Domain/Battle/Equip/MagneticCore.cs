@@ -45,101 +45,38 @@ namespace EchoEdge.Domain.Battle
                 return;
             }
 
-            // 吸引対象以外のユニット・壁がいるマスは固定で埋まっている扱いにして、
-            // 再配置先に割り当てないようにする。
-            // 2x2など複数マスを占有するユニット（『でかエナー』）もいるため、占有している全マスを見る。
-            HashSet<IUnit> targetUnitSet = targetUnits.Select(unitInfo => unitInfo.unit).ToHashSet();
-            HashSet<(int h, int w)> reservedDestinations = new();
-            for (int h = 0; h < MapManager.Instance.Height; h++)
-            {
-                for (int w = 0; w < MapManager.Instance.Width; w++)
-                {
-                    IUnit occupant = MapManager.Instance.GetUnitAt(h, w);
-                    if (occupant != null && !targetUnitSet.Contains(occupant))
-                    {
-                        reservedDestinations.Add((h, w));
-                    }
-                }
-            }
-
-            Dictionary<IUnit, (int h, int w)> movePlans = new();
+            // ターゲットに近いユニットから1体ずつ、その時点の盤面で空いている最も近い場所へ移動させる。
+            // 事前に全員分の移動先を決めると、2x2のユニット（『でかエナー』）と他のユニットが
+            // 互いの現在地を移動先に取り合って、どちらも動けなくなることがあるため、
+            // 移動済みのユニットを反映した盤面で毎回空き判定を行う（壁や他ユニットの占有マスは全て埋まっている扱い）。
             foreach (var unitInfo in targetUnits)
             {
-                // 2x2のユニットは候補マスを左上（基準マス）として、占有する全マスが空いている場所を探す
                 int size = (int)unitInfo.unit.GetSize();
+                (int h, int w)? destination = null;
                 foreach (var cell in candidateCells)
                 {
-                    if (!CanReserveFootprint(cell.h, cell.w, size, reservedDestinations))
+                    // 2x2のユニットは候補マスを左上（基準マス）として、占有する全マスが空いているか見る
+                    if (MapManager.Instance.IsFootprintFree(cell.h, cell.w, size, unitInfo.unit))
                     {
-                        continue;
-                    }
-
-                    movePlans[unitInfo.unit] = cell;
-                    ReserveFootprint(cell.h, cell.w, size, reservedDestinations);
-                    break;
-                }
-            }
-
-            // 移動先がまだ移動していない別の吸引対象と重なっていると TryMoveUnitTo が失敗するため、
-            // 1体も動けなくなるまで残りのユニットの移動を繰り返す（2x2のユニットは他と重なりやすい）。
-            List<(IUnit unit, int h, int w)> pendingUnits = targetUnits
-                .Where(unitInfo => movePlans.TryGetValue(unitInfo.unit, out var destination)
-                    && (destination.h != unitInfo.h || destination.w != unitInfo.w))
-                .ToList();
-
-            bool progressed = true;
-            while (pendingUnits.Count > 0 && progressed)
-            {
-                progressed = false;
-                foreach (var unitInfo in pendingUnits.ToList())
-                {
-                    var destination = movePlans[unitInfo.unit];
-                    var moved = await MapManager.Instance.TryMoveUnitTo(unitInfo.unit, destination.h, destination.w);
-                    if (!moved)
-                    {
-                        continue;
-                    }
-
-                    progressed = true;
-                    pendingUnits.Remove(unitInfo);
-                    if (unitInfo.unit is IForcedMoveReceiver receiver)
-                    {
-                        await receiver.OnPulledByMagneticCore();
+                        destination = cell;
+                        break;
                     }
                 }
-            }
-        }
 
-        /// <summary>
-        /// anchorH/anchorW を左上とする size マス四方が、すべて盤面内かつ未予約か判定する
-        /// </summary>
-        private static bool CanReserveFootprint(int anchorH, int anchorW, int size, HashSet<(int h, int w)> reserved)
-        {
-            for (int dh = 0; dh < size; dh++)
-            {
-                for (int dw = 0; dw < size; dw++)
+                if (destination == null)
                 {
-                    int h = anchorH + dh;
-                    int w = anchorW + dw;
-                    if (!MapManager.Instance.IsInBounds(h, w) || reserved.Contains((h, w)))
-                    {
-                        return false;
-                    }
+                    continue;
                 }
-            }
-            return true;
-        }
 
-        /// <summary>
-        /// anchorH/anchorW を左上とする size マス四方を予約済みにする
-        /// </summary>
-        private static void ReserveFootprint(int anchorH, int anchorW, int size, HashSet<(int h, int w)> reserved)
-        {
-            for (int dh = 0; dh < size; dh++)
-            {
-                for (int dw = 0; dw < size; dw++)
+                if (destination.Value.h == unitInfo.h && destination.Value.w == unitInfo.w)
                 {
-                    reserved.Add((anchorH + dh, anchorW + dw));
+                    continue;
+                }
+
+                var moved = await MapManager.Instance.TryMoveUnitTo(unitInfo.unit, destination.Value.h, destination.Value.w);
+                if (moved && unitInfo.unit is IForcedMoveReceiver receiver)
+                {
+                    await receiver.OnPulledByMagneticCore();
                 }
             }
         }
