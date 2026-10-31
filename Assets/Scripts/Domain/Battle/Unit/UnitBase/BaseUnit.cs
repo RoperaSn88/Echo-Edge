@@ -328,120 +328,93 @@ namespace EchoEdge.Domain.Battle
 
             // 2x2など複数マスを占有するユニットは、移動先候補全マスの空き状況を見る必要がある
             var span = (int)GetSize();
+            var mapH = mapManager.Height;
+            var mapW = mapManager.Width;
 
-            var mapSize = count * 2 + 1;
-            var scoreMap = new byte[mapSize, mapSize];
-            var minScore = int.MinValue / 4;
-            var scoreByStep = new int[count + 1, mapManager.Height, mapManager.Width];
-            var prevH = new int[count + 1, mapManager.Height, mapManager.Width];
-            var prevW = new int[count + 1, mapManager.Height, mapManager.Width];
-            // その状態に到達するのに使った移動方向（Uターン禁止の判定に使う。未到達/始点は -1）
-            var arrivalDir = new int[count + 1, mapManager.Height, mapManager.Width];
-            var offset = count;
-
-            // DP テーブルを初期化する。
-            // scoreByStep: 「step 手でそのマスに到達したときの最大スコア」
-            // prevH / prevW: その状態に到達する直前マス（経路復元用）
-            for (var step = 0; step <= count; step++)
-            {
-                for (var h = 0; h < mapManager.Height; h++)
-                {
-                    for (var w = 0; w < mapManager.Width; w++)
-                    {
-                        scoreByStep[step, h, w] = minScore;
-                        prevH[step, h, w] = -1;
-                        prevW[step, h, w] = -1;
-                        arrivalDir[step, h, w] = -1;
-                    }
-                }
-            }
-
-            scoreByStep[0, srcH, srcW] = 0;
-
-            // 4 方向の移動定義。
-            // 左移動のみ加点、右移動のみ減点し、上下移動は評価に影響させない（回り込みを許容する）。
-            // 使うには、dirHとdirWに同じindexでアクセスする。例えば、dirH[0], dirW[0] は「左に移動」を表す。
             var dirH = new[] { 0, -1, 1, 0 };
             var dirW = new[] { -1, 0, 0, 1 };
-            var dirScore = new[] { 1, 0, 0, -1 };
-            // 各方向の逆方向（Uターン判定用）。左⇔右(0⇔3)、上⇔下(1⇔2)。
-            var reverseDir = new[] { 3, 2, 1, 0 };
 
-            // 手数を 1 ずつ進めながら、到達可能マスの最大スコアを更新する。
-            // 同時に「どこから来たか」を prev 配列に記録し、あとで経路復元できるようにする。
-            for (var step = 1; step <= count; step++)
+            // 1. ゴール（左端）までの残り距離を、壁だけを障害物として求める（他のユニットは一時的なものなので無視）。
+            //    以前は「左に1マス進むと+1」の点数で目的地を選んでいたため、前を塞がれると点数0の上下移動を選び、
+            //    次のフェーズで逆向きに戻る、を繰り返して同じ場所に留まっていた（特に2x2の『でかエナー』）。
+            var goalDist = ComputeGoalDistance(mapManager, span, mapH, mapW, dirH, dirW);
+            var srcGoalDist = goalDist[srcH, srcW];
+            // 壁に囲まれてゴールへの道が無い場合は、より左に行けるかどうかで判断する
+            var useColumnAsGoal = srcGoalDist == int.MaxValue;
+            int GoalMetric(int h, int w) => useColumnAsGoal ? w : goalDist[h, w];
+
+            // 2. 現在の盤面（他のユニット・壁を含む）で、count 手以内に到達できるマスを幅優先探索で求める
+            var stepTo = new int[mapH, mapW];
+            var prevH = new int[mapH, mapW];
+            var prevW = new int[mapH, mapW];
+            for (var h = 0; h < mapH; h++)
             {
-                for (var h = 0; h < mapManager.Height; h++)
+                for (var w = 0; w < mapW; w++)
                 {
-                    for (var w = 0; w < mapManager.Width; w++)
-                    {
-                        var baseScore = scoreByStep[step - 1, h, w];
-                        if (baseScore == minScore) continue;
-
-                        // 2手目以降は、直前の移動を打ち消す方向（Uターン、＝1手前にいたマスへ戻る動き）を禁止する。
-                        // これにより「壁を避けるために迂回したら、そのまま元のマスへ戻ってしまう」不具合を防ぐ。
-                        var forbiddenDir = -1;
-                        if (step >= 2)
-                        {
-                            var lastDir = arrivalDir[step - 1, h, w];
-                            if (lastDir >= 0) forbiddenDir = reverseDir[lastDir];
-                        }
-
-                        for (var dir = 0; dir < dirH.Length; dir++)
-                        {
-                            if (dir == forbiddenDir) continue;
-
-                            var nextH = h + dirH[dir];
-                            var nextW = w + dirW[dir];
-                            // 自身を除いた、占有する全マスの空き状況を確認する（2x2など複数マス対応）
-                            if (!mapManager.IsFootprintFree(nextH, nextW, span, this)) continue;
-
-                            var candidate = baseScore + dirScore[dir];
-                            if (candidate <= scoreByStep[step, nextH, nextW]) continue;
-
-                            scoreByStep[step, nextH, nextW] = candidate;
-                            prevH[step, nextH, nextW] = h;
-                            prevW[step, nextH, nextW] = w;
-                            arrivalDir[step, nextH, nextW] = dir;
-                        }
-                    }
+                    stepTo[h, w] = -1;
+                    prevH[h, w] = -1;
+                    prevW[h, w] = -1;
                 }
             }
 
-            var hasDestination = false;
-            var bestStep = -1;
-            var dstH = srcH;
-            var dstW = srcW;
-            var bestScore = minScore;
-
-            // 全 step の候補を走査して最終目的地を選ぶ。
-            // 同スコア時は「より左」「縦距離が小さい」位置を優先する。
-            // scoreMap は可視化・デバッグ用のローカル評価マップとして更新する。
-            for (var step = 1; step <= count; step++)
+            var queue = new Queue<(int h, int w)>();
+            stepTo[srcH, srcW] = 0;
+            queue.Enqueue((srcH, srcW));
+            while (queue.Count > 0)
             {
-                for (var h = 0; h < mapManager.Height; h++)
+                var (h, w) = queue.Dequeue();
+                if (stepTo[h, w] >= count) continue;
+
+                for (var dir = 0; dir < dirH.Length; dir++)
                 {
-                    for (var w = 0; w < mapManager.Width; w++)
+                    var nextH = h + dirH[dir];
+                    var nextW = w + dirW[dir];
+                    if (!mapManager.IsInBounds(nextH, nextW) || stepTo[nextH, nextW] >= 0) continue;
+                    // 自身を除いた、占有する全マスの空き状況を確認する（2x2など複数マス対応）
+                    if (!mapManager.IsFootprintFree(nextH, nextW, span, this)) continue;
+
+                    stepTo[nextH, nextW] = stepTo[h, w] + 1;
+                    prevH[nextH, nextW] = h;
+                    prevW[nextH, nextW] = w;
+                    queue.Enqueue((nextH, nextW));
+                }
+            }
+
+            // 3. 到達できるマスのうち、ゴールに最も近づけるマスを目的地にする。
+            //    今いる場所より近づけないなら移動しない（上下にうろうろして元の場所に戻るのを防ぐ）。
+            //    同じ近さなら、手数が少ない → 縦のズレが小さい順に優先し、それでも並べばランダムに選ぶ。
+            var bestMetric = GoalMetric(srcH, srcW);
+            var dstH = -1;
+            var dstW = -1;
+            var tieCount = 0;
+            for (var h = 0; h < mapH; h++)
+            {
+                for (var w = 0; w < mapW; w++)
+                {
+                    if (stepTo[h, w] <= 0) continue;
+
+                    var metric = GoalMetric(h, w);
+                    if (metric == int.MaxValue) continue;
+
+                    var isBetter = metric < bestMetric ||
+                        (dstH >= 0 && metric == bestMetric && (stepTo[h, w] < stepTo[dstH, dstW] ||
+                            (stepTo[h, w] == stepTo[dstH, dstW] && Math.Abs(h - srcH) < Math.Abs(dstH - srcH))));
+                    var isTie = dstH >= 0 && metric == bestMetric && stepTo[h, w] == stepTo[dstH, dstW] &&
+                        Math.Abs(h - srcH) == Math.Abs(dstH - srcH);
+
+                    if (isBetter)
                     {
-                        var score = scoreByStep[step, h, w];
-                        if (score == minScore) continue;
-
-                        var localH = h - srcH + count;
-                        var localW = w - srcW + count;
-                        if (localH >= 0 && localH < mapSize && localW >= 0 && localW < mapSize)
+                        bestMetric = metric;
+                        dstH = h;
+                        dstW = w;
+                        tieCount = 1;
+                    }
+                    else if (isTie)
+                    {
+                        // 同点候補はリザーバーサンプリングで等確率に選ぶ
+                        tieCount++;
+                        if (UnityEngine.Random.Range(0, tieCount) == 0)
                         {
-                            var stored = score + offset;
-                            if (stored < 0) stored = 0;
-                            if (stored > byte.MaxValue) stored = byte.MaxValue;
-                            if (scoreMap[localH, localW] < stored) scoreMap[localH, localW] = (byte)stored;
-                        }
-
-                        if (!hasDestination || score > bestScore ||
-                            (score == bestScore && (w < dstW || (w == dstW && Math.Abs(h - srcH) < Math.Abs(dstH - srcH)))))
-                        {
-                            hasDestination = true;
-                            bestScore = score;
-                            bestStep = step;
                             dstH = h;
                             dstW = w;
                         }
@@ -449,23 +422,20 @@ namespace EchoEdge.Domain.Battle
                 }
             }
 
-            if (!hasDestination) return;
+            if (dstH < 0) return;
 
             // 目的地から prev を逆にたどり、実際の移動経路を復元する。
             var path = new List<(int h, int w)>();
             var currentH = dstH;
             var currentW = dstW;
-            var currentStep = bestStep;
-
-            while (currentStep > 0)
+            while (currentH != srcH || currentW != srcW)
             {
                 path.Add((currentH, currentW));
-                var fromH = prevH[currentStep, currentH, currentW];
-                var fromW = prevW[currentStep, currentH, currentW];
+                var fromH = prevH[currentH, currentW];
+                var fromW = prevW[currentH, currentW];
                 if (fromH < 0 || fromW < 0) break;
                 currentH = fromH;
                 currentW = fromW;
-                currentStep--;
             }
 
             // 復元した経路を先頭から順に実行し、途中で失敗したら打ち切る。
@@ -477,6 +447,65 @@ namespace EchoEdge.Domain.Battle
                     break;
                 }
             }
+        }
+
+        /// <summary>
+        /// 各マスを基準マス（左上）にしたとき、左端（width=0）まで何手で行けるかを、壁だけを障害物として求める。
+        /// 到達できないマスは int.MaxValue。
+        /// </summary>
+        private static int[,] ComputeGoalDistance(MapManager mapManager, int span, int mapH, int mapW, int[] dirH, int[] dirW)
+        {
+            var dist = new int[mapH, mapW];
+            var queue = new Queue<(int h, int w)>();
+            for (var h = 0; h < mapH; h++)
+            {
+                for (var w = 0; w < mapW; w++)
+                {
+                    dist[h, w] = int.MaxValue;
+                }
+            }
+
+            for (var h = 0; h < mapH; h++)
+            {
+                if (!IsFootprintWithoutWall(mapManager, h, 0, span)) continue;
+                dist[h, 0] = 0;
+                queue.Enqueue((h, 0));
+            }
+
+            while (queue.Count > 0)
+            {
+                var (h, w) = queue.Dequeue();
+                for (var dir = 0; dir < dirH.Length; dir++)
+                {
+                    var nextH = h + dirH[dir];
+                    var nextW = w + dirW[dir];
+                    if (!mapManager.IsInBounds(nextH, nextW) || dist[nextH, nextW] != int.MaxValue) continue;
+                    if (!IsFootprintWithoutWall(mapManager, nextH, nextW, span)) continue;
+
+                    dist[nextH, nextW] = dist[h, w] + 1;
+                    queue.Enqueue((nextH, nextW));
+                }
+            }
+
+            return dist;
+        }
+
+        /// <summary>
+        /// anchorH/anchorW を左上とする span マス四方が、すべて盤面内かつ壁（building）が無いかを返す
+        /// </summary>
+        private static bool IsFootprintWithoutWall(MapManager mapManager, int anchorH, int anchorW, int span)
+        {
+            for (var dh = 0; dh < span; dh++)
+            {
+                for (var dw = 0; dw < span; dw++)
+                {
+                    var h = anchorH + dh;
+                    var w = anchorW + dw;
+                    if (!mapManager.IsInBounds(h, w)) return false;
+                    if (mapManager.GetUnitAt(h, w) is building) return false;
+                }
+            }
+            return true;
         }
 
         /// <summary>
