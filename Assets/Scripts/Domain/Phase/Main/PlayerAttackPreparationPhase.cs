@@ -4,6 +4,7 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+using EchoEdge.App.Battle;
 using EchoEdge.Domain.Battle;
 using EchoEdge.Infra.Camera;
 using EchoEdge.Infra.Tutorial;
@@ -163,7 +164,14 @@ namespace EchoEdge.Domain.Phase
                 return;
             }
 
-            _attackGuideLine.Update(PlayerController.Instance.PlayerTransform.position, pointerHit.point);
+            var player = PlayerController.Instance;
+            _attackGuideLine.Update(
+                player.PlayerTransform.position,
+                pointerHit.point,
+                player.AttackKind,
+                player.IsFlashAttack,
+                BattleManager.PlayerStatus.Move,
+                player.LayerMask);
         }
     }
 }
