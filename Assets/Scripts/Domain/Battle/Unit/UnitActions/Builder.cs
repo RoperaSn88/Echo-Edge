@@ -79,6 +79,7 @@ namespace EchoEdge.Domain.Battle
 
             List<(IUnit unit, int h, int w)> targetUnits = MapManager.Instance.GetUnitPositionsSnapshot()
                 .Where(unitInfo => unitInfo.unit.CanMove())
+                .Where(unitInfo => unitInfo.h != selfHeight || unitInfo.w != selfWidth)
                 .ToList();
 
             if (targetUnits.Count == 0)
