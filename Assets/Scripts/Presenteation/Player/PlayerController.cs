@@ -20,7 +20,6 @@ namespace EchoEdge.Presenter.Player
         /// </summary>
         public BattleStatus Status => _status;
 
-
         [SerializeField]
         private Transform _playerTransform;
         public Transform PlayerTransform => _playerTransform;

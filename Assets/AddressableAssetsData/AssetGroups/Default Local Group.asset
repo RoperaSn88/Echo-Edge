@@ -70,16 +70,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 5b2f35d08578e4147b7e7aad756bdd3a
-    m_Address: Assets/Addressables/StageWaves/WaveSet/StageWaveSet_7.asset
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 628d757cf9124d8f857d16610be92d71
-    m_Address: Assets/Addressables/StageWaves/WaveSet/StageWaveSet_8.asset
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 7d23db7ac90df6f42970b8cf10daad93
     m_Address: Assets/Addressables/StageWaves/StageLayout_3.csv
     m_ReadOnly: 0
