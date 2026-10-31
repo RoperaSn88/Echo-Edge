@@ -45,46 +45,101 @@ namespace EchoEdge.Domain.Battle
                 return;
             }
 
-            // 吸引対象以外のユニットがいるマスは固定で埋まっている扱いにして、
+            // 吸引対象以外のユニット・壁がいるマスは固定で埋まっている扱いにして、
             // 再配置先に割り当てないようにする。
-            HashSet<(int h, int w)> fixedOccupiedCells = MapManager.Instance.GetUnitPositionsSnapshot()
-                .Where(unitInfo => !targetUnits.Any(target => target.unit == unitInfo.unit))
-                .Select(unitInfo => (unitInfo.h, unitInfo.w))
-                .ToHashSet();
+            // 2x2など複数マスを占有するユニット（『でかエナー』）もいるため、占有している全マスを見る。
+            HashSet<IUnit> targetUnitSet = targetUnits.Select(unitInfo => unitInfo.unit).ToHashSet();
+            HashSet<(int h, int w)> reservedDestinations = new();
+            for (int h = 0; h < MapManager.Instance.Height; h++)
+            {
+                for (int w = 0; w < MapManager.Instance.Width; w++)
+                {
+                    IUnit occupant = MapManager.Instance.GetUnitAt(h, w);
+                    if (occupant != null && !targetUnitSet.Contains(occupant))
+                    {
+                        reservedDestinations.Add((h, w));
+                    }
+                }
+            }
 
             Dictionary<IUnit, (int h, int w)> movePlans = new();
-            HashSet<(int h, int w)> reservedDestinations = new(fixedOccupiedCells);
             foreach (var unitInfo in targetUnits)
             {
+                // 2x2のユニットは候補マスを左上（基準マス）として、占有する全マスが空いている場所を探す
+                int size = (int)unitInfo.unit.GetSize();
                 foreach (var cell in candidateCells)
                 {
-                    if (reservedDestinations.Contains(cell))
+                    if (!CanReserveFootprint(cell.h, cell.w, size, reservedDestinations))
                     {
                         continue;
                     }
 
                     movePlans[unitInfo.unit] = cell;
-                    reservedDestinations.Add(cell);
+                    ReserveFootprint(cell.h, cell.w, size, reservedDestinations);
                     break;
                 }
             }
 
-            foreach (var unitInfo in targetUnits)
+            // 移動先がまだ移動していない別の吸引対象と重なっていると TryMoveUnitTo が失敗するため、
+            // 1体も動けなくなるまで残りのユニットの移動を繰り返す（2x2のユニットは他と重なりやすい）。
+            List<(IUnit unit, int h, int w)> pendingUnits = targetUnits
+                .Where(unitInfo => movePlans.TryGetValue(unitInfo.unit, out var destination)
+                    && (destination.h != unitInfo.h || destination.w != unitInfo.w))
+                .ToList();
+
+            bool progressed = true;
+            while (pendingUnits.Count > 0 && progressed)
             {
-                if (!movePlans.TryGetValue(unitInfo.unit, out var destination))
+                progressed = false;
+                foreach (var unitInfo in pendingUnits.ToList())
                 {
-                    continue;
-                }
+                    var destination = movePlans[unitInfo.unit];
+                    var moved = await MapManager.Instance.TryMoveUnitTo(unitInfo.unit, destination.h, destination.w);
+                    if (!moved)
+                    {
+                        continue;
+                    }
 
-                if (destination.h == unitInfo.h && destination.w == unitInfo.w)
-                {
-                    continue;
+                    progressed = true;
+                    pendingUnits.Remove(unitInfo);
+                    if (unitInfo.unit is IForcedMoveReceiver receiver)
+                    {
+                        await receiver.OnPulledByMagneticCore();
+                    }
                 }
+            }
+        }
 
-                var moved = await MapManager.Instance.TryMoveUnitTo(unitInfo.unit, destination.h, destination.w);
-                if (moved && unitInfo.unit is IForcedMoveReceiver receiver)
+        /// <summary>
+        /// anchorH/anchorW を左上とする size マス四方が、すべて盤面内かつ未予約か判定する
+        /// </summary>
+        private static bool CanReserveFootprint(int anchorH, int anchorW, int size, HashSet<(int h, int w)> reserved)
+        {
+            for (int dh = 0; dh < size; dh++)
+            {
+                for (int dw = 0; dw < size; dw++)
                 {
-                    await receiver.OnPulledByMagneticCore();
+                    int h = anchorH + dh;
+                    int w = anchorW + dw;
+                    if (!MapManager.Instance.IsInBounds(h, w) || reserved.Contains((h, w)))
+                    {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// anchorH/anchorW を左上とする size マス四方を予約済みにする
+        /// </summary>
+        private static void ReserveFootprint(int anchorH, int anchorW, int size, HashSet<(int h, int w)> reserved)
+        {
+            for (int dh = 0; dh < size; dh++)
+            {
+                for (int dw = 0; dw < size; dw++)
+                {
+                    reserved.Add((anchorH + dh, anchorW + dw));
                 }
             }
         }

@@ -413,9 +413,12 @@ namespace EchoEdge.Domain.Battle
             var dstH = srcH;
             var dstW = srcW;
             var bestScore = minScore;
+            // 同点の候補数（同点候補の中から等確率で1つ選ぶために使う）
+            var tieCount = 0;
 
             // 全 step の候補を走査して最終目的地を選ぶ。
-            // 同スコア時は「より左」「縦距離が小さい」位置を優先する。
+            // 同スコア時は「より左」「縦距離が小さい」位置を優先し、それでも並ぶ場合はランダムに選ぶ。
+            // （以前は上方向を常に優先していたため、前方を塞がれた『でかエナー』などが毎回同じ場所へ移動していた）
             // scoreMap は可視化・デバッグ用のローカル評価マップとして更新する。
             for (var step = 1; step <= count; step++)
             {
@@ -436,20 +439,40 @@ namespace EchoEdge.Domain.Battle
                             if (scoreMap[localH, localW] < stored) scoreMap[localH, localW] = (byte)stored;
                         }
 
-                        if (!hasDestination || score > bestScore ||
-                            (score == bestScore && (w < dstW || (w == dstW && Math.Abs(h - srcH) < Math.Abs(dstH - srcH)))))
+                        var isBetter = !hasDestination || score > bestScore ||
+                            (score == bestScore && (w < dstW || (w == dstW && Math.Abs(h - srcH) < Math.Abs(dstH - srcH))));
+                        var isTie = hasDestination && score == bestScore && w == dstW &&
+                            Math.Abs(h - srcH) == Math.Abs(dstH - srcH);
+
+                        if (isBetter)
                         {
                             hasDestination = true;
                             bestScore = score;
                             bestStep = step;
                             dstH = h;
                             dstW = w;
+                            tieCount = 1;
+                        }
+                        else if (isTie && IsFirstReachWithScore(scoreByStep, step, h, w, score))
+                        {
+                            // 同点候補はリザーバーサンプリングで等確率に選ぶ
+                            tieCount++;
+                            if (UnityEngine.Random.Range(0, tieCount) == 0)
+                            {
+                                bestStep = step;
+                                dstH = h;
+                                dstW = w;
+                            }
                         }
                     }
                 }
             }
 
             if (!hasDestination) return;
+
+            // 前に進めず、後退（右方向）しかできない場合は移動しない。
+            // 後退を許すと、塞がれたユニットが「右に下がる→次のフェーズで元の場所に戻る」を繰り返してしまう。
+            if (bestScore < 0) return;
 
             // 目的地から prev を逆にたどり、実際の移動経路を復元する。
             var path = new List<(int h, int w)>();
@@ -477,6 +500,19 @@ namespace EchoEdge.Domain.Battle
                     break;
                 }
             }
+        }
+
+        /// <summary>
+        /// 指定マスが、step より少ない手数で同じスコアのまま到達済みでないかを返す。
+        /// 同点候補の抽選で同じマスを重複して数えないために使う。
+        /// </summary>
+        private static bool IsFirstReachWithScore(int[,,] scoreByStep, int step, int h, int w, int score)
+        {
+            for (var s = 1; s < step; s++)
+            {
+                if (scoreByStep[s, h, w] == score) return false;
+            }
+            return true;
         }
 
         /// <summary>
