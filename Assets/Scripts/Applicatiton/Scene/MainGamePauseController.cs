@@ -30,12 +30,30 @@ namespace EchoEdge.App.Scene
         
         public void OpenPause(InputAction.CallbackContext context)
         {
-            if (_isPauseOpening)
+            if (_isPauseOpening || !CanOpenPause())
             {
                 return;
             }
             
             OpenPauseAsync(context).Forget();
+        }
+
+        /// <summary>
+        /// ポーズ（オプション）を開けるか。
+        /// PauseActivater は System シーンに常駐していて Esc を常に拾うため、
+        /// メインゲーム中以外や、オプション・クレジット・ライセンスが既に開いているとき
+        /// （Esc で閉じた同じフレームを含む）は開かない。
+        /// </summary>
+        private static bool CanOpenPause()
+        {
+            if (!SceneLoader.IsLoadedOrLoading(GameScene.MainGame))
+            {
+                return false;
+            }
+
+            return !SceneLoader.IsLoadedOrLoading(GameScene.Option)
+                && !SceneLoader.IsLoadedOrLoading(GameScene.Credit)
+                && !SceneLoader.IsLoadedOrLoading(GameScene.License);
         }
 
         private async UniTask OpenPauseAsync(InputAction.CallbackContext context)
