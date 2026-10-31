@@ -24,14 +24,38 @@ namespace EchoEdge.Domain.Phase
 
         public const int LayerNumber = 1;
 
+        /// <summary>
+        /// 一閃準備フェーズでクリックした瞬間に確定した攻撃目標。未設定ならフェーズ開始時のポインター位置を使う。
+        /// </summary>
+        private Vector3? _targetPosition;
+
+        /// <summary>
+        /// 攻撃目標を確定させる。一閃準備フェーズのクリック時に呼ぶ。
+        /// </summary>
+        public void SetTargetPosition(Vector3 targetPosition)
+        {
+            _targetPosition = targetPosition;
+        }
+
         public async UniTask<IPhase> WaitPhase()
         {
             OperateInfos.Instance.SetOperateInfo(PhaseKinds.Attack).Forget();
 
-            // 今のポインターの先の位置を取得
+            // クリック時に確定した攻撃目標を使う。未設定の場合のみ、カメラを動かす前に今のポインターの先の位置を取得する。
+            Vector3 targetPosition;
+            if (_targetPosition.HasValue)
+            {
+                targetPosition = _targetPosition.Value;
+            }
+            else
+            {
+                Ray ray = Camera.main.ScreenPointToRay(CameraManager.Instance.GetMousePosition());
+                Physics.Raycast(ray, out RaycastHit rch, math.INFINITY, LayerNumber);
+                targetPosition = rch.point;
+            }
+            _targetPosition = null;
+
             CameraManager.Instance.ActMoveCameraToDefault();
-            Ray ray = Camera.main.ScreenPointToRay(CameraManager.Instance.GetMousePosition());
-            Physics.Raycast(ray, out RaycastHit rch, math.INFINITY,LayerNumber);
 
             // プレイヤーの攻撃開始時に追尾を開始する
             CameraManager.Instance.StartTracking(PlayerController.Instance.transform);
@@ -47,7 +71,7 @@ namespace EchoEdge.Domain.Phase
                 }
             }
 
-            await PlayerController.Instance.ExecuteAttack(rch.point);
+            await PlayerController.Instance.ExecuteAttack(targetPosition);
 
             // 追尾を終了する
             CameraManager.Instance.StopTracking();

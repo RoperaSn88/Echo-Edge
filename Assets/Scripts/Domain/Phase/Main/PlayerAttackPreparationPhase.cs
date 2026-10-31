@@ -41,10 +41,16 @@ namespace EchoEdge.Domain.Phase
         /// </summary>
         private ClickKinds _clickKind;
 
+        /// <summary>
+        /// 直近でポインターが指していた盤面上の位置。ガイドラインの描画と同じレイキャスト結果を保持する。
+        /// </summary>
+        private Vector3? _lastPointerTarget;
+
         public async UniTask<IPhase> WaitPhase()
         {
             // 初期条件
             _clickFlug = false;
+            _lastPointerTarget = null;
             OperateInfos.Instance.SetOperateInfo(PhaseKinds.AttackPreparation).Forget();
             _attackGuideLine.SetMaterial(PlayerController.Instance.LineMaterial);
             // 真上視点への遷移。トゥイーン半分経過時に直交投影＋敵スプライトの寝かせへ切り替わる。
@@ -120,6 +126,17 @@ namespace EchoEdge.Domain.Phase
 
         private void OnPressAttack(InputAction.CallbackContext context)
         {
+            // 攻撃方向はクリックした瞬間のポインター位置で確定させる。
+            // 以前は UI のフェードアウト(0.25秒)後に PlayerAttackPhase でポインター位置を読み直していたため、
+            // クリック後に手が動くと狙いが横にずれていた。
+            Vector3? target = TryGetPointerTarget(out Vector3 hitPoint) ? hitPoint : _lastPointerTarget;
+            if (target == null)
+            {
+                // 盤面外をクリックした場合は攻撃を開始しない
+                return;
+            }
+
+            PlayerAttackPhase.Instance.SetTargetPosition(target.Value);
             _clickKind = ClickKinds.Left;
             _clickFlug = true;
         }
@@ -156,14 +173,32 @@ namespace EchoEdge.Domain.Phase
                 return;
             }
 
-            Ray pointerRay = Camera.main.ScreenPointToRay(CameraManager.Instance.GetMousePosition());
-            if (!Physics.Raycast(pointerRay, out RaycastHit pointerHit, Mathf.Infinity, PlayerAttackPhase.LayerNumber))
+            if (!TryGetPointerTarget(out Vector3 pointerTarget))
             {
                 _attackGuideLine.Hide();
                 return;
             }
 
-            _attackGuideLine.Update(PlayerController.Instance.PlayerTransform.position, pointerHit.point);
+            _lastPointerTarget = pointerTarget;
+            _attackGuideLine.Update(PlayerController.Instance.PlayerTransform.position, pointerTarget);
+        }
+
+        /// <summary>
+        /// 現在のポインターが指している盤面上の位置を取得する。
+        /// </summary>
+        private static bool TryGetPointerTarget(out Vector3 target)
+        {
+            target = default;
+            if (Camera.main == null || CameraManager.Instance == null) return false;
+
+            Ray pointerRay = Camera.main.ScreenPointToRay(CameraManager.Instance.GetMousePosition());
+            if (!Physics.Raycast(pointerRay, out RaycastHit pointerHit, Mathf.Infinity, PlayerAttackPhase.LayerNumber))
+            {
+                return false;
+            }
+
+            target = pointerHit.point;
+            return true;
         }
     }
 }
