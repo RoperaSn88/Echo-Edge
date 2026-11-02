@@ -189,7 +189,6 @@ namespace EchoEdge.Domain.Phase
                 BattleManager.PlayerStatus.Move,
                 player.LayerMask);
             _lastPointerTarget = pointerTarget;
-            _attackGuideLine.Update(PlayerController.Instance.PlayerTransform.position, pointerTarget);
         }
 
         /// <summary>
