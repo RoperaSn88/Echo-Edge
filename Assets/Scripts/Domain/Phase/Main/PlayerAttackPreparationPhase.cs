@@ -183,7 +183,7 @@ namespace EchoEdge.Domain.Phase
             var player = PlayerController.Instance;
             _attackGuideLine.Update(
                 player.PlayerTransform.position,
-                pointerHit.point,
+                pointerTarget,
                 player.AttackKind,
                 player.IsFlashAttack,
                 BattleManager.PlayerStatus.Move,
