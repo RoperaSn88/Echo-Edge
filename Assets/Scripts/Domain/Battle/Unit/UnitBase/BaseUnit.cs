@@ -322,124 +322,14 @@ namespace EchoEdge.Domain.Battle
             if (Position.IsLeftmost) return;
 
             var mapManager = MapManager.Instance;
-            var srcH = Height;
-            var srcW = Width;
-            if (!mapManager.IsInBounds(srcH, srcW)) return;
+            if (!mapManager.IsInBounds(Height, Width)) return;
 
-            // 2x2など複数マスを占有するユニットは、移動先候補全マスの空き状況を見る必要がある
-            var span = (int)GetSize();
-            var mapH = mapManager.Height;
-            var mapW = mapManager.Width;
+            // 移動先の決め方は EnemyMovePlanner にまとめてある（ステージエディタのプレビューも同じものを使う）
+            var board = new MapManagerMoveBoard(mapManager, this);
+            var path = EnemyMovePlanner.PlanPath(board, (int)GetSize(), Height, Width, count,
+                maxExclusive => UnityEngine.Random.Range(0, maxExclusive));
 
-            var dirH = new[] { 0, -1, 1, 0 };
-            var dirW = new[] { -1, 0, 0, 1 };
-
-            // 1. ゴール（左端）までの残り距離を、壁だけを障害物として求める（他のユニットは一時的なものなので無視）。
-            //    以前は「左に1マス進むと+1」の点数で目的地を選んでいたため、前を塞がれると点数0の上下移動を選び、
-            //    次のフェーズで逆向きに戻る、を繰り返して同じ場所に留まっていた（特に2x2の『でかエナー』）。
-            var goalDist = ComputeGoalDistance(mapManager, span, mapH, mapW, dirH, dirW);
-            var srcGoalDist = goalDist[srcH, srcW];
-            // 壁に囲まれてゴールへの道が無い場合は、より左に行けるかどうかで判断する
-            var useColumnAsGoal = srcGoalDist == int.MaxValue;
-            int GoalMetric(int h, int w) => useColumnAsGoal ? w : goalDist[h, w];
-
-            // 2. 現在の盤面（他のユニット・壁を含む）で、count 手以内に到達できるマスを幅優先探索で求める
-            var stepTo = new int[mapH, mapW];
-            var prevH = new int[mapH, mapW];
-            var prevW = new int[mapH, mapW];
-            for (var h = 0; h < mapH; h++)
-            {
-                for (var w = 0; w < mapW; w++)
-                {
-                    stepTo[h, w] = -1;
-                    prevH[h, w] = -1;
-                    prevW[h, w] = -1;
-                }
-            }
-
-            var queue = new Queue<(int h, int w)>();
-            stepTo[srcH, srcW] = 0;
-            queue.Enqueue((srcH, srcW));
-            while (queue.Count > 0)
-            {
-                var (h, w) = queue.Dequeue();
-                if (stepTo[h, w] >= count) continue;
-
-                for (var dir = 0; dir < dirH.Length; dir++)
-                {
-                    var nextH = h + dirH[dir];
-                    var nextW = w + dirW[dir];
-                    if (!mapManager.IsInBounds(nextH, nextW) || stepTo[nextH, nextW] >= 0) continue;
-                    // 自身を除いた、占有する全マスの空き状況を確認する（2x2など複数マス対応）
-                    if (!mapManager.IsFootprintFree(nextH, nextW, span, this)) continue;
-
-                    stepTo[nextH, nextW] = stepTo[h, w] + 1;
-                    prevH[nextH, nextW] = h;
-                    prevW[nextH, nextW] = w;
-                    queue.Enqueue((nextH, nextW));
-                }
-            }
-
-            // 3. 到達できるマスのうち、ゴールに最も近づけるマスを目的地にする。
-            //    今いる場所より近づけないなら移動しない（上下にうろうろして元の場所に戻るのを防ぐ）。
-            //    同じ近さなら、手数が少ない → 縦のズレが小さい順に優先し、それでも並べばランダムに選ぶ。
-            var bestMetric = GoalMetric(srcH, srcW);
-            var dstH = -1;
-            var dstW = -1;
-            var tieCount = 0;
-            for (var h = 0; h < mapH; h++)
-            {
-                for (var w = 0; w < mapW; w++)
-                {
-                    if (stepTo[h, w] <= 0) continue;
-
-                    var metric = GoalMetric(h, w);
-                    if (metric == int.MaxValue) continue;
-
-                    var isBetter = metric < bestMetric ||
-                        (dstH >= 0 && metric == bestMetric && (stepTo[h, w] < stepTo[dstH, dstW] ||
-                            (stepTo[h, w] == stepTo[dstH, dstW] && Math.Abs(h - srcH) < Math.Abs(dstH - srcH))));
-                    var isTie = dstH >= 0 && metric == bestMetric && stepTo[h, w] == stepTo[dstH, dstW] &&
-                        Math.Abs(h - srcH) == Math.Abs(dstH - srcH);
-
-                    if (isBetter)
-                    {
-                        bestMetric = metric;
-                        dstH = h;
-                        dstW = w;
-                        tieCount = 1;
-                    }
-                    else if (isTie)
-                    {
-                        // 同点候補はリザーバーサンプリングで等確率に選ぶ
-                        tieCount++;
-                        if (UnityEngine.Random.Range(0, tieCount) == 0)
-                        {
-                            dstH = h;
-                            dstW = w;
-                        }
-                    }
-                }
-            }
-
-            if (dstH < 0) return;
-
-            // 目的地から prev を逆にたどり、実際の移動経路を復元する。
-            var path = new List<(int h, int w)>();
-            var currentH = dstH;
-            var currentW = dstW;
-            while (currentH != srcH || currentW != srcW)
-            {
-                path.Add((currentH, currentW));
-                var fromH = prevH[currentH, currentW];
-                var fromW = prevW[currentH, currentW];
-                if (fromH < 0 || fromW < 0) break;
-                currentH = fromH;
-                currentW = fromW;
-            }
-
-            // 復元した経路を先頭から順に実行し、途中で失敗したら打ち切る。
-            path.Reverse();
+            // 経路を先頭から順に実行し、途中で失敗したら打ち切る。
             foreach (var waypoint in path)
             {
                 if (!await mapManager.TryMoveUnitTo(this, waypoint.h, waypoint.w))
@@ -450,62 +340,26 @@ namespace EchoEdge.Domain.Battle
         }
 
         /// <summary>
-        /// 各マスを基準マス（左上）にしたとき、左端（width=0）まで何手で行けるかを、壁だけを障害物として求める。
-        /// 到達できないマスは int.MaxValue。
+        /// MapManager の盤面を EnemyMovePlanner に渡すためのアダプター
         /// </summary>
-        private static int[,] ComputeGoalDistance(MapManager mapManager, int span, int mapH, int mapW, int[] dirH, int[] dirW)
+        private sealed class MapManagerMoveBoard : IEnemyMoveBoard
         {
-            var dist = new int[mapH, mapW];
-            var queue = new Queue<(int h, int w)>();
-            for (var h = 0; h < mapH; h++)
+            private readonly MapManager _mapManager;
+            private readonly IUnit _self;
+
+            public MapManagerMoveBoard(MapManager mapManager, IUnit self)
             {
-                for (var w = 0; w < mapW; w++)
-                {
-                    dist[h, w] = int.MaxValue;
-                }
+                _mapManager = mapManager;
+                _self = self;
             }
 
-            for (var h = 0; h < mapH; h++)
-            {
-                if (!IsFootprintWithoutWall(mapManager, h, 0, span)) continue;
-                dist[h, 0] = 0;
-                queue.Enqueue((h, 0));
-            }
+            public int Height => _mapManager.Height;
+            public int Width => _mapManager.Width;
 
-            while (queue.Count > 0)
-            {
-                var (h, w) = queue.Dequeue();
-                for (var dir = 0; dir < dirH.Length; dir++)
-                {
-                    var nextH = h + dirH[dir];
-                    var nextW = w + dirW[dir];
-                    if (!mapManager.IsInBounds(nextH, nextW) || dist[nextH, nextW] != int.MaxValue) continue;
-                    if (!IsFootprintWithoutWall(mapManager, nextH, nextW, span)) continue;
+            public bool IsWall(int h, int w) => _mapManager.GetUnitAt(h, w) is building;
 
-                    dist[nextH, nextW] = dist[h, w] + 1;
-                    queue.Enqueue((nextH, nextW));
-                }
-            }
-
-            return dist;
-        }
-
-        /// <summary>
-        /// anchorH/anchorW を左上とする span マス四方が、すべて盤面内かつ壁（building）が無いかを返す
-        /// </summary>
-        private static bool IsFootprintWithoutWall(MapManager mapManager, int anchorH, int anchorW, int span)
-        {
-            for (var dh = 0; dh < span; dh++)
-            {
-                for (var dw = 0; dw < span; dw++)
-                {
-                    var h = anchorH + dh;
-                    var w = anchorW + dw;
-                    if (!mapManager.IsInBounds(h, w)) return false;
-                    if (mapManager.GetUnitAt(h, w) is building) return false;
-                }
-            }
-            return true;
+            public bool IsFootprintFree(int anchorH, int anchorW, int span) =>
+                _mapManager.IsFootprintFree(anchorH, anchorW, span, _self);
         }
 
         /// <summary>
