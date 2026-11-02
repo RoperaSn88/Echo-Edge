@@ -6,6 +6,7 @@ using TMPro;
 using CommonUI.Tutorial.Models;
 using CommonUI.Tutorial.Views;
 using Cysharp.Threading.Tasks;
+using EchoEdge.Presenter.UI;
 
 namespace CommonUI.Tutorial
 {
@@ -313,10 +314,12 @@ namespace CommonUI.Tutorial
             if (targetObject.transform is RectTransform targetRect)
             {
                 // 対象のゲームオブジェクトの4端のワールド座標を取得し、中心を計算。その結果を座標に当てはめる。
+                // 対象とコーチマークでキャンバスの Render Mode が違っても合うよう、スクリーン座標を経由する。
                 targetRect.GetWorldCorners(_corners);
                 var targetPosition = (_corners[0] + _corners[2]) / 2;
+                var targetScreenPosition = UIScreenPosition.WorldToScreen(targetRect, targetPosition);
 
-                _coachMaskView.MaskRectTransform.position = targetPosition;
+                UIScreenPosition.SetPositionFromScreen(_coachMaskView.MaskRectTransform, targetScreenPosition);
 
                 // 元のコーチマークの位置のままなので再キャッシュ
                 anchoredPosition = _coachMaskView.MaskRectTransform.anchoredPosition;
@@ -385,7 +388,7 @@ namespace CommonUI.Tutorial
             // RectTransformがない場合
             // オブジェクトの場所からUIの位置を計算する。計算した結果にUIを位置させる。
             var screenPosition = Camera.main.WorldToScreenPoint(targetObject.transform.position);
-            _coachMaskView.MaskRectTransform.position = screenPosition;
+            UIScreenPosition.SetPositionFromScreen(_coachMaskView.MaskRectTransform, screenPosition);
 
             // 元のコーチマークの位置のままなので再キャッシュ
             anchoredPosition = _coachMaskView.MaskRectTransform.anchoredPosition;
