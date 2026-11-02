@@ -27,15 +27,43 @@ namespace EchoEdge.App.Scene
             Instance = this;
             _playerInput.actions["Pause"].performed += OpenPause;
         }
+
+        private void OnDestroy()
+        {
+            // データリセット等で System シーンが再読み込みされると、このコンポーネントは破棄されるが
+            // InputActionAsset は使い回されるため、解除しないと古いハンドラが残り Esc 1回で複数回開いてしまう
+            if (_playerInput != null && _playerInput.actions != null)
+            {
+                _playerInput.actions["Pause"].performed -= OpenPause;
+            }
+        }
         
         public void OpenPause(InputAction.CallbackContext context)
         {
-            if (_isPauseOpening)
+            if (_isPauseOpening || !CanOpenPause())
             {
                 return;
             }
             
             OpenPauseAsync(context).Forget();
+        }
+
+        /// <summary>
+        /// ポーズ（オプション）を開けるか。
+        /// PauseActivater は System シーンに常駐していて Esc を常に拾うため、
+        /// メインゲーム中以外や、オプション・クレジット・ライセンスが既に開いているとき
+        /// （Esc で閉じた同じフレームを含む）は開かない。
+        /// </summary>
+        private static bool CanOpenPause()
+        {
+            if (!SceneLoader.IsLoadedOrLoading(GameScene.MainGame))
+            {
+                return false;
+            }
+
+            return !SceneLoader.IsLoadedOrLoading(GameScene.Option)
+                && !SceneLoader.IsLoadedOrLoading(GameScene.Credit)
+                && !SceneLoader.IsLoadedOrLoading(GameScene.License);
         }
 
         private async UniTask OpenPauseAsync(InputAction.CallbackContext context)

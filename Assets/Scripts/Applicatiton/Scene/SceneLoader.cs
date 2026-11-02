@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -9,6 +10,22 @@ namespace EchoEdge.App.Scene
 {
     public static class SceneLoader
     {
+        /// <summary>
+        /// <see cref="AdditiveLoadAndWait(int)"/> でロード中〜アンロード待ちのシーンのビルドインデックス。
+        /// 非同期ロード中は <c>Scene.isLoaded</c> が false のため、重複ロードの判定に使う。
+        /// </summary>
+        private static readonly HashSet<int> WaitingSceneIndices = new();
+
+        /// <summary>
+        /// 指定シーンがロード済み、またはロード中かどうか。
+        /// </summary>
+        public static bool IsLoadedOrLoading(GameScene scene)
+        {
+            var sceneIndex = (int)scene;
+            return WaitingSceneIndices.Contains(sceneIndex)
+                || SceneManager.GetSceneByBuildIndex(sceneIndex).isLoaded;
+        }
+
         public static void Load(GameScene scene)
         {
             if (!TryGetSceneIndex(scene, out var sceneIndex))
@@ -83,9 +100,29 @@ namespace EchoEdge.App.Scene
                 return;
             }
 
-            await SceneManager.LoadSceneAsync(sceneIndex, LoadSceneMode.Additive).ToUniTask();
-            var loadedScene = SceneManager.GetSceneByBuildIndex(sceneIndex);
-            await UniTask.WaitUntil(() => !loadedScene.isLoaded);
+            // 同じシーンが既に開いている（またはロード中の）場合は二重に開かない
+            if (!WaitingSceneIndices.Add(sceneIndex))
+            {
+                Debug.LogWarning($"シーンは既にロード中です: {sceneIndex}");
+                return;
+            }
+
+            try
+            {
+                if (SceneManager.GetSceneByBuildIndex(sceneIndex).isLoaded)
+                {
+                    Debug.LogWarning($"シーンは既にロードされています: {sceneIndex}");
+                    return;
+                }
+
+                await SceneManager.LoadSceneAsync(sceneIndex, LoadSceneMode.Additive).ToUniTask();
+                var loadedScene = SceneManager.GetSceneByBuildIndex(sceneIndex);
+                await UniTask.WaitUntil(() => !loadedScene.isLoaded);
+            }
+            finally
+            {
+                WaitingSceneIndices.Remove(sceneIndex);
+            }
         }
 
         public static void Unload(GameScene scene)
