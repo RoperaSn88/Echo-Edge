@@ -38,8 +38,8 @@ namespace EchoEdge.Presenter.UI
         {
             if (chaseCanvas)
             {
-                var screenPos = Camera.main.WorldToScreenPoint(_targetPosition);
-                UIScreenPosition.SetPositionFromScreen(_baseRectTransform, screenPos);
+                var worldPos = Camera.main.WorldToScreenPoint(_targetPosition);
+                _baseRectTransform.position = worldPos;
             }
         }
 
@@ -58,10 +58,10 @@ namespace EchoEdge.Presenter.UI
         {
             _targetPosition = targetTransform;
 
-            var screenPos = Camera.main.WorldToScreenPoint(targetTransform);
+            var worldPos = Camera.main.WorldToScreenPoint(targetTransform);
 
-            //位置の初期化（キャンバスの Render Mode に関係なくスクリーン座標の位置に置く）
-            UIScreenPosition.SetPositionFromScreen(_baseRectTransform, screenPos);
+            //位置の初期化
+            _baseRectTransform.position = worldPos;
             _textRectTransform.anchoredPosition = new Vector2(100, 0);
 
             // 追わせるようにする
