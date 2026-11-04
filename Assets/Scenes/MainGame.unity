@@ -50366,51 +50366,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 2768560146257392266, guid: 2fe8646777765574da855e41a92cff95, type: 3}
   m_PrefabInstance: {fileID: 353440756}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &354040933
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 354040934}
-  - component: {fileID: 354040935}
-  m_Layer: 5
-  m_Name: needle
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &354040934
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 354040933}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 1702366687}
-  m_Father: {fileID: 931025304}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -195}
-  m_SizeDelta: {x: 0, y: 0}
-  m_Pivot: {x: 0.5, y: 0.5}
---- !u!222 &354040935
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 354040933}
-  m_CullTransparentMesh: 1
 --- !u!1001 &354104653
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -60150,7 +60105,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &474753339
 RectTransform:
   m_ObjectHideFlags: 0
@@ -107801,13 +107756,13 @@ RectTransform:
   m_Children:
   - {fileID: 1628160813}
   - {fileID: 1940551202}
-  - {fileID: 354040934}
+  - {fileID: 1702366687}
   m_Father: {fileID: 1868389233}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -200}
-  m_SizeDelta: {x: 800, y: 400}
+  m_AnchoredPosition: {x: 0, y: -133.3333}
+  m_SizeDelta: {x: 533.3333, y: 266.66666}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!1001 &931669079
 PrefabInstance:
@@ -195706,7 +195661,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 800, y: 400}
+  m_SizeDelta: {x: 533.3333, y: 266.66666}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1628160814
 MonoBehaviour:
@@ -195761,7 +195716,7 @@ MonoBehaviour:
   _minAngle: 0
   _maxAngle: 90
   _originAngle: 90
-  _clockwise: 0
+  _clockwise: 1
   _center: {x: 0.5, y: 0}
 --- !u!1001 &1628763153
 PrefabInstance:
@@ -201420,13 +201375,13 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 354040934}
+  m_Father: {fileID: 931025304}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 187}
-  m_SizeDelta: {x: 28.125, y: 405}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: -130}
+  m_SizeDelta: {x: 18.75, y: 270}
+  m_Pivot: {x: 0.5, y: 0.0375}
 --- !u!114 &1702366688
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -213823,7 +213778,7 @@ MonoBehaviour:
   _canvasGroup: {fileID: 1868389234}
   _content: {fileID: 931025304}
   _area: {fileID: 1628160816}
-  _needle: {fileID: 354040934}
+  _needle: {fileID: 1702366687}
   _initialAreaWidth: 45
   _needleSpeed: 240
   _maxSweepCount: 1
@@ -224309,7 +224264,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 800, y: 400}
+  m_SizeDelta: {x: 533.3333, y: 266.66666}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1940551203
 MonoBehaviour:
