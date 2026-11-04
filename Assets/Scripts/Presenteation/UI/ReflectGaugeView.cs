@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
@@ -44,7 +45,7 @@ namespace EchoEdge.Presenter.UI
         private int _maxAdditionalReflectCount = 0;
 
         [SerializeField, Min(0f), Tooltip("表示・非表示のフェード時間 (秒)")]
-        private float _fadeDuration = 0.15f;
+        private float _fadeDuration = 0.3f;
 
         [SerializeField, Min(0f), Tooltip("針を止めてから結果を見せる時間 (秒)")]
         private float _resultDuration = 0.35f;
