@@ -17,11 +17,17 @@ namespace EchoEdge.Presenter.Player
         /// <summary>分度器全体の回転 (画面上で反時計回り)。0 で弧が上を向く</summary>
         public readonly float Rotation;
 
-        /// <summary>追加の反射ができるエリアの開始角度</summary>
+        /// <summary>表示するエリアの開始角度</summary>
         public readonly float AreaMin;
 
-        /// <summary>追加の反射ができるエリアの終了角度</summary>
+        /// <summary>表示するエリアの終了角度</summary>
         public readonly float AreaMax;
+
+        /// <summary>成功と判定する範囲の開始角度 (表示より少し広い)</summary>
+        public readonly float JudgeMin;
+
+        /// <summary>成功と判定する範囲の終了角度 (表示より少し広い)</summary>
+        public readonly float JudgeMax;
 
         /// <summary>針の開始角度 (エリアの反対側の端)</summary>
         public readonly float NeedleStart;
@@ -29,16 +35,20 @@ namespace EchoEdge.Presenter.Player
         /// <summary>針が向かう角度 (NeedleStart の反対側の端)</summary>
         public readonly float NeedleEnd;
 
-        public ReflectGaugeLayout(float rotation, float areaMin, float areaMax, float needleStart, float needleEnd)
+        public ReflectGaugeLayout(float rotation, float areaMin, float areaMax, float judgeMin, float judgeMax,
+            float needleStart, float needleEnd)
         {
             Rotation = rotation;
             AreaMin = areaMin;
             AreaMax = areaMax;
+            JudgeMin = judgeMin;
+            JudgeMax = judgeMax;
             NeedleStart = needleStart;
             NeedleEnd = needleEnd;
         }
 
-        public bool Contains(float angle) => angle >= AreaMin && angle <= AreaMax;
+        /// <summary>針の角度が成功の判定範囲に入っているか</summary>
+        public bool Contains(float angle) => angle >= JudgeMin && angle <= JudgeMax;
     }
 
     /// <summary>
@@ -49,8 +59,11 @@ namespace EchoEdge.Presenter.Player
     public static class AdditionalReflection
     {
         private const float HalfCircle = 180f;
-        
-        private const float additionalAngle = 2f;
+
+        /// <summary>
+        /// 判定を表示エリアより左右それぞれ何度広く取るか (度)。表示の境目ぎりぎりで止めても成功しやすくする
+        /// </summary>
+        private const float AdditionalAngle = 2f;
 
         /// <summary>
         /// 分度器QTEを行い、追加の反射を行うかを返す。
@@ -120,7 +133,7 @@ namespace EchoEdge.Presenter.Player
             var normalAngle = Mathf.Round(ToAngle(normal) / RotationStep) * RotationStep;
             var rotation = Mathf.DeltaAngle(0f, normalAngle - 90f);
 
-            var halfWidth = Mathf.Clamp(areaWidth, 0f, HalfCircle) * 0.5f + additionalAngle;
+            var halfWidth = Mathf.Clamp(areaWidth, 0f, HalfCircle) * 0.5f;
 
             // 分度器ローカルでの反射角 (-180〜180、0〜180 が分度器の範囲)
             var localReflect = Mathf.DeltaAngle(0f, reflectAngle - rotation);
@@ -144,7 +157,11 @@ namespace EchoEdge.Presenter.Player
             var needleStart = localReflect < 90f ? HalfCircle : 0f;
             var needleEnd = HalfCircle - needleStart;
 
-            return new ReflectGaugeLayout(rotation, areaMin, areaMax, needleStart, needleEnd);
+            // 判定は表示より AdditionalAngle だけ広げる
+            var judgeMin = Mathf.Max(areaMin - AdditionalAngle, 0f);
+            var judgeMax = Mathf.Min(areaMax + AdditionalAngle, HalfCircle);
+
+            return new ReflectGaugeLayout(rotation, areaMin, areaMax, judgeMin, judgeMax, needleStart, needleEnd);
         }
 
         /// <summary>
