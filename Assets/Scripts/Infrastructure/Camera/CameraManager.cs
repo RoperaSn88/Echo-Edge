@@ -907,75 +907,120 @@ namespace EchoEdge.Infra.Camera
         /// <summary>
         /// 追加反射の分度器QTE中のカメラの距離
         /// </summary>
-        private const float ReflectGaugeCameraDistance = 4f;
+        private const float ReflectGaugeCameraDistance = 5f;
 
         /// <summary>
-        /// 追加反射の分度器QTEのズームにかける時間
+        /// 一時ズーム (敵への攻撃・分度器QTE) にかける時間
         /// </summary>
-        private const float ReflectGaugeZoomTime = 0.2f;
+        private const float TemporaryZoomTime = 0.2f;
 
-        private Sequence _reflectGaugeZoomSequence;
-        private float _reflectGaugeDistanceBefore;
-        private Vector3 _reflectGaugeOffsetBefore;
-        private bool _isReflectGaugeZoomed;
+        private Sequence _temporaryZoomSequence;
+        private float _temporaryZoomDistanceBefore;
+        private Vector3 _temporaryZoomOffsetBefore;
+        private Vector3 _temporaryZoomPositionBefore;
+
+        /// <summary>
+        /// 一時ズーム中の数。複数の敵に同時に当たったときに、最後の1つが終わってから戻すために数える
+        /// </summary>
+        private int _temporaryZoomCount;
 
         /// <summary>
         /// 追加反射の分度器QTE開始時に、カメラをプレイヤーへ近づける。
-        /// 追尾中ならそのまま追尾し、距離とオフセットだけを変える。
+        /// 終わったら <see cref="ActReflectGaugeZoomOut"/> で戻す。
         /// </summary>
         /// <param name="playerPos">プレイヤーのワールド座標</param>
         public UniTask ActReflectGaugeZoomIn(Vector3 playerPos)
         {
-            // 戻している途中で次の QTE が始まった場合は、最初に覚えた値を使い続ける
-            var restoring = _reflectGaugeZoomSequence != null && _reflectGaugeZoomSequence.IsActive();
-            if (!_isReflectGaugeZoomed && !restoring)
-            {
-                _reflectGaugeDistanceBefore = _cinemachineThirdPersonFollow.CameraDistance;
-                _reflectGaugeOffsetBefore = _cinemachineThirdPersonFollow.ShoulderOffset;
-                _isReflectGaugeZoomed = true;
-            }
-
-            _reflectGaugeZoomSequence?.Kill();
-            _reflectGaugeZoomSequence = DOTween.Sequence()
-                .Join(DOTween.To(() => _cinemachineThirdPersonFollow.CameraDistance,
-                    d => _cinemachineThirdPersonFollow.CameraDistance = d,
-                    ReflectGaugeCameraDistance, ReflectGaugeZoomTime))
-                .Join(DOTween.To(() => _cinemachineThirdPersonFollow.ShoulderOffset,
-                    o => _cinemachineThirdPersonFollow.ShoulderOffset = o,
-                    ZoomCameraOffset, ReflectGaugeZoomTime))
-                .SetEase(Ease.OutQuad)
-                .SetUpdate(true);
-
-            if (!_isTracking)
-            {
-                _reflectGaugeZoomSequence.Join(DOTween.To(() => _defaultCameraPos.position,
-                    pos => _defaultCameraPos.position = pos,
-                    playerPos, ReflectGaugeZoomTime));
-            }
-
-            return _reflectGaugeZoomSequence.ToUniTask();
+            return ActTemporaryZoomIn(playerPos, ReflectGaugeCameraDistance);
         }
 
         /// <summary>
-        /// 分度器QTEのズームを、ズーム前の距離とオフセットへ戻す。
+        /// 分度器QTEのズームを、ズーム前の状態へ戻す。
         /// </summary>
         public UniTask ActReflectGaugeZoomOut()
         {
-            if (!_isReflectGaugeZoomed) return UniTask.CompletedTask;
-            _isReflectGaugeZoomed = false;
+            return ActTemporaryZoomOut();
+        }
 
-            _reflectGaugeZoomSequence?.Kill();
-            _reflectGaugeZoomSequence = DOTween.Sequence()
+        /// <summary>
+        /// プレイヤーの攻撃が敵に当たったときに、カメラを敵へ近づける。
+        /// 攻撃が終わったら <see cref="ActAttackHitZoomOut"/> で戻す。
+        /// </summary>
+        /// <param name="targetPos">敵のワールド座標</param>
+        public UniTask ActAttackHitZoomIn(Vector3 targetPos)
+        {
+            return ActTemporaryZoomIn(targetPos, ZoomCameraDistance);
+        }
+
+        /// <summary>
+        /// 敵への攻撃のズームを、ズーム前の状態へ戻す。
+        /// </summary>
+        public UniTask ActAttackHitZoomOut()
+        {
+            return ActTemporaryZoomOut();
+        }
+
+        /// <summary>
+        /// ズーム前の距離・オフセット・位置を覚えてから、対象へ近づける。
+        /// 追尾中は位置は追尾に任せ、距離とオフセットだけを変える。
+        /// </summary>
+        private UniTask ActTemporaryZoomIn(Vector3 target, float distance)
+        {
+            // 他のカメラ移動 (攻撃開始時に通常視点へ戻すなど) の途中なら、完了させてから覚える
+            if (_cameraMoving)
+            {
+                _cts?.Cancel();
+            }
+            StopGroupFraming();
+
+            // 戻している途中で次のズームが始まった場合は、最初に覚えた値を使い続ける
+            var restoring = _temporaryZoomSequence != null && _temporaryZoomSequence.IsActive();
+            if (_temporaryZoomCount == 0 && !restoring)
+            {
+                _temporaryZoomDistanceBefore = _cinemachineThirdPersonFollow.CameraDistance;
+                _temporaryZoomOffsetBefore = _cinemachineThirdPersonFollow.ShoulderOffset;
+                _temporaryZoomPositionBefore = _defaultCameraPos.position;
+            }
+            _temporaryZoomCount++;
+
+            _temporaryZoomSequence?.Kill();
+            _temporaryZoomSequence = CreateTemporaryZoomSequence(distance, ZoomCameraOffset, target);
+            return _temporaryZoomSequence.ToUniTask();
+        }
+
+        /// <summary>
+        /// 一時ズームがすべて終わったら、ズーム前の距離・オフセット・位置へ戻す。
+        /// </summary>
+        private UniTask ActTemporaryZoomOut()
+        {
+            if (_temporaryZoomCount <= 0) return UniTask.CompletedTask;
+            _temporaryZoomCount--;
+            if (_temporaryZoomCount > 0) return UniTask.CompletedTask;
+
+            _temporaryZoomSequence?.Kill();
+            _temporaryZoomSequence = CreateTemporaryZoomSequence(
+                _temporaryZoomDistanceBefore, _temporaryZoomOffsetBefore, _temporaryZoomPositionBefore);
+            return _temporaryZoomSequence.ToUniTask();
+        }
+
+        private Sequence CreateTemporaryZoomSequence(float distance, Vector3 offset, Vector3 position)
+        {
+            var sequence = DOTween.Sequence()
                 .Join(DOTween.To(() => _cinemachineThirdPersonFollow.CameraDistance,
                     d => _cinemachineThirdPersonFollow.CameraDistance = d,
-                    _reflectGaugeDistanceBefore, ReflectGaugeZoomTime))
+                    distance, TemporaryZoomTime))
                 .Join(DOTween.To(() => _cinemachineThirdPersonFollow.ShoulderOffset,
                     o => _cinemachineThirdPersonFollow.ShoulderOffset = o,
-                    _reflectGaugeOffsetBefore, ReflectGaugeZoomTime))
-                .SetEase(Ease.OutQuad)
-                .SetUpdate(true);
+                    offset, TemporaryZoomTime));
 
-            return _reflectGaugeZoomSequence.ToUniTask();
+            if (!_isTracking)
+            {
+                sequence.Join(DOTween.To(() => _defaultCameraPos.position,
+                    pos => _defaultCameraPos.position = pos,
+                    position, TemporaryZoomTime));
+            }
+
+            return sequence.SetEase(Ease.OutQuad).SetUpdate(true);
         }
 
         /// <summary>
