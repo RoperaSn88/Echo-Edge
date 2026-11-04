@@ -73,6 +73,16 @@ namespace EchoEdge.Presenter.Player
             // エリアは追加反射のたびに半分にする (45 → 22.5 → 11.25 ...)
             var areaWidth = gauge.InitialAreaWidth / Mathf.Pow(2f, additionalCount);
             var layout = CreateLayout(incoming, wallNormal, areaWidth);
+
+            // 入射角は「外側から中心へ向かう」向きなので、進行方向の逆向きの角度で表す
+            var incidentAngle = ToAngle(-new Vector2(incoming.x, incoming.z));
+            var reflectAngle = ToAngle(Vector2.Reflect(new Vector2(incoming.x, incoming.z),
+                new Vector2(wallNormal.x, wallNormal.z).normalized));
+            Debug.Log($"[追加反射] {additionalCount + 1}回目 入射角: {incidentAngle:F1}° / 反射角: {reflectAngle:F1}° / " +
+                      $"法線: {ToAngle(new Vector2(wallNormal.x, wallNormal.z)):F1}° / 分度器の回転: {layout.Rotation:F1}° / " +
+                      $"成功範囲(分度器): {layout.AreaMin:F1}°〜{layout.AreaMax:F1}° (幅 {areaWidth:F2}°) / " +
+                      $"成功範囲(画面): {Mathf.Repeat(layout.AreaMin + layout.Rotation, 360f):F1}°〜{Mathf.Repeat(layout.AreaMax + layout.Rotation, 360f):F1}° / " +
+                      $"針: {layout.NeedleStart:F0}°→{layout.NeedleEnd:F0}°");
             return await gauge.PlayAsync(layout, cancellationToken);
         }
 
