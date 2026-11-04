@@ -195758,10 +195758,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 144936e68b0955d4cac90f766288a71e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EchoEdge.Presenter.UI.RadialFillRange
-  _min: 0.25
-  _max: 0.75
-  _originAngle: 180
-  _clockwise: 1
+  _minAngle: 0
+  _maxAngle: 90
+  _originAngle: 90
+  _clockwise: 0
   _center: {x: 0.5, y: 0}
 --- !u!1001 &1628763153
 PrefabInstance:

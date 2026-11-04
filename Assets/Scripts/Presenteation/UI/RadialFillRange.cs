@@ -4,19 +4,22 @@ using UnityEngine.UI;
 namespace EchoEdge.Presenter.UI
 {
     /// <summary>
-    /// Graphic を円形に [Min, Max] の区間だけ表示する
+    /// Graphic を円形に [MinAngle, MaxAngle] の区間だけ表示する
+    /// 角度はすべて度数法。OriginAngle を 0 度として、Clockwise の向きに進む
     /// マテリアルに EchoEdge/UI/RadialRangeFill シェーダーを使うこと
     /// </summary>
     [RequireComponent(typeof(Graphic))]
     public class RadialFillRange : BaseMeshEffect
     {
-        [SerializeField, Range(0f, 1f), Tooltip("表示を開始する位置 (1 = 360度)")]
-        private float _min = 0f;
+        private const float FullAngle = 360f;
 
-        [SerializeField, Range(0f, 1f), Tooltip("表示を終了する位置 (1 = 360度)")]
-        private float _max = 1f;
+        [SerializeField, Range(0f, FullAngle), Tooltip("表示を開始する角度 (度)")]
+        private float _minAngle = 0f;
 
-        [SerializeField, Range(0f, 360f), Tooltip("0 の位置。真上から時計回りの角度")]
+        [SerializeField, Range(0f, FullAngle), Tooltip("表示を終了する角度 (度)")]
+        private float _maxAngle = FullAngle;
+
+        [SerializeField, Range(0f, FullAngle), Tooltip("0 度の位置。真上から時計回りの角度")]
         private float _originAngle = 0f;
 
         [SerializeField, Tooltip("時計回りに進むか")]
@@ -25,8 +28,11 @@ namespace EchoEdge.Presenter.UI
         [SerializeField, Tooltip("回転の中心。矩形内の正規化座標")]
         private Vector2 _center = new Vector2(0.5f, 0.5f);
 
-        public float Min { get => _min; set => SetRange(value, _max); }
-        public float Max { get => _max; set => SetRange(_min, value); }
+        /// <summary>表示を開始する角度 (度)</summary>
+        public float MinAngle { get => _minAngle; set => SetRange(value, _maxAngle); }
+
+        /// <summary>表示を終了する角度 (度)</summary>
+        public float MaxAngle { get => _maxAngle; set => SetRange(_minAngle, value); }
 
         public float OriginAngle
         {
@@ -41,12 +47,12 @@ namespace EchoEdge.Presenter.UI
         }
 
         /// <summary>
-        /// 表示区間を設定する
+        /// 表示区間を角度 (度) で設定する
         /// </summary>
-        public void SetRange(float min, float max)
+        public void SetRange(float minAngle, float maxAngle)
         {
-            _min = Mathf.Clamp01(min);
-            _max = Mathf.Clamp01(max);
+            _minAngle = Mathf.Clamp(minAngle, 0f, FullAngle);
+            _maxAngle = Mathf.Clamp(maxAngle, 0f, FullAngle);
             SetDirty();
         }
 
@@ -67,9 +73,10 @@ namespace EchoEdge.Presenter.UI
             var center = rect.min + Vector2.Scale(rect.size, _center);
 
             // シェーダー側は「真上から時計回り」で判定するので、開始位置と長さに変換して渡す
-            var lo = Mathf.Min(_min, _max);
-            var hi = Mathf.Max(_min, _max);
-            var origin = _originAngle / 360f;
+            // シェーダーは 1 = 360 度の割合で受け取る
+            var lo = Mathf.Min(_minAngle, _maxAngle) / FullAngle;
+            var hi = Mathf.Max(_minAngle, _maxAngle) / FullAngle;
+            var origin = _originAngle / FullAngle;
             var start = _clockwise ? origin + lo : origin - hi;
             var length = hi - lo;
 
