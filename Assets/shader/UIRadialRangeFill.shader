@@ -1,6 +1,6 @@
 // UI/Default をベースに、指定した角度区間だけを描画する UI 用シェーダー
 // 区間情報は RadialFillRange コンポーネントが頂点の TEXCOORD1 に書き込む
-//   uv1.xy : 回転中心からの相対位置 (矩形サイズで正規化済み)
+//   uv1.xy : 回転中心からの相対位置 (矩形の長辺で正規化済み。縦横比は保つ)
 //   uv1.z  : 描画開始位置 (真上から時計回り、1 = 360度)
 //   uv1.w  : 描画する長さ (0〜1)
 Shader "EchoEdge/UI/RadialRangeFill"

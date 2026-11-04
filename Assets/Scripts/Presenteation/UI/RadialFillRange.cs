@@ -69,7 +69,8 @@ namespace EchoEdge.Presenter.UI
             EnableTexCoord1();
 
             var rect = graphic.rectTransform.rect;
-            var size = new Vector2(Mathf.Max(rect.width, 1e-5f), Mathf.Max(rect.height, 1e-5f));
+            // 縦横を同じ値で正規化する。縦横別々に割ると、横長の矩形 (半円の分度器など) で角度が歪む
+            var size = Mathf.Max(rect.width, rect.height, 1e-5f);
             var center = rect.min + Vector2.Scale(rect.size, _center);
 
             // シェーダー側は「真上から時計回り」で判定するので、開始位置と長さに変換して渡す
