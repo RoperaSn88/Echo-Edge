@@ -31,14 +31,14 @@ namespace EchoEdge.Presenter.UI
         [SerializeField, Tooltip("針の回転軸。回転 0 で針が真上 (90 度) を向くこと")]
         private RectTransform _needle;
 
-        [SerializeField, Range(0f, 180f), Tooltip("エリアの幅 (度)。反射角を中心に表示する")]
-        private float _areaWidth = 90f;
+        [SerializeField, Range(0f, 180f), Tooltip("最初のエリアの幅 (度)。反射角を中心に表示し、追加反射のたびに半分になる")]
+        private float _initialAreaWidth = 45f;
 
         [SerializeField, Min(1f), Tooltip("針の回転速度 (度/秒)")]
         private float _needleSpeed = 240f;
 
-        [SerializeField, Min(0), Tooltip("針が端から端まで動く回数の上限。超えたら失敗。0 なら止めるまで動き続ける")]
-        private int _maxSweepCount = 2;
+        [SerializeField, Min(0), Tooltip("針が端から端まで動く回数の上限。超えたら失敗。1 で片道、0 なら止めるまで往復し続ける")]
+        private int _maxSweepCount = 1;
 
         [SerializeField, Min(0), Tooltip("1回の一閃で行える追加反射の上限。0 なら上限なし")]
         private int _maxAdditionalReflectCount = 0;
@@ -49,7 +49,7 @@ namespace EchoEdge.Presenter.UI
         [SerializeField, Min(0f), Tooltip("針を止めてから結果を見せる時間 (秒)")]
         private float _resultDuration = 0.35f;
 
-        public float AreaWidth => _areaWidth;
+        public float InitialAreaWidth => _initialAreaWidth;
 
         public int MaxAdditionalReflectCount => _maxAdditionalReflectCount;
 

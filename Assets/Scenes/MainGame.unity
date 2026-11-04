@@ -213824,9 +213824,9 @@ MonoBehaviour:
   _content: {fileID: 931025304}
   _area: {fileID: 1628160816}
   _needle: {fileID: 354040934}
-  _areaWidth: 90
+  _initialAreaWidth: 45
   _needleSpeed: 240
-  _maxSweepCount: 2
+  _maxSweepCount: 1
   _maxAdditionalReflectCount: 0
   _fadeDuration: 0.15
   _resultDuration: 0.35

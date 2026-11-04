@@ -70,13 +70,21 @@ namespace EchoEdge.Presenter.Player
             // 攻撃QTEとクリックが重ならないよう、表示中なら終わるまで待つ
             await UniTask.WaitWhile(() => BattleManager.IsAttackQTEPlaying, cancellationToken: cancellationToken);
 
-            var layout = CreateLayout(incoming, wallNormal, gauge.AreaWidth);
+            // エリアは追加反射のたびに半分にする (45 → 22.5 → 11.25 ...)
+            var areaWidth = gauge.InitialAreaWidth / Mathf.Pow(2f, additionalCount);
+            var layout = CreateLayout(incoming, wallNormal, areaWidth);
             return await gauge.PlayAsync(layout, cancellationToken);
         }
 
         /// <summary>
+        /// 分度器の向きの刻み (度)。壁の面 (上下左右・斜め45度) に合わせる
+        /// </summary>
+        private const float RotationStep = 45f;
+
+        /// <summary>
         /// 入射方向と壁の法線から分度器の配置を求める。
-        /// 分度器は弧が壁の法線方向を向くように回転し、エリアは反射角を中心に areaWidth 度の幅で表示する。
+        /// 分度器は弧の真ん中が壁の法線 (45度刻み) を向くように回転し、エリアは反射角を中心に areaWidth 度の幅で表示する。
+        /// 反射角が分度器の端に近くエリアがはみ出す場合は、分度器を反射する側へ90度回して収める。
         /// </summary>
         public static ReflectGaugeLayout CreateLayout(Vector3 incoming, Vector3 wallNormal, float areaWidth)
         {
@@ -89,17 +97,31 @@ namespace EchoEdge.Presenter.Player
             var reflected = Vector2.Reflect(dir, normal);
             var reflectAngle = ToAngle(reflected);
 
-            // 弧の真ん中 (90度) が法線を向くように回転させる
-            var rotation = Mathf.DeltaAngle(0f, ToAngle(normal) - 90f);
-
-            // 分度器ローカルでの反射角 (0〜180)
-            var localReflect = Mathf.Clamp(Mathf.Repeat(reflectAngle - rotation, 360f), 0f, HalfCircle);
+            // 弧の真ん中 (90度) が壁の面の法線を向くように回転させる (Unity の Z 回転、反時計回りが正)
+            var normalAngle = Mathf.Round(ToAngle(normal) / RotationStep) * RotationStep;
+            var rotation = Mathf.DeltaAngle(0f, normalAngle - 90f);
 
             var halfWidth = Mathf.Clamp(areaWidth, 0f, HalfCircle) * 0.5f;
+
+            // 分度器ローカルでの反射角 (-180〜180、0〜180 が分度器の範囲)
+            var localReflect = Mathf.DeltaAngle(0f, reflectAngle - rotation);
+
+            // 端に寄ってエリアがはみ出すなら、左右 (反射する側) を中心にした分度器にする
+            if (localReflect - halfWidth < 0f && localReflect < 90f)
+            {
+                rotation -= 90f;
+            }
+            else if (localReflect + halfWidth > HalfCircle)
+            {
+                rotation += 90f;
+            }
+            rotation = Mathf.DeltaAngle(0f, rotation);
+            localReflect = Mathf.Clamp(Mathf.Repeat(reflectAngle - rotation, 360f), 0f, HalfCircle);
+
             var areaMin = Mathf.Clamp(localReflect - halfWidth, 0f, HalfCircle);
             var areaMax = Mathf.Clamp(localReflect + halfWidth, 0f, HalfCircle);
 
-            // 針はエリアの反対側の端から回転を始める
+            // 針はエリアの反対側の端から、片道だけ回転する
             var needleStart = localReflect < 90f ? HalfCircle : 0f;
             var needleEnd = HalfCircle - needleStart;
 
