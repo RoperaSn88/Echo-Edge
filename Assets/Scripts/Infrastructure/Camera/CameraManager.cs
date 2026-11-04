@@ -905,6 +905,80 @@ namespace EchoEdge.Infra.Camera
         }
 
         /// <summary>
+        /// 追加反射の分度器QTE中のカメラの距離
+        /// </summary>
+        private const float ReflectGaugeCameraDistance = 4f;
+
+        /// <summary>
+        /// 追加反射の分度器QTEのズームにかける時間
+        /// </summary>
+        private const float ReflectGaugeZoomTime = 0.2f;
+
+        private Sequence _reflectGaugeZoomSequence;
+        private float _reflectGaugeDistanceBefore;
+        private Vector3 _reflectGaugeOffsetBefore;
+        private bool _isReflectGaugeZoomed;
+
+        /// <summary>
+        /// 追加反射の分度器QTE開始時に、カメラをプレイヤーへ近づける。
+        /// 追尾中ならそのまま追尾し、距離とオフセットだけを変える。
+        /// </summary>
+        /// <param name="playerPos">プレイヤーのワールド座標</param>
+        public UniTask ActReflectGaugeZoomIn(Vector3 playerPos)
+        {
+            // 戻している途中で次の QTE が始まった場合は、最初に覚えた値を使い続ける
+            var restoring = _reflectGaugeZoomSequence != null && _reflectGaugeZoomSequence.IsActive();
+            if (!_isReflectGaugeZoomed && !restoring)
+            {
+                _reflectGaugeDistanceBefore = _cinemachineThirdPersonFollow.CameraDistance;
+                _reflectGaugeOffsetBefore = _cinemachineThirdPersonFollow.ShoulderOffset;
+                _isReflectGaugeZoomed = true;
+            }
+
+            _reflectGaugeZoomSequence?.Kill();
+            _reflectGaugeZoomSequence = DOTween.Sequence()
+                .Join(DOTween.To(() => _cinemachineThirdPersonFollow.CameraDistance,
+                    d => _cinemachineThirdPersonFollow.CameraDistance = d,
+                    ReflectGaugeCameraDistance, ReflectGaugeZoomTime))
+                .Join(DOTween.To(() => _cinemachineThirdPersonFollow.ShoulderOffset,
+                    o => _cinemachineThirdPersonFollow.ShoulderOffset = o,
+                    ZoomCameraOffset, ReflectGaugeZoomTime))
+                .SetEase(Ease.OutQuad)
+                .SetUpdate(true);
+
+            if (!_isTracking)
+            {
+                _reflectGaugeZoomSequence.Join(DOTween.To(() => _defaultCameraPos.position,
+                    pos => _defaultCameraPos.position = pos,
+                    playerPos, ReflectGaugeZoomTime));
+            }
+
+            return _reflectGaugeZoomSequence.ToUniTask();
+        }
+
+        /// <summary>
+        /// 分度器QTEのズームを、ズーム前の距離とオフセットへ戻す。
+        /// </summary>
+        public UniTask ActReflectGaugeZoomOut()
+        {
+            if (!_isReflectGaugeZoomed) return UniTask.CompletedTask;
+            _isReflectGaugeZoomed = false;
+
+            _reflectGaugeZoomSequence?.Kill();
+            _reflectGaugeZoomSequence = DOTween.Sequence()
+                .Join(DOTween.To(() => _cinemachineThirdPersonFollow.CameraDistance,
+                    d => _cinemachineThirdPersonFollow.CameraDistance = d,
+                    _reflectGaugeDistanceBefore, ReflectGaugeZoomTime))
+                .Join(DOTween.To(() => _cinemachineThirdPersonFollow.ShoulderOffset,
+                    o => _cinemachineThirdPersonFollow.ShoulderOffset = o,
+                    _reflectGaugeOffsetBefore, ReflectGaugeZoomTime))
+                .SetEase(Ease.OutQuad)
+                .SetUpdate(true);
+
+            return _reflectGaugeZoomSequence.ToUniTask();
+        }
+
+        /// <summary>
         /// カメラの揺れを開始する。
         /// </summary>
         public void StartCameraShake()

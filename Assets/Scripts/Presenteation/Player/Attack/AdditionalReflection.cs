@@ -3,6 +3,7 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 using EchoEdge.App.Battle;
+using EchoEdge.Infra.Camera;
 using EchoEdge.Presenter.UI;
 
 namespace EchoEdge.Presenter.Player
@@ -83,7 +84,17 @@ namespace EchoEdge.Presenter.Player
                       $"成功範囲(分度器): {layout.AreaMin:F1}°〜{layout.AreaMax:F1}° (幅 {areaWidth:F2}°) / " +
                       $"成功範囲(画面): {Mathf.Repeat(layout.AreaMin + layout.Rotation, 360f):F1}°〜{Mathf.Repeat(layout.AreaMax + layout.Rotation, 360f):F1}° / " +
                       $"針: {layout.NeedleStart:F0}°→{layout.NeedleEnd:F0}°");
-            return await gauge.PlayAsync(layout, cancellationToken);
+            // QTE 中はカメラをプレイヤーへ近づける
+            var camera = CameraManager.Instance;
+            if (camera != null) camera.ActReflectGaugeZoomIn(PlayerController.Instance.PlayerTransform.position).Forget();
+            try
+            {
+                return await gauge.PlayAsync(layout, cancellationToken);
+            }
+            finally
+            {
+                if (camera != null) camera.ActReflectGaugeZoomOut().Forget();
+            }
         }
 
         /// <summary>
