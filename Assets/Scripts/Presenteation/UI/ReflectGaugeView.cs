@@ -123,10 +123,7 @@ namespace EchoEdge.Presenter.UI
                 input.Disable();
 
                 var success = clicked && layout.Contains(needleAngle);
-                Debug.Log(clicked
-                    ? $"[追加反射] 入力: {needleAngle:F1}° (画面 {Mathf.Repeat(needleAngle + layout.Rotation, 360f):F1}°) / 成功範囲: {layout.AreaMin:F1}°〜{layout.AreaMax:F1}° / {(success ? "成功" : "失敗")}"
-                    : $"[追加反射] 入力なし (時間切れ) / 成功範囲: {layout.AreaMin:F1}°〜{layout.AreaMax:F1}° / 失敗");
-                AudioManager.Instance.PlaySe(success ? BattleSeType.QTE_Good : BattleSeType.QTE_Bad);
+                AudioManager.Instance.PlaySe(success ? BattleSeType.QTE_Perfect : BattleSeType.QTE_Bad);
 
                 await UniTask.Delay(System.TimeSpan.FromSeconds(_resultDuration), cancellationToken: cancellationToken);
                 return success;

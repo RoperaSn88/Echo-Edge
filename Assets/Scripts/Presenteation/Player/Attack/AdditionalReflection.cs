@@ -49,6 +49,8 @@ namespace EchoEdge.Presenter.Player
     public static class AdditionalReflection
     {
         private const float HalfCircle = 180f;
+        
+        private const float additionalAngle = 2f;
 
         /// <summary>
         /// 分度器QTEを行い、追加の反射を行うかを返す。
@@ -79,11 +81,7 @@ namespace EchoEdge.Presenter.Player
             var incidentAngle = ToAngle(-new Vector2(incoming.x, incoming.z));
             var reflectAngle = ToAngle(Vector2.Reflect(new Vector2(incoming.x, incoming.z),
                 new Vector2(wallNormal.x, wallNormal.z).normalized));
-            Debug.Log($"[追加反射] {additionalCount + 1}回目 入射角: {incidentAngle:F1}° / 反射角: {reflectAngle:F1}° / " +
-                      $"法線: {ToAngle(new Vector2(wallNormal.x, wallNormal.z)):F1}° / 分度器の回転: {layout.Rotation:F1}° / " +
-                      $"成功範囲(分度器): {layout.AreaMin:F1}°〜{layout.AreaMax:F1}° (幅 {areaWidth:F2}°) / " +
-                      $"成功範囲(画面): {Mathf.Repeat(layout.AreaMin + layout.Rotation, 360f):F1}°〜{Mathf.Repeat(layout.AreaMax + layout.Rotation, 360f):F1}° / " +
-                      $"針: {layout.NeedleStart:F0}°→{layout.NeedleEnd:F0}°");
+
             // QTE 中はカメラをプレイヤーへ近づける
             var camera = CameraManager.Instance;
             if (camera != null) camera.ActReflectGaugeZoomIn(PlayerController.Instance.PlayerTransform.position).Forget();
@@ -122,7 +120,7 @@ namespace EchoEdge.Presenter.Player
             var normalAngle = Mathf.Round(ToAngle(normal) / RotationStep) * RotationStep;
             var rotation = Mathf.DeltaAngle(0f, normalAngle - 90f);
 
-            var halfWidth = Mathf.Clamp(areaWidth, 0f, HalfCircle) * 0.5f;
+            var halfWidth = Mathf.Clamp(areaWidth, 0f, HalfCircle) * 0.5f + additionalAngle;
 
             // 分度器ローカルでの反射角 (-180〜180、0〜180 が分度器の範囲)
             var localReflect = Mathf.DeltaAngle(0f, reflectAngle - rotation);
