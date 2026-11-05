@@ -7,6 +7,7 @@ namespace EchoEdge.Domain.Scene
         Option = 3,
         License = 4,
         Credit = 5,
-        Scenario = 6
+        Scenario = 6,
+        End = 7
     }
 }
