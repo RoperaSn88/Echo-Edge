@@ -207250,6 +207250,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1755719591}
     m_Modifications:
+    - target: {fileID: 1446902370872422537, guid: cea0c50abd75d7d49b723a634da97bb3, type: 3}
+      propertyPath: m_Name
+      value: QTE
+      objectReference: {fileID: 0}
+    - target: {fileID: 1446902370872422537, guid: cea0c50abd75d7d49b723a634da97bb3, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4037393082137425091, guid: cea0c50abd75d7d49b723a634da97bb3, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -207330,14 +207338,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 1446902370872422537, guid: cea0c50abd75d7d49b723a634da97bb3, type: 3}
-      propertyPath: m_Name
-      value: QTE
-      objectReference: {fileID: 0}
-    - target: {fileID: 1446902370872422537, guid: cea0c50abd75d7d49b723a634da97bb3, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -207358,7 +207358,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f63ee452e36096849ac22110a66c851b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: Assembly-CSharp::QTEPresenter
 --- !u!1001 &1782055948
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -207475,7 +207475,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d34b4665ff412884fb565109576c7f1e, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: Assembly-CSharp::QTEResultText
 --- !u!1 &1782908924
 GameObject:
   m_ObjectHideFlags: 0
@@ -213891,7 +213891,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 300, y: 300}
+  m_SizeDelta: {x: 533.3333, y: 266.6667}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!225 &1868389234
 CanvasGroup:
@@ -213922,7 +213922,7 @@ MonoBehaviour:
   _area: {fileID: 1628160816}
   _needle: {fileID: 1702366687}
   _initialAreaWidth: 45
-  _needleSpeed: 240
+  _needleSpeed: 180
   _maxSweepCount: 1
   _maxAdditionalReflectCount: 0
   _fadeDuration: 0.15
