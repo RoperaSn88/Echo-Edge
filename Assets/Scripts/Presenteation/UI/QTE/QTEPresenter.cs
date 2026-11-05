@@ -7,6 +7,7 @@ using System;
 using TMPro;
 
 using EchoEdge.Infra.Audio;
+using EchoEdge.Infra.Tutorial;
 
 namespace EchoEdge.Presenter.UI
 {
@@ -83,6 +84,14 @@ namespace EchoEdge.Presenter.UI
                 _icon.DOFade(1f,InitializeTime).SetUpdate(true).ToUniTask(),
                 _icon.rectTransform.DOScale(Vector3.one, InitializeTime).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask()
             );
+
+            // 初めて QTE が出現したときはチュートリアルを再生し、終わるまで判定を始めない
+            if (await TutorialActivator.TryStartTutorialOnce(TutorialKinds.QTEAppear))
+            {
+                // チュートリアルを閉じたクリックを QTE の入力として扱わない
+                await UniTask.WaitWhile(() => _mouseClick.Mouse.MouseClick.IsPressed());
+                _clicked = false;
+            }
 
             // 待機
             await UniTask.Delay(TimeSpan.FromSeconds(WaitWaitTime), ignoreTimeScale : true);

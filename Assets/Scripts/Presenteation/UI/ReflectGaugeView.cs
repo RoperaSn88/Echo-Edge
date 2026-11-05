@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 using EchoEdge.Infra.Audio;
+using EchoEdge.Infra.Tutorial;
 using EchoEdge.Presenter.Player;
 
 namespace EchoEdge.Presenter.UI
@@ -97,9 +98,19 @@ namespace EchoEdge.Presenter.UI
                 AudioManager.Instance.PlaySe(BattleSeType.QTE);
                 await Fade(1f, cancellationToken);
 
+                // 初めて分度器QTEが出現したときは、分度器を表示したままチュートリアルを再生し、終わるまで針を動かさない
+                var tutorialPlayed = await TutorialActivator.TryStartTutorialOnce(TutorialKinds.ReflectGauge);
+
                 // フェード中のクリックは無視する
                 clicked = false;
                 input.Enable();
+
+                if (tutorialPlayed)
+                {
+                    // チュートリアルを閉じたクリックを針を止める入力として扱わない
+                    await UniTask.WaitWhile(() => input.Mouse.MouseClick.IsPressed(), cancellationToken: cancellationToken);
+                    clicked = false;
+                }
 
                 var sweepDuration = 180f / _needleSpeed;
                 var elapsed = 0f;
