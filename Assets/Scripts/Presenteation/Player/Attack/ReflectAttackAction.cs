@@ -84,6 +84,9 @@ namespace EchoEdge.Presenter.Player
                     }
                 }
 
+                // 反射直後の当たり判定や移動中のダメージでステージクリアになっていたら、次の壁へ進まない
+                if (GameClearManager.IsGameClearSequenceRunning) break;
+
                 // 始点からdirection方向にrayを飛ばし、当たった位置を新たな_posとする。
                 if (!Physics.Raycast(ray, out RaycastHit hit, math.INFINITY, player.LayerMask))
                 {
@@ -96,6 +99,9 @@ namespace EchoEdge.Presenter.Player
                 Vector3 endVec = new Vector3(hit.point.x, hit.point.y, hit.point.z);
                 endVec = Vector3.Lerp(player.transform.position, endVec, 0.99f);
                 await player.MoveByVelocityAsync(endVec, distance / Speed);
+
+                // ステージクリア後は反射を続けず、その場で攻撃を終える
+                if (GameClearManager.IsGameClearSequenceRunning) break;
 
                 // 【反射回数】分は QTE なしで反射し、それ以上は分度器QTEに成功したときだけ反射する
                 if (i >= reflectCount)

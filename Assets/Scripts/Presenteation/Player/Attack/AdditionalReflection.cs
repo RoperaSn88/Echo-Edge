@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -67,7 +68,7 @@ namespace EchoEdge.Presenter.Player
 
         /// <summary>
         /// 分度器QTEを行い、追加の反射を行うかを返す。
-        /// 分度器が未配置の場合や、追加反射の上限に達している場合は false。
+        /// 分度器が未配置の場合、追加反射の上限に達している場合、ステージクリア後の場合は false。
         /// </summary>
         /// <param name="incoming">壁に当たる直前の進行方向</param>
         /// <param name="wallNormal">当たった壁の法線</param>
@@ -75,6 +76,9 @@ namespace EchoEdge.Presenter.Player
         public static async UniTask<bool> TryAsync(Vector3 incoming, Vector3 wallNormal, int additionalCount,
             CancellationToken cancellationToken = default)
         {
+            // ステージクリア後は分度器QTEを出さず、攻撃をそこで終える
+            if (GameClearManager.IsGameClearSequenceRunning) return false;
+
             var gauge = ReflectGaugeView.Instance;
             if (gauge == null) return false;
 
@@ -85,6 +89,9 @@ namespace EchoEdge.Presenter.Player
 
             // 攻撃QTEとクリックが重ならないよう、表示中なら終わるまで待つ
             await UniTask.WaitWhile(() => BattleManager.IsAttackQTEPlaying, cancellationToken: cancellationToken);
+
+            // 攻撃QTEの結果でステージクリアになった場合も分度器QTEは出さない
+            if (GameClearManager.IsGameClearSequenceRunning) return false;
 
             // エリアは追加反射のたびに半分にする (45 → 22.5 → 11.25 ...)
             var areaWidth = gauge.InitialAreaWidth / Mathf.Pow(2f, additionalCount);
@@ -98,13 +105,30 @@ namespace EchoEdge.Presenter.Player
             // QTE 中はカメラをプレイヤーへ近づける
             var camera = CameraManager.Instance;
             if (camera != null) camera.ActReflectGaugeZoomIn(PlayerController.Instance.PlayerTransform.position).Forget();
+            // 分度器QTEの途中でステージクリアになったら (敵の撃破処理が遅れて届いた場合など)、
+            // QTEを打ち切って追加反射しない。打ち切らないと、クリア後の選択のあとに分度器が残る
+            using var clearCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            UniTask.WaitUntil(() => GameClearManager.IsGameClearSequenceRunning, cancellationToken: clearCts.Token)
+                .ContinueWith(() => clearCts.Cancel())
+                .SuppressCancellationThrow()
+                .Forget();
             try
             {
-                return await gauge.PlayAsync(layout, cancellationToken);
+                return await gauge.PlayAsync(layout, clearCts.Token);
+            }
+            catch (OperationCanceledException) when (GameClearManager.IsGameClearSequenceRunning
+                                                     && !cancellationToken.IsCancellationRequested)
+            {
+                return false;
             }
             finally
             {
-                if (camera != null) camera.ActReflectGaugeZoomOut().Forget();
+                clearCts.Cancel();
+                // クリア後はクリア演出のカメラに任せ、ズーム前へ戻さない
+                if (camera != null && !GameClearManager.IsGameClearSequenceRunning)
+                {
+                    camera.ActReflectGaugeZoomOut().Forget();
+                }
             }
         }
 
