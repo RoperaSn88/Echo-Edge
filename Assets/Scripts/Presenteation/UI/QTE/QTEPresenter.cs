@@ -30,9 +30,14 @@ namespace EchoEdge.Presenter.UI
         private bool _clicked;
 
         /// <summary>
-        /// 待つ最大の時間
+        /// 枠が縮みきるまでの時間
         /// </summary>
         private const float WaitTime = 0.75f;
+
+        /// <summary>
+        /// 入力を待つ最大の時間。枠が縮みきったあとも、この時間までは大成功とする
+        /// </summary>
+        private const float PerfectLimitTime = 0.8f;
 
         /// <summary>
         /// 出現してから待つ時間
@@ -98,8 +103,9 @@ namespace EchoEdge.Presenter.UI
 
             var timer = Time.unscaledTime;
             _frame.DOFade(1f, InitializeTime).SetUpdate(true).ToUniTask().Forget();
+            _frameRect.DOSizeDelta(new Vector2(107f, 107f), WaitTime).SetEase(Ease.Linear).SetUpdate(true).ToUniTask().Forget();
             await UniTask.WhenAny(
-                _frameRect.DOSizeDelta(new Vector2(107f, 107f), WaitTime).SetEase(Ease.Linear).SetUpdate(true).ToUniTask(),
+                UniTask.Delay(TimeSpan.FromSeconds(PerfectLimitTime), ignoreTimeScale : true),
                 UniTask.WaitUntil(() => _clicked)
             );
 
@@ -136,7 +142,7 @@ namespace EchoEdge.Presenter.UI
                     _mouseClick.Dispose();
                     return;
                 }
-                else if (endTime - timer < WaitTime && endTime - timer >= GreatSuccessTime)
+                else if (endTime - timer < PerfectLimitTime && endTime - timer >= GreatSuccessTime)
                 {
                     // 大成功
                     _resultLevel = QTEResults.Perfect;

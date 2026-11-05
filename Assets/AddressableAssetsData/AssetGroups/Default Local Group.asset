@@ -55,6 +55,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 29847943379fc12468dfb62766111e95
+    m_Address: Assets/Addressables/Tutorials/TextBoxMasterData_Player.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 2a4137546f1652145baf4f9902389c41
     m_Address: Assets/Addressables/Scenario/ScenarioData_1_after.asset
     m_ReadOnly: 0
