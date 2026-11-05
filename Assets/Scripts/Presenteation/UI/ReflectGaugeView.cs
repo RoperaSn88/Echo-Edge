@@ -143,8 +143,23 @@ namespace EchoEdge.Presenter.UI
             finally
             {
                 input.Dispose();
-                Fade(0f, CancellationToken.None).Forget();
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    // 打ち切られたとき (ステージクリアなど) は、時間停止中でも残らないよう即座に消す
+                    HideImmediately();
+                }
+                else
+                {
+                    Fade(0f, CancellationToken.None).Forget();
+                }
             }
+        }
+
+        private void HideImmediately()
+        {
+            if (_canvasGroup == null) return;
+            _canvasGroup.DOKill();
+            _canvasGroup.alpha = 0f;
         }
 
         private void SetNeedleAngle(float angle)

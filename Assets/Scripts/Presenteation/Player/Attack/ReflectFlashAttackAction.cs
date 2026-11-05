@@ -95,6 +95,9 @@ namespace EchoEdge.Presenter.Player
                     cts.Cancel();
                 }
 
+                // 敵の撃破でステージクリアになったら、壁まで進まず反射もせずに攻撃を終える
+                if (GameClearManager.IsGameClearSequenceRunning) break;
+
                 // 壁の位置まで瞬時に移動する
                 player.PlayerTransform.position = wallHit.point - direction * 0.5f;
                 await player.PlayerTransform.DOMove(wallHit.point, FlashAttackSlashDuration);
