@@ -896,6 +896,13 @@ namespace EchoEdge.Infra.Camera
         /// <param name="playerPos">プレイヤーのワールド座標</param>
         public void SetGameClearCamera(Vector3 playerPos)
         {
+            // クリアになった攻撃のズームを戻す途中の Tween が、クリア用のズームを上書きしないよう止める。
+            // 以降の一時ズームの解除（同時に当たった他の敵の攻撃終了など）も無視し、クリア演出中はズームを維持する。
+            _isGameClearCamera = true;
+            _temporaryZoomSequence?.Kill();
+            _temporaryZoomSequence = null;
+            _temporaryZoomCount = 0;
+
             StopGroupFraming();
             _defaultCameraPos.position = playerPos;
             _cinemachineThirdPersonFollow.CameraDistance = GameClearCameraDistance;
@@ -923,6 +930,12 @@ namespace EchoEdge.Infra.Camera
         /// 一時ズーム中の数。複数の敵に同時に当たったときに、最後の1つが終わってから戻すために数える
         /// </summary>
         private int _temporaryZoomCount;
+
+        /// <summary>
+        /// ゲームクリアのカメラにした後か。true の間は一時ズーム（敵への攻撃・分度器QTE）で
+        /// カメラを動かさない。MainGame シーンを読み込み直すと CameraManager ごと作り直されて false に戻る。
+        /// </summary>
+        private bool _isGameClearCamera;
 
         /// <summary>
         /// 追加反射の分度器QTE開始時に、カメラをプレイヤーへ近づける。
@@ -966,6 +979,8 @@ namespace EchoEdge.Infra.Camera
         /// </summary>
         private UniTask ActTemporaryZoomIn(Vector3 target, float distance)
         {
+            if (_isGameClearCamera) return UniTask.CompletedTask;
+
             // 他のカメラ移動 (攻撃開始時に通常視点へ戻すなど) の途中なら、完了させてから覚える
             if (_cameraMoving)
             {
@@ -993,6 +1008,9 @@ namespace EchoEdge.Infra.Camera
         /// </summary>
         private UniTask ActTemporaryZoomOut()
         {
+            // ゲームクリア後はズームを解除しない
+            if (_isGameClearCamera) return UniTask.CompletedTask;
+
             if (_temporaryZoomCount <= 0) return UniTask.CompletedTask;
             _temporaryZoomCount--;
             if (_temporaryZoomCount > 0) return UniTask.CompletedTask;
