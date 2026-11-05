@@ -5857,7 +5857,7 @@ ParticleSystem:
     rateOverTime:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 0
+      scalar: 30
       minScalar: 10
       maxCurve:
         serializedVersion: 2
@@ -8988,7 +8988,7 @@ ParticleSystem:
         m_RotationOrder: 4
     maxLights: 20
   TrailModule:
-    enabled: 1
+    enabled: 0
     mode: 0
     ratio: 1
     lifetime:
@@ -9049,7 +9049,7 @@ ParticleSystem:
     textureScale: {x: 1, y: 1}
     ribbonCount: 1
     shadowBias: 0.5
-    worldSpace: 0
+    worldSpace: 1
     dieWithParticles: 1
     sizeAffectsWidth: 1
     sizeAffectsLifetime: 0
@@ -9837,7 +9837,6 @@ ParticleSystemRenderer:
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 8d3cee0bd65442546913a525fcefa4ab, type: 2}
-  - {fileID: 2100000, guid: 8d3cee0bd65442546913a525fcefa4ab, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -9925,7 +9924,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 223, y: -217}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &8452002241141142220
@@ -9943,8 +9942,8 @@ MonoBehaviour:
   _head: {fileID: 8041914366760485423}
   _trailParticle: {fileID: 6275346891727724313}
   _arrivalParticle: {fileID: 6592164946309716163}
-  _flightTime: 1.5
+  _flightTime: 0.3
   _curveRate: 0.35
-  _ease: 5
+  _ease: 7
   _arrivalPunchScale: 0.15
   _maxFadeOutTime: 2
