@@ -11,7 +11,7 @@ using EchoEdge.Infra.Tutorial;
 
 namespace EchoEdge.Presenter.UI
 {
-    public class QTEPresenter : ObjectPooler
+    public class QTEPresenter : MonoBehaviour
     {
         [SerializeField]
         private Image _icon;
@@ -60,7 +60,7 @@ namespace EchoEdge.Presenter.UI
 
         public QTEKinds Kind;
 
-        public async override UniTask Appear()
+        public async UniTask Appear()
         {
             _mouseClick = new MouseClick();
             _mouseClick.Mouse.MouseClick.started += Click;

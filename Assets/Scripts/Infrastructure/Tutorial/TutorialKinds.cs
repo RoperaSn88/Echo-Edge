@@ -6,7 +6,7 @@ namespace EchoEdge.Infra.Tutorial
     {
         FirstBattle,
         Reflect,
-        QTE,
+        Attack,
         Enemy,
         Final,
         Pierce,
