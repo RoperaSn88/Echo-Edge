@@ -10,6 +10,8 @@ namespace EchoEdge.Presenter.Battle
     /// 一閃の角度選択中に表示する予測線。
     /// 実際の一閃(<see cref="IPlayerAttackAction"/>の各実装)と同じレイキャストで壁への当たりを求め、
     /// 反射回数の分だけ反射(貫通の剣は貫通も)を追った経路を描く。
+    /// 線分(0回目, 1回目, …)ごとに LineRenderer を分け、反射回数を N として i 回目の線を
+    /// 不透明度 1 - i / (N + 1) で描く(例: N = 1 なら 100%, 50%)。
     /// </summary>
     public class PlayerAttackGuideLine
     {
@@ -26,10 +28,21 @@ namespace EchoEdge.Presenter.Battle
         /// </summary>
         private const float NormalAttackStopRate = 0.99f;
 
+        private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
+        private static readonly int EmissionColorId = Shader.PropertyToID("_EmissionColor");
+
         private readonly List<Vector3> _points = new();
+
+        /// <summary>
+        /// 各線分(i 回目の線)が始まる <see cref="_points"/> のインデックス。
+        /// 線分 i は _segmentStarts[i] から次の線分の始点(最後の線分は末尾)までの点を結ぶ。
+        /// </summary>
+        private readonly List<int> _segmentStarts = new();
+
+        private readonly List<LineRenderer> _lineRenderers = new();
+        private MaterialPropertyBlock _propertyBlock;
         private Material _lineMaterial;
         private GameObject _lineObject;
-        private LineRenderer _lineRenderer;
 
         /// <summary>
         /// 予測線を更新する。
@@ -51,10 +64,12 @@ namespace EchoEdge.Presenter.Battle
             }
 
             _points.Clear();
+            _segmentStarts.Clear();
 
             if (attackKind == PlayerAttackKinds.Curve)
             {
                 // 弧曲の軌道は反射の追跡と別物なので、ひとまず従来どおりポインターまでの直線を描く
+                _segmentStarts.Add(0);
                 _points.Add(playerPosition);
                 _points.Add(new Vector3(pointerPosition.x, playerPosition.y, pointerPosition.z));
             }
@@ -63,15 +78,39 @@ namespace EchoEdge.Presenter.Battle
                 TraceStraightAttack(playerPosition, direction.normalized, attackKind, isFlash, reflectCount, wallLayerMask);
             }
 
-            EnsureLineRenderer();
-            _lineRenderer.enabled = true;
-            _lineRenderer.positionCount = _points.Count;
-            for (int i = 0; i < _points.Count; i++)
+            EnsureLineObject();
+            int segmentCount = _segmentStarts.Count;
+            for (int i = 0; i < segmentCount; i++)
             {
-                Vector3 point = _points[i];
-                point.y -= HeightOffset;
-                _lineRenderer.SetPosition(i, point);
+                LineRenderer lineRenderer = GetLineRenderer(i);
+                int start = _segmentStarts[i];
+                int end = i + 1 < segmentCount ? _segmentStarts[i + 1] : _points.Count - 1;
+
+                lineRenderer.enabled = true;
+                lineRenderer.positionCount = end - start + 1;
+                for (int j = start; j <= end; j++)
+                {
+                    Vector3 point = _points[j];
+                    point.y -= HeightOffset;
+                    lineRenderer.SetPosition(j - start, point);
+                }
+
+                ApplyAlpha(lineRenderer, GetSegmentAlpha(i, reflectCount));
             }
+
+            for (int i = segmentCount; i < _lineRenderers.Count; i++)
+            {
+                _lineRenderers[i].enabled = false;
+            }
+        }
+
+        /// <summary>
+        /// i 回目の線の不透明度。反射回数 N のとき 1 - i / (N + 1)。
+        /// </summary>
+        private static float GetSegmentAlpha(int segmentIndex, int reflectCount)
+        {
+            if (reflectCount < 0) reflectCount = 0;
+            return Mathf.Clamp01(1f - (float)segmentIndex / (reflectCount + 1));
         }
 
         /// <summary>
@@ -86,6 +125,9 @@ namespace EchoEdge.Presenter.Battle
 
             for (int i = 0; i <= reflectCount; i++)
             {
+                // i 回目の線は、直前の線の終点(壁に当たった点・貫通した先)から始まる
+                _segmentStarts.Add(_points.Count - 1);
+
                 var ray = new Ray(origin, direction);
                 if (!Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, wallLayerMask))
                 {
@@ -140,49 +182,98 @@ namespace EchoEdge.Presenter.Battle
             return true;
         }
 
+        /// <summary>
+        /// 線分ごとの不透明度を反映する。マテリアルは共有なので MaterialPropertyBlock で個別に上書きする。
+        /// 線のマテリアル(URP Lit, Additive)は発光色が不透明度で弱まらないため、発光色にも不透明度を掛ける。
+        /// </summary>
+        private void ApplyAlpha(LineRenderer lineRenderer, float alpha)
+        {
+            // 頂点カラーを使うシェーダー向け
+            Color vertexColor = new Color(1f, 1f, 1f, alpha);
+            lineRenderer.startColor = vertexColor;
+            lineRenderer.endColor = vertexColor;
+
+            Material material = lineRenderer.sharedMaterial;
+            if (material == null) return;
+
+            _propertyBlock ??= new MaterialPropertyBlock();
+            _propertyBlock.Clear();
+            if (material.HasProperty(BaseColorId))
+            {
+                Color baseColor = material.GetColor(BaseColorId);
+                baseColor.a *= alpha;
+                _propertyBlock.SetColor(BaseColorId, baseColor);
+            }
+            if (material.HasProperty(EmissionColorId))
+            {
+                Color emissionColor = material.GetColor(EmissionColorId);
+                _propertyBlock.SetColor(EmissionColorId, new Color(emissionColor.r * alpha, emissionColor.g * alpha, emissionColor.b * alpha, emissionColor.a));
+            }
+            lineRenderer.SetPropertyBlock(_propertyBlock);
+        }
+
         public void Hide()
         {
-            if (_lineRenderer == null) return;
-            _lineRenderer.enabled = false;
+            foreach (LineRenderer lineRenderer in _lineRenderers)
+            {
+                if (lineRenderer != null) lineRenderer.enabled = false;
+            }
         }
 
         public void Destroy()
         {
+            _lineRenderers.Clear();
             if (_lineObject == null) return;
             Object.Destroy(_lineObject);
             _lineObject = null;
-            _lineRenderer = null;
         }
 
-        private void EnsureLineRenderer()
+        private void EnsureLineObject()
         {
-            if (_lineRenderer != null) return;
+            if (_lineObject != null) return;
 
+            _lineRenderers.Clear();
             _lineObject = new GameObject("PlayerAttackGuideLine");
-            _lineRenderer = _lineObject.AddComponent<LineRenderer>();
-            _lineRenderer.positionCount = 2;
-            _lineRenderer.startWidth = LineWidth;
-            _lineRenderer.endWidth = LineWidth;
-            _lineRenderer.numCornerVertices = 2;
-            _lineRenderer.useWorldSpace = true;
-            _lineRenderer.enabled = false;
-            _lineRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            _lineRenderer.receiveShadows = false;
             if (_lineMaterial == null && PlayerController.Instance != null)
             {
                 _lineMaterial = PlayerController.Instance.LineMaterial;
             }
-            if (_lineMaterial != null)
+        }
+
+        /// <summary>
+        /// i 回目の線を描く LineRenderer を返す。足りなければ子オブジェクトとして作る。
+        /// </summary>
+        private LineRenderer GetLineRenderer(int segmentIndex)
+        {
+            while (_lineRenderers.Count <= segmentIndex)
             {
-                _lineRenderer.sharedMaterial = _lineMaterial;
+                var segmentObject = new GameObject($"Segment{_lineRenderers.Count}");
+                segmentObject.transform.SetParent(_lineObject.transform, false);
+                var lineRenderer = segmentObject.AddComponent<LineRenderer>();
+                lineRenderer.positionCount = 2;
+                lineRenderer.startWidth = LineWidth;
+                lineRenderer.endWidth = LineWidth;
+                lineRenderer.numCornerVertices = 2;
+                lineRenderer.useWorldSpace = true;
+                lineRenderer.enabled = false;
+                lineRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                lineRenderer.receiveShadows = false;
+                if (_lineMaterial != null)
+                {
+                    lineRenderer.sharedMaterial = _lineMaterial;
+                }
+                _lineRenderers.Add(lineRenderer);
             }
+            return _lineRenderers[segmentIndex];
         }
 
         public void SetMaterial(Material material)
         {
             _lineMaterial = material;
-            if (_lineRenderer == null) return;
-            _lineRenderer.sharedMaterial = _lineMaterial;
+            foreach (LineRenderer lineRenderer in _lineRenderers)
+            {
+                if (lineRenderer != null) lineRenderer.sharedMaterial = _lineMaterial;
+            }
         }
     }
 }
