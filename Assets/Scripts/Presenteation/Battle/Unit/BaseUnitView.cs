@@ -455,26 +455,33 @@ namespace EchoEdge.Presenter.Battle
             }
 
             Time.timeScale = 0.001f;
-            CameraManager.Instance.ActSetCameraTarget(transform.position).Forget();
+            CameraManager.Instance.ActAttackHitZoomIn(transform.position).Forget();
 
-            BattleManager.RegisterEnemy(targetStatus);
-            var damageValue = await calculateDamage();
-
-            UIPresenter.Instance.AppearDamageText($"{damageValue.damage}", transform.position).Forget();
-            DOTween.To(() => _healthBar.fillAmount, x => _healthBar.fillAmount = x, (float)targetStatus.HP / targetStatus.MaxHP, 0.5f).SetEase(Ease.OutQuad).ToUniTask().Forget();
-
-            if (damageValue.isDeath)
+            (int damage, bool isDeath) damageValue;
+            try
             {
-                await Death(targetStatus);
+                BattleManager.RegisterEnemy(targetStatus);
+                damageValue = await calculateDamage();
+
+                UIPresenter.Instance.AppearDamageText($"{damageValue.damage}", transform.position).Forget();
+                DOTween.To(() => _healthBar.fillAmount, x => _healthBar.fillAmount = x, (float)targetStatus.HP / targetStatus.MaxHP, 0.5f).SetEase(Ease.OutQuad).ToUniTask().Forget();
+
+                if (damageValue.isDeath)
+                {
+                    await Death(targetStatus);
+                }
+                else
+                {
+                    await Damage(targetStatus);
+                }
             }
-            else
+            finally
             {
-                await Damage(targetStatus);
+                Time.timeScale = 1.0f;
+
+                // 攻撃が終わったら、ズーム前のカメラに戻す
+                CameraManager.Instance.ActAttackHitZoomOut().Forget();
             }
-
-            Time.timeScale = 1.0f;
-
-            // CameraManager.Instance.ActResetCameraTarget().Forget();
 
             if (damageValue.isDeath)
             {
@@ -539,7 +546,7 @@ namespace EchoEdge.Presenter.Battle
             {
                 if (CameraManager.Instance != null)
                 {
-                    CameraManager.Instance.ActSetCameraTarget(transform.position).Forget();
+                    CameraManager.Instance.ActAttackHitZoomIn(transform.position).Forget();
                 }
 
                 if (UIPresenter.Instance != null)
@@ -568,6 +575,12 @@ namespace EchoEdge.Presenter.Battle
             finally
             {
                 Time.timeScale = 1.0f;
+
+                // 攻撃が終わったら、ズーム前のカメラに戻す
+                if (CameraManager.Instance != null)
+                {
+                    CameraManager.Instance.ActAttackHitZoomOut().Forget();
+                }
             }
 
             if (isDeath)

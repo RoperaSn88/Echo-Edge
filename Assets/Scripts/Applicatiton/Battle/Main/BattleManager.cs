@@ -198,6 +198,11 @@ namespace EchoEdge.App.Battle
             return healed;
         }
 
+        /// <summary>
+        /// 攻撃QTEを表示中か。追加反射の分度器QTEと入力が重ならないように参照する
+        /// </summary>
+        public static bool IsAttackQTEPlaying { get; private set; }
+
         public static void ResetQTE()
         {
             _QTEFlug = false;
@@ -235,7 +240,15 @@ namespace EchoEdge.App.Battle
         {
             if (!_QTEFlug)
             {
-                _qteResult = await UIPresenter.Instance.AppearQTE(QTEKinds.Attack);
+                IsAttackQTEPlaying = true;
+                try
+                {
+                    _qteResult = await UIPresenter.Instance.AppearQTE(QTEKinds.Attack);
+                }
+                finally
+                {
+                    IsAttackQTEPlaying = false;
+                }
                 _QTEFlug = true;
             }
 

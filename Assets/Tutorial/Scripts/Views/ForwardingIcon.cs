@@ -32,6 +32,7 @@ namespace CommonUI.Tutorial.Views
                 await LMotion.Create(_basePosX, _basePosX + _amplitude, _animDuration)
                     .WithLoops(-1, LoopType.Yoyo)
                     .WithEase(Ease.Linear)
+                    .WithScheduler(MotionScheduler.UpdateIgnoreTimeScale)
                     .WithOnCancel(() => gameObject.SetActive(false))
                     .BindToAnchoredPositionY(_rectTransform)
                     .ToAwaitable(cancellationToken);
