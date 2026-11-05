@@ -55,7 +55,8 @@ namespace EchoEdge.Domain.Phase
             }
             _targetPosition = null;
 
-            CameraManager.Instance.ActMoveCameraToDefault();
+            // 追尾中は通常より近い距離で映す
+            CameraManager.Instance.ActMoveCameraToAttackTracking();
 
             // プレイヤーの攻撃開始時に追尾を開始する
             CameraManager.Instance.StartTracking(PlayerController.Instance.transform);
