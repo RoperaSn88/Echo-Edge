@@ -4861,7 +4861,7 @@ ParticleSystemRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: -2
   m_MaskInteraction: 0
   m_RenderMode: 0
   m_MeshDistribution: 0
@@ -5022,6 +5022,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7311f612a41548bc86ddcf96d0579194, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EchoEdge.Presenter.Battle.FlaskObject
-  _flightDuration: 0.8
+  _flightDuration: 0.9
   _jumpPower: 2
   _landingParticle: {fileID: 1634173784867568652}
