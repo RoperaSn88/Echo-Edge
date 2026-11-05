@@ -104,6 +104,11 @@ namespace EchoEdge.Infra.Camera
         /// </summary>
         private readonly Vector3 DefaultCameraOffset = new Vector3(0,1f,1f);
 
+        /// <summary>
+        /// プレイヤー攻撃中（プレイヤー追尾中）のカメラのオフセット
+        /// </summary>
+        private readonly Vector3 AttackTrackingCameraOffset = new Vector3(0, 0f, 1f);
+
         private readonly Vector3 ZoomCameraOffset = new Vector3(0,0, 1f);
 
         private readonly Vector3 PlayerZoomOffset = new Vector3(0f,-0.5f, 1f);
@@ -644,19 +649,19 @@ namespace EchoEdge.Infra.Camera
         /// </summary>
         public UniTask ActMoveCameraToDefault()
         {
-            return ActMoveCameraToDefaultInternal(DefaultCameraDistance);
+            return ActMoveCameraToDefaultInternal(DefaultCameraDistance, DefaultCameraOffset);
         }
 
         /// <summary>
         /// プレイヤー攻撃（追尾）用に、カメラを上から元の角度へ戻しつつ
-        /// 通常より近い距離（<see cref="AttackTrackingCameraDistance"/>）へ寄せ始める。
+        /// 通常より近い距離（<see cref="AttackTrackingCameraDistance"/>）・低いオフセット（<see cref="AttackTrackingCameraOffset"/>）へ寄せ始める。
         /// </summary>
         public UniTask ActMoveCameraToAttackTracking()
         {
-            return ActMoveCameraToDefaultInternal(AttackTrackingCameraDistance);
+            return ActMoveCameraToDefaultInternal(AttackTrackingCameraDistance, AttackTrackingCameraOffset);
         }
 
-        private async UniTask ActMoveCameraToDefaultInternal(float distance)
+        private async UniTask ActMoveCameraToDefaultInternal(float distance, Vector3 offset)
         {
             StopGroupFraming();
 
@@ -672,7 +677,7 @@ namespace EchoEdge.Infra.Camera
 
             try
             {
-                await MoveCameraToDefault(_cts.Token, distance);
+                await MoveCameraToDefault(_cts.Token, distance, offset);
             }
             catch(OperationCanceledException)
             {
@@ -762,7 +767,7 @@ namespace EchoEdge.Infra.Camera
             return _cinemachineBrain;
         }
 
-        private async UniTask MoveCameraToDefault(CancellationToken ct, float distance)
+        private async UniTask MoveCameraToDefault(CancellationToken ct, float distance, Vector3 offset)
         {
             _cameraMoving = true;
             
@@ -784,7 +789,7 @@ namespace EchoEdge.Infra.Camera
 
             var offsetTween = DOTween.To(()=>_cinemachineThirdPersonFollow.ShoulderOffset,
                 pos => _cinemachineThirdPersonFollow.ShoulderOffset = pos,
-                DefaultCameraOffset,
+                offset,
                 TokenTime)
                 .SetEase(Ease.OutQuad);
 
