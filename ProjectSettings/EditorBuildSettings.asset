@@ -26,6 +26,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Scenario.unity
     guid: fd346e2a559c50f419989b38d9571e0d
+  - enabled: 1
+    path: Assets/Scenes/End.unity
+    guid: b88bc1a1df09dc741a4d1ba86037f5d5
   m_configObjects:
     com.unity.addressableassets: {fileID: 11400000, guid: a3bff474757dfda41b9e550b47828bba, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
