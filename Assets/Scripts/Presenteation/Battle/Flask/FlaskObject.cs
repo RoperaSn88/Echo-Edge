@@ -24,9 +24,6 @@ namespace EchoEdge.Presenter.Battle
         /// </summary>
         private const float ReleaseTimeout = 5f;
 
-        [SerializeField, Tooltip("フラスコのアニメーター（無ければ着地と同時にプールへ戻る）")]
-        private Animator _animator;
-
         [SerializeField, Min(0.01f), Tooltip("投げてから着地するまでの秒数")]
         private float _flightDuration = 0.6f;
 
@@ -72,15 +69,7 @@ namespace EchoEdge.Presenter.Battle
             transform.position = from;
             gameObject.SetActive(true);
 
-            // プールから再利用したときに、前回のアニメーションの状態が残らないようにする
-            if (HasController())
-            {
-                _animator.Rebind();
-                _animator.Update(0f);
-            }
 
-            var flightAnimator = GetFlightAnimator();
-            FitAnimationToFlight(flightAnimator);
 
             await transform
                 .DOJump(to, _jumpPower, 1, _flightDuration)
@@ -88,19 +77,6 @@ namespace EchoEdge.Presenter.Battle
                 .ToUniTask(cancellationToken: destroyCancellationToken);
 
             _hasLanded = true;
-            if (flightAnimator != null) flightAnimator.speed = 1f;
-            PlayLandingEffect(transform.position);
-
-            if (!HasController())
-            {
-                ReleaseOnce();
-                return;
-            }
-
-            if (HasTrigger(LandTrigger))
-            {
-                _animator.SetTrigger(LandTrigger);
-            }
 
             TryRelease();
             ReleaseAfterTimeout().Forget();
@@ -166,15 +142,6 @@ namespace EchoEdge.Presenter.Battle
             return lifetime > 0f ? Mathf.Min(lifetime, ReleaseTimeout) : ReleaseTimeout;
         }
 
-        /// <summary>
-        /// 飛んでいる間のアニメーションを再生する Animator。
-        /// Animator 欄が未設定でも、フラスコに付いている Animator を使う。
-        /// </summary>
-        private Animator GetFlightAnimator()
-        {
-            return _animator != null ? _animator : GetComponentInChildren<Animator>();
-        }
-
         private void TryRelease()
         {
             if (_hasLanded && _isAnimationEnded)
@@ -197,23 +164,6 @@ namespace EchoEdge.Presenter.Battle
             if (_isReleased) return;
             _isReleased = true;
             Release();
-        }
-
-        private bool HasController()
-        {
-            return _animator != null && _animator.runtimeAnimatorController != null;
-        }
-
-        private bool HasTrigger(string name)
-        {
-            foreach (var parameter in _animator.parameters)
-            {
-                if (parameter.type == AnimatorControllerParameterType.Trigger && parameter.name == name)
-                {
-                    return true;
-                }
-            }
-            return false;
         }
     }
 }
