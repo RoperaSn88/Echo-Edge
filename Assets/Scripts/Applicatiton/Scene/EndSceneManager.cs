@@ -2,7 +2,6 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.Video;
 
 using EchoEdge.Domain.Scene;
@@ -24,17 +23,14 @@ namespace EchoEdge.App.Scene
         [SerializeField, Tooltip("「タイトルへ」ボタン")]
         private PhaseButton _titleButton;
 
-        [SerializeField, Tooltip("画面全体を覆う黒いパネル（明転・暗転に使う）")]
-        private Image _fadePanel;
+        [SerializeField, Tooltip("シーン全体をまとめる CanvasGroup。alpha 0→1 で明転、1→0 で暗転する（背後の MainGame は暗転済み）")]
+        private CanvasGroup _sceneGroup;
 
         [SerializeField, Tooltip("起動時の明転にかける時間（秒）")]
         private float _fadeInDuration = 1.0f;
 
         [SerializeField, Tooltip("「タイトルへ」クリック後の暗転にかける時間（秒）")]
         private float _fadeOutDuration = 1.0f;
-
-        [SerializeField, Tooltip("「タイトルへ」ボタンの表示テキスト")]
-        private string _titleButtonText = "タイトルへ";
 
         private bool _isClosing;
 
@@ -48,16 +44,11 @@ namespace EchoEdge.App.Scene
 
         private void Awake()
         {
-            // 最初のフレームで中身が見えないよう、明転前は真っ黒にしておく
-            SetFadeAlpha(1f);
-            _fadePanel.gameObject.SetActive(true);
+            // 最初のフレームで中身が見えないよう、明転前は透明（背後の暗転画面のまま）にしておく
+            _sceneGroup.alpha = 0f;
 
             _titleButton.Initialize();
             _titleButton.Interactable = false;
-            if (_titleButtonText.Length > 0)
-            {
-                _titleButton.Text.text = _titleButtonText;
-            }
             _titleButton.OnClick = OnClickTitle;
         }
 
@@ -73,8 +64,7 @@ namespace EchoEdge.App.Scene
                 _videoPlayer.Play();
             }
 
-            await _fadePanel.DOFade(0f, _fadeInDuration).SetUpdate(true).ToUniTask(cancellationToken: token);
-            _fadePanel.gameObject.SetActive(false);
+            await _sceneGroup.DOFade(1f, _fadeInDuration).SetUpdate(true).ToUniTask(cancellationToken: token);
 
             if (!_isClosing)
             {
@@ -93,9 +83,8 @@ namespace EchoEdge.App.Scene
         {
             _titleButton.Interactable = false;
 
-            _fadePanel.DOKill();
-            _fadePanel.gameObject.SetActive(true);
-            await _fadePanel.DOFade(1f, _fadeOutDuration).SetUpdate(true).ToUniTask(cancellationToken: token);
+            _sceneGroup.DOKill();
+            await _sceneGroup.DOFade(0f, _fadeOutDuration).SetUpdate(true).ToUniTask(cancellationToken: token);
 
             if (_videoPlayer != null)
             {
@@ -106,16 +95,9 @@ namespace EchoEdge.App.Scene
             SceneLoader.Unload(GameScene.End);
         }
 
-        private void SetFadeAlpha(float alpha)
-        {
-            var c = _fadePanel.color;
-            c.a = alpha;
-            _fadePanel.color = c;
-        }
-
         private void OnDestroy()
         {
-            if (_fadePanel != null) _fadePanel.DOKill();
+            if (_sceneGroup != null) _sceneGroup.DOKill();
         }
     }
 }
