@@ -117,7 +117,7 @@ namespace EchoEdge.App.Battle
 
             if (builderWallStack != null && TryRemoveFrom(_activeBuilderWalls, h, w, out var builderWall))
             {
-                builderWallStack.ReturnBuilderWall(builderWall);
+                ReturnBuilderWallWithEffect(builderWall);
                 return true;
             }
 
@@ -191,6 +191,7 @@ namespace EchoEdge.App.Battle
             }
 
             wallView.Set(h, w);
+            wallView.PlayAppear();
             _activeBuilderWalls.Add((wallView, h, w));
             return true;
         }
@@ -208,9 +209,32 @@ namespace EchoEdge.App.Battle
                 {
                     MapManager.Instance.RemoveUnitAt(activeWall.h, activeWall.w);
                 }
-                builderWallStack.ReturnBuilderWall(activeWall.view);
+                ReturnBuilderWallWithEffect(activeWall.view);
             }
             _activeBuilderWalls.Clear();
+        }
+
+        /// <summary>
+        /// 消える演出を再生し、終わってからビルダーの壁をプールへ返す。
+        /// 盤面からは呼び出し元ですぐに取り除くので、演出中の壁は移動の邪魔をしない。
+        /// </summary>
+        private void ReturnBuilderWallWithEffect(BuildingView wallView)
+        {
+            if (wallView == null) return;
+
+            if (wallView.isActiveAndEnabled)
+            {
+                wallView.PlayDisappear(() =>
+                {
+                    if (builderWallStack != null)
+                    {
+                        builderWallStack.ReturnBuilderWall(wallView);
+                    }
+                });
+                return;
+            }
+
+            builderWallStack.ReturnBuilderWall(wallView);
         }
 
         public void ExecuteTurnStartActions()

@@ -62,6 +62,22 @@ namespace EchoEdge.Presenter.Battle
         public EnergyWallDirection Direction { get; private set; }
 
         /// <summary>
+        /// 回転させる三角柱。出現・消去の演出（<see cref="EnergyWallEffectView"/>）が伸び縮みさせる
+        /// </summary>
+        public Transform Body => _body;
+
+        /// <summary>
+        /// 当たり判定の有効・無効を切り替える（消去の演出中に一閃が当たらないようにするなど）。
+        /// </summary>
+        public void SetColliderEnabled(bool isEnabled)
+        {
+            if (_bodyCollider != null)
+            {
+                _bodyCollider.enabled = isEnabled;
+            }
+        }
+
+        /// <summary>
         /// 貫通攻撃で斜面の壁を通り抜けたあとの位置を求める。
         /// 斜面は法線が斜めなので、従来の「法線の逆方向へ1マス進む」処理ではなく、進行方向に沿って三角柱の出口まで進める。
         /// </summary>
