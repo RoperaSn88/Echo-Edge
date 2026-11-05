@@ -27,6 +27,7 @@ EnergyTrail            … RectTransform + EnergyTrailPresenter
 2. `EnergyTrail` の子に空の GameObject `Head` を作り、`UIParticle`（Coffee.UIExtensions）を付ける。
    - **RectTransform の Scale は (1, 1, 1)** にしてください（0 だと何も映りません）。
    - Scale: 既存のボタン演出と同じ 10 から試してください。軌跡が先端からずれて見える場合は **1** にして、パーティクルの Size を 10 倍にしてください。
+   - **Position Mode: Absolute**（Relative だと World シミュレーションの粒の位置まで Scale 倍され、敵の位置ではなく Energy 付近や画面外に出てしまいます）。
    - Maskable はオフ。
 3. `Head` の子に Effects > Particle System で `Trail` を作る。
    - Main: **Looping オン / Play On Awake オフ / Simulation Space: World / Start Speed 0**、Start Lifetime 0.3〜0.5 程度、Start Color はエナジー色（`#3e77dd` 付近）。
