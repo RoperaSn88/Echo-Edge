@@ -40,6 +40,7 @@ namespace CommonUI.Tutorial.Utility
             const float durationSec = 1f;
             await LMotion.Create<PageDotPoint, NoOptions, PageDotPointAdapter>(this, endValue, durationSec)
                 .WithEase(Ease.Linear)
+                .WithScheduler(MotionScheduler.UpdateIgnoreTimeScale)
                 .Bind(parts, static (point, parts) =>
                 {
                     parts._pageIcon.anchoredPosition = new Vector2(point._posX, parts._pageIcon.anchoredPosition.y);
