@@ -113,6 +113,9 @@ namespace EchoEdge.App.Battle
             if(_gameClearAsyncStarted) return;
             _gameClearAsyncStarted = true;
 
+            // ボスステージ（ボス撃破が条件のウェーブ）のクリア後はエンディングを流してからタイトル（Preparing）へ戻る
+            var isBossStage = CurrentConditionType == StageClearConditionType.DefeatBoss;
+
             // 1. 暗転する
             await UIPresenter.Instance.FadeOutAsync(0.01f);
 
@@ -140,8 +143,8 @@ namespace EchoEdge.App.Battle
             CameraManager.Instance.StartCameraShake();
             await GameClearRewardPresenter.Instance.ShowAsync(reward.level, reward.gainedExperience, reward.currentExperience);
 
-            // 6. 「続ける」「休む」の選択を待つ（最終ステージでは「続ける」を出さない）
-            var choice = await WaitForChoiceAsync(StageData.HasNextStage);
+            // 6. 「続ける」「休む」の選択を待つ（最終ステージ・ボスステージでは「続ける」を出さない）
+            var choice = await WaitForChoiceAsync(StageData.HasNextStage && !isBossStage);
 
             // 選択時: カメラをもとの位置に戻して揺らすのをやめる
             CameraManager.Instance.StopCameraShake();
@@ -177,6 +180,19 @@ namespace EchoEdge.App.Battle
             {
                 await PrepareNextStageAsync(scenarioLoaded);
                 return;
+            }
+
+            // ボスステージでは、エンディング（EndScene）を再生し「タイトルへ」で暗転し終わるまで待つ
+            if (isBossStage)
+            {
+                if (scenarioLoaded)
+                {
+                    // Scenario シーンの上に重ならないよう、先に閉じておく
+                    await SceneLoader.UnloadAsync(GameScene.Scenario);
+                    scenarioLoaded = false;
+                }
+
+                await EndSceneManager.PlayAsync();
             }
 
             // 7. MainGameをアンロードし、Preparingシーンを読み込む
