@@ -60,11 +60,11 @@ namespace EchoEdge.Domain.Phase
             // プレイヤーの攻撃開始時に追尾を開始する
             CameraManager.Instance.StartTracking(PlayerController.Instance.transform);
             
-            if (TutorialSaveManager.TryBeginTutorial(TutorialKinds.QTE))
+            if (TutorialSaveManager.TryBeginTutorial(TutorialKinds.Attack))
             {
                 try
                 {
-                    await TutorialActivator.Instance.StartTutorial(TutorialKinds.QTE);
+                    await TutorialActivator.Instance.StartTutorial(TutorialKinds.Attack);
                 }catch (System.Exception e)
                 {
                     Debug.LogWarning($"チュートリアルを中止: {e}");

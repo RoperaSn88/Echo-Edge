@@ -73,6 +73,7 @@ namespace CommonUI.Tutorial.Views
             var animDuration = GetAnimDuration(target);
 
             _handle = LMotion.Create(_frame.fillAmount, target, animDuration)
+                .WithScheduler(MotionScheduler.UpdateIgnoreTimeScale)
                 .BindToFillAmount(_frame)
                 .AddTo(this);
         }
@@ -88,7 +89,13 @@ namespace CommonUI.Tutorial.Views
         {
             var time = _duration * (1.0f - _frame.fillAmount);
 
-            await Awaitable.WaitForSecondsAsync(time, token);
+            // QTE 中のスロー (Time.timeScale が小さい) でも長押しでスキップできるよう、unscaled な時間で待つ
+            var elapsed = 0f;
+            while (elapsed < time)
+            {
+                await Awaitable.NextFrameAsync(token);
+                elapsed += Time.unscaledDeltaTime;
+            }
             OnSkip?.Invoke();
             _frame.fillAmount = 0;
         }
