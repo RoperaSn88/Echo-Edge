@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UI.Weapon.WeaponModel
   _id: 1
   _weaponName: "\u30DE\u30B0\u30CD\u30C6\u30A3\u30C3\u30AF\u30B3\u30A2"
-  _description: "\u7BC4\u56F2\u5185\u306E\u6575\u3092\u5BC4\u305B\u96C6\u3081\u308B"
-  _weaponCost: 5
+  _description: "\u7BC4\u56F2\u5185\u306E\u6575\u3092\u5BC4\u305B\u96C6\u3081\u308B\u3002\n\u6D6E\u3044\u3066\u3044\u308B\u6575\u3092\u5730\u9762\u306B\u623B\u305B\u308B\u3002"
+  _weaponCost: 4
   _weaponSprite: {fileID: 21300000, guid: e6165e69c96b9fb4aacf7d0c2bfe52de, type: 3}
   _animationNumber: 1

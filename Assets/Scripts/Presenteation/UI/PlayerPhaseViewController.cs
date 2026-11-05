@@ -3,8 +3,10 @@ using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 using EchoEdge.Domain.Phase;
+using EchoEdge.Infra.Tutorial;
 using UnityEngine.UI;
 
 namespace EchoEdge.Presenter.UI
@@ -145,6 +147,8 @@ namespace EchoEdge.Presenter.UI
                 await ShowShortAsync();
             }
 
+            await PlayTutorialIfNeededAsync();
+
             try
             {
                 using (destroyCancellationToken.Register(() => _selectSource?.TrySetCanceled()))
@@ -174,6 +178,29 @@ namespace EchoEdge.Presenter.UI
         private void OnSelect(PlayerActionKinds kind)
         {
             _selectSource?.TrySetResult(kind);
+        }
+
+        /// <summary>
+        /// 初めて行動選択ボタンが表示されたときに Player チュートリアルを再生し、終わるまで待つ。
+        /// 再生済み (スキップ済みを含む) なら何もしない。
+        /// </summary>
+        private async UniTask PlayTutorialIfNeededAsync()
+        {
+            if (TutorialSaveManager.IsCompleted(TutorialKinds.Player)) return;
+
+            // チュートリアル中はボタンを表示したまま押せなくする
+            _canvasGroup.interactable = false;
+            _canvasGroup.blocksRaycasts = false;
+
+            if (await TutorialActivator.TryStartTutorialOnce(TutorialKinds.Player))
+            {
+                // チュートリアルを閉じたクリックをボタン入力として扱わない
+                await UniTask.WaitWhile(() => Mouse.current != null && Mouse.current.leftButton.isPressed,
+                    cancellationToken: destroyCancellationToken);
+            }
+
+            _canvasGroup.interactable = true;
+            _canvasGroup.blocksRaycasts = true;
         }
 
         private async UniTask ShowLongAsync()
