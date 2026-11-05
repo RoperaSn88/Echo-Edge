@@ -57,11 +57,14 @@ namespace EchoEdge.Presenter.Player
 
             PlayerView.Instance.Animator.SetBool("AttackingF", true);
 
-            byte reflectCount = BattleManager.PlayerStatus.Move;
+            int reflectCount = BattleManager.PlayerStatus.Move;
+
+            // 【反射回数】を使い切ったあとに、分度器QTEで追加した反射の回数
+            int additionalCount = 0;
 
             BattleManager.ResetReflectionCount();
 
-            for (int i = 0; i <= reflectCount; i++)
+            for (int i = 0; ; i++)
             {
                 await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
 
@@ -82,22 +85,27 @@ namespace EchoEdge.Presenter.Player
                 }
 
                 // 始点からdirection方向にrayを飛ばし、当たった位置を新たな_posとする。
-                if (Physics.Raycast(ray, out RaycastHit hit, math.INFINITY, player.LayerMask))
-                {
-                    var distance = Vector3.Distance(ray.origin, hit.point);
-
-                    // プレイヤーを移動する
-                    Vector3 endVec = new Vector3(hit.point.x, hit.point.y, hit.point.z);
-                    endVec = Vector3.Lerp(player.transform.position, endVec, 0.99f);
-                    await player.MoveByVelocityAsync(endVec, distance / Speed);
-
-                    _direction = Vector3.Reflect(_direction, hit.normal);
-                    if (i != reflectCount) _pos = player.PlayerTransform.position;
-                }
-                else
+                if (!Physics.Raycast(ray, out RaycastHit hit, math.INFINITY, player.LayerMask))
                 {
                     throw new System.Exception("当たってない...だと");
                 }
+
+                var distance = Vector3.Distance(ray.origin, hit.point);
+
+                // プレイヤーを移動する
+                Vector3 endVec = new Vector3(hit.point.x, hit.point.y, hit.point.z);
+                endVec = Vector3.Lerp(player.transform.position, endVec, 0.99f);
+                await player.MoveByVelocityAsync(endVec, distance / Speed);
+
+                // 【反射回数】分は QTE なしで反射し、それ以上は分度器QTEに成功したときだけ反射する
+                if (i >= reflectCount)
+                {
+                    if (!await AdditionalReflection.TryAsync(_direction, hit.normal, additionalCount)) break;
+                    additionalCount++;
+                }
+
+                _direction = Vector3.Reflect(_direction, hit.normal);
+                _pos = player.PlayerTransform.position;
             }
 
             await UniTask.Delay(TimeSpan.FromSeconds(0.5f));

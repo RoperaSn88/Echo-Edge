@@ -18,6 +18,7 @@ namespace EchoEdge.Presenter.Player
     /// プレイヤーからポインター方向へ光線を飛ばし、当たった壁の位置へ瞬時に移動する。
     /// 光線上に敵がいる場合はプレイヤーに近い順に斬りつけたのち、壁の位置まで瞬時に移動する。
     /// 反射回数の分だけ壁の法線で反射しながら繰り返し、最後に元の位置へ戻る。
+    /// 反射回数を使い切ったあとは、分度器QTEに成功するたびに追加で反射する。
     /// ダメージ判定は光線上の敵に対して直接行うため、OnTriggerEnterでは何もしない。
     /// </summary>
     public class ReflectFlashAttackAction: IPlayerAttackAction
@@ -45,7 +46,10 @@ namespace EchoEdge.Presenter.Player
         {
             var player = PlayerController.Instance;
 
-            byte reflectCount = BattleManager.PlayerStatus.Move;
+            int reflectCount = BattleManager.PlayerStatus.Move;
+
+            // 【反射回数】を使い切ったあとに、分度器QTEで追加した反射の回数
+            int additionalCount = 0;
             PlayerView.Instance.Animator.SetBool("AttackingF", true);
 
             Vector3 originalPosition = player.PlayerTransform.position;
@@ -54,7 +58,7 @@ namespace EchoEdge.Presenter.Player
 
             await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
 
-            for (int i = 0; i <= reflectCount; i++)
+            for (int i = 0; ; i++)
             {
                 // 反射するたびに敵のリストをクリアする。
                 _damagedEnemies.Clear();
@@ -94,6 +98,17 @@ namespace EchoEdge.Presenter.Player
                 // 壁の位置まで瞬時に移動する
                 player.PlayerTransform.position = wallHit.point - direction * 0.5f;
                 await player.PlayerTransform.DOMove(wallHit.point, FlashAttackSlashDuration);
+
+                // 【反射回数】分は QTE なしで反射し、それ以上は分度器QTEに成功したときだけ反射する
+                if (i >= reflectCount)
+                {
+                    if (!await AdditionalReflection.TryAsync(direction, wallHit.normal, additionalCount))
+                    {
+                        await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
+                        break;
+                    }
+                    additionalCount++;
+                }
 
                 pos = wallHit.point;
                 direction = Vector3.Reflect(direction, wallHit.normal);
