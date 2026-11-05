@@ -5024,8 +5024,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EchoEdge.Presenter.Battle.FlaskObject
   _flightDuration: 0.8
   _jumpPower: 2
-  _fitAnimationToFlight: 1
-  _landingEffectPrefab: {fileID: 0}
-  _landingEffectOffset: {x: 0, y: 0, z: 0}
-  _landingEffectLifetime: 0
-  _playLandingSe: 0
+  _landingParticle: {fileID: 1634173784867568652}
