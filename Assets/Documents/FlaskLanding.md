@@ -20,4 +20,4 @@
 
 ## 3. 着地 SE
 
-着地の SE はフラスコでは鳴らしません（シーカー側で鳴らす方針）。シーカーのアニメーションイベントで `SoundEffectPlay`（`BattleSeType`）を使ってください（[UnitSoundEffect.md](UnitSoundEffect.md)）。
+着地の SE はフラスコでは鳴らしません（シーカー側で鳴らす方針）。シーカーのアニメーションイベント `SoundEffectPlay` で `BattleSeType.FlaskLanding` を鳴らします（[UnitSoundEffect.md](UnitSoundEffect.md)）。wav は `Assets/Addressables/Audio/SE/Battle/FlaskLanding.wav`。
