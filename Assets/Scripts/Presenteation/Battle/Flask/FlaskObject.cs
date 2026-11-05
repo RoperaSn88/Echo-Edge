@@ -23,14 +23,15 @@ namespace EchoEdge.Presenter.Battle
         /// </summary>
         private const float ReleaseTimeout = 5f;
 
-        [SerializeField, Tooltip("フラスコのアニメーター（無ければ着地と同時にプールへ戻る）")]
-        private Animator _animator;
-
         [SerializeField, Min(0.01f), Tooltip("投げてから着地するまでの秒数")]
         private float _flightDuration = 0.6f;
 
         [SerializeField, Min(0f), Tooltip("放物線の高さ")]
         private float _jumpPower = 2f;
+
+        [Header("着地演出")]
+        [SerializeField, Tooltip("着地したときに再生するパーティクル（未設定なら出さない）。フラスコの子ならその場で再生し、プレハブならフラスコが最後にいた位置に生成する")]
+        private ParticleSystem _landingParticle;
 
         private bool _hasLanded;
         private bool _isAnimationEnded;
@@ -55,11 +56,10 @@ namespace EchoEdge.Presenter.Battle
             transform.position = from;
             gameObject.SetActive(true);
 
-            // プールから再利用したときに、前回のアニメーションの状態が残らないようにする
-            if (HasController())
+            // プールから再利用したときに、前回の着地パーティクルが残らないようにする
+            if (IsLandingParticleChild())
             {
-                _animator.Rebind();
-                _animator.Update(0f);
+                _landingParticle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             }
 
             await transform
@@ -68,17 +68,7 @@ namespace EchoEdge.Presenter.Battle
                 .ToUniTask(cancellationToken: destroyCancellationToken);
 
             _hasLanded = true;
-
-            if (!HasController())
-            {
-                ReleaseOnce();
-                return;
-            }
-
-            if (HasTrigger(LandTrigger))
-            {
-                _animator.SetTrigger(LandTrigger);
-            }
+            PlayLandingParticle();
 
             TryRelease();
             ReleaseAfterTimeout().Forget();
@@ -93,12 +83,64 @@ namespace EchoEdge.Presenter.Battle
             TryRelease();
         }
 
+        /// <summary>
+        /// フラスコが最後にいた位置（着地位置）で着地パーティクルを再生する
+        /// </summary>
+        private void PlayLandingParticle()
+        {
+            if (_landingParticle == null) return;
+
+            if (IsLandingParticleChild())
+            {
+                _landingParticle.Play(true);
+                return;
+            }
+
+            // プレハブの場合: フラスコはプールへ戻るので、フラスコの子にせずプールの下に出し、再生し終わったら消す
+            var particle = Instantiate(_landingParticle, transform.position, _landingParticle.transform.rotation, transform.parent);
+            particle.Play(true);
+            Destroy(particle.gameObject, GetParticleLifetime(particle));
+        }
+
+        /// <summary>
+        /// 着地パーティクルがフラスコ自身の子（プレハブ内のオブジェクト）か
+        /// </summary>
+        private bool IsLandingParticleChild()
+        {
+            return _landingParticle != null && _landingParticle.transform.IsChildOf(transform);
+        }
+
+        private static float GetParticleLifetime(ParticleSystem root)
+        {
+            float lifetime = 0f;
+            foreach (var particle in root.GetComponentsInChildren<ParticleSystem>())
+            {
+                var main = particle.main;
+                lifetime = Mathf.Max(lifetime, main.startDelay.constantMax + main.duration + main.startLifetime.constantMax);
+            }
+
+            // ループするパーティクルでも残り続けないようにする
+            return lifetime > 0f ? Mathf.Min(lifetime, ReleaseTimeout) : ReleaseTimeout;
+        }
+
         private void TryRelease()
         {
             if (_hasLanded && _isAnimationEnded)
             {
-                ReleaseOnce();
+                ReleaseAfterLandingParticleAsync().Forget();
             }
+        }
+
+        /// <summary>
+        /// 着地パーティクルがフラスコの子なら、再生し終わるまで待ってからプールへ戻す（途中で消えないように）
+        /// </summary>
+        private async UniTaskVoid ReleaseAfterLandingParticleAsync()
+        {
+            if (IsLandingParticleChild())
+            {
+                await UniTask.WaitWhile(() => !_isReleased && _landingParticle.IsAlive(true), cancellationToken: destroyCancellationToken);
+            }
+            ReleaseOnce();
         }
 
         private async UniTaskVoid ReleaseAfterTimeout()
@@ -115,23 +157,6 @@ namespace EchoEdge.Presenter.Battle
             if (_isReleased) return;
             _isReleased = true;
             Release();
-        }
-
-        private bool HasController()
-        {
-            return _animator != null && _animator.runtimeAnimatorController != null;
-        }
-
-        private bool HasTrigger(string name)
-        {
-            foreach (var parameter in _animator.parameters)
-            {
-                if (parameter.type == AnimatorControllerParameterType.Trigger && parameter.name == name)
-                {
-                    return true;
-                }
-            }
-            return false;
         }
     }
 }
