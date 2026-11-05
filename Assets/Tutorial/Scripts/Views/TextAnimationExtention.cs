@@ -25,6 +25,7 @@ namespace CommonUI.Tutorial.Views
 
             return LMotion.Create(0, value.Length, value.Length * (float)interval.TotalSeconds)
                 .WithEase(Ease.Linear)
+                .WithScheduler(MotionScheduler.UpdateIgnoreTimeScale)
                 .BindToMaxVisibleCharacters(textMeshProUGUI)
                 .ToAwaitable(CancelBehavior.Complete, cancellationToken);
         }

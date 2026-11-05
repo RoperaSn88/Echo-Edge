@@ -13,12 +13,10 @@ namespace EchoEdge.Presenter.UI
         public static UIPresenter Instance { get; private set; }
 
         [SerializeField]
-        private QTEPool _qtePool;
-        public QTEPool QtePool => _qtePool;
+        private QTEPresenter _qtePresenter;
 
         [SerializeField]
-        private QTETextPool _qteTextPool;
-        public QTETextPool QteTextPool => _qteTextPool;
+        private QTEResultText _qteResultText;
 
         [SerializeField]
         private DamageTextPool _enemyDamageTextPool;
@@ -46,6 +44,9 @@ namespace EchoEdge.Presenter.UI
         private bool _canFadeText;
         public bool CanFadeText => _canFadeText;
 
+        private bool _isQTEPlaying;
+        private UniTask<(float rate, QTEResults level)> _playingQTE;
+
         void Awake()
         {
             if (Instance == null)
@@ -72,22 +73,39 @@ namespace EchoEdge.Presenter.UI
         /// <summary>
         /// QTE を出し、倍率と判定（失敗/成功/大成功）を返す
         /// </summary>
-        public async UniTask<(float rate, QTEResults level)> AppearQTEWithLevel(QTEKinds kind)
+        public UniTask<(float rate, QTEResults level)> AppearQTEWithLevel(QTEKinds kind)
         {
-            var QTEObject = (QTEPresenter)await Instance.QtePool.GetPooledObject();
-            QTEObject.Kind = kind;
-            await QTEObject.Appear();
-            var result = (QTEObject.Result, QTEObject.ResultLevel);
-            QTEObject.Release();
-            return result;
+            // QTE の表示は1つだけなので、敵2体に同時に当たるなどで重なった要求は表示中の結果を共有する
+            if (!_isQTEPlaying)
+            {
+                _isQTEPlaying = true;
+                _playingQTE = PlayQTE(kind).Preserve();
+            }
+            return _playingQTE;
+        }
+
+        private async UniTask<(float rate, QTEResults level)> PlayQTE(QTEKinds kind)
+        {
+            try
+            {
+                _qtePresenter.Kind = kind;
+                _qtePresenter.gameObject.SetActive(true);
+                await _qtePresenter.Appear();
+                return (_qtePresenter.Result, _qtePresenter.ResultLevel);
+            }
+            finally
+            {
+                _isQTEPlaying = false;
+                if (_qtePresenter != null)
+                {
+                    _qtePresenter.gameObject.SetActive(false);
+                }
+            }
         }
 
         public async UniTask AppearQTEResult(QTEResults result)
         {
-            Instance.QteTextPool.SetResult(result);
-            var textObject = (QTETextPooler) await Instance.QteTextPool.GetPooledObject();
-            await textObject.Appear(result);
-            textObject.Release();
+            await _qteResultText.Appear(result);
         }
 
         public async UniTask AppearDamageText(string value, Vector3 targetTrans)

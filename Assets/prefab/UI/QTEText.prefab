@@ -149,6 +149,6 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d34b4665ff412884fb565109576c7f1e, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::QTETextPooler
+  m_EditorClassIdentifier: Assembly-CSharp::QTEResultText
   _qteText: {fileID: 6677662962828759746}
   _rectTransform: {fileID: 411957790924337314}
