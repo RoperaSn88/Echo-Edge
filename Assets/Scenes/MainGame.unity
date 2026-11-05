@@ -205456,6 +205456,7 @@ RectTransform:
   - {fileID: 1362337876}
   - {fileID: 910714688}
   - {fileID: 1793274632}
+  - {fileID: 1980942218}
   - {fileID: 1868389233}
   - {fileID: 1782055946}
   - {fileID: 1782055949}
@@ -225214,6 +225215,7 @@ MonoBehaviour:
   _qteResultText: {fileID: 1782055950}
   _enemyDamageTextPool: {fileID: 1734685535}
   _energyPool: {fileID: 463437407}
+  _energyTrailPool: {fileID: 1980942219}
   _playerStatusPresenter: {fileID: 1841531819}
   _destination: {fileID: 56136324}
   _fadePanel: {fileID: 2062961376}
@@ -227280,6 +227282,56 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 234017323753348374, guid: 7cf8c5ce7f8c9fa4b899be72ca6eb60d, type: 3}
   m_PrefabInstance: {fileID: 1979942556}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1980942217
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1980942218}
+  - component: {fileID: 1980942219}
+  m_Layer: 5
+  m_Name: EnergyTrailPool
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1980942218
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1980942217}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1755719591}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1980942219
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1980942217}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2197e24a523f484abc7210a6bc3b873c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EchoEdge.Presenter.UI.EnergyPool
+  _initSize: 2
+  objectToPool: {fileID: 8452002241141142220, guid: 7b70f4f67887811439d1c12f1ce697af, type: 3}
 --- !u!1001 &1981339704
 PrefabInstance:
   m_ObjectHideFlags: 0

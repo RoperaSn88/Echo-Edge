@@ -26,6 +26,9 @@ namespace EchoEdge.Presenter.UI
         private EnergyPool _energyPool;
         public EnergyPool EnergyPool => _energyPool;
 
+        [SerializeField, Tooltip("エナジー獲得トレイル（EnergyTrailPresenter）のプール。Canvas の子に置く。未設定なら従来どおり敵の位置で光ってすぐ加算する")]
+        private EnergyPool _energyTrailPool;
+
         [SerializeField]
         private PlayerStatusPresenter _playerStatusPresenter;
         public PlayerStatusPresenter PlayerStatusPresenter => _playerStatusPresenter;
@@ -118,6 +121,15 @@ namespace EchoEdge.Presenter.UI
 
         public async UniTask AppearEnergy(Vector3 targetTrans, int energyValue)
         {
+            if (_energyTrailPool != null)
+            {
+                // 敵の位置から PlayerInfo のエナジー表示へトレイルを飛ばし、先端が着いた時点で加算する
+                var trail = (EnergyTrailPresenter) await _energyTrailPool.GetPooledObject();
+                trail.SetPosition(_destination, targetTrans, energyValue);
+                await trail.Appear();
+                return;
+            }
+
             var energyObject = (EnergyPresenter) await Instance.EnergyPool.GetPooledObject();
             energyObject.SetPosition(_destination, targetTrans, energyValue);
             await energyObject.Appear();

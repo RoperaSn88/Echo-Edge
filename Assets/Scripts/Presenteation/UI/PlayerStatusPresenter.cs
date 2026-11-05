@@ -255,7 +255,8 @@ namespace EchoEdge.Presenter.UI
                     t.Kill();
                 }
                 
-                t = _energyImage.DOFillAmount(gaugeValue, ChangeValueTime).SetEase(Ease.OutCubic);
+                // トレイル到着はヒットストップ中のこともあるため、実時間で動かす
+                t = _energyImage.DOFillAmount(gaugeValue, ChangeValueTime).SetEase(Ease.OutCubic).SetUpdate(true);
                 _energyHaveText.text = energy.ToString();
                 _energyMaxText.text = MaxEnergy.ToString();
             }
