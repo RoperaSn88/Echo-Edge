@@ -49,6 +49,9 @@ namespace EchoEdge.Presenter.Battle
         [Tooltip("Body のメッシュの、ローカル原点から底面までの高さ。EnergySlopeWall.obj は中心が原点で高さ 1 なので 0.5")]
         [SerializeField]
         private float _meshBottomOffset = 0.5f;
+        
+        [SerializeField]
+        private Animator _bodyAnimator;
 
         private SlopeWallView _slopeWallView;
         private Transform _body;
@@ -86,6 +89,9 @@ namespace EchoEdge.Presenter.Battle
         public void PlayAppear()
         {
             ResetVisual();
+            
+            _bodyAnimator.ResetTrigger("AppearT");
+            _bodyAnimator.SetTrigger("AppearT");
 
             if (_appearParticle != null)
             {
