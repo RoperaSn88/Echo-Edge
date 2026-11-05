@@ -134,6 +134,11 @@ namespace EchoEdge.App.Battle
             _previewWall = null;
 
             wallView.Apply(direction, false);
+            if (wallView.TryGetComponent<EnergyWallEffectView>(out var effectView))
+            {
+                effectView.PlayAppear();
+            }
+
             _activeEnergyWalls.Add(new ActiveEnergyWall
             {
                 View = wallView,
@@ -163,7 +168,7 @@ namespace EchoEdge.App.Battle
 
                 if (TryGetEnergyWallStack(out var wallStack))
                 {
-                    wallStack.ReturnWall(activeWall.View);
+                    ReturnWallWithEffect(wallStack, activeWall.View);
                 }
 
                 _activeEnergyWalls.RemoveAt(i);
@@ -195,9 +200,32 @@ namespace EchoEdge.App.Battle
                     MapManager.Instance.RemoveUnitAt(activeWall.Height, activeWall.Width);
                 }
 
-                wallStack.ReturnWall(activeWall.View);
+                ReturnWallWithEffect(wallStack, activeWall.View);
                 _activeEnergyWalls.RemoveAt(i);
             }
+        }
+
+        /// <summary>
+        /// 消える演出（<see cref="EnergyWallEffectView"/>）があれば再生し、終わってから壁をプールへ返す。
+        /// 盤面からは呼び出し元ですぐに取り除くので、演出中の壁は当たり判定も移動の邪魔もしない。
+        /// </summary>
+        private static void ReturnWallWithEffect(EnergyWallStack wallStack, SlopeWallView wallView)
+        {
+            if (wallView == null) return;
+
+            if (wallView.isActiveAndEnabled && wallView.TryGetComponent<EnergyWallEffectView>(out var effectView))
+            {
+                effectView.PlayDisappear(() =>
+                {
+                    if (wallStack != null)
+                    {
+                        wallStack.ReturnWall(wallView);
+                    }
+                });
+                return;
+            }
+
+            wallStack.ReturnWall(wallView);
         }
 
         private bool TryGetEnergyWallStack(out EnergyWallStack wallStack)
