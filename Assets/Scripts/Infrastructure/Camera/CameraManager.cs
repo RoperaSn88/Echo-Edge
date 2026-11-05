@@ -133,6 +133,11 @@ namespace EchoEdge.Infra.Camera
         /// </summary>
         private const float ZoomCameraDistance = 5;
 
+        /// <summary>
+        /// プレイヤー攻撃中（プレイヤー追尾中）のカメラの距離
+        /// </summary>
+        private const float AttackTrackingCameraDistance = 7;
+
         private const float PlayerWeaponCameraDistance = 2f;
 
         /// <summary>
@@ -637,7 +642,21 @@ namespace EchoEdge.Infra.Camera
         /// <summary>
         /// カメラを上から元の位置に戻し始める
         /// </summary>
-        public async UniTask ActMoveCameraToDefault()
+        public UniTask ActMoveCameraToDefault()
+        {
+            return ActMoveCameraToDefaultInternal(DefaultCameraDistance);
+        }
+
+        /// <summary>
+        /// プレイヤー攻撃（追尾）用に、カメラを上から元の角度へ戻しつつ
+        /// 通常より近い距離（<see cref="AttackTrackingCameraDistance"/>）へ寄せ始める。
+        /// </summary>
+        public UniTask ActMoveCameraToAttackTracking()
+        {
+            return ActMoveCameraToDefaultInternal(AttackTrackingCameraDistance);
+        }
+
+        private async UniTask ActMoveCameraToDefaultInternal(float distance)
         {
             StopGroupFraming();
 
@@ -653,7 +672,7 @@ namespace EchoEdge.Infra.Camera
 
             try
             {
-                await MoveCameraToDefault(_cts.Token);
+                await MoveCameraToDefault(_cts.Token, distance);
             }
             catch(OperationCanceledException)
             {
@@ -743,7 +762,7 @@ namespace EchoEdge.Infra.Camera
             return _cinemachineBrain;
         }
 
-        private async UniTask MoveCameraToDefault(CancellationToken ct)
+        private async UniTask MoveCameraToDefault(CancellationToken ct, float distance)
         {
             _cameraMoving = true;
             
@@ -752,7 +771,7 @@ namespace EchoEdge.Infra.Camera
 
             var cameraTween = DOTween.To(()=>_cinemachineThirdPersonFollow.CameraDistance,
                 d => _cinemachineThirdPersonFollow.CameraDistance = d, 
-                DefaultCameraDistance, 
+                distance, 
                 TokenTime)
                 .SetEase(Ease.OutQuad);
 
