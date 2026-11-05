@@ -25,6 +25,7 @@ EnergyTrail            … RectTransform + EnergyTrailPresenter
 1. Canvas の子に空の GameObject `EnergyTrail` を作り、`EnergyTrailPresenter` を付ける。
    - RectTransform は Anchor を中央、Position (0, 0, 0) のままでOK（位置はスクリプトが毎回計算します）。
 2. `EnergyTrail` の子に空の GameObject `Head` を作り、`UIParticle`（Coffee.UIExtensions）を付ける。
+   - **RectTransform の Scale は (1, 1, 1)** にしてください（0 だと何も映りません）。
    - Scale: 既存のボタン演出と同じ 10 から試してください。軌跡が先端からずれて見える場合は **1** にして、パーティクルの Size を 10 倍にしてください。
    - Maskable はオフ。
 3. `Head` の子に Effects > Particle System で `Trail` を作る。
@@ -33,6 +34,8 @@ EnergyTrail            … RectTransform + EnergyTrailPresenter
    - Size over Lifetime: 1 → 0 に縮む曲線にすると尾が細くなります。
    - Renderer の Material は既存の UIParticle で使っている加算系のものでOK。
    - 線状にしたい場合は Trails モジュールをオンにして Renderer の Trail Material も設定してください（UIParticle 側で Trail 用マテリアルも描画されます）。
+     - Trails は「粒が動いた跡」に線を引くので、**Start Speed 0・Simulation Space World の粒には線が出ません**（粒がその場に残るだけ）。
+     - Trails で線を出す場合は、Simulation Space を **Local** にして先端に粒を付いて行かせ、Trails モジュールの **World Space をオン**にしてください（Burst 1〜3 粒で OK）。
 4. （任意）`Head` の子に `Arrival` を作る。
    - Main: **Looping オフ / Play On Awake オフ**、Burst で 10〜20 粒を散らす程度。
 5. `Head` の `UIParticle` のインスペクターで「Refresh」等を押し、`Trail`・`Arrival` が Particles に入っていることを確認する。

@@ -84,6 +84,12 @@ namespace EchoEdge.Presenter.UI
                 }
 
                 gameObject.SetActive(true);
+                if (_head.localScale == Vector3.zero)
+                {
+                    // Scale 0 だと UIParticle が何も描画しないため、1 に戻す
+                    Debug.LogWarning($"[EnergyTrail] {_head.name} の Scale が 0 のため 1 にしました。プレハブの Scale を (1,1,1) にしてください。", _head);
+                    _head.localScale = Vector3.one;
+                }
                 _head.localPosition = start;
                 StopParticles(true);
                 if (_trailParticle != null) _trailParticle.Play(true);
