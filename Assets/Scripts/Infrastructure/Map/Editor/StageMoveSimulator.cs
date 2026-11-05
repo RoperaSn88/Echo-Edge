@@ -2,12 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using EchoEdge.Domain.Battle;
 
 namespace EchoEdge.Infra.Map
 {
     /// <summary>
     /// ステージエディタ用に、エネミーフェーズの移動だけを盤面データ上で再現するシミュレーター。
-    /// 移動先の決め方は BaseUnit.TryMoveByScoreMap、行動順は MapManager.MoveUnit と同じ。
+    /// 移動先の決め方は EnemyMovePlanner（BaseUnit.TryMoveByScoreMap と共通）、行動順は MapManager.MoveUnit と同じ。
     /// バフ・ランダムな特殊行動（飛行、壁生成、召喚、吸収など）・一閃による撃破は考慮しない。
     /// </summary>
     public static class StageMoveSimulator
@@ -32,13 +33,6 @@ namespace EchoEdge.Infra.Map
 
         private const int Empty = -1;
         private const int Wall = -2;
-
-        // 4 方向の移動定義（BaseUnit.TryMoveByScoreMap と同じ）。左移動のみ加点、右移動のみ減点する。
-        private static readonly int[] DirH = { 0, -1, 1, 0 };
-        private static readonly int[] DirW = { -1, 0, 0, 1 };
-        private static readonly int[] DirScore = { 1, 0, 0, -1 };
-        // 各方向の逆方向（Uターン判定用）。左⇔右(0⇔3)、上⇔下(1⇔2)。
-        private static readonly int[] ReverseDir = { 3, 2, 1, 0 };
 
         /// <summary>
         /// 1 エネミーフェーズ分の移動を行い、移動後の各ユニットの位置（左下のマス）を返す。
@@ -86,101 +80,36 @@ namespace EchoEdge.Infra.Map
         }
 
         /// <summary>
-        /// BaseUnit.TryMoveByScoreMap と同じ DP で、そのフェーズの移動先を求める。
+        /// 実際のゲーム（BaseUnit.TryMoveByScoreMap）と同じ EnemyMovePlanner で、そのフェーズの移動先を求める。
+        /// 同じ近さの候補が複数あるときは、ゲームではランダムに選ぶが、プレビューでは最初に見つかった候補にする。
         /// </summary>
         private static (int h, int w) FindDestination(int[,] grid, int self, Unit unit, int srcH, int srcW)
         {
-            var count = unit.Move;
-            if (count <= 0) return (srcH, srcW);
+            var path = EnemyMovePlanner.PlanPath(new GridMoveBoard(grid, self), unit.Size, srcH, srcW, unit.Move);
+            return path.Count > 0 ? path[path.Count - 1] : (srcH, srcW);
+        }
 
-            // 一番左ならなし
-            if (srcW <= 0) return (srcH, srcW);
+        /// <summary>
+        /// シミュレーター用の盤面を EnemyMovePlanner に渡すためのアダプター
+        /// </summary>
+        private sealed class GridMoveBoard : IEnemyMoveBoard
+        {
+            private readonly int[,] _grid;
+            private readonly int _self;
 
-            var height = grid.GetLength(0);
-            var width = grid.GetLength(1);
-            if (srcH < 0 || srcH >= height || srcW >= width) return (srcH, srcW);
-
-            const int minScore = int.MinValue / 4;
-            var scoreByStep = new int[count + 1, height, width];
-            var arrivalDir = new int[count + 1, height, width];
-
-            for (var step = 0; step <= count; step++)
+            public GridMoveBoard(int[,] grid, int self)
             {
-                for (var h = 0; h < height; h++)
-                {
-                    for (var w = 0; w < width; w++)
-                    {
-                        scoreByStep[step, h, w] = minScore;
-                        arrivalDir[step, h, w] = -1;
-                    }
-                }
+                _grid = grid;
+                _self = self;
             }
 
-            scoreByStep[0, srcH, srcW] = 0;
+            public int Height => _grid.GetLength(0);
+            public int Width => _grid.GetLength(1);
 
-            for (var step = 1; step <= count; step++)
-            {
-                for (var h = 0; h < height; h++)
-                {
-                    for (var w = 0; w < width; w++)
-                    {
-                        var baseScore = scoreByStep[step - 1, h, w];
-                        if (baseScore == minScore) continue;
+            public bool IsWall(int h, int w) => _grid[h, w] == Wall;
 
-                        // 2手目以降は直前の移動を打ち消す方向（Uターン）を禁止する
-                        var forbiddenDir = -1;
-                        if (step >= 2)
-                        {
-                            var lastDir = arrivalDir[step - 1, h, w];
-                            if (lastDir >= 0) forbiddenDir = ReverseDir[lastDir];
-                        }
-
-                        for (var dir = 0; dir < DirH.Length; dir++)
-                        {
-                            if (dir == forbiddenDir) continue;
-
-                            var nextH = h + DirH[dir];
-                            var nextW = w + DirW[dir];
-                            if (!IsFootprintFree(grid, nextH, nextW, unit.Size, self)) continue;
-
-                            var candidate = baseScore + DirScore[dir];
-                            if (candidate <= scoreByStep[step, nextH, nextW]) continue;
-
-                            scoreByStep[step, nextH, nextW] = candidate;
-                            arrivalDir[step, nextH, nextW] = dir;
-                        }
-                    }
-                }
-            }
-
-            // 全 step の候補から最終目的地を選ぶ。同スコア時は「より左」「縦距離が小さい」位置を優先する。
-            var hasDestination = false;
-            var dstH = srcH;
-            var dstW = srcW;
-            var bestScore = minScore;
-
-            for (var step = 1; step <= count; step++)
-            {
-                for (var h = 0; h < height; h++)
-                {
-                    for (var w = 0; w < width; w++)
-                    {
-                        var score = scoreByStep[step, h, w];
-                        if (score == minScore) continue;
-
-                        if (!hasDestination || score > bestScore ||
-                            (score == bestScore && (w < dstW || (w == dstW && Math.Abs(h - srcH) < Math.Abs(dstH - srcH)))))
-                        {
-                            hasDestination = true;
-                            bestScore = score;
-                            dstH = h;
-                            dstW = w;
-                        }
-                    }
-                }
-            }
-
-            return (dstH, dstW);
+            public bool IsFootprintFree(int anchorH, int anchorW, int span) =>
+                StageMoveSimulator.IsFootprintFree(_grid, anchorH, anchorW, span, _self);
         }
 
         private static bool IsFootprintFree(int[,] grid, int anchorH, int anchorW, int size, int self)

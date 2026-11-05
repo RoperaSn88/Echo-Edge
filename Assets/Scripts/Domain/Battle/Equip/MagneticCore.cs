@@ -45,43 +45,35 @@ namespace EchoEdge.Domain.Battle
                 return;
             }
 
-            // 吸引対象以外のユニットがいるマスは固定で埋まっている扱いにして、
-            // 再配置先に割り当てないようにする。
-            HashSet<(int h, int w)> fixedOccupiedCells = MapManager.Instance.GetUnitPositionsSnapshot()
-                .Where(unitInfo => !targetUnits.Any(target => target.unit == unitInfo.unit))
-                .Select(unitInfo => (unitInfo.h, unitInfo.w))
-                .ToHashSet();
-
-            Dictionary<IUnit, (int h, int w)> movePlans = new();
-            HashSet<(int h, int w)> reservedDestinations = new(fixedOccupiedCells);
+            // ターゲットに近いユニットから1体ずつ、その時点の盤面で空いている最も近い場所へ移動させる。
+            // 事前に全員分の移動先を決めると、2x2のユニット（『でかエナー』）と他のユニットが
+            // 互いの現在地を移動先に取り合って、どちらも動けなくなることがあるため、
+            // 移動済みのユニットを反映した盤面で毎回空き判定を行う（壁や他ユニットの占有マスは全て埋まっている扱い）。
             foreach (var unitInfo in targetUnits)
             {
+                int size = (int)unitInfo.unit.GetSize();
+                (int h, int w)? destination = null;
                 foreach (var cell in candidateCells)
                 {
-                    if (reservedDestinations.Contains(cell))
+                    // 2x2のユニットは候補マスを左上（基準マス）として、占有する全マスが空いているか見る
+                    if (MapManager.Instance.IsFootprintFree(cell.h, cell.w, size, unitInfo.unit))
                     {
-                        continue;
+                        destination = cell;
+                        break;
                     }
-
-                    movePlans[unitInfo.unit] = cell;
-                    reservedDestinations.Add(cell);
-                    break;
                 }
-            }
 
-            foreach (var unitInfo in targetUnits)
-            {
-                if (!movePlans.TryGetValue(unitInfo.unit, out var destination))
+                if (destination == null)
                 {
                     continue;
                 }
 
-                if (destination.h == unitInfo.h && destination.w == unitInfo.w)
+                if (destination.Value.h == unitInfo.h && destination.Value.w == unitInfo.w)
                 {
                     continue;
                 }
 
-                var moved = await MapManager.Instance.TryMoveUnitTo(unitInfo.unit, destination.h, destination.w);
+                var moved = await MapManager.Instance.TryMoveUnitTo(unitInfo.unit, destination.Value.h, destination.Value.w);
                 if (moved && unitInfo.unit is IForcedMoveReceiver receiver)
                 {
                     await receiver.OnPulledByMagneticCore();
