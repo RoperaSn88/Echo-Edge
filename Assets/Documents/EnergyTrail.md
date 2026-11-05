@@ -49,7 +49,7 @@ EnergyTrail            … RectTransform + EnergyTrailPresenter
 | Arrival Punch Scale | 0.15（0 で弾み無効） |
 | Max Fade Out Time | 2（到着後に残った粒が消えるのを待つ上限秒数） |
 
-7. `EnergyTrail` を `Assets/Prefabs` 以下などにドラッグしてプレハブ化し、シーン上のものは削除する。
+7. `EnergyTrail` を `Assets/prefab` 以下などにドラッグしてプレハブ化し、シーン上のものは削除する。
 
 ## 2. プールを置いて UIPresenter に割り当てる
 
