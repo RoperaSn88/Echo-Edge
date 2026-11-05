@@ -21,5 +21,10 @@ namespace EchoEdge.Infra.Tutorial
         /// 追加反射の分度器QTEが初めて出現したとき
         /// </summary>
         ReflectGauge,
+
+        /// <summary>
+        /// プレイヤーフェーズの行動選択ボタン (一閃/装備品/防御/回復) が初めて表示されたとき
+        /// </summary>
+        Player,
     }
 }
