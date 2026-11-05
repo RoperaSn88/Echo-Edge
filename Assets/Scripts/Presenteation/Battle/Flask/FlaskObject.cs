@@ -3,6 +3,7 @@ using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
 
+using EchoEdge.Infra.Audio;
 using EchoEdge.Presenter.UI;
 
 namespace EchoEdge.Presenter.Battle
@@ -31,6 +32,22 @@ namespace EchoEdge.Presenter.Battle
 
         [SerializeField, Min(0f), Tooltip("放物線の高さ")]
         private float _jumpPower = 2f;
+
+        [SerializeField, Tooltip("飛んでいる間のアニメーション（フラスコに付いている Animator の既定ステート）を、滞空時間にちょうど収まる速さで再生する")]
+        private bool _fitAnimationToFlight = true;
+
+        [Header("着地演出")]
+        [SerializeField, Tooltip("着地した位置に出すエフェクトのプレハブ（未設定なら出さない）")]
+        private GameObject _landingEffectPrefab;
+
+        [SerializeField, Tooltip("着地エフェクトの、着地位置からのずらし")]
+        private Vector3 _landingEffectOffset = Vector3.zero;
+
+        [SerializeField, Min(0f), Tooltip("着地エフェクトを消すまでの秒数。0 ならエフェクト内の ParticleSystem の長さから自動で決める")]
+        private float _landingEffectLifetime = 0f;
+
+        [SerializeField, Tooltip("着地したときに SE（BattleSeType.FlaskLanding）を鳴らす")]
+        private bool _playLandingSe = true;
 
         private bool _hasLanded;
         private bool _isAnimationEnded;
@@ -62,12 +79,17 @@ namespace EchoEdge.Presenter.Battle
                 _animator.Update(0f);
             }
 
+            var flightAnimator = GetFlightAnimator();
+            FitAnimationToFlight(flightAnimator);
+
             await transform
                 .DOJump(to, _jumpPower, 1, _flightDuration)
                 .SetEase(Ease.Linear)
                 .ToUniTask(cancellationToken: destroyCancellationToken);
 
             _hasLanded = true;
+            if (flightAnimator != null) flightAnimator.speed = 1f;
+            PlayLandingEffect(transform.position);
 
             if (!HasController())
             {
@@ -91,6 +113,66 @@ namespace EchoEdge.Presenter.Battle
         {
             _isAnimationEnded = true;
             TryRelease();
+        }
+
+        /// <summary>
+        /// 飛んでいる間のアニメーションを滞空時間に合わせる。
+        /// 滞空時間を短くしても、アニメーションが途中で切れないようにするため。
+        /// </summary>
+        private void FitAnimationToFlight(Animator animator)
+        {
+            if (!_fitAnimationToFlight || animator == null || animator.runtimeAnimatorController == null) return;
+
+            animator.speed = 1f;
+            animator.Rebind();
+            animator.Update(0f);
+
+            float clipLength = animator.GetCurrentAnimatorStateInfo(0).length;
+            if (clipLength <= 0f || float.IsInfinity(clipLength)) return;
+
+            animator.speed = clipLength / _flightDuration;
+        }
+
+        /// <summary>
+        /// 着地エフェクトと SE を出す
+        /// </summary>
+        private void PlayLandingEffect(Vector3 position)
+        {
+            if (_playLandingSe && AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlaySe(BattleSeType.FlaskLanding);
+            }
+
+            if (_landingEffectPrefab == null) return;
+
+            // フラスコはすぐプールへ戻るので、エフェクトはフラスコの子にせず、プールの下に出す
+            var effect = Instantiate(_landingEffectPrefab, position + _landingEffectOffset, _landingEffectPrefab.transform.rotation, transform.parent);
+            Destroy(effect, GetLandingEffectLifetime(effect));
+        }
+
+        private float GetLandingEffectLifetime(GameObject effect)
+        {
+            if (_landingEffectLifetime > 0f) return _landingEffectLifetime;
+
+            float lifetime = 0f;
+            foreach (var particle in effect.GetComponentsInChildren<ParticleSystem>())
+            {
+                var main = particle.main;
+                float particleLifetime = main.startDelay.constantMax + main.duration + main.startLifetime.constantMax;
+                lifetime = Mathf.Max(lifetime, particleLifetime);
+            }
+
+            // ParticleSystem が無い・ループするエフェクトでも残り続けないようにする
+            return lifetime > 0f ? Mathf.Min(lifetime, ReleaseTimeout) : ReleaseTimeout;
+        }
+
+        /// <summary>
+        /// 飛んでいる間のアニメーションを再生する Animator。
+        /// Animator 欄が未設定でも、フラスコに付いている Animator を使う。
+        /// </summary>
+        private Animator GetFlightAnimator()
+        {
+            return _animator != null ? _animator : GetComponentInChildren<Animator>();
         }
 
         private void TryRelease()

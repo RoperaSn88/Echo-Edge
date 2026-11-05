@@ -128,5 +128,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EchoEdge.Presenter.Battle.FlaskObject
   _animator: {fileID: 0}
-  _flightDuration: 1.8666
+  _flightDuration: 0.8
   _jumpPower: 2

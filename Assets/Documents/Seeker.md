@@ -35,8 +35,10 @@
 1. `Assets/prefab/` にフラスコのプレハブ（例: `Flask.prefab`）を作る。見た目は SpriteRenderer など自由です。
 2. ルートに `FlaskObject` を付ける。
    - Animator: フラスコのアニメーター（任意）。
-   - Flight Duration: 投げてから着地するまでの秒数（既定 0.6）。
+   - Flight Duration: 投げてから着地するまでの秒数（既定 0.6。`flasco.prefab` は 0.8）。
    - Jump Power: 放物線の高さ（既定 2）。
+   - Fit Animation To Flight: 飛んでいる間のアニメーションを滞空時間に合わせた速さで再生する（既定オン）。
+   - 着地演出（エフェクト・SE）は [FlaskLanding.md](FlaskLanding.md) を参照。
 3. アニメーターを使う場合
    - 投げた瞬間から既定のステート（回転など）が最初から再生されます。
    - 着地した瞬間に、トリガー `LandT` があれば引きます（割れる・開くなどのステートへ遷移させる）。
