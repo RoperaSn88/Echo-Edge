@@ -92,7 +92,21 @@ namespace EchoEdge.Presenter.UI
                 }
                 _head.localPosition = start;
                 StopParticles(true);
-                if (_trailParticle != null) _trailParticle.Play(true);
+                if (_trailParticle != null)
+                {
+                    // 先端は前回の到着位置（初回はプレハブの位置＝画面中央）から敵の位置へワープしてくる。
+                    // そのまま Play すると Rate over Distance がワープ分の移動を拾い、
+                    // 前の位置から敵の位置まで粒を撒いてしまうため、敵の位置で状態をリセットしてから再生する
+                    _trailParticle.Simulate(0f, true, true);
+
+                    // 念のため最初の1フレームは放出を止め、パーティクルに敵の位置を覚えさせてから放出を始める
+                    var emission = _trailParticle.emission;
+                    var emissionEnabled = emission.enabled;
+                    emission.enabled = false;
+                    _trailParticle.Play(true);
+                    await UniTask.Yield(PlayerLoopTiming.PostLateUpdate, token);
+                    emission.enabled = emissionEnabled;
+                }
 
                 // 発生位置と到着位置の中点から垂直方向へずらした点を制御点にした2次ベジェで飛ばす
                 var end = GetDestinationLocalPosition(parent);
