@@ -68,7 +68,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: f4457ae6de7b86e4b8bafc2997fd6a1d, type: 2}
+  - {fileID: 2100000, guid: 9c2d7c9cbb567c24ca0bc291be5a8ee0, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -125,3 +125,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a2059df19ccfed64c9aac53b31976753, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BuildingView
+  _animator: {fileID: 0}
+  _appearParticle: {fileID: 0}
+  _disappearParticle: {fileID: 0}
+  _maxDisappearParticleWait: 2

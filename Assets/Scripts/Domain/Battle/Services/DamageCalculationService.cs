@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace EchoEdge.Domain.Battle
 {
     /// <summary>
@@ -6,6 +8,23 @@ namespace EchoEdge.Domain.Battle
     /// </summary>
     public static class DamageCalculationService
     {
+        /// <summary>
+        /// コンボ1回あたりに増える、倍率の式へ渡す x の値
+        /// </summary>
+        private const float ComboStep = 0.2f;
+
+        /// <summary>
+        /// コンボ数からダメージ倍率を求める。
+        /// x = 1 + 0.2 * (コンボ数 - 1) として f(x) = 2(x ln x - x) + 3。
+        /// 傾きが 2 ln x になる式で、1コンボ目 (x = 1) の倍率が 1.0 になるよう定数項を 3 にしている。
+        /// </summary>
+        /// <param name="combo">現在のコンボ数 (1以上)</param>
+        public static float CalculateComboMultiplier(int combo)
+        {
+            float x = 1.0f + (combo - 1) * ComboStep;
+            return 2.0f * (x * Mathf.Log(x) - x) + 3.0f;
+        }
+
         /// <summary>
         /// ダメージ量を計算する。
         /// 計算式: 攻撃力 - 防御力 / 2。結果が負になる場合は 0 を返す。

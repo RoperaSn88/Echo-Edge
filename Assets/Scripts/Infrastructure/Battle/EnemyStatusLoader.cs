@@ -124,9 +124,9 @@ namespace EchoEdge.Infra.Battle
             if (level > 0)
             {
                 // ステージごとの難易度をレベルで調整する。Move は補正しない。
-                hp     = ApplyLevelScaling(hp, level, 100);
+                hp     = ApplyLevelScaling(hp, level, 10);
                 attack = ApplyLevelScaling(attack, level, 150);
-                defend = ApplyLevelScaling(defend, level, 150);
+                defend = ApplyLevelScaling(defend, level, 250);
             }
 
             var status = new BattleStatus(hp, attack, defend, move, movePattern, experience, energy, size);
@@ -146,7 +146,7 @@ namespace EchoEdge.Infra.Battle
         /// <param name="divisor">レベルあたりの増分を決める除数（HP は 100、Attack / Defend は 150）</param>
         private static int ApplyLevelScaling(int value, int level, int divisor)
         {
-            return value + Mathf.FloorToInt((value / (float)divisor) * level) + level;
+            return value + Mathf.FloorToInt((value / (float)divisor) * level) + level / 2;
         }
 
         /// <summary>

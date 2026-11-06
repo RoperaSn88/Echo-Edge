@@ -3,6 +3,8 @@ using UnityEngine;
 using DG.Tweening;
 using Cysharp.Threading.Tasks;
 
+using EchoEdge.Domain.Battle;
+
 namespace EchoEdge.Presenter.UI
 {
     /// <summary>
@@ -30,8 +32,6 @@ namespace EchoEdge.Presenter.UI
         private const float PopScale = 1.5f;
         private const float AppearDuration = 0.3f;
         private const float DisappearDuration = 0.3f;
-        private const float BaseComboValue = 1.0f;
-        private const float ComboStep = 0.1f;
 
         private void Awake()
         {
@@ -61,8 +61,7 @@ namespace EchoEdge.Presenter.UI
             _comboText.text = $"{combo} COMBO";
 
             // ダメージ倍率テキストを更新
-            float comboValue = BaseComboValue + (combo - 1) * ComboStep;
-            float multiplier = comboValue * comboValue;
+            float multiplier = DamageCalculationService.CalculateComboMultiplier(combo);
             if (_multiplierText != null)
             {
                 _multiplierText.text = $"×{multiplier:F2}";
