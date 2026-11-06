@@ -40,10 +40,10 @@ namespace EchoEdge.Presenter.UI
         private float _needleSpeed = 240f;
 
         [SerializeField, Min(0), Tooltip("針が端から端まで動く回数の上限。超えたら失敗。1 で片道、0 なら止めるまで往復し続ける")]
-        private int _maxSweepCount = 1;
+        private byte _maxSweepCount = 1;
 
         [SerializeField, Min(0), Tooltip("1回の一閃で行える追加反射の上限。0 なら上限なし")]
-        private int _maxAdditionalReflectCount = 0;
+        private byte _maxAdditionalReflectCount = 0;
 
         [SerializeField, Min(0f), Tooltip("表示・非表示のフェード時間 (秒)")]
         private float _fadeDuration = 0.3f;
@@ -53,12 +53,10 @@ namespace EchoEdge.Presenter.UI
 
         [SerializeField, Tooltip("成功・失敗のテキスト。未設定なら攻撃QTEと同じ結果テキスト (UIPresenter) を使う")]
         private QTEResultText _resultText;
-
-        [SerializeField, Tooltip("分度器QTEに成功したときのテキスト")]
-        private string _successText = "Reflect!!";
-
-        [SerializeField, Tooltip("分度器QTEに失敗したとき (エリア外・時間切れ) のテキスト")]
-        private string _failedText = "Failed...";
+        
+        private const string SuccessText = "Perfect!!";
+        
+        private const string FailedText = "Failed...";
 
         public float InitialAreaWidth => _initialAreaWidth;
 
@@ -167,7 +165,7 @@ namespace EchoEdge.Presenter.UI
 
         private void ShowResultText(bool success)
         {
-            var text = success ? _successText : _failedText;
+            var text = success ? SuccessText : FailedText;
             if (string.IsNullOrEmpty(text)) return;
 
             if (_resultText != null)
