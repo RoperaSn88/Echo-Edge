@@ -78,7 +78,7 @@ namespace EchoEdge.Domain.Battle
         public bool IsInvincible;
 
         /// <summary>
-        /// 致死ダメージを受けてもHPを1残すか（ステージ1のブースターの初ターンなど）。
+        /// 致死ダメージを受けてもHPを1残すか。SurviveLethalBuff で切り替える。
         /// 引数で指定しない <see cref="Damage(int)"/> / <see cref="Damage(int, float)"/> に適用する（敵の被ダメージ）。
         /// </summary>
         [NonSerialized]

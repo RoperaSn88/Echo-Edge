@@ -82,8 +82,8 @@ namespace EchoEdge.Domain.Battle
             status.Initialize();
             // 盤面外のユニットは一閃の対象にならないため、念のため無敵にしておく
             if (IsOffBoard) status.IsInvincible = true;
-            // ステージ1のブースターなど、最初のプレイヤーフェーズだけ食いしばる敵
-            FirstTurnLethalGuard.Apply(enemyId, status);
+            // ステージ1のブースターなど、最初のプレイヤーフェーズだけ食いしばる敵に1ターンのバフを付ける
+            FirstTurnSurviveLethal.TryApply(enemyId, status);
             _battleStatus = status;
             _enemyKind = enemyId;
             _size = status.Size;

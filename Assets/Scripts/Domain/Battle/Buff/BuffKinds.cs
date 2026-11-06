@@ -5,6 +5,7 @@ namespace EchoEdge.Domain.Battle
         HP,
         Attack,
         Defend,
-        Move
+        Move,
+        SurviveLethal
     }
 }

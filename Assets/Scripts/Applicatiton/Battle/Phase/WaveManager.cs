@@ -63,8 +63,6 @@ namespace EchoEdge.App.Battle
             if (GameClearManager.GameClearCondition())
             {
                 CurrentWaveIndex++;
-                // 敵フェーズを挟まずに次のウェーブへ進む場合も、初ターン限定の食いしばりはここで終わり
-                FirstTurnLethalGuard.EndFirstTurn();
                 return NextWavePhase.Instance;
             }
 
