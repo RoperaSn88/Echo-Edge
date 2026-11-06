@@ -51,6 +51,15 @@ namespace EchoEdge.Presenter.UI
         [SerializeField, Min(0f), Tooltip("針を止めてから結果を見せる時間 (秒)")]
         private float _resultDuration = 0.35f;
 
+        [SerializeField, Tooltip("成功・失敗のテキスト。未設定なら攻撃QTEと同じ結果テキスト (UIPresenter) を使う")]
+        private QTEResultText _resultText;
+
+        [SerializeField, Tooltip("分度器QTEに成功したときのテキスト")]
+        private string _successText = "Reflect!!";
+
+        [SerializeField, Tooltip("分度器QTEに失敗したとき (エリア外・時間切れ) のテキスト")]
+        private string _failedText = "Failed...";
+
         public float InitialAreaWidth => _initialAreaWidth;
 
         public int MaxAdditionalReflectCount => _maxAdditionalReflectCount;
@@ -136,6 +145,7 @@ namespace EchoEdge.Presenter.UI
 
                 var success = clicked && layout.Contains(needleAngle);
                 AudioManager.Instance.PlaySe(success ? BattleSeType.QTE_Perfect : BattleSeType.QTE_Bad);
+                ShowResultText(success);
 
                 await UniTask.Delay(System.TimeSpan.FromSeconds(_resultDuration), cancellationToken: cancellationToken);
                 return success;
@@ -152,6 +162,21 @@ namespace EchoEdge.Presenter.UI
                 {
                     Fade(0f, CancellationToken.None).Forget();
                 }
+            }
+        }
+
+        private void ShowResultText(bool success)
+        {
+            var text = success ? _successText : _failedText;
+            if (string.IsNullOrEmpty(text)) return;
+
+            if (_resultText != null)
+            {
+                _resultText.Appear(text).Forget();
+            }
+            else if (UIPresenter.Instance != null)
+            {
+                UIPresenter.Instance.AppearQTEResult(text).Forget();
             }
         }
 
