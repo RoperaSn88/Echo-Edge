@@ -22,7 +22,7 @@ namespace EchoEdge.Domain.Battle
     /// 召喚するエナーのレベルは、エナーを2体召喚するごとに+1される。
     /// 召喚では、スキルアニメーションのイベントで召喚先のマスへフラスコを投げ、着地したマスにエナーが現れる。
     /// </summary>
-    public class Seeker : IUnitAction
+    public class Seeker : IUnitAction, IScriptedSkillAction
     {
         /// <summary>
         /// 1回に召喚する『エナー』の最小数・最大数
@@ -104,7 +104,15 @@ namespace EchoEdge.Domain.Battle
         /// <inheritdoc/>
         public UniTask<EnemyMoveKinds> Act(int selfHeight, int selfWidth)
         {
-            // 毎フェーズ、召喚かバフのどちらかを行う。
+            // 毎フェーズ、召喚かバフのどちらかを行う
+            TryPrepareSkill(selfHeight, selfWidth);
+            return UniTask.FromResult(EnemyMoveKinds.Specific);
+        }
+
+        /// <inheritdoc/>
+        public bool TryPrepareSkill(int selfHeight, int selfWidth)
+        {
+            // 召喚かバフのどちらにするかを決める。
             // フラスコはスキルアニメーションの途中で投げるため、召喚先はアニメーションより前のここで決めて予約しておく
             _summonCells.Clear();
             _willSummon = MapManager.Instance != null && ShouldSummon(CountEnarsOnBoard());
@@ -120,7 +128,7 @@ namespace EchoEdge.Domain.Battle
                 FlaskThrower.Instance.Reserve(_summonCells.Select(cell => UnitSpawner.Instance.GetCellWorldPosition(cell.h, cell.w)));
             }
 
-            return UniTask.FromResult(EnemyMoveKinds.Specific);
+            return true;
         }
 
         /// <inheritdoc/>

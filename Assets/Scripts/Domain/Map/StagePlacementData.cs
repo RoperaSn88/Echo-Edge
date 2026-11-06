@@ -37,5 +37,11 @@ namespace EchoEdge.Domain.Map
         /// 斜面の向き（<see cref="StageObjectKind.SlopeWall"/> のときだけ使う）
         /// </summary>
         public EnergyWallDirection slopeDirection;
+
+        /// <summary>
+        /// エネミーフェーズに先頭から順に行う行動（ユニットのときだけ使う）。
+        /// 空なら最初から、使い切った後は通常（ランダム）の行動をする。
+        /// </summary>
+        public System.Collections.Generic.List<EnemyActionKinds> actions = new();
     }
 }

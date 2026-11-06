@@ -104,6 +104,7 @@ namespace EchoEdge.App.Battle
                     var size = await EnemyStatusLoader.TryLoadSize((int)placement.enemyKind);
                     var unit = UnitFactory.Create(placement.enemyKind, placement.height, placement.width, size);
                     await unit.LoadStatus(placement.enemyKind, placement.level);
+                    unit.SetScriptedActions(placement.actions);
                     UnitSpawner.Instance.SpawnView(unit, placement.enemyKind);
                 }
             }

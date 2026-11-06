@@ -18,7 +18,7 @@ namespace EchoEdge.Domain.Battle
     /// そのうち1体を犠牲にして自身のステータスを強化＆回復する。
     /// 吸収は1ターンにつき1回まで（エナー全体で共有する制限）。
     /// </summary>
-    public class Enar : IUnitAction
+    public class Enar : IUnitAction, IScriptedSkillAction
     {
         /// <summary>
         /// このターンに既に吸収が行われたか。
@@ -80,6 +80,13 @@ namespace EchoEdge.Domain.Battle
             }
 
             return UniTask.FromResult(EnemyMoveKinds.None);
+        }
+
+        /// <inheritdoc/>
+        public bool TryPrepareSkill(int selfHeight, int selfWidth)
+        {
+            // 犠牲にできる『エナー』がいないとき・このターンに吸収済みのときは吸収できない
+            return !_hasAbsorbedThisTurn && FindSacrificeCandidates(selfHeight, selfWidth).Count > 0;
         }
 
         /// <inheritdoc/>

@@ -18,7 +18,7 @@ namespace EchoEdge.Domain.Battle
     /// スキルは場所を問わず発動でき、自身のHPを消費することで発動し、
     /// ステージ上の『エナー』全員にランダムな効果を99ターン付与する。
     /// </summary>
-    public class BigEnar : IUnitAction
+    public class BigEnar : IUnitAction, IScriptedSkillAction
     {
         private const float PlayerDamageRate = 1.0f;
         private const float SpecificRate = 0.3f;
@@ -82,6 +82,14 @@ namespace EchoEdge.Domain.Battle
             }
 
             return UniTask.FromResult(EnemyMoveKinds.None);
+        }
+
+        /// <inheritdoc/>
+        public bool TryPrepareSkill(int selfHeight, int selfWidth)
+        {
+            // HPコストを支払えないときは自滅を避けるため使わない
+            var selfStatus = MapManager.Instance?.GetUnitAt(selfHeight, selfWidth)?.GetStatus();
+            return selfStatus != null && selfStatus.HP > SkillHpCost;
         }
 
         /// <inheritdoc/>
