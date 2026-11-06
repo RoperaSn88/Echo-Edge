@@ -75,6 +75,9 @@ namespace EchoEdge.Presenter.Player
                 // OverlapSphere・移動中の OnTriggerEnter によるダメージ計算で参照される。
                 BattleManager.SetReflectionCount(i);
 
+                // 開始時の待機が終わったので、ここから敵へのダメージ判定を有効にする(2回目以降は何もしない)
+                player.BeginAttackHit();
+
                 if (i > 0)
                 {
                     var colliders = Physics.OverlapSphere(ray.origin, ReflectionDamageCheckRadius);
