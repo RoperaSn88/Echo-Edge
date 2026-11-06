@@ -165,6 +165,8 @@ namespace EchoEdge.Presenter.Player
 
             PlayerView.Instance.Animator.SetBool("AttackingF", false);
 
+            // 戻り先に敵がいてもダメージを与えないよう、攻撃判定を切ってから戻す
+            player.EndAttackHit();
             player.PlayerTransform.position = returnPos;
             await UniTask.Delay(TimeSpan.FromSeconds(0.6f));
         }

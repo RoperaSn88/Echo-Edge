@@ -150,6 +150,16 @@ namespace EchoEdge.Presenter.Player
         }
 
         /// <summary>
+        /// 攻撃を終えて元の位置へ戻る前に呼ぶ。以降はこの攻撃が終わるまで敵へのダメージ判定を行わない。
+        /// </summary>
+        internal void EndAttackHit()
+        {
+            _canAttack = false;
+            _isWaitingMoveStart = false;
+            _pendingTriggers.Clear();
+        }
+
+        /// <summary>
         /// 一閃開始の待機が終わり、移動を始めるときに呼ぶ。ここから敵へのダメージ判定を有効にする。
         /// 待機中から重なっていた敵は OnTriggerEnter が再発生しないので、ここでまとめて判定する。
         /// 2回目以降の呼び出し(反射ごとの移動開始)では何もしない。
