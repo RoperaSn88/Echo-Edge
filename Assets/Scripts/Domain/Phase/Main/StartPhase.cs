@@ -47,6 +47,8 @@ namespace EchoEdge.Domain.Phase
             // (クリア条件種別は各ウェーブのCSV1行目から MapManager.BuildStageFromCsv 内で設定される)
             await UniTask.WaitUntil(() => MapManager.Instance != null);
             await WaveManager.LoadStageWavesAsync();
+            // ステージ1のブースターなど、最初のプレイヤーフェーズだけ食いしばる敵に1ターンのバフを付ける
+            EnemyInitializeActivator.Register(FirstTurnSurviveLethal.Instance);
             await MapManager.Instance.BuildStageFromCsv();
 
             // 3. Panelをフェードイン（最初のウェーブがボス戦ならボスBGMを流す）
