@@ -173,6 +173,14 @@ namespace EchoEdge.App.Battle
         }
 
         /// <summary>
+        /// プレイヤーのバフの残りターンを減らす。プレイヤーのターンが終わったとき（エネミーフェーズ開始時・次ウェーブ移行時）に呼ぶ。
+        /// </summary>
+        public static void TickPlayerBuffs()
+        {
+            _playerStatus?.TickBuffs();
+        }
+
+        /// <summary>
         /// 回復の回数を1回消費する。
         /// </summary>
         /// <returns>消費できたか（残り回数が0なら false）</returns>
