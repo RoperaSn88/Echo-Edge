@@ -135,7 +135,7 @@ namespace EchoEdge.Presenter.Player
         /// <summary>
         /// 分度器の向きの刻み (度)。壁の面 (上下左右・斜め45度) に合わせる
         /// </summary>
-        private const float RotationStep = 45f;
+        private const float RotationStep = 30f;
 
         /// <summary>
         /// 入射方向と壁の法線から分度器の配置を求める。

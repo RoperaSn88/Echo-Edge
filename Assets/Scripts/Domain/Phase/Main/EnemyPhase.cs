@@ -39,8 +39,9 @@ namespace EchoEdge.Domain.Phase
 
             _clickFlug = false;
 
-            // プレイヤーのターンが終わったので、防御による反射回数の増加を元に戻す
+            // プレイヤーのターンが終わったので、防御による反射回数の増加を元に戻し、バフのターンを進める
             BattleManager.ClearReflectBonus();
+            BattleManager.TickPlayerBuffs();
 
             OperateInfos.Instance.SetOperateInfo(PhaseKinds.Enemy).Forget();
             await TurnChangeView.Instance.ShowTurnChange(TurnChangeKinds.EnemyTurn);

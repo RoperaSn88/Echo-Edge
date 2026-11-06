@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
@@ -96,6 +97,17 @@ namespace EchoEdge.Presenter.Player
 
         public bool CanAttack => _canAttack;
 
+        /// <summary>
+        /// 一閃開始直後の待機中かどうか。待機中は敵に触れてもダメージを与えず、<see cref="_pendingTriggers"/> に溜めておく。
+        /// 待機中にダメージ処理が走ると、追尾カメラへの切り替え中にヒット演出のカメラが動いてアングルが崩れるため。
+        /// </summary>
+        private bool _isWaitingMoveStart;
+
+        /// <summary>
+        /// 一閃開始の待機中に触れた(重なっている)敵のコライダー。移動開始時にまとめてダメージ判定する。
+        /// </summary>
+        private readonly List<Collider> _pendingTriggers = new();
+
         public void Start()
         {
             Instance = this;
@@ -123,6 +135,8 @@ namespace EchoEdge.Presenter.Player
         {
             _currentAttackAction = ResolveAttackAction();
             _canAttack = true;
+            _isWaitingMoveStart = true;
+            _pendingTriggers.Clear();
             try
             {
                 await _currentAttackAction.ExecuteAsync(targetPos);
@@ -130,6 +144,30 @@ namespace EchoEdge.Presenter.Player
             finally
             {
                 _canAttack = false;
+                _isWaitingMoveStart = false;
+                _pendingTriggers.Clear();
+            }
+        }
+
+        /// <summary>
+        /// 一閃開始の待機が終わり、移動を始めるときに呼ぶ。ここから敵へのダメージ判定を有効にする。
+        /// 待機中から重なっていた敵は OnTriggerEnter が再発生しないので、ここでまとめて判定する。
+        /// 2回目以降の呼び出し(反射ごとの移動開始)では何もしない。
+        /// </summary>
+        internal void BeginAttackHit()
+        {
+            if (!_isWaitingMoveStart) return;
+            _isWaitingMoveStart = false;
+
+            if (!_canAttack || _pendingTriggers.Count == 0) return;
+
+            // 判定中に撃破などでコライダーが無効化されることがあるので、コピーしてから処理する
+            var pending = _pendingTriggers.ToArray();
+            _pendingTriggers.Clear();
+            foreach (var other in pending)
+            {
+                if (other == null || !other.enabled || !other.gameObject.activeInHierarchy) continue;
+                _currentAttackAction?.OnTriggerEnter(other);
             }
         }
 
@@ -278,7 +316,21 @@ namespace EchoEdge.Presenter.Player
         private void OnTriggerEnter(Collider other)
         {
             if (!_canAttack) return;
+            if (_isWaitingMoveStart)
+            {
+                // 移動開始まではダメージを与えず、移動開始時に判定する
+                if (!_pendingTriggers.Contains(other)) _pendingTriggers.Add(other);
+                return;
+            }
             _currentAttackAction?.OnTriggerEnter(other);
+        }
+
+        /// <summary>
+        /// 一閃開始の待機中に離れた敵は、移動開始時の判定対象から外す。
+        /// </summary>
+        private void OnTriggerExit(Collider other)
+        {
+            if (_isWaitingMoveStart) _pendingTriggers.Remove(other);
         }
 
         /// <summary>
@@ -287,7 +339,7 @@ namespace EchoEdge.Presenter.Player
         /// <param name="collision"></param>
         void OnCollisionEnter(Collision collision)
         {
-            if (!_canAttack) return;
+            if (!_canAttack || _isWaitingMoveStart) return;
             _currentAttackAction?.OnCollisionEnter(collision);
         }
     }

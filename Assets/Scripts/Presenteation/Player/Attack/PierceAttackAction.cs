@@ -73,6 +73,9 @@ namespace EchoEdge.Presenter.Player
                 BattleManager.SetReflectionCount(i);
                 _damagedEnemies.Clear();
 
+                // 開始時の待機が終わったので、ここから敵へのダメージ判定を有効にする(2回目以降は何もしない)
+                player.BeginAttackHit();
+
                 // 始点からdirection方向にrayを飛ばし、当たった位置を新たな_posとする。
                 if (Physics.Raycast(ray, out RaycastHit hit, math.INFINITY, player.LayerMask))
                 {

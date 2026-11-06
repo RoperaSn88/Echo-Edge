@@ -20,6 +20,7 @@ namespace EchoEdge.Domain.Battle
                 case 3: return new Pusher(PusherDirection.Down);
                 case 4: return new Pusher(PusherDirection.Left);
                 case 5: return new Pusher(PusherDirection.Right);
+                case 6: return new ReflectCharger();
                 default: throw new InvalidOperationException($"不明な装備品インデックスです: {index}");
             }
         }

@@ -33,8 +33,8 @@ namespace EchoEdge.Presenter.UI
         
         private const string WeaponModelPath = "Assets/Addressables/WeaponModels/";
         
-        // 武器の最大数は6個（マグネティックコア、エナジーウォール、プッシャー上下左右）
-        private const int MaxWeaponNum = 6;
+        // 武器の最大数は7個（マグネティックコア、エナジーウォール、プッシャー上下左右、リフレクトチャージャー）
+        private const int MaxWeaponNum = 7;
         
 
         private void Start()
