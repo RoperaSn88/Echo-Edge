@@ -111,6 +111,14 @@ namespace EchoEdge.Presenter.UI
             await _qteResultText.Appear(result);
         }
 
+        /// <summary>
+        /// QTE の結果テキストを任意の文言で表示する
+        /// </summary>
+        public async UniTask AppearQTEResult(string text)
+        {
+            await _qteResultText.Appear(text);
+        }
+
         public async UniTask AppearDamageText(string value, Vector3 targetTrans)
         {
             // Instance.EnemyDamageTextPool.RegisterTarget(targetTrans);

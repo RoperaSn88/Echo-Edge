@@ -15,7 +15,21 @@ namespace EchoEdge.Presenter.UI
 
         private Sequence _sequence;
 
-        public async UniTask Appear(QTEResults result)
+        public UniTask Appear(QTEResults result)
+        {
+            var text = result switch
+            {
+                QTEResults.Good => "Good!",
+                QTEResults.Perfect => "Perfect!!",
+                _ => "Failed...",
+            };
+            return Appear(text);
+        }
+
+        /// <summary>
+        /// 任意の文言で結果を表示する (分度器QTEなど)
+        /// </summary>
+        public async UniTask Appear(string text)
         {
             // 前回の表示が残っていれば打ち切り、今回の表示に置き換える
             _sequence?.Kill();
@@ -23,19 +37,7 @@ namespace EchoEdge.Presenter.UI
             gameObject.SetActive(true);
             _qteText.alpha = 0;
             _rectTransform.localScale = Vector3.one;
-
-            switch (result)
-            {
-                case QTEResults.Failed:
-                    _qteText.text = "Failed...";
-                    break;
-                case QTEResults.Good:
-                    _qteText.text = "Good!";
-                    break;
-                case QTEResults.Perfect:
-                    _qteText.text = "Perfect!!";
-                    break;
-            }
+            _qteText.text = text;
 
             var sequence = DOTween.Sequence()
                 .Append(_qteText.DOFade(1f, 0.2f))
