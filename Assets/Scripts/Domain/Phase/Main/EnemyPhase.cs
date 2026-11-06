@@ -56,6 +56,8 @@ namespace EchoEdge.Domain.Phase
                 }
             }
             
+            // 最初のプレイヤーフェーズが終わったので、初ターン限定の食いしばりを解除する
+            FirstTurnLethalGuard.EndFirstTurn();
             EnemyPhaseStartActivator.ExecuteEnemyPhaseStartActions();
             BuildingManager.Instance?.ExecuteTurnStartActions();
             await MapManager.Instance.ExecuteTurnStartActions();
