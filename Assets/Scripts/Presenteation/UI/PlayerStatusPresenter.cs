@@ -58,6 +58,13 @@ namespace EchoEdge.Presenter.UI
             ColorUtility.TryParseHtmlString("#6593E6", out DefaultColor);
             ColorUtility.TryParseHtmlString("#E67A65", out RedColor);
             Instance = this;
+
+            // ピンチ時のグラデーションパネルは全画面を覆う見た目だけの演出なので、
+            // マウス入力を遮らないようにする（遮ると PlayerInfo などのホバー透過が効かなくなる）
+            if (_attentionGradiate != null)
+            {
+                _attentionGradiate.raycastTarget = false;
+            }
         }
 
         public void SetPlayerHP(int value, int maxValue)
