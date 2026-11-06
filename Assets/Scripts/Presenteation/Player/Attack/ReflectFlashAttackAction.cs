@@ -129,6 +129,8 @@ namespace EchoEdge.Presenter.Player
 
             PlayerView.Instance.Animator.SetBool("AttackingF", false);
 
+            // 戻り先に敵がいてもダメージを与えないよう、攻撃判定を切ってから戻す
+            player.EndAttackHit();
             // z軸を含めて元の位置へ戻す
             player.PlayerTransform.position = originalPosition;
         }
