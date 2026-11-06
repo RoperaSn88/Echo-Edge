@@ -67,18 +67,18 @@ namespace EchoEdge.Domain.Battle
         /// <inheritdoc/>
         public UniTask<EnemyMoveKinds> Act(int selfHeight, int selfWidth)
         {
-            var selfStatus = MapManager.Instance?.GetUnitAt(selfHeight, selfWidth)?.GetStatus();
-
-            // HPコストを支払える時のみスキルを選択肢に入れる（自滅を避けるための安全策）
-            if (selfStatus != null && selfStatus.HP > SkillHpCost && UnityEngine.Random.value < SpecificRate)
-            {
-                return UniTask.FromResult(EnemyMoveKinds.Specific);
-            }
-
             // 通常攻撃は隣接時(width=0)のみ
             if (selfWidth == 0)
             {
                 return UniTask.FromResult(EnemyMoveKinds.Attack);
+            }
+            
+            var selfStatus = MapManager.Instance?.GetUnitAt(selfHeight, selfWidth)?.GetStatus();
+            
+            // HPコストを支払える時のみスキルを選択肢に入れる（自滅を避けるための安全策）
+            if (selfStatus != null && selfStatus.HP > SkillHpCost && UnityEngine.Random.value < SpecificRate)
+            {
+                return UniTask.FromResult(EnemyMoveKinds.Specific);
             }
 
             return UniTask.FromResult(EnemyMoveKinds.None);

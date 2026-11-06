@@ -79,6 +79,13 @@ namespace EchoEdge.Domain.Phase
             _hoverFloorPos = NoFloorPos;
             _canPlaceAtHover = false;
 
+            // 床マスを選ばない装備品は、そのまま効果を発揮する
+            if (SelectedEffect is IInstantEquipEffect)
+            {
+                WeaponController.Instance.HideAllWeaponUIs();
+                return PlayerWeaponActivePhase.Instance;
+            }
+
             OperateInfos.Instance.SetOperateInfo(PhaseKinds.Equip).Forget();
 
             // 装備品のUIを非表示にする

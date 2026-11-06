@@ -50,9 +50,14 @@ namespace EchoEdge.App.Battle
         private static int _reflectionCount = 0;
 
         /// <summary>
-        /// 反射1回あたりに加算されるダメージ倍率。(1.0 + 0.10 * n)
+        /// 反射1回あたりに基礎攻撃へ加算される値。(攻撃力 + 3 * n)
         /// </summary>
-        private const float ReflectionDamageBonusPerCount = 0.10f;
+        private const int ReflectionAttackBonusPerCount = 3;
+
+        /// <summary>
+        /// 2コンボ目以降、コンボ1回あたりに基礎攻撃へ加算される値。(攻撃力 + 1 * (コンボ数 - 1))
+        /// </summary>
+        private const int ComboAttackBonusPerCount = 1;
 
         /// <summary>
         /// めちゃくちゃ早い一閃のダメージ倍率。プレイヤーの攻撃力の何倍を基礎ダメージとするか。
@@ -168,6 +173,14 @@ namespace EchoEdge.App.Battle
         }
 
         /// <summary>
+        /// プレイヤーのバフの残りターンを減らす。プレイヤーのターンが終わったとき（エネミーフェーズ開始時・次ウェーブ移行時）に呼ぶ。
+        /// </summary>
+        public static void TickPlayerBuffs()
+        {
+            _playerStatus?.TickBuffs();
+        }
+
+        /// <summary>
         /// 回復の回数を1回消費する。
         /// </summary>
         /// <returns>消費できたか（残り回数が0なら false）</returns>
@@ -254,18 +267,20 @@ namespace EchoEdge.App.Battle
 
             // コンボを増やしてテキストを更新する
             _combo++;
-            float comboValue = 1.0f + (_combo - 1) * 0.1f;
+            float comboMultiplier = DamageCalculationService.CalculateComboMultiplier(_combo);
             ComboPresenter.Instance?.SetCombo(_combo);
 
-            // 反射回数に応じて基礎攻撃へ倍率を掛ける (1.0 + 0.10 * n)
-            float reflectionValue = 1.0f + ReflectionDamageBonusPerCount * _reflectionCount;
+            // 反射回数とコンボ数に応じて基礎攻撃へ加算する (攻撃力 + 3 * 反射回数 + 1 * (コンボ数 - 1))
+            int baseAttack = _playerStatus.Attack
+                + ReflectionAttackBonusPerCount * _reflectionCount
+                + ComboAttackBonusPerCount * (_combo - 1);
 
-            return await _enemyStatus.Damage((int)(_playerStatus.Attack * (comboValue * comboValue) * reflectionValue * _qteResult * attackTypeRate));
+            return await _enemyStatus.Damage((int)(baseAttack * comboMultiplier * _qteResult * attackTypeRate));
         }
 
         /// <summary>
         /// めちゃくちゃ早い一閃によるダメージを反映する。
-        /// プレイヤーの攻撃パラメータの2.5倍を基礎ダメージとし、QTEやコンボ・反射倍率は乗算しない。
+        /// プレイヤーの攻撃パラメータの2.5倍を基礎ダメージとし、QTEやコンボ・反射の補正は適用しない。
         /// </summary>
         /// <param name="attackTypeRate">攻撃種類ごとのダメージ倍率。反射攻撃を基準(1.0)とし、他の攻撃種類はこれより小さい値を渡して弱める。</param>
         public async static UniTask<(int damage, bool isDeath)> FlashAttackDamage(float attackTypeRate = 1.0f)
