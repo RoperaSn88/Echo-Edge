@@ -5,21 +5,122 @@ using UnityEngine;
 
 using EchoEdge.App.Battle;
 using EchoEdge.Domain.Phase;
+using EchoEdge.Presenter.Battle;
 
 namespace EchoEdge.Domain.Battle
 {
     /// <summary>
-    /// マグネティックコアの効果クラス
+    /// マグネティックコアの効果クラス。
+    /// 床マスを選んでいる間は、カーソルの下のマスを中心に効果範囲（と引き寄せられる敵のマス）を
+    /// <see cref="MagneticCoreRangeView"/> で表示する。
     /// </summary>
-    public class MagneticCore : IEquipEffect
+    public class MagneticCore : IEquipEffect, IEquipPlacementPreview
     {
-        private const int EffectRadius = 3;
+        /// <summary>
+        /// 効果範囲（中心マスからのマンハッタン距離）
+        /// </summary>
+        public const int EffectRadius = 3;
+
+        /// <summary>
+        /// 中心マスからのマンハッタン距離
+        /// </summary>
+        public static int GetDistance(int h, int w, int targetH, int targetW)
+        {
+            return Mathf.Abs(h - targetH) + Mathf.Abs(w - targetW);
+        }
+
+        /// <summary>
+        /// 指定マスが効果範囲に入っているか
+        /// </summary>
+        public static bool IsInRange(int h, int w, int targetH, int targetW)
+        {
+            return GetDistance(h, w, targetH, targetW) <= EffectRadius;
+        }
+
+        /// <summary>
+        /// 指定マスを中心にしたときに引き寄せられるユニット（近い順）。
+        /// 2x2のユニットは基準マス（左上）の位置で判定する
+        /// </summary>
+        public static List<(IUnit unit, int h, int w)> GetTargetUnits(int targetH, int targetW)
+        {
+            if (MapManager.Instance == null)
+            {
+                return new List<(IUnit unit, int h, int w)>();
+            }
+
+            return MapManager.Instance.GetUnitPositionsSnapshot()
+                .Where(unitInfo => unitInfo.unit.CanMove())
+                .Where(unitInfo => IsInRange(unitInfo.h, unitInfo.w, targetH, targetW))
+                .OrderBy(unitInfo => GetDistance(unitInfo.h, unitInfo.w, targetH, targetW))
+                .ToList();
+        }
+
+        /// <inheritdoc/>
+        public bool ShowPreviewAt(int h, int w)
+        {
+            if (MapManager.Instance == null || !MapManager.Instance.IsInBounds(h, w))
+            {
+                MagneticCoreRangeView.Instance?.Hide();
+                return false;
+            }
+
+            List<Vector2Int> rangeCells = new();
+            for (int dh = -EffectRadius; dh <= EffectRadius; dh++)
+            {
+                int wRange = EffectRadius - Mathf.Abs(dh);
+                for (int dw = -wRange; dw <= wRange; dw++)
+                {
+                    rangeCells.Add(new Vector2Int(w + dw, h + dh));
+                }
+            }
+
+            // 引き寄せられる敵が占有している全マス（2x2のユニットは4マス）
+            List<Vector2Int> targetCells = new();
+            foreach (var unitInfo in GetTargetUnits(h, w))
+            {
+                int size = (int)unitInfo.unit.GetSize();
+                for (int dh = 0; dh < size; dh++)
+                {
+                    for (int dw = 0; dw < size; dw++)
+                    {
+                        targetCells.Add(new Vector2Int(unitInfo.w + dw, unitInfo.h + dh));
+                    }
+                }
+            }
+
+            MagneticCoreRangeView.GetOrCreate().Show(new Vector2Int(w, h), rangeCells, targetCells);
+            return true;
+        }
+
+        /// <inheritdoc/>
+        public void HidePreview()
+        {
+            MagneticCoreRangeView.Instance?.Hide();
+        }
+
+        /// <inheritdoc/>
+        public void OnScroll(float scroll)
+        {
+        }
+
+        /// <inheritdoc/>
+        public void OnPressWheel()
+        {
+        }
+
+        /// <inheritdoc/>
+        public void CancelPreview()
+        {
+            MagneticCoreRangeView.Instance?.Hide();
+        }
 
         /// <summary>
         /// マグネティックコアの効果を発揮する
         /// </summary>
         public async UniTask Activate()
         {
+            MagneticCoreRangeView.Instance?.Hide();
+
             if (MapManager.Instance == null)
             {
                 return;
@@ -33,11 +134,7 @@ namespace EchoEdge.Domain.Battle
                 return;
             }
 
-            List<(IUnit unit, int h, int w)> targetUnits = MapManager.Instance.GetUnitPositionsSnapshot()
-                .Where(unitInfo => unitInfo.unit.CanMove())
-                .Where(unitInfo => Mathf.Abs(unitInfo.h - targetH) + Mathf.Abs(unitInfo.w - targetW) <= EffectRadius)
-                .OrderBy(unitInfo => Mathf.Abs(unitInfo.h - targetH) + Mathf.Abs(unitInfo.w - targetW))
-                .ToList();
+            List<(IUnit unit, int h, int w)> targetUnits = GetTargetUnits(targetH, targetW);
 
             List<(int h, int w)> candidateCells = GetCandidateCells(targetH, targetW);
             if (candidateCells.Count == 0)
