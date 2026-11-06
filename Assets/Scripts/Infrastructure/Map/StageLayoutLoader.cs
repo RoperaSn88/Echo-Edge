@@ -143,6 +143,13 @@ namespace EchoEdge.Infra.Map
                     {
                         placement.level = level;
                     }
+
+                    // 行動リスト列（任意）。`Attack/Skill/Attack` のように / 区切りで、先頭から順に行う。
+                    // 未記載・空欄なら最初から通常（ランダム）の行動をする（後方互換のため）。
+                    if (cols.Length >= 6)
+                    {
+                        placement.actions = ParseActions(cols[5], i + 1);
+                    }
                 }
                 
                 // 盤面外に立つエネミー（『シーカー』など）はマスを占有しないため、重複座標の確認・予約から外す
@@ -176,6 +183,48 @@ namespace EchoEdge.Infra.Map
             }
 
             return placements;
+        }
+
+        /// <summary>
+        /// 行動リストの区切り文字
+        /// </summary>
+        public const char ActionSeparator = '/';
+
+        /// <summary>
+        /// CSV の行動リスト列（`Attack/Skill/Attack`）を読み取ります。読めない要素は警告を出して飛ばします。
+        /// </summary>
+        /// <param name="text">行動リスト列の文字列</param>
+        /// <param name="lineNumber">警告に出す行番号（1始まり）</param>
+        public static List<EnemyActionKinds> ParseActions(string text, int lineNumber)
+        {
+            var actions = new List<EnemyActionKinds>();
+            if (string.IsNullOrWhiteSpace(text)) return actions;
+
+            foreach (var token in text.Split(ActionSeparator))
+            {
+                var trimmed = token.Trim();
+                if (trimmed.Length == 0) continue;
+
+                // 数値（0, 1）は受け付けない（Enum.TryParse は未定義の数値も通してしまうため）
+                if (!Enum.TryParse(trimmed, true, out EnemyActionKinds action) ||
+                    !Enum.IsDefined(typeof(EnemyActionKinds), action) || char.IsDigit(trimmed[0]) || trimmed[0] == '-')
+                {
+                    Debug.LogWarning($"StageLayout.csv の {lineNumber} 行目の行動リストに不正な行動があります: {trimmed}。有効値: Attack, Skill");
+                    continue;
+                }
+
+                actions.Add(action);
+            }
+
+            return actions;
+        }
+
+        /// <summary>
+        /// 行動リストを CSV の行動リスト列の文字列（`Attack/Skill/Attack`）にします（<see cref="ParseActions"/> の逆変換）。
+        /// </summary>
+        public static string FormatActions(IEnumerable<EnemyActionKinds> actions)
+        {
+            return string.Join(ActionSeparator.ToString(), actions);
         }
 
         /// <summary>

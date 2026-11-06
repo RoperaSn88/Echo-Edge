@@ -45,18 +45,26 @@ namespace EchoEdge.Infra.Map
             public EnemyKinds enemyKind;
             public int level;
             public int angle;
+            public List<EnemyActionKinds> actions = new();
         }
 
         private const int MaxTurn = 99;
         private const float CellSize = 44f;
         private const float AxisLabelSize = 22f;
         private const string DefaultConditionLine = "0, 0";
-        private const string DefaultHeaderLine = "ObjectKind,Height,Width,EnemyKind,Level";
+        private const string DefaultHeaderLine = "ObjectKind,Height,Width,EnemyKind,Level,Actions";
+
+        /// <summary>
+        /// 行動リスト列のヘッダー名（元のヘッダーに無いとき、行動リストを保存するなら末尾に足す）
+        /// </summary>
+        private const string ActionsHeader = "Actions";
 
         // StageClearConditionType の値の順
         private static readonly string[] ClearConditionLabels = { "0: 全滅", "1: 耐久", "2: 連続撃破", "3: ボス撃破" };
 
         private static readonly string[] CellKindLabels = { "0: 空", "1: 通常の壁", "2: スロープの壁", "3: 敵" };
+
+        private static readonly string[] ActionLabels = { "攻撃 (Attack)", "スキル (Skill)" };
 
         private static readonly Dictionary<EnemyKinds, string> EnemyNames = new()
         {
@@ -195,6 +203,7 @@ namespace EchoEdge.Infra.Map
                     enemyKind = data.enemyKind,
                     level = data.level,
                     angle = StageLayoutLoader.GetSlopeAngle(data.slopeDirection),
+                    actions = new List<EnemyActionKinds>(data.actions),
                 });
             }
 
@@ -209,7 +218,13 @@ namespace EchoEdge.Infra.Map
             var newLine = _csv.text.Contains("\r\n") ? "\r\n" : "\n";
             var builder = new StringBuilder();
             builder.Append(_conditionLine).Append(newLine);
-            builder.Append(_headerLine).Append(newLine);
+            var headerLine = _headerLine;
+            if (_placements.Any(p => p.kind == StageObjectKind.Unit && p.actions.Count > 0) &&
+                !headerLine.Contains(ActionsHeader, StringComparison.OrdinalIgnoreCase))
+            {
+                headerLine = headerLine.TrimEnd().TrimEnd(',') + "," + ActionsHeader;
+            }
+            builder.Append(headerLine).Append(newLine);
 
             foreach (var placement in _placements)
             {
@@ -223,7 +238,15 @@ namespace EchoEdge.Infra.Map
                         break;
                     case StageObjectKind.Unit:
                         builder.Append($"Unit, {placement.h}, {placement.w}, {placement.enemyKind}");
-                        if (placement.level > 0) builder.Append($", {placement.level}");
+                        if (placement.actions.Count > 0)
+                        {
+                            // 行動リストは6列目なので、レベル 0 でもレベル列を書く
+                            builder.Append($", {placement.level}, {StageLayoutLoader.FormatActions(placement.actions)}");
+                        }
+                        else if (placement.level > 0)
+                        {
+                            builder.Append($", {placement.level}");
+                        }
                         break;
                     default:
                         continue;
@@ -234,6 +257,7 @@ namespace EchoEdge.Infra.Map
             File.WriteAllText(path, builder.ToString(), new UTF8Encoding(false));
             AssetDatabase.ImportAsset(path);
             _csv = AssetDatabase.LoadAssetAtPath<TextAsset>(path);
+            _headerLine = headerLine;
             _isDirty = false;
             _skippedRowCount = 0;
         }
@@ -700,6 +724,8 @@ namespace EchoEdge.Infra.Map
                 MarkDirty();
             }
 
+            DrawActionList(placement);
+
             var status = GetStatus(placement.enemyKind, placement.level);
             if (status == null)
             {
@@ -717,6 +743,114 @@ namespace EchoEdge.Infra.Map
                 EditorGUILayout.IntField("エナジー", status.Energy);
                 EditorGUILayout.IntField("経験値", status.Experience);
                 EditorGUILayout.TextField("サイズ", status.Size == EnemySize.Large ? "2x2" : "1x1");
+            }
+        }
+
+        /// <summary>
+        /// 敵の行動リスト（先頭から順に行い、使い切ったら通常のランダム行動）の編集欄
+        /// </summary>
+        private void DrawActionList(Placement placement)
+        {
+            EditorGUILayout.Space(4);
+            EditorGUILayout.LabelField(new GUIContent("行動リスト",
+                "エネミーフェーズごとに先頭から1つずつ行います。使い切ったら通常（ランダム）の行動に戻ります。"), EditorStyles.boldLabel);
+
+            if (placement.actions.Count == 0)
+            {
+                EditorGUILayout.LabelField("（なし：最初から通常のランダム行動）", EditorStyles.miniLabel);
+            }
+
+            var removeIndex = -1;
+            var swapIndex = -1;
+            for (var i = 0; i < placement.actions.Count; i++)
+            {
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    // ターン:N のときは、次のエネミーフェーズ（N+1回目）で行う行動に印を付ける
+                    var mark = i == _turn ? "▶" : " ";
+                    EditorGUILayout.LabelField($"{mark} {i + 1}", GUILayout.Width(36));
+
+                    var current = (int)placement.actions[i];
+                    var selected = EditorGUILayout.Popup(current, ActionLabels);
+                    if (selected != current)
+                    {
+                        placement.actions[i] = (EnemyActionKinds)selected;
+                        MarkDirty();
+                    }
+
+                    using (new EditorGUI.DisabledScope(i == 0))
+                    {
+                        if (GUILayout.Button("↑", GUILayout.Width(24))) swapIndex = i - 1;
+                    }
+                    using (new EditorGUI.DisabledScope(i == placement.actions.Count - 1))
+                    {
+                        if (GUILayout.Button("↓", GUILayout.Width(24))) swapIndex = i;
+                    }
+                    if (GUILayout.Button("×", GUILayout.Width(24))) removeIndex = i;
+                }
+            }
+
+            if (swapIndex >= 0)
+            {
+                (placement.actions[swapIndex], placement.actions[swapIndex + 1]) = (placement.actions[swapIndex + 1], placement.actions[swapIndex]);
+                MarkDirty();
+            }
+            else if (removeIndex >= 0)
+            {
+                placement.actions.RemoveAt(removeIndex);
+                MarkDirty();
+            }
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                if (GUILayout.Button("＋ 攻撃", GUILayout.Width(80)))
+                {
+                    placement.actions.Add(EnemyActionKinds.Attack);
+                    MarkDirty();
+                }
+                if (GUILayout.Button("＋ スキル", GUILayout.Width(80)))
+                {
+                    placement.actions.Add(EnemyActionKinds.Skill);
+                    MarkDirty();
+                }
+                using (new EditorGUI.DisabledScope(placement.actions.Count == 0))
+                {
+                    if (GUILayout.Button("すべて削除", GUILayout.Width(80)))
+                    {
+                        placement.actions.Clear();
+                        MarkDirty();
+                    }
+                }
+            }
+
+            var note = GetActionListNote(placement);
+            if (note != null)
+            {
+                EditorGUILayout.HelpBox(note, MessageType.Info);
+            }
+        }
+
+        /// <summary>
+        /// 行動リストを指定したときの、敵ごとの注意書き
+        /// </summary>
+        private static string GetActionListNote(Placement placement)
+        {
+            if (placement.actions.Count == 0) return null;
+
+            var hasAttack = placement.actions.Contains(EnemyActionKinds.Attack);
+            var hasSkill = placement.actions.Contains(EnemyActionKinds.Skill);
+            switch (placement.enemyKind)
+            {
+                case EnemyKinds.Seeker when hasAttack:
+                    return "シーカーは攻撃を持たないため、「攻撃」のフェーズは何もしません。";
+                case EnemyKinds.Skya when hasSkill:
+                    return "スカイアの「スキル」は飛び上がりです。次のフェーズのビームは行動リストを消費せずに行います。";
+                case EnemyKinds.Enar when hasSkill:
+                    return "エナーの「スキル」は、吸収できる仲間がいないときは何もしません。";
+                case EnemyKinds.BigEnar when hasSkill:
+                    return "でかエナーの「スキル」は、HP がコスト以下のときは何もしません。";
+                default:
+                    return null;
             }
         }
 

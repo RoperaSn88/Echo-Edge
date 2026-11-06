@@ -56,6 +56,12 @@ namespace EchoEdge.Domain.Battle
         /// </summary>
         private const int MoveLockPhasesOnFlyingCancel = 1;
 
+        /// <summary>
+        /// ステージ CSV で指定された行動リストのうち、まだ行っていない行動。
+        /// 先頭から1フェーズに1つずつ行い、空になったら通常（ランダム）の行動に戻る。
+        /// </summary>
+        private readonly Queue<EnemyActionKinds> _scriptedActions = new();
+
         public BaseUnit(int h, int w, EnemySize size = EnemySize.Default)
         {
             _size = size;
@@ -99,6 +105,20 @@ namespace EchoEdge.Domain.Battle
         public void SetView(IUnitView view)
         {
             _view = view;
+        }
+
+        /// <summary>
+        /// ステージ CSV で指定された行動リストを設定する。
+        /// エネミーフェーズの行動は、このリストを先頭から順に行い、使い切ったら通常（ランダム）の行動に戻る。
+        /// </summary>
+        public void SetScriptedActions(IEnumerable<EnemyActionKinds> actions)
+        {
+            _scriptedActions.Clear();
+            if (actions == null) return;
+            foreach (var action in actions)
+            {
+                _scriptedActions.Enqueue(action);
+            }
         }
 
         public async void Initialize(int h, int w)
@@ -228,7 +248,7 @@ namespace EchoEdge.Domain.Battle
         public async UniTask Act()
         {
             if (_unitAction == null) return;
-            var pattern = await _unitAction.Act(Height, Width);
+            var pattern = await DecideAction();
             switch (pattern)
             {
                 case EnemyMoveKinds.Attack:
@@ -243,6 +263,36 @@ namespace EchoEdge.Domain.Battle
 
             // 行動で出たダメージテキストを消す（攻撃せずに敵フェーズへ来た場合もフェード許可が立つように）
             UIPresenter.Instance.FadeTexts();
+        }
+
+        /// <summary>
+        /// このフェーズの行動を決める。行動リストが残っていれば先頭を使い、無ければ通常（ランダム）の行動にする。
+        /// </summary>
+        private async UniTask<EnemyMoveKinds> DecideAction()
+        {
+            // 飛行（溜め）中のビームはスキルの続きなので、行動リストを消費せずに通常どおり行う
+            var isFlying = _unitAction is IFlyingUnit { IsFlying: true };
+            if (isFlying || !_scriptedActions.TryDequeue(out var scripted))
+            {
+                return await _unitAction.Act(Height, Width);
+            }
+
+            switch (scripted)
+            {
+                case EnemyActionKinds.Attack:
+                    // シーカーは攻撃を持たない（攻撃アニメーションも無い）ので、このフェーズは何もしない
+                    if (_unitAction is Seeker) return EnemyMoveKinds.None;
+                    return EnemyMoveKinds.Attack;
+                case EnemyActionKinds.Skill:
+                    if (_unitAction is IScriptedSkillAction skillAction && !skillAction.TryPrepareSkill(Height, Width))
+                    {
+                        Debug.Log($"[行動リスト] {_enemyKind} はスキルを使える状態ではないため、このフェーズは何もしません");
+                        return EnemyMoveKinds.None;
+                    }
+                    return EnemyMoveKinds.Specific;
+                default:
+                    return await _unitAction.Act(Height, Width);
+            }
         }
 
         public async UniTask OnTurnStart()
