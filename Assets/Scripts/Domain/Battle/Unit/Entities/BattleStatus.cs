@@ -78,6 +78,13 @@ namespace EchoEdge.Domain.Battle
         public bool IsInvincible;
 
         /// <summary>
+        /// 致死ダメージを受けてもHPを1残すか。SurviveLethalBuff で切り替える。
+        /// 引数で指定しない <see cref="Damage(int)"/> / <see cref="Damage(int, float)"/> に適用する（敵の被ダメージ）。
+        /// </summary>
+        [NonSerialized]
+        public bool SurviveLethal;
+
+        /// <summary>
         /// マップ上で占有するマスのサイズ（キャラクターごとに EnemyInfo.csv で設定する）
         /// </summary>
         private EnemySize _size = EnemySize.Default;
@@ -252,7 +259,7 @@ namespace EchoEdge.Domain.Battle
         /// <param name="damageRate">防御力で軽減した後のダメージに掛ける倍率</param>
         public UniTask<(int damage, bool isDeath)> Damage(int targetAttack, float damageRate)
         {
-            return Damage(targetAttack, damageRate, false);
+            return Damage(targetAttack, damageRate, SurviveLethal);
         }
 
         /// <summary>

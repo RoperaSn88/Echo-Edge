@@ -82,6 +82,8 @@ namespace EchoEdge.Domain.Battle
             status.Initialize();
             // 盤面外のユニットは一閃の対象にならないため、念のため無敵にしておく
             if (IsOffBoard) status.IsInvincible = true;
+            // 登録された初期化時の処理（ステージごとのバフ付与など）を呼ぶ
+            EnemyInitializeActivator.ExecuteEnemyInitializeActions(enemyId, status);
             _battleStatus = status;
             _enemyKind = enemyId;
             _size = status.Size;
