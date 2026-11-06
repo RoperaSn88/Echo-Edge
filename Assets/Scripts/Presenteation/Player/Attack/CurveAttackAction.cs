@@ -95,6 +95,9 @@ namespace EchoEdge.Presenter.Player
             BattleManager.ResetReflectionCount();
             await UniTask.Delay(TimeSpan.FromSeconds(AwaitTime));
 
+            // 開始時の待機が終わったので、ここから敵へのダメージ判定を有効にする
+            player.BeginAttackHit();
+
             // --- 要件1: start と end を端点とする2次ベジェ曲線を描いて移動する ---
             Vector3 forward = distance > Mathf.Epsilon ? flatDir / distance : Vector3.right;
             Vector3 perpendicular = Vector3.Cross(Vector3.up, forward);

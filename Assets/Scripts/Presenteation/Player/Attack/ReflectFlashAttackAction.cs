@@ -58,6 +58,9 @@ namespace EchoEdge.Presenter.Player
 
             await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
 
+            // 開始時の待機が終わったので、ここから敵へのダメージ判定を有効にする
+            player.BeginAttackHit();
+
             for (int i = 0; ; i++)
             {
                 // 反射するたびに敵のリストをクリアする。
