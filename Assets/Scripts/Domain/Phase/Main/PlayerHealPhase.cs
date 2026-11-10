@@ -1,6 +1,7 @@
 using Cysharp.Threading.Tasks;
 
 using EchoEdge.App.Battle;
+using EchoEdge.Infra.Audio;
 using EchoEdge.Infra.Camera;
 using EchoEdge.Presenter.Player;
 using EchoEdge.Presenter.UI;
@@ -42,6 +43,7 @@ namespace EchoEdge.Domain.Phase
             await UniTask.WhenAll(
                 MessagePresenter.Instance.AppearMessage($"HPが{healed}回復した"),
                 CameraManager.Instance.ActPlayerWeaponZoom(PlayerView.Instance.Transform.position));
+            AudioManager.Instance.PlaySe(BattleSeType.Heal);
             await PlayerView.Instance.PlayHealParticle();
             await CameraManager.Instance.ActResetCameraTargetWithRotate();
 

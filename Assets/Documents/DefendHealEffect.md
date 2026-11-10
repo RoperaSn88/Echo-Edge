@@ -37,7 +37,18 @@
 | Defend Particle | `DefendParticle` |
 | Heal Particle | `HealParticle` |
 
+## 3. SE
+
+パーティクルの再生開始と同時に、防御は `BattleSeType.Defend`、回復は `BattleSeType.Heal` を鳴らします（コードで再生するのでシーンやプレハブの設定は不要）。
+
+1. 次の名前で wav を置く（ファイル名が enum の値名と一致している必要があります）。
+   - `Assets/Addressables/Audio/SE/Battle/Defend.wav`
+   - `Assets/Addressables/Audio/SE/Battle/Heal.wav`
+2. 2つとも Addressables に登録する（他の Battle の SE と同じグループ・同じ設定でOK）。
+3. wav が無い・未登録の場合は SE が鳴らず、Console に「SE がロードされていません: Battle/Defend」のような警告が出るだけで、進行は止まりません。
+
 ## 確認ポイント
 
 - 防御・回復ボタンを押すとカメラがプレイヤーへ寄り、パーティクルが消えてからカメラが戻るか。
 - メッセージとカメラのズームが同時に始まり、カメラが戻ったあとにメッセージが閉じてエネミーフェーズへ進むか。
+- 防御・回復でパーティクルと同時に専用の SE が鳴るか。
