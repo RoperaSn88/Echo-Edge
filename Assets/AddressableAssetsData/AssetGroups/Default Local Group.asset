@@ -90,11 +90,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 7e28a15a0fc4e3a40a5c574206435765
-    m_Address: Assets/Addressables/Audio/SE/Battle/Heal.mp3
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 89acf34e3a58fb64dade9d3be0f67539
     m_Address: Assets/Addressables/Tutorials/TextBoxMasterData_FirstBattle.asset
     m_ReadOnly: 0
@@ -227,11 +222,6 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: eda5204fa0443044a89a0e0cfaebac56
     m_Address: Assets/Addressables/Animator/Skya.controller
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: f534fe7662461034c96ba3ac056154d6
-    m_Address: Assets/Addressables/Audio/SE/Battle/Defend.wav
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

@@ -409,6 +409,8 @@ MonoBehaviour:
   _renderer: {fileID: 5018818931996429781}
   _canvasGroup: {fileID: 8937611466072639440}
   _healthBar: {fileID: 1001576586555449307}
+  _attackBlinkLightColorCode: '#FF9A9A'
+  _attackBlinkStrongColorCode: '#FF1A1A'
 --- !u!136 &4727443247800856468
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -428,7 +430,7 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.6
+  m_Radius: 0.707067
   m_Height: 1
   m_Direction: 1
   m_Center: {x: 0, y: 0.0000002682209, z: -0.000000059604645}

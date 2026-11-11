@@ -23,6 +23,8 @@ namespace EchoEdge.Infra.Audio
         BuilderBuild,
         FlaskLanding,
         Defend,
-        Heal
+        Heal,
+        AttackAppear,
+        AttackAttension
     }
 }

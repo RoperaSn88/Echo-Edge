@@ -12,9 +12,9 @@
 
 | 時刻 | 内容 |
 |---|---|
-| 0 〜 T/2 | 1回目: 軽く赤く染まって（前半）白へ戻る（後半） |
-| T/2 〜 T | 2回目: 同上 |
-| T | 3回目: 大きく赤く染まる。**同時に防御判定をして攻撃する**。その後 0.3 秒で白へ戻る |
+| 0 〜 T/2 | 1回目: 軽く赤く染まり、白へ戻る。染まる瞬間に SE `AttackAttension` |
+| T/2 〜 T | 2回目: 同上（SE `AttackAttension`） |
+| T | 3回目: 大きく赤く染まる。SE `AttackAppear` を鳴らし、**同時に防御判定をして攻撃する**。その後 0.3 秒で白へ戻る |
 
 色は `BaseUnitView` の Inspector で変えられます（`ColorUtility.TryParseHtmlString` 形式の文字列）。
 
@@ -54,8 +54,9 @@
 
 ## 2. 確認すること
 
-- 敵の sprite の Color は死亡アニメーション（`dead.anim`）が動かしているため、Write Defaults が有効なステートでは Animator が毎フレーム既定の色を書き込み、点滅の色が消えます。
-  点滅中は `Update` で色を反映していますが、Animator はその後に更新されるので、**攻撃ステート（スカイアは Beam も）の Write Defaults を OFF にする**などの設定が必要です。
+- 敵の sprite の Color は死亡アニメーション（`dead.anim`）が動かしているため、Write Defaults が有効なステートでは Animator が毎フレーム既定の色（白）を書き込みます。
+  Animator は `Update` の後に評価されるので、点滅の色は `LateUpdate` で反映し、Animator の上書きの後に書くようにしています（Write Defaults の設定変更は不要です）。
+- 点滅で染まるのは `BaseUnitView` の `_renderer`（`sprite`）だけです。スカイアの `sprite_back` は染まりません。
 - 点滅はスクリプトから `SpriteRenderer.color` の RGB だけを変えます（透明度は変えないので、死亡時のフェードとは干渉しません）。
 
 ## 3. 変わったこと（既存の仕組みへの影響）

@@ -442,12 +442,12 @@ namespace EchoEdge.Presenter.Battle
 
         /// <summary>
         /// 攻撃予告の点滅で sprite に掛ける色。
-        /// 点滅中は Update で毎フレーム sprite に反映する。
+        /// 点滅中は LateUpdate で毎フレーム sprite に反映する。
         /// </summary>
         private Color _blinkTint = Color.white;
 
         /// <summary>
-        /// 攻撃予告の点滅中か（Update で sprite の色を上書きするか）
+        /// 攻撃予告の点滅中か（LateUpdate で sprite の色を上書きするか）
         /// </summary>
         private bool _isBlinkTintActive;
 
@@ -457,6 +457,7 @@ namespace EchoEdge.Presenter.Battle
         /// 秒数を2分割したそれぞれで軽く赤く染まって白へ戻る点滅を行い（1・2回目）、
         /// 2回の点滅が終わったとき大きく赤く染まる（3回目）と同時に攻撃する。
         /// 3回目の瞬間にプレイヤーが防御状態なら、その攻撃は完全に防御される。
+        /// 1・2回目の点滅では SE「AttackAttension」、3回目では SE「AttackAppear」を鳴らす。
         /// </summary>
         /// <param name="seconds">点滅を始めてから攻撃するまでの秒数</param>
         public void StartAttackBlink(float seconds)
@@ -480,15 +481,16 @@ namespace EchoEdge.Presenter.Battle
             {
                 for (var i = 0; i < 2; i++)
                 {
-                    // 前半で軽く赤く染まり、後半で白へ戻る
-                    sequence.Append(TweenTint(Color.white, lightColor, half * 0.5f));
-                    sequence.Append(TweenTint(lightColor, Color.white, half * 0.5f));
+                    // 軽く赤く染まる瞬間に予告の SE を鳴らし、白へ戻していく
+                    sequence.AppendCallback(() => SoundEffectPlay(BattleSeType.AttackAttension));
+                    sequence.Append(TweenTint(lightColor, Color.white, half));
                 }
             }
 
             sequence.AppendCallback(() =>
             {
                 SetTint(strongColor);
+                SoundEffectPlay(BattleSeType.AttackAppear);
                 Strike();
             });
             sequence.Append(TweenTint(strongColor, Color.white, AttackBlinkStrongFadeTime));
@@ -515,7 +517,7 @@ namespace EchoEdge.Presenter.Battle
         }
 
         /// <summary>
-        /// 点滅で掛ける色を変える。点滅中は <see cref="Update"/> でも毎フレーム反映する
+        /// 点滅で掛ける色を変える。点滅中は <see cref="LateUpdate"/> でも毎フレーム反映する
         /// </summary>
         private void SetTint(Color color)
         {
@@ -523,7 +525,11 @@ namespace EchoEdge.Presenter.Battle
             ApplyBlinkTint();
         }
 
-        private void Update()
+        /// <summary>
+        /// Animator は Update の後に評価され、Write Defaults が有効なステートでは sprite の色を既定値（白）へ戻す。
+        /// その上書きの後に点滅の色を書くため、LateUpdate で反映する。
+        /// </summary>
+        private void LateUpdate()
         {
             if (_isBlinkTintActive)
             {
