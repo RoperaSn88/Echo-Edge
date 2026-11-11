@@ -205,6 +205,8 @@ namespace EchoEdge.Presenter.Battle
                 // プール再利用時に、前回の攻撃予告の点滅が残らないよう止めて白（不透明）へ戻す
                 _attackBlinkSequence?.Kill();
                 _attackBlinkSequence = null;
+                _isBlinkTintActive = false;
+                _blinkTint = Color.white;
                 _renderer.color = Color.white;
 
                 // プール再利用時に、前回の真上視点の寝かせ・下げが残らないよう prefab 時点の向きへ戻す
@@ -439,6 +441,18 @@ namespace EchoEdge.Presenter.Battle
         private Sequence _attackBlinkSequence;
 
         /// <summary>
+        /// 攻撃予告の点滅で sprite に掛ける色。
+        /// sprite の Color は死亡アニメーションが動かしていて、Write Defaults により Animator が毎フレーム既定値を書き込むため、
+        /// Animator の更新後（LateUpdate）に上書きする。
+        /// </summary>
+        private Color _blinkTint = Color.white;
+
+        /// <summary>
+        /// 攻撃予告の点滅中か（LateUpdate で sprite の色を上書きするか）
+        /// </summary>
+        private bool _isBlinkTintActive;
+
+        /// <summary>
         /// 攻撃アニメーションのアニメーションイベントから呼ぶ。赤く点滅して攻撃を予告し、
         /// <paramref name="seconds"/> 秒後に攻撃する。
         /// 秒数を2分割したそれぞれで軽く赤く染まって白へ戻る点滅を行い（1・2回目）、
@@ -458,6 +472,7 @@ namespace EchoEdge.Presenter.Battle
             var strongColor = ParseColor(_attackBlinkStrongColorCode, Color.red);
 
             _attackBlinkSequence?.Kill();
+            _isBlinkTintActive = true;
             SetTint(Color.white);
 
             var half = Mathf.Max(0f, seconds) * 0.5f;
@@ -478,6 +493,7 @@ namespace EchoEdge.Presenter.Battle
                 Strike();
             });
             sequence.Append(TweenTint(strongColor, Color.white, AttackBlinkStrongFadeTime));
+            sequence.OnKill(() => _isBlinkTintActive = false);
             sequence.SetLink(gameObject);
 
             // DOTween の自動再生 (DOTweenSettings の Default Auto Play) に頼らず、ここで明示的に再生する
@@ -500,11 +516,29 @@ namespace EchoEdge.Presenter.Battle
         }
 
         /// <summary>
-        /// 透明度はそのままに、スプライトの色だけを変える（死亡時のフェードを邪魔しない）
+        /// 点滅で掛ける色を変える。実際の反映は <see cref="LateUpdate"/> で行う
         /// </summary>
         private void SetTint(Color color)
         {
+            _blinkTint = color;
+            ApplyBlinkTint();
+        }
+
+        private void LateUpdate()
+        {
+            if (_isBlinkTintActive)
+            {
+                ApplyBlinkTint();
+            }
+        }
+
+        /// <summary>
+        /// 透明度はそのままに、sprite の色だけを点滅の色にする（死亡時のフェードを邪魔しない）
+        /// </summary>
+        private void ApplyBlinkTint()
+        {
             if (_renderer == null) return;
+            var color = _blinkTint;
             color.a = _renderer.color.a;
             _renderer.color = color;
         }

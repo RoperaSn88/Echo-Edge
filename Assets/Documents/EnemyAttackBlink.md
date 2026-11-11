@@ -54,8 +54,8 @@
 
 ## 2. 確認すること
 
-- 攻撃アニメーション中に **SpriteRenderer の Color を動かすキーが無いこと**。
-  Animator が Color を書き込むと、点滅の色が毎フレーム上書きされて見えなくなります（Write Defaults が有効なステートでも同様）。
+- 敵の sprite の Color は死亡アニメーション（`dead.anim`）が動かしていて、Write Defaults が有効なため Animator が毎フレーム既定の色を書き込みます。
+  そのため点滅の色は、点滅中だけ `LateUpdate`（Animator の更新後）で sprite に上書きしています。
 - 点滅はスクリプトから `SpriteRenderer.color` の RGB だけを変えます（透明度は変えないので、死亡時のフェードとは干渉しません）。
 
 ## 3. 変わったこと（既存の仕組みへの影響）
