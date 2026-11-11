@@ -202,9 +202,12 @@ namespace EchoEdge.Presenter.Battle
             _hasApproachedForAttack = false;
             if (_renderer != null)
             {
-                var color = _renderer.color;
-                color.a = 1f;
-                _renderer.color = color;
+                // プール再利用時に、前回の攻撃予告の点滅が残らないよう止めて白（不透明）へ戻す
+                _attackBlinkSequence?.Kill();
+                _attackBlinkSequence = null;
+                _isBlinkTintActive = false;
+                _blinkTint = Color.white;
+                _renderer.color = Color.white;
 
                 // プール再利用時に、前回の真上視点の寝かせ・下げが残らないよう prefab 時点の向きへ戻す
                 // （下げオフセットの座標は直後の ApplySpriteOffset で上書きされる）
@@ -409,9 +412,145 @@ namespace EchoEdge.Presenter.Battle
             await UniTask.WaitUntil(() => _animationFlag);
         }
 
+        /// <summary>
+        /// 旧方式の攻撃タイミングのアニメーションイベント。
+        /// 点滅予告（<see cref="StartAttackBlink"/>）を使うクリップでは、このイベントは消しておく。
+        /// </summary>
         public void ActiveAttack()
         {
             _animationFlag = true;
+        }
+
+        /// <summary>
+        /// 攻撃予告の弱い点滅で染める色（ColorUtility の HTML 形式）
+        /// </summary>
+        [SerializeField, Tooltip("攻撃予告の1・2回目の点滅（軽く赤く染まる）の色")]
+        private string _attackBlinkLightColorCode = "#FF9A9A";
+
+        /// <summary>
+        /// 攻撃の瞬間（3回目の点滅）に染める色（ColorUtility の HTML 形式）
+        /// </summary>
+        [SerializeField, Tooltip("攻撃の瞬間（3回目の点滅、大きく赤く染まる）の色")]
+        private string _attackBlinkStrongColorCode = "#FF1A1A";
+
+        /// <summary>
+        /// 攻撃の瞬間に赤く染まってから白へ戻るまでの時間
+        /// </summary>
+        private const float AttackBlinkStrongFadeTime = 0.3f;
+
+        private Sequence _attackBlinkSequence;
+
+        /// <summary>
+        /// 攻撃予告の点滅で sprite に掛ける色。
+        /// 点滅中は LateUpdate で毎フレーム sprite に反映する。
+        /// </summary>
+        private Color _blinkTint = Color.white;
+
+        /// <summary>
+        /// 攻撃予告の点滅中か（LateUpdate で sprite の色を上書きするか）
+        /// </summary>
+        private bool _isBlinkTintActive;
+
+        /// <summary>
+        /// 攻撃アニメーションのアニメーションイベントから呼ぶ。赤く点滅して攻撃を予告し、
+        /// <paramref name="seconds"/> 秒後に攻撃する。
+        /// 秒数を2分割したそれぞれで軽く赤く染まって白へ戻る点滅を行い（1・2回目）、
+        /// 2回の点滅が終わったとき大きく赤く染まる（3回目）と同時に攻撃する。
+        /// 3回目の瞬間にプレイヤーが防御状態なら、その攻撃は完全に防御される。
+        /// 1・2回目の点滅では SE「AttackAttension」、3回目では SE「AttackAppear」を鳴らす。
+        /// </summary>
+        /// <param name="seconds">点滅を始めてから攻撃するまでの秒数</param>
+        public void StartAttackBlink(float seconds)
+        {
+            if (_renderer == null)
+            {
+                Strike();
+                return;
+            }
+
+            var lightColor = ParseColor(_attackBlinkLightColorCode, new Color(1f, 0.6f, 0.6f));
+            var strongColor = ParseColor(_attackBlinkStrongColorCode, Color.red);
+
+            _attackBlinkSequence?.Kill();
+            _isBlinkTintActive = true;
+            SetTint(Color.white);
+
+            var half = Mathf.Max(0f, seconds) * 0.5f;
+            var sequence = DOTween.Sequence();
+            if (half > 0f)
+            {
+                for (var i = 0; i < 2; i++)
+                {
+                    // 軽く赤く染まる瞬間に予告の SE を鳴らし、白へ戻していく
+                    sequence.AppendCallback(() => SoundEffectPlay(BattleSeType.AttackAttension));
+                    sequence.Append(TweenTint(lightColor, Color.white, half));
+                }
+            }
+
+            sequence.AppendCallback(() =>
+            {
+                SetTint(strongColor);
+                SoundEffectPlay(BattleSeType.AttackAppear);
+                Strike();
+            });
+            sequence.Append(TweenTint(strongColor, Color.white, AttackBlinkStrongFadeTime));
+            sequence.OnKill(() => _isBlinkTintActive = false);
+            sequence.SetLink(gameObject);
+
+            // DOTween の自動再生 (DOTweenSettings の Default Auto Play) に頼らず、ここで明示的に再生する
+            sequence.Play();
+            _attackBlinkSequence = sequence;
+        }
+
+        /// <summary>
+        /// 攻撃の瞬間。防御の判定をしてから、攻撃の処理を進める
+        /// </summary>
+        private void Strike()
+        {
+            EnemyAttackGuard.Judge();
+            _animationFlag = true;
+        }
+
+        private Tween TweenTint(Color from, Color to, float duration)
+        {
+            return DOTween.To(() => 0f, t => SetTint(Color.Lerp(from, to, t)), 1f, duration).SetEase(Ease.Linear);
+        }
+
+        /// <summary>
+        /// 点滅で掛ける色を変える。点滅中は <see cref="LateUpdate"/> でも毎フレーム反映する
+        /// </summary>
+        private void SetTint(Color color)
+        {
+            _blinkTint = color;
+            ApplyBlinkTint();
+        }
+
+        /// <summary>
+        /// Animator は Update の後に評価され、Write Defaults が有効なステートでは sprite の色を既定値（白）へ戻す。
+        /// その上書きの後に点滅の色を書くため、LateUpdate で反映する。
+        /// </summary>
+        private void LateUpdate()
+        {
+            if (_isBlinkTintActive)
+            {
+                ApplyBlinkTint();
+            }
+        }
+
+        /// <summary>
+        /// 透明度はそのままに、sprite の色だけを点滅の色にする（死亡時のフェードを邪魔しない）
+        /// </summary>
+        private void ApplyBlinkTint()
+        {
+            if (_renderer == null) return;
+            var color = _blinkTint;
+            color.a = _renderer.color.a;
+            _renderer.color = color;
+        }
+
+        private static Color ParseColor(string code, Color fallback)
+        {
+            return ColorUtility.TryParseHtmlString(code, out var color) ? color : fallback;
         }
 
         /// <summary>

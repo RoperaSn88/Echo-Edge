@@ -130,15 +130,7 @@ namespace EchoEdge.Presenter.UI
 
 
 
-                    switch (Kind)
-                    {
-                        case QTEKinds.Attack:
-                            _result = 1.1f;
-                            break;
-                        case QTEKinds.Defend:
-                            _result = 0.8f;
-                            break;
-                    }
+                    _result = 1.1f;
                     _mouseClick.Dispose();
                     return;
                 }
@@ -156,15 +148,7 @@ namespace EchoEdge.Presenter.UI
                         _icon.rectTransform.DOScale(Vector3.one * 1.5f, DisappearTime).SetEase(Ease.OutQuad).SetUpdate(true).ToUniTask()
                     );
 
-                    switch (Kind)
-                    {
-                        case QTEKinds.Attack:
-                            _result = 1.3f;
-                            break;
-                        case QTEKinds.Defend:
-                            _result = 0.2f;
-                            break;
-                    }
+                    _result = 1.3f;
                     _mouseClick.Dispose();
                     return;
                 }
@@ -183,15 +167,7 @@ namespace EchoEdge.Presenter.UI
             );
 
 
-            switch (Kind)
-            {
-                case QTEKinds.Attack:
-                    _result = 0.8f;
-                    break;
-                case QTEKinds.Defend:
-                    _result = 1.1f;
-                    break;
-            }
+            _result = 0.8f;
             _mouseClick.Dispose();
         }
 

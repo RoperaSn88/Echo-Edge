@@ -119,6 +119,44 @@ namespace EchoEdge.Presenter.Player
             }
         }
 
+        /// <summary>
+        /// 敵の攻撃中の防御で光らせる色（ColorUtility の HTML 形式）
+        /// </summary>
+        [SerializeField, Tooltip("敵の攻撃中に防御を入力したとき、プレイヤーを光らせる色")]
+        private string _guardFlashColorCode = "#7FB2FF";
+
+        private Tween _guardFlashTween;
+
+        /// <summary>
+        /// 敵の攻撃中に防御を入力したことが分かるよう、防御状態の間だけプレイヤーを光らせる。
+        /// </summary>
+        /// <param name="duration">光らせる時間（防御受付時間）</param>
+        public void PlayGuardFlash(float duration)
+        {
+            if (_renderer == null) return;
+            if (!ColorUtility.TryParseHtmlString(_guardFlashColorCode, out var flashColor))
+            {
+                flashColor = Color.cyan;
+            }
+
+            _guardFlashTween?.Kill();
+            var alpha = _renderer.color.a;
+            _renderer.color = new Color(flashColor.r, flashColor.g, flashColor.b, alpha);
+            _guardFlashTween = DOTween.To(
+                    () => 0f,
+                    t =>
+                    {
+                        var c = Color.Lerp(flashColor, Color.white, t);
+                        c.a = _renderer.color.a;
+                        _renderer.color = c;
+                    },
+                    1f,
+                    duration)
+                .SetEase(Ease.InQuad)
+                .SetUpdate(true)
+                .SetLink(gameObject);
+        }
+
         public void ResetRotateAnim()
         {
             _animator.SetBool($"Skill{_skillNumber}", false);

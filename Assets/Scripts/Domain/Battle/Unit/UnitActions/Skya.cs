@@ -13,7 +13,6 @@ namespace EchoEdge.Domain.Battle
     {
         private const float SpecificRate = 0.3f;
         private const float SpecificDamageRate = 2.5f;
-        private const float QTETimeScale = 0.001f;
 
         /// <summary>
         /// 現在飛行中かどうか
@@ -48,15 +47,9 @@ namespace EchoEdge.Domain.Battle
         /// <inheritdoc/>
         public async UniTask Attack()
         {
-            Time.timeScale = QTETimeScale;
-            var damageValue = await BattleManager.PlayerDamage(1.0f);
-            Time.timeScale = 1.0f;
-
-            UIPresenter.Instance.AppearDamageText($"{damageValue.damage}", PlayerController.Instance.transform.position).Forget();
+            await BattleManager.PlayerDamageWithText(1.0f);
 
             await UniTask.Delay(TimeSpan.FromSeconds(1.0f));
-
-            BattleManager.ResetQTE();
             await CameraManager.Instance.ActResetCameraTarget();
         }
         
@@ -99,15 +92,9 @@ namespace EchoEdge.Domain.Battle
             else
             {
                 // 2ターン目：ビーム攻撃（2倍ダメージ）
-                Time.timeScale = QTETimeScale;
-                var damageValue = await BattleManager.PlayerDamage(SpecificDamageRate);
-                Time.timeScale = 1.0f;
-
-                UIPresenter.Instance.AppearDamageText($"{damageValue.damage}", PlayerController.Instance.transform.position).Forget();
+                await BattleManager.PlayerDamageWithText(SpecificDamageRate);
 
                 await UniTask.Delay(TimeSpan.FromSeconds(1.0f));
-
-                BattleManager.ResetQTE();
 
                 // 地上に戻る
                 _isFlying = false;

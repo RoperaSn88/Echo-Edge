@@ -3,6 +3,5 @@
     public enum QTEKinds
     {
         Attack,
-        Defend,
     }
 }
