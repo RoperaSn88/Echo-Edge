@@ -22,9 +22,9 @@ namespace EchoEdge.Presenter.Battle
         private const float FlyTime = 0.5f;
 
         /// <inheritdoc/>
-        public override async UniTask Setup(int h, int w, EnemyKinds enemyID)
+        public override async UniTask Setup(int h, int w, EnemyKinds enemyID, bool isHideHP = false)
         {
-            await base.Setup(h, w, enemyID);
+            await base.Setup(h, w, enemyID, isHideHP);
             _groundY = transform.localPosition.y;
         }
 

@@ -60,7 +60,8 @@ namespace EchoEdge.Presenter.Battle
         /// 飛行ユニット（Skya）の場合は FlyingBaseUnitView を使用する。
         /// </summary>
         /// <param name="unit">配置済みの BaseUnit</param>
-        public void SpawnView(BaseUnit unit, EnemyKinds enemyId)
+        /// <param name="isHideHP">true のとき、HP ゲージの Canvas の alpha を 0 にして出す（『シーカー』による召喚など）</param>
+        public void SpawnView(BaseUnit unit, EnemyKinds enemyId, bool isHideHP = false)
         {
             BaseUnitView view = IsFlyingUnit(enemyId)
                 ? (BaseUnitView)GetPooledFlyingView()
@@ -74,11 +75,11 @@ namespace EchoEdge.Presenter.Battle
             if (enemyId.IsOffBoard())
             {
                 unit.SetView(view);
-                SetupOffBoardViewAsync(view, unit, enemyId, seekerStandPoint).Forget();
+                SetupOffBoardViewAsync(view, unit, enemyId, seekerStandPoint, isHideHP).Forget();
                 return;
             }
 
-            view.Setup(unit.Height, unit.Width, enemyId);
+            view.Setup(unit.Height, unit.Width, enemyId, isHideHP);
             unit.SetView(view);
         }
 
@@ -86,11 +87,11 @@ namespace EchoEdge.Presenter.Battle
         /// 盤面の外に立つユニット（『シーカー』）の View を、指定した Transform の位置に立たせる。
         /// 一閃が当たらないよう当たり判定も切る。
         /// </summary>
-        private async UniTaskVoid SetupOffBoardViewAsync(BaseUnitView view, BaseUnit unit, EnemyKinds enemyId, Transform standPoint)
+        private async UniTaskVoid SetupOffBoardViewAsync(BaseUnitView view, BaseUnit unit, EnemyKinds enemyId, Transform standPoint, bool isHideHP)
         {
             try
             {
-                await view.Setup(unit.Height, unit.Width, enemyId);
+                await view.Setup(unit.Height, unit.Width, enemyId, isHideHP);
             }
             catch (Exception e)
             {

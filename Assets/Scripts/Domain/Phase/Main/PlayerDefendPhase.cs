@@ -1,6 +1,7 @@
 using Cysharp.Threading.Tasks;
 
 using EchoEdge.App.Battle;
+using EchoEdge.Infra.Audio;
 using EchoEdge.Infra.Camera;
 using EchoEdge.Presenter.Player;
 using EchoEdge.Presenter.UI;
@@ -39,6 +40,7 @@ namespace EchoEdge.Domain.Phase
             await UniTask.WhenAll(
                 MessagePresenter.Instance.AppearMessage("防御の構えをとった"),
                 CameraManager.Instance.ActPlayerWeaponZoom(PlayerView.Instance.Transform.position));
+            AudioManager.Instance.PlaySe(BattleSeType.Defend);
             await PlayerView.Instance.PlayDefendParticle();
             await CameraManager.Instance.ActResetCameraTargetWithRotate();
 
