@@ -13,7 +13,7 @@ namespace EchoEdge.Infra.Tutorial
         FlashAttack,
 
         /// <summary>
-        /// QTE (攻撃/防御) が初めて出現したとき
+        /// 攻撃QTE が初めて出現したとき（敵の攻撃時の防御QTEは廃止）
         /// </summary>
         QTEAppear,
 

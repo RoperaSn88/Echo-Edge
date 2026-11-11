@@ -176,9 +176,18 @@ namespace EchoEdge.Domain.Battle
                     _unitAction.BeforeAttack()
                 );
 
-                await _view.WaitAttackAnim();
+                // 攻撃アニメーションが始まってから終わるまで、プレイヤーは防御できる
+                EnemyAttackGuard.BeginAccept();
+                try
+                {
+                    await _view.WaitAttackAnim();
 
-                await _unitAction.Attack();
+                    await _unitAction.Attack();
+                }
+                finally
+                {
+                    EnemyAttackGuard.EndAccept();
+                }
             }
             finally
             {
@@ -218,7 +227,20 @@ namespace EchoEdge.Domain.Battle
                 {
                     if (flyingUnit.IsFlying)
                     {
-                        await flyingView.WaitAnimAfterFlying();
+                        // ビームも敵の攻撃なので、アニメーションが始まってからダメージ処理が終わるまで防御できる
+                        EnemyAttackGuard.BeginAccept();
+                        try
+                        {
+                            await flyingView.WaitAnimAfterFlying();
+                            await _unitAction.Specific(Height, Width);
+                        }
+                        finally
+                        {
+                            EnemyAttackGuard.EndAccept();
+                        }
+
+                        UpdateInvincibleAfterSpecific();
+                        return;
                     }
                     else
                     {
@@ -238,7 +260,14 @@ namespace EchoEdge.Domain.Battle
 
             await _unitAction.Specific(Height, Width);
 
-            // 飛行（溜め）中は一閃のダメージを受けない
+            UpdateInvincibleAfterSpecific();
+        }
+
+        /// <summary>
+        /// 飛行（溜め）中は一閃のダメージを受けない
+        /// </summary>
+        private void UpdateInvincibleAfterSpecific()
+        {
             if (_unitAction is IFlyingUnit flyingAfterSpecific && _battleStatus != null)
             {
                 _battleStatus.IsInvincible = flyingAfterSpecific.IsFlying;

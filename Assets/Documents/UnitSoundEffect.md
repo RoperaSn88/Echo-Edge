@@ -21,12 +21,13 @@
 
 ## プレイヤーの被ダメージ SE
 
-プレイヤーに敵の攻撃が当たったとき（`BattleManager.PlayerDamage`）に、防御QTEの判定に合わせて SE を鳴らします。
+プレイヤーに敵の攻撃が当たったとき（`BattleManager.PlayerDamage`）に鳴らす SE です。
+敵の攻撃時の防御QTEは廃止し、点滅予告＋防御入力（[EnemyAttackBlink.md](EnemyAttackBlink.md)）に置き換えました。
 
-| 防御QTE | SE | ファイル |
-|---|---|---|
-| 失敗 | `BattleSeType.Damage_Bad` | `Assets/Addressables/Audio/SE/Battle/Damage_Bad.wav` |
-| 成功 | `BattleSeType.Damage_Good` | `Assets/Addressables/Audio/SE/Battle/Damage_Good.wav` |
-| 大成功 | `BattleSeType.Damage_Perfect` | `Assets/Addressables/Audio/SE/Battle/Damage_Perfect.wav` |
+| 状況 | SE |
+|---|---|
+| 完全に防御した（攻撃の瞬間に防御受付時間内だった） | `BattleSeType.QTE_Perfect`（ダメージなし、「Guard!!」表示、防御パーティクル） |
+| プレイヤーフェーズで「防御」を選んでいる（被ダメージ半減） | `BattleSeType.ModerateDamage` |
+| それ以外 | `BattleSeType.HeavyDamage` |
 
-3つのファイルを置いて Addressables に登録してください。ファイルが無い間は、コンソールに「SE がロードされていません: Battle/Damage_Bad」などの警告が出て音は鳴りません。
+`BattleSeType.ShortDamage` は使わなくなりましたが、アニメーションイベントが番号で参照しているため enum からは消していません。

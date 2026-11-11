@@ -14,28 +14,14 @@ namespace EchoEdge.Domain.Battle
         private const float PlayerDamageRate = 1.0f;
         private const float SpecificRate = 0.3f;
         private const int BuffDurationTurns = 3;
-        private const float QTETimeScale = 0.001f;
         
         public async UniTask Attack()
         {
-            var previousTimeScale = Time.timeScale;
-            Time.timeScale = QTETimeScale;
-            try
-            {
-                var damageValue = await BattleManager.PlayerDamage(PlayerDamageRate);
-                Time.timeScale = previousTimeScale;
+            await BattleManager.PlayerDamageWithText(PlayerDamageRate);
 
-                UIPresenter.Instance.AppearDamageText($"{damageValue.damage}", PlayerController.Instance.transform.position).Forget();
+            await UniTask.Delay(TimeSpan.FromSeconds(1.0f));
 
-                await UniTask.Delay(TimeSpan.FromSeconds(1.0f));
-
-                BattleManager.ResetQTE();
-                await CameraManager.Instance.ActResetCameraTarget();
-            }
-            finally
-            {
-                Time.timeScale = previousTimeScale;
-            }
+            await CameraManager.Instance.ActResetCameraTarget();
         }
 
         public async UniTask BeforeAttack()

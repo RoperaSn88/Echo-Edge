@@ -15,20 +15,13 @@ namespace EchoEdge.Domain.Battle
         private const float PlayerDamageRate = 1.0f;
         private const float SpecificRate = 0.3f;
         private const int BuffDurationTurns = 3;
-        private const float QTETimeScale = 0.001f;
 
         /// <inheritdoc/>
         public async UniTask Attack()
         {
-            Time.timeScale = QTETimeScale;
-            var damageValue = await BattleManager.PlayerDamage(PlayerDamageRate);
-            Time.timeScale = 1.0f;
-
-            UIPresenter.Instance.AppearDamageText($"{damageValue.damage}", PlayerController.Instance.transform.position).Forget();
+            await BattleManager.PlayerDamageWithText(PlayerDamageRate);
 
             await UniTask.Delay(TimeSpan.FromSeconds(1.0f));
-
-            BattleManager.ResetQTE();
             await CameraManager.Instance.ActResetCameraTarget();
         }
         

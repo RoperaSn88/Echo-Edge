@@ -193,9 +193,10 @@ namespace EchoEdge.Presenter.Battle
             _hasApproachedForAttack = false;
             if (_renderer != null)
             {
-                var color = _renderer.color;
-                color.a = 1f;
-                _renderer.color = color;
+                // プール再利用時に、前回の攻撃予告の点滅が残らないよう止めて白（不透明）へ戻す
+                _attackBlinkSequence?.Kill();
+                _attackBlinkSequence = null;
+                _renderer.color = Color.white;
 
                 // プール再利用時に、前回の真上視点の寝かせ・下げが残らないよう prefab 時点の向きへ戻す
                 // （下げオフセットの座標は直後の ApplySpriteOffset で上書きされる）
@@ -400,9 +401,105 @@ namespace EchoEdge.Presenter.Battle
             await UniTask.WaitUntil(() => _animationFlag);
         }
 
+        /// <summary>
+        /// 旧方式の攻撃タイミングのアニメーションイベント。
+        /// 点滅予告（<see cref="StartAttackBlink"/>）を使うクリップでは、このイベントは消しておく。
+        /// </summary>
         public void ActiveAttack()
         {
             _animationFlag = true;
+        }
+
+        /// <summary>
+        /// 攻撃予告の弱い点滅で染める色（ColorUtility の HTML 形式）
+        /// </summary>
+        [SerializeField, Tooltip("攻撃予告の1・2回目の点滅（軽く赤く染まる）の色")]
+        private string _attackBlinkLightColorCode = "#FF9A9A";
+
+        /// <summary>
+        /// 攻撃の瞬間（3回目の点滅）に染める色（ColorUtility の HTML 形式）
+        /// </summary>
+        [SerializeField, Tooltip("攻撃の瞬間（3回目の点滅、大きく赤く染まる）の色")]
+        private string _attackBlinkStrongColorCode = "#FF1A1A";
+
+        /// <summary>
+        /// 攻撃の瞬間に赤く染まってから白へ戻るまでの時間
+        /// </summary>
+        private const float AttackBlinkStrongFadeTime = 0.3f;
+
+        private Sequence _attackBlinkSequence;
+
+        /// <summary>
+        /// 攻撃アニメーションのアニメーションイベントから呼ぶ。赤く点滅して攻撃を予告し、
+        /// <paramref name="seconds"/> 秒後に攻撃する。
+        /// 秒数を2分割したそれぞれで軽く赤く染まって白へ戻る点滅を行い（1・2回目）、
+        /// 2回の点滅が終わったとき大きく赤く染まる（3回目）と同時に攻撃する。
+        /// 3回目の瞬間にプレイヤーが防御状態なら、その攻撃は完全に防御される。
+        /// </summary>
+        /// <param name="seconds">点滅を始めてから攻撃するまでの秒数</param>
+        public void StartAttackBlink(float seconds)
+        {
+            if (_renderer == null)
+            {
+                Strike();
+                return;
+            }
+
+            var lightColor = ParseColor(_attackBlinkLightColorCode, new Color(1f, 0.6f, 0.6f));
+            var strongColor = ParseColor(_attackBlinkStrongColorCode, Color.red);
+
+            _attackBlinkSequence?.Kill();
+            SetTint(Color.white);
+
+            var half = Mathf.Max(0f, seconds) * 0.5f;
+            var sequence = DOTween.Sequence();
+            if (half > 0f)
+            {
+                for (var i = 0; i < 2; i++)
+                {
+                    // 前半で軽く赤く染まり、後半で白へ戻る
+                    sequence.Append(TweenTint(Color.white, lightColor, half * 0.5f));
+                    sequence.Append(TweenTint(lightColor, Color.white, half * 0.5f));
+                }
+            }
+
+            sequence.AppendCallback(() =>
+            {
+                SetTint(strongColor);
+                Strike();
+            });
+            sequence.Append(TweenTint(strongColor, Color.white, AttackBlinkStrongFadeTime));
+            sequence.SetLink(gameObject);
+            _attackBlinkSequence = sequence;
+        }
+
+        /// <summary>
+        /// 攻撃の瞬間。防御の判定をしてから、攻撃の処理を進める
+        /// </summary>
+        private void Strike()
+        {
+            EnemyAttackGuard.Judge();
+            _animationFlag = true;
+        }
+
+        private Tween TweenTint(Color from, Color to, float duration)
+        {
+            return DOTween.To(() => 0f, t => SetTint(Color.Lerp(from, to, t)), 1f, duration).SetEase(Ease.Linear);
+        }
+
+        /// <summary>
+        /// 透明度はそのままに、スプライトの色だけを変える（死亡時のフェードを邪魔しない）
+        /// </summary>
+        private void SetTint(Color color)
+        {
+            if (_renderer == null) return;
+            color.a = _renderer.color.a;
+            _renderer.color = color;
+        }
+
+        private static Color ParseColor(string code, Color fallback)
+        {
+            return ColorUtility.TryParseHtmlString(code, out var color) ? color : fallback;
         }
 
         /// <summary>

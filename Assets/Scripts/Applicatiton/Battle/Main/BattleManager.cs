@@ -8,6 +8,7 @@ using EchoEdge.App.Scene;
 using EchoEdge.Domain.Battle;
 using EchoEdge.Domain.Scene;
 using EchoEdge.Infra.Audio;
+using EchoEdge.Presenter.Battle;
 using EchoEdge.Presenter.Player;
 using EchoEdge.Presenter.UI;
 
@@ -34,9 +35,9 @@ namespace EchoEdge.App.Battle
         private static float _qteResult;
 
         /// <summary>
-        /// 防御QTEの判定。被ダメージ SE の出し分けに使う
+        /// 敵の攻撃を完全に防御したときに表示する文言
         /// </summary>
-        private static QTEResults _defendQteResultLevel;
+        private const string PerfectGuardText = "Guard!!";
 
         /// <summary>
         /// 現在のコンボ数
@@ -288,6 +289,11 @@ namespace EchoEdge.App.Battle
             return await _enemyStatus.Damage((int)(_playerStatus.Attack * FlashAttackDamageMultiplier * attackTypeRate));
         }
 
+        /// <summary>
+        /// 敵の攻撃によるプレイヤーへのダメージを反映する。
+        /// 攻撃の瞬間（敵の3度目の点滅）にプレイヤーが防御状態だった場合は完全に防御し、ダメージ 0 を返す。
+        /// </summary>
+        /// <param name="rate">攻撃ごとのダメージ倍率</param>
         public async static UniTask<(int damage, bool isDeath)> PlayerDamage(float rate)
         {
             if (_isPlayerDeathStarted)
@@ -295,11 +301,11 @@ namespace EchoEdge.App.Battle
                 return (0, true);
             }
 
-            if (!_QTEFlug)
+            if (EnemyAttackGuard.ConsumeResult())
             {
-                (_qteResult, _defendQteResultLevel) = await UIPresenter.Instance.AppearQTEWithLevel(QTEKinds.Defend);
-                _QTEFlug = true;
-            } 
+                PlayPerfectGuard();
+                return (0, false);
+            }
 
             // 防御中は、防御力で軽減した後の被ダメージを半減する
             var defendRate = _isDefending ? DefendDamageRate : 1.0f;
@@ -307,14 +313,16 @@ namespace EchoEdge.App.Battle
             // ピンチ状態でなければ、致死ダメージを受けてもHPを1残す（食いしばり）
             var isPinchBeforeDamage = BattleBgmController.IsPinch((float)_playerStatus.HP / _playerStatus.MaxHP);
 
-            // 防御QTE大成功で切り捨てにより0ダメージにならないよう、最低1ダメージは与える
-            var result = await _playerStatus.Damage(Mathf.Max(1, (int)(_enemyStatus.Attack * rate * _qteResult)), defendRate, !isPinchBeforeDamage);
+            // 切り捨てにより0ダメージにならないよう、最低1ダメージは与える（0 は完全防御のときだけ）
+            var result = await _playerStatus.Damage(Mathf.Max(1, (int)(_enemyStatus.Attack * rate)), defendRate, !isPinchBeforeDamage);
 
             BattleBgmController.UpdatePinch((float)_playerStatus.HP / _playerStatus.MaxHP);
 
             PlayerStatusPresenter.Instance.SetPlayerHP(_playerStatus.HP, _playerStatus.MaxHP);
             PlayerView.Instance.Animator.SetTrigger("DamageT");
-            AudioManager.Instance.PlaySe(GetPlayerDamageSe(_defendQteResultLevel));
+
+            // 防御行動中（被ダメージ半減）は軽めの SE にする
+            AudioManager.Instance.PlaySe(_isDefending ? BattleSeType.ModerateDamage : BattleSeType.HeavyDamage);
 
             if (result.isDeath)
             {
@@ -325,18 +333,37 @@ namespace EchoEdge.App.Battle
         }
 
         /// <summary>
-        /// 防御QTEの判定に応じた被ダメージ SE
+        /// <see cref="PlayerDamage"/> を行い、プレイヤーの位置にダメージテキストを出す。
+        /// 完全に防御したときはダメージテキストを出さない（代わりに「Guard!!」が出る）。
         /// </summary>
-        private static BattleSeType GetPlayerDamageSe(QTEResults level)
+        /// <param name="rate">攻撃ごとのダメージ倍率</param>
+        public async static UniTask<(int damage, bool isDeath)> PlayerDamageWithText(float rate)
         {
-            switch (level)
+            var result = await PlayerDamage(rate);
+
+            if (result.damage > 0 && UIPresenter.Instance != null && PlayerController.Instance != null)
             {
-                case QTEResults.Perfect:
-                    return BattleSeType.ShortDamage;
-                case QTEResults.Good:
-                    return BattleSeType.ModerateDamage;
-                default:
-                    return BattleSeType.HeavyDamage;
+                UIPresenter.Instance.AppearDamageText($"{result.damage}", PlayerController.Instance.transform.position).Forget();
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 敵の攻撃を完全に防御したときの演出
+        /// </summary>
+        private static void PlayPerfectGuard()
+        {
+            AudioManager.Instance.PlaySe(BattleSeType.QTE_Perfect);
+
+            if (UIPresenter.Instance != null)
+            {
+                UIPresenter.Instance.AppearQTEResult(PerfectGuardText).Forget();
+            }
+
+            if (PlayerView.Instance != null)
+            {
+                PlayerView.Instance.PlayDefendParticle().Forget();
             }
         }
 
