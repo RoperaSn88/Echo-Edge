@@ -442,13 +442,12 @@ namespace EchoEdge.Presenter.Battle
 
         /// <summary>
         /// 攻撃予告の点滅で sprite に掛ける色。
-        /// sprite の Color は死亡アニメーションが動かしていて、Write Defaults により Animator が毎フレーム既定値を書き込むため、
-        /// Animator の更新後（LateUpdate）に上書きする。
+        /// 点滅中は Update で毎フレーム sprite に反映する。
         /// </summary>
         private Color _blinkTint = Color.white;
 
         /// <summary>
-        /// 攻撃予告の点滅中か（LateUpdate で sprite の色を上書きするか）
+        /// 攻撃予告の点滅中か（Update で sprite の色を上書きするか）
         /// </summary>
         private bool _isBlinkTintActive;
 
@@ -516,7 +515,7 @@ namespace EchoEdge.Presenter.Battle
         }
 
         /// <summary>
-        /// 点滅で掛ける色を変える。実際の反映は <see cref="LateUpdate"/> で行う
+        /// 点滅で掛ける色を変える。点滅中は <see cref="Update"/> でも毎フレーム反映する
         /// </summary>
         private void SetTint(Color color)
         {
@@ -524,7 +523,7 @@ namespace EchoEdge.Presenter.Battle
             ApplyBlinkTint();
         }
 
-        private void LateUpdate()
+        private void Update()
         {
             if (_isBlinkTintActive)
             {
