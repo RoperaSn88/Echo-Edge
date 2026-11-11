@@ -27,7 +27,7 @@ namespace EchoEdge.Domain.Battle
         /// <summary>
         /// 1回に召喚する『エナー』の最小数・最大数
         /// </summary>
-        private const int MinSummonCount = 1;
+        private const int MinSummonCount = 2;
         private const int MaxSummonCount = 3;
 
         /// <summary>
