@@ -479,6 +479,9 @@ namespace EchoEdge.Presenter.Battle
             });
             sequence.Append(TweenTint(strongColor, Color.white, AttackBlinkStrongFadeTime));
             sequence.SetLink(gameObject);
+
+            // DOTween の自動再生 (DOTweenSettings の Default Auto Play) に頼らず、ここで明示的に再生する
+            sequence.Play();
             _attackBlinkSequence = sequence;
         }
 
