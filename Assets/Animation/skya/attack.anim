@@ -960,10 +960,10 @@ AnimationClip:
     floatParameter: 0
     intParameter: 13
     messageOptions: 0
-  - time: 0.9166667
-    functionName: ActiveAttack
+  - time: 0.25
+    functionName: StartAttackBlink
     data: 
     objectReferenceParameter: {fileID: 0}
-    floatParameter: 0
+    floatParameter: 0.83333
     intParameter: 0
     messageOptions: 0
