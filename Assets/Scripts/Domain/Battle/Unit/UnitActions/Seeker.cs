@@ -27,7 +27,7 @@ namespace EchoEdge.Domain.Battle
         /// <summary>
         /// 1回に召喚する『エナー』の最小数・最大数
         /// </summary>
-        private const int MinSummonCount = 1;
+        private const int MinSummonCount = 2;
         private const int MaxSummonCount = 3;
 
         /// <summary>
@@ -206,7 +206,8 @@ namespace EchoEdge.Domain.Battle
 
                 var unit = UnitFactory.Create(EnemyKinds.Enar, h, w, size);
                 await unit.LoadStatus(EnemyKinds.Enar, CurrentSummonLevel);
-                UnitSpawner.Instance.SpawnView(unit, EnemyKinds.Enar);
+                // 召喚直後は HP ゲージが邪魔なので隠して出す
+                UnitSpawner.Instance.SpawnView(unit, EnemyKinds.Enar, isHideHP: true);
                 _summonedCount++;
 
                 // 全滅クリア条件の残り敵数を増やす

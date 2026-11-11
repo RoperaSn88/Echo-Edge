@@ -184,8 +184,17 @@ namespace EchoEdge.Presenter.Battle
         /// </summary>
         /// <param name="h">配置する縦座標</param>
         /// <param name="w">配置する横座標</param>
-        public virtual async UniTask Setup(int h, int w, EnemyKinds enemyID)
+        /// <param name="enemyID">エネミーの種類</param>
+        /// <param name="isHideHP">true のとき、HP ゲージの Canvas の alpha を 0 にする（『シーカー』による召喚など）</param>
+        public virtual async UniTask Setup(int h, int w, EnemyKinds enemyID, bool isHideHP = false)
         {
+            if (isHideHP && _canvasGroup != null)
+            {
+                // 召喚直後に HP ゲージが邪魔にならないよう隠す。ターン終了時の FadeGauge(1f) で他の敵と一緒に表示に戻る
+                _canvasGroup.DOKill();
+                _canvasGroup.alpha = 0f;
+            }
+
             height = h;
             width = w;
             _isDeath = false;

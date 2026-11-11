@@ -90,7 +90,7 @@ namespace EchoEdge.Domain.Battle
 
         public async UniTask BeforeSpecific()
         {
-            await MessagePresenter.Instance.AppearMessage("エナーは仲間を吸収にしようとしている");
+            await MessagePresenter.Instance.AppearMessage("エナーは仲間を吸収しようとしている");
         }
 
         /// <inheritdoc/>

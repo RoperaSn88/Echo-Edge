@@ -17,6 +17,8 @@ namespace EchoEdge.Presenter.Preparing
         private const string MagicTrigger = "MagicT";
         private const float SlideDuration = 0.3f;
         private const float SlideOffsetX = -400f;
+        private const float DisplayDuration = 1.2f;
+        private const float FadeDuration = 0.8f;
 
         /// <summary>
         /// Overseer の Animator（インスペクターから設定する）
@@ -88,6 +90,7 @@ namespace EchoEdge.Presenter.Preparing
 
             // 画面左から登場するトゥイーン
             _feedbackText.rectTransform.anchoredPosition = new Vector2(_feedbackDefaultPos.x + SlideOffsetX, _feedbackDefaultPos.y);
+            _feedbackText.color = new Color(1f, 1f, 1f, 1f); // 不透明に設定
             _feedbackText.gameObject.SetActive(true);
             await _feedbackText.rectTransform
                 .DOAnchorPos(_feedbackDefaultPos, SlideDuration)
@@ -107,8 +110,9 @@ namespace EchoEdge.Presenter.Preparing
 
                 OnEnhanceSuccess();
             }
-
-            await UniTask.Delay(System.TimeSpan.FromSeconds(0.8f));
+            
+            await UniTask.Delay(System.TimeSpan.FromSeconds(DisplayDuration));
+            await _feedbackText.DOFade(0, FadeDuration).SetUpdate(true).ToUniTask();
 
             _feedbackText.gameObject.SetActive(false);
             _isProcessing = false;

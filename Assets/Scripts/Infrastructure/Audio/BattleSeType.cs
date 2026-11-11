@@ -21,6 +21,8 @@ namespace EchoEdge.Infra.Audio
         SkyaFly,
         SkyaBeam,
         BuilderBuild,
-        FlaskLanding
+        FlaskLanding,
+        Defend,
+        Heal
     }
 }
