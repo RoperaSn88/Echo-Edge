@@ -5,6 +5,14 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-3D-Shadow-Cutoff"
         _MainTex ("Sprite Texture", 2D) = "white" {}
         _Cutoff ("Shadow Cutoff", Range(0,1)) = 0.5
 
+        // 深度書き込み。ONにするとテクスチャのα が _DepthCutoff 未満のピクセルを捨てて深度を書くので、
+        // SortingOrder ではなく z（奥行き）でピクセル単位に前後が決まる。
+        // マテリアルの Render Queue を AlphaTest(2450) にして使う（Assets/Documents/SpriteDepthSorting.md）。
+        [Toggle(_SPRITE_DEPTH_WRITE)] _SpriteDepthWrite ("Depth Write", Float) = 0
+        _DepthCutoff ("Depth Write Cutoff", Range(0,1)) = 0.5
+        // 同じ位置に重ねる後ろ側のスプライト(sprite_back等)用。正の値で少し奥に描く（同じzでも前のスプライトに隠れる）
+        _DepthOffsetUnits ("Depth Offset Units", Float) = 0
+
         // Legacy properties. They're here so that materials using this shader can gracefully fallback to the legacy sprite shader.
         [HideInInspector] _Color ("Tint", Color) = (1,1,1,1)
         [HideInInspector] PixelSnap ("Pixel snap", Float) = 0
@@ -19,7 +27,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-3D-Shadow-Cutoff"
 
         Blend SrcAlpha OneMinusSrcAlpha
         Cull Off
-        ZWrite Off
+        ZWrite [_SpriteDepthWrite]
+        Offset 0, [_DepthOffsetUnits]
 
         Pass
         {
@@ -38,6 +47,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-3D-Shadow-Cutoff"
             #pragma fragment UnlitFragment
 
             #pragma multi_compile _ DEBUG_DISPLAY SKINNED_SPRITE
+            #pragma shader_feature_local_fragment _SPRITE_DEPTH_WRITE
 
             struct Attributes
             {
@@ -66,6 +76,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-3D-Shadow-Cutoff"
             CBUFFER_START(UnityPerMaterial)
                 half4 _MainTex_ST;
                 half4 _Color;
+                half _Cutoff;
+                half _DepthCutoff;
             CBUFFER_END
 
             Varyings UnlitVertex(Attributes v)
@@ -88,6 +100,11 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-3D-Shadow-Cutoff"
             half4 UnlitFragment(Varyings i) : SV_Target
             {
                 float4 mainTex = i.color * SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv);
+
+                #if defined(_SPRITE_DEPTH_WRITE)
+                // 頂点カラー(SpriteRenderer.color)のαは見ない。フェード中も形は残して深度を書く
+                clip(SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv).a - _DepthCutoff);
+                #endif
 
                 #if defined(DEBUG_DISPLAY)
                 SurfaceData2D surfaceData;
@@ -126,6 +143,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-3D-Shadow-Cutoff"
             #pragma fragment UnlitFragment
 
             #pragma multi_compile_fragment _ DEBUG_DISPLAY
+            #pragma shader_feature_local_fragment _SPRITE_DEPTH_WRITE
 
             struct Attributes
             {
@@ -154,6 +172,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-3D-Shadow-Cutoff"
             CBUFFER_START( UnityPerMaterial )
                 half4 _MainTex_ST;
                 half4 _Color;
+                half _Cutoff;
+                half _DepthCutoff;
             CBUFFER_END
 
             Varyings UnlitVertex(Attributes attributes)
@@ -176,6 +196,11 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-3D-Shadow-Cutoff"
             float4 UnlitFragment(Varyings i) : SV_Target
             {
                 float4 mainTex = i.color * SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv);
+
+                #if defined(_SPRITE_DEPTH_WRITE)
+                // 頂点カラー(SpriteRenderer.color)のαは見ない。フェード中も形は残して深度を書く
+                clip(SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv).a - _DepthCutoff);
+                #endif
 
                 #if defined(DEBUG_DISPLAY)
                 SurfaceData2D surfaceData;
@@ -271,6 +296,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-3D-Shadow-Cutoff"
                 half4 _MainTex_ST;
                 half4 _Color;
                 half _Cutoff;
+                half _DepthCutoff;
             CBUFFER_END
             
             float4 GetShadowPositionHClip(Attributes input)
