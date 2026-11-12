@@ -325,7 +325,7 @@ AnimationClip:
     functionName: StartAttackBlink
     data: 
     objectReferenceParameter: {fileID: 0}
-    floatParameter: 1
+    floatParameter: 2
     intParameter: 0
     messageOptions: 0
   - time: 1
