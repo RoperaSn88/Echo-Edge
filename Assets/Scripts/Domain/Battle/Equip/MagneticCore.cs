@@ -78,7 +78,7 @@ namespace EchoEdge.Domain.Battle
             List<Vector2Int> targetCells = new();
             foreach (var unitInfo in GetTargetUnits(h, w))
             {
-                int size = (int)unitInfo.unit.GetSize();
+                int size = unitInfo.unit.GetSize().FootprintSpan();
                 for (int dh = 0; dh < size; dh++)
                 {
                     for (int dw = 0; dw < size; dw++)
@@ -148,7 +148,7 @@ namespace EchoEdge.Domain.Battle
             // 移動済みのユニットを反映した盤面で毎回空き判定を行う（壁や他ユニットの占有マスは全て埋まっている扱い）。
             foreach (var unitInfo in targetUnits)
             {
-                int size = (int)unitInfo.unit.GetSize();
+                int size = unitInfo.unit.GetSize().FootprintSpan();
                 (int h, int w)? destination = null;
                 foreach (var cell in candidateCells)
                 {

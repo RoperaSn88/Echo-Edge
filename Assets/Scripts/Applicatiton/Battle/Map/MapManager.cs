@@ -125,7 +125,7 @@ namespace EchoEdge.App.Battle
 
         public void RegisterUnit(IUnit unit, int h, int w)
         {
-            var span = (int)unit.GetSize();
+            var span = unit.GetSize().FootprintSpan();
             if (!IsFootprintFree(h, w, span, null))
             {
                 throw new InvalidOperationException("指定したマスにはunitがいるか、範囲外です h:" + h + ", w:" + w);
@@ -220,7 +220,7 @@ namespace EchoEdge.App.Battle
 
             // 2x2など複数マスを占有している場合があるため、登録済みのアンカー位置から占有マス全てを解放する
             var anchor = _unitPositions.TryGetValue(unit, out var pos) ? pos : (h, w);
-            var span = (int)unit.GetSize();
+            var span = unit.GetSize().FootprintSpan();
 
             for (var dh = 0; dh < span; dh++)
             {
@@ -393,7 +393,7 @@ namespace EchoEdge.App.Battle
         public bool PlaceUnitAt(IUnit unit, int h, int w)
         {
             if (unit == null) return false;
-            var span = (int)unit.GetSize();
+            var span = unit.GetSize().FootprintSpan();
             if (!IsFootprintFree(h, w, span, null)) return false;
 
             SetFootprint(h, w, span, unit);
@@ -406,7 +406,7 @@ namespace EchoEdge.App.Battle
             if (unit == null) return false;
             if (!_unitPositions.TryGetValue(unit, out var src)) return false;
 
-            var span = (int)unit.GetSize();
+            var span = unit.GetSize().FootprintSpan();
             // 自身が現在占有しているマスは空きとして扱う（同じユニットが移動先にかぶっても問題ない）
             if (!IsFootprintFree(dstH, dstW, span, unit)) return false;
 
