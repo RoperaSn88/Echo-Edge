@@ -224,7 +224,7 @@ namespace EchoEdge.Presenter.Battle
 
             transform.localPosition = new Vector3(w, 0, h);
 
-            // 2x2など複数マスを占有するエネミーは、専用モデルが用意されるまでの暫定対応として見た目を拡大する
+            // 見た目が大きいエネミー（でかエナー）は拡大する（占有するマスは 1x1 のまま）
             var size = await EnemyStatusLoader.TryLoadSize((int)enemyID);
             transform.localScale = Vector3.one * (int)size;
 

@@ -410,7 +410,7 @@ namespace EchoEdge.Domain.Battle
 
             // 移動先の決め方は EnemyMovePlanner にまとめてある（ステージエディタのプレビューも同じものを使う）
             var board = new MapManagerMoveBoard(mapManager, this);
-            var path = EnemyMovePlanner.PlanPath(board, (int)GetSize(), Height, Width, count,
+            var path = EnemyMovePlanner.PlanPath(board, GetSize().FootprintSpan(), Height, Width, count,
                 maxExclusive => UnityEngine.Random.Range(0, maxExclusive));
 
             // 経路を先頭から順に実行し、途中で失敗したら打ち切る。

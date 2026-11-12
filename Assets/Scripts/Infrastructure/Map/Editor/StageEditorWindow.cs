@@ -399,7 +399,7 @@ namespace EchoEdge.Infra.Map
                     var status = GetStatus(p.enemyKind, 0);
                     return status == null
                         ? new StageMoveSimulator.Unit(1, 0)
-                        : new StageMoveSimulator.Unit((int)status.Size, status.Move);
+                        : new StageMoveSimulator.Unit(status.Size.FootprintSpan(), status.Move);
                 })
                 .ToList();
 
@@ -742,7 +742,7 @@ namespace EchoEdge.Infra.Map
                 EditorGUILayout.TextField("行動順", status.MovePattern == MovePattern.Before ? "移動の前に行動" : "移動の後に行動");
                 EditorGUILayout.IntField("エナジー", status.Energy);
                 EditorGUILayout.IntField("経験値", status.Experience);
-                EditorGUILayout.TextField("サイズ", status.Size == EnemySize.Large ? "2x2" : "1x1");
+                EditorGUILayout.TextField("サイズ", status.Size == EnemySize.Large ? "見た目2倍（1x1マス）" : "1x1");
             }
         }
 
@@ -965,7 +965,7 @@ namespace EchoEdge.Infra.Map
         private int GetSize(EnemyKinds enemyKind)
         {
             var status = GetStatus(enemyKind, 0);
-            return status != null ? (int)status.Size : 1;
+            return status != null ? status.Size.FootprintSpan() : 1;
         }
 
         private static bool IsInBounds(int h, int w)
