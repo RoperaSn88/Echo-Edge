@@ -204,9 +204,12 @@ namespace EchoEdge.Domain.Battle
             BattleManager.RegisterEnemy(_battleStatus);
 
             UniTask action;
+            // ビーム（飛行中の特殊行動）はプレイヤーへの攻撃なので、通常攻撃と同じく自分とプレイヤーを同時に映す
+            var isBeam = false;
             if (_unitAction is IFlyingUnit flyingUnit1)
             {
-                if(flyingUnit1.IsFlying) action = flyingUnit1.WaitFlyingMessage();
+                isBeam = flyingUnit1.IsFlying;
+                if(isBeam) action = flyingUnit1.WaitFlyingMessage();
                 else action = flyingUnit1.WaitToFlyMessage();
             }
             else
@@ -215,7 +218,7 @@ namespace EchoEdge.Domain.Battle
             }
 
             await UniTask.WhenAll(
-                _view.WaitToCameraZoom(),
+                isBeam ? _view.WaitToCameraZoomWithPlayer() : _view.WaitToCameraZoom(),
                 action
             );
 
