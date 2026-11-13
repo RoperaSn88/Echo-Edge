@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 using EchoEdge.Domain.Map;
 
@@ -9,27 +8,11 @@ namespace EchoEdge.Presenter.Battle
 {
     /// <summary>
     /// 床ギミック（ワープホールなど）をステージ CSV の配置どおりに置き、一閃の経路上にあるものを探す。
-    /// MainGame シーンに1つ置いてプレハブを割り当てる（置かなければ初回のステージ構築時に自動生成し、仮の見た目で置く）。
+    /// MainGame シーンに1つ置いてプレハブを割り当てる（プレハブ未設定なら仮の見た目で置く）。
     /// </summary>
     public class FloorGimmickManager : MonoBehaviour
     {
         public static FloorGimmickManager Instance { get; private set; }
-
-        /// <summary>
-        /// シーンに置いたものを返す。置いていなければ <paramref name="scene"/>（盤面のあるシーン）に作る。
-        /// 盤面のシーンに作るのは、シーンを閉じたときに一緒に消えるようにするため。
-        /// </summary>
-        public static FloorGimmickManager GetOrCreate(Scene scene)
-        {
-            if (Instance != null) return Instance;
-
-            Instance = FindFirstObjectByType<FloorGimmickManager>();
-            if (Instance != null) return Instance;
-
-            var go = new GameObject(nameof(FloorGimmickManager));
-            if (scene.IsValid() && scene.isLoaded) SceneManager.MoveGameObjectToScene(go, scene);
-            return go.AddComponent<FloorGimmickManager>();
-        }
 
         [Tooltip("ワープホールのプレハブ（ルートに WarpHoleView を付ける）。ピボットをマスの中心・床の高さに合わせる。" +
                  "当たり判定のコライダーは子に付けてもよい（無ければ1マス分の箱を自動で付ける）。未設定なら仮の円盤を置く")]
@@ -70,8 +53,6 @@ namespace EchoEdge.Presenter.Battle
         {
             Clear();
 
-            var warpHoles = new List<WarpHoleView>();
-            var pairIds = new Dictionary<WarpHoleView, int>();
             foreach (var placement in placements)
             {
                 var center = basePos + new Vector3(placement.width, _heightOffset, placement.height);
@@ -81,15 +62,14 @@ namespace EchoEdge.Presenter.Battle
                         var warpHole = CreateWarpHole();
                         warpHole.name = $"WarpHole_{placement.pairId}_({placement.height},{placement.width})";
                         warpHole.Setup(placement.height, placement.width, center);
-                        warpHoles.Add(warpHole);
-                        pairIds[warpHole] = placement.pairId;
+                        warpHole.SetPair(placement.pairId, null);
                         _gimmicks.Add(warpHole);
                         break;
                 }
             }
 
             // 同じペア番号のワープホールどうしを対にする。ちょうど2つでない番号は対にしない（入っても何も起きない）
-            foreach (var group in warpHoles.GroupBy(w => pairIds[w]))
+            foreach (var group in _gimmicks.OfType<WarpHoleView>().GroupBy(w => w.PairId))
             {
                 var members = group.ToList();
                 if (members.Count != 2)
