@@ -122,7 +122,14 @@ namespace EchoEdge.App.Battle
             }
 
             // 床ギミック（ワープホール・リエイムパッド）の見た目と当たり判定を置く
-            FloorGimmickManager.GetOrCreate(gameObject.scene).Build(placements.Where(p => p.objectKind.IsFloorGimmick()), GetBasePos());
+            if (FloorGimmickManager.Instance != null)
+            {
+                FloorGimmickManager.Instance.Build(placements.Where(p => p.objectKind.IsFloorGimmick()), GetBasePos());
+            }
+            else if (placements.Any(p => p.objectKind.IsFloorGimmick()))
+            {
+                Debug.LogWarning("FloorGimmickManager がシーンに配置されていないため、床ギミック（ワープホール・リエイムパッド）を置けません");
+            }
 
             // 敵撃破数以外の値（耐久ターン数、連続撃破数、ボスの敵ID）を必要とする条件はCSVの値を使う
             var needsConditionValueFromCsv = clearCondition.conditionType == StageClearConditionType.Endurance
