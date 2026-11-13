@@ -41,6 +41,12 @@ namespace EchoEdge.App.Battle
         private readonly List<IUnit> _offBoardUnits = new();
 
         /// <summary>
+        /// 床ギミック（ワープホールなど）があるマス。床ギミックはマスを占有しない（敵は通過できる）が、
+        /// エナジーウォールの設置・ビルダーの壁・シーカーの召喚はできない。
+        /// </summary>
+        private readonly HashSet<(int h, int w)> _floorGimmickCells = new();
+
+        /// <summary>
         /// マップ配置のベースとなるオブジェクトのTransform
         /// </summary>
         [SerializeField]
@@ -95,6 +101,12 @@ namespace EchoEdge.App.Battle
                     continue;
                 }
 
+                if (placement.objectKind.IsFloorGimmick())
+                {
+                    _floorGimmickCells.Add((placement.height, placement.width));
+                    continue;
+                }
+
                 if (placement.objectKind == StageObjectKind.Unit)
                 {
                     // 倒す対象ではないエネミー（『シーカー』など）は全滅条件の敵数に数えない
@@ -107,6 +119,16 @@ namespace EchoEdge.App.Battle
                     unit.SetScriptedActions(placement.actions);
                     UnitSpawner.Instance.SpawnView(unit, placement.enemyKind);
                 }
+            }
+
+            // 床ギミック（ワープホールなど）の見た目と当たり判定を置く
+            if (FloorGimmickManager.Instance != null)
+            {
+                FloorGimmickManager.Instance.Build(placements.Where(p => p.objectKind.IsFloorGimmick()), GetBasePos());
+            }
+            else if (placements.Any(p => p.objectKind.IsFloorGimmick()))
+            {
+                Debug.LogWarning("FloorGimmickManager がシーンに配置されていないため、床ギミック（ワープホールなど）を置けません");
             }
 
             // 敵撃破数以外の値（耐久ターン数、連続撃破数、ボスの敵ID）を必要とする条件はCSVの値を使う
@@ -178,6 +200,15 @@ namespace EchoEdge.App.Battle
                 return null;
             }
             return _mapGrid[h, w];
+        }
+
+        /// <summary>
+        /// 指定マスに床ギミック（ワープホールなど）があるかどうか。
+        /// 床ギミックのマスには、エナジーウォール・ビルダーの壁・シーカーの召喚を置かない。
+        /// </summary>
+        public bool HasFloorGimmickAt(int h, int w)
+        {
+            return _floorGimmickCells.Contains((h, w));
         }
 
         public bool IsInBounds(int h, int w)
@@ -534,6 +565,7 @@ namespace EchoEdge.App.Battle
         {
             _mapGrid = new IUnit[MapHeight, MapWidth];
             _unitPositions.Clear();
+            _floorGimmickCells.Clear();
 
             // 盤面外のユニットは倒されずに残るため、ウェーブの切り替え時に表示を片付ける
             foreach (var unit in _offBoardUnits)

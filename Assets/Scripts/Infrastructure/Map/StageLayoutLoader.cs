@@ -90,7 +90,7 @@ namespace EchoEdge.Infra.Map
 
                 if (!Enum.TryParse(cols[0].Trim(), true, out StageObjectKind objectKind))
                 {
-                    Debug.LogWarning($"StageLayout.csv の {i + 1} 行目の objectKind が不正です: {cols[0]}。有効値: Wall, Unit, SlopeWall");
+                    Debug.LogWarning($"StageLayout.csv の {i + 1} 行目の objectKind が不正です: {cols[0]}。有効値: Wall, Unit, SlopeWall, WarpHole");
                     continue;
                 }
 
@@ -177,6 +177,18 @@ namespace EchoEdge.Infra.Map
                     }
 
                     placement.slopeDirection = slopeDirection;
+                }
+
+                if (objectKind == StageObjectKind.WarpHole)
+                {
+                    if (cols.Length < 4 || !int.TryParse(cols[3].Trim(), out int pairId) || pairId < 0)
+                    {
+                        occupied.Remove((height, width));
+                        Debug.LogWarning($"StageLayout.csv の {i + 1} 行目のペア番号が不正です（0以上の整数を4列目に書いてください）: {lines[i]}");
+                        continue;
+                    }
+
+                    placement.pairId = pairId;
                 }
 
                 placements.Add(placement);

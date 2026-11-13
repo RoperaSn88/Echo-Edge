@@ -34,10 +34,15 @@ namespace EchoEdge.Presenter.Battle
         private readonly List<Vector3> _points = new();
 
         /// <summary>
-        /// 各線分(i 回目の線)が始まる <see cref="_points"/> のインデックス。
-        /// 線分 i は _segmentStarts[i] から次の線分の始点(最後の線分は末尾)までの点を結ぶ。
+        /// 線分ごとの、<see cref="_points"/> の始点・終点のインデックスと、不透明度を決める反射の回数(i 回目の線)。
+        /// ふつうは反射ごとに1本だが、ワープホールを通ると入口までと出口からで線を分ける(同じ i 回目の線のまま)。
         /// </summary>
-        private readonly List<int> _segmentStarts = new();
+        private readonly List<(int start, int end, int reflectionIndex)> _segments = new();
+
+        /// <summary>
+        /// 予測線でなぞった経路で使った床ギミック(ワープホールなど)。同じものを2回使わないようにする
+        /// </summary>
+        private readonly List<FloorGimmickView> _usedGimmicks = new();
 
         private readonly List<LineRenderer> _lineRenderers = new();
         private MaterialPropertyBlock _propertyBlock;
@@ -64,13 +69,14 @@ namespace EchoEdge.Presenter.Battle
             }
 
             _points.Clear();
-            _segmentStarts.Clear();
+            _segments.Clear();
+            _usedGimmicks.Clear();
 
             if (attackKind == PlayerAttackKinds.Curve)
             {
                 // 弧曲の軌道は反射の追跡と別物なので、ひとまず従来どおりポインターまでの直線を描く
-                _segmentStarts.Add(0);
                 _points.Add(playerPosition);
+                BeginSegment(0);
                 _points.Add(new Vector3(pointerPosition.x, playerPosition.y, pointerPosition.z));
             }
             else
@@ -78,13 +84,14 @@ namespace EchoEdge.Presenter.Battle
                 TraceStraightAttack(playerPosition, direction.normalized, attackKind, isFlash, reflectCount, wallLayerMask);
             }
 
+            CloseSegment();
+
             EnsureLineObject();
-            int segmentCount = _segmentStarts.Count;
+            int segmentCount = _segments.Count;
             for (int i = 0; i < segmentCount; i++)
             {
                 LineRenderer lineRenderer = GetLineRenderer(i);
-                int start = _segmentStarts[i];
-                int end = i + 1 < segmentCount ? _segmentStarts[i + 1] : _points.Count - 1;
+                var (start, end, reflectionIndex) = _segments[i];
 
                 lineRenderer.enabled = true;
                 lineRenderer.positionCount = end - start + 1;
@@ -95,13 +102,33 @@ namespace EchoEdge.Presenter.Battle
                     lineRenderer.SetPosition(j - start, point);
                 }
 
-                ApplyAlpha(lineRenderer, GetSegmentAlpha(i, reflectCount));
+                ApplyAlpha(lineRenderer, GetSegmentAlpha(reflectionIndex, reflectCount));
             }
 
             for (int i = segmentCount; i < _lineRenderers.Count; i++)
             {
                 _lineRenderers[i].enabled = false;
             }
+        }
+
+        /// <summary>
+        /// <see cref="_points"/> の末尾の点から、i 回目の線(<paramref name="reflectionIndex"/>)を始める。描きかけの線があれば末尾の点で閉じる
+        /// </summary>
+        private void BeginSegment(int reflectionIndex)
+        {
+            CloseSegment();
+            _segments.Add((_points.Count - 1, -1, reflectionIndex));
+        }
+
+        /// <summary>
+        /// 描きかけの線を <see cref="_points"/> の末尾の点で閉じる
+        /// </summary>
+        private void CloseSegment()
+        {
+            if (_segments.Count == 0) return;
+            var last = _segments[^1];
+            if (last.end >= 0) return;
+            _segments[^1] = (last.start, _points.Count - 1, last.reflectionIndex);
         }
 
         /// <summary>
@@ -126,13 +153,36 @@ namespace EchoEdge.Presenter.Battle
             for (int i = 0; i <= reflectCount; i++)
             {
                 // i 回目の線は、直前の線の終点(壁に当たった点・貫通した先)から始まる
-                _segmentStarts.Add(_points.Count - 1);
+                BeginSegment(i);
 
-                var ray = new Ray(origin, direction);
-                if (!Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, wallLayerMask))
+                RaycastHit hit;
+                while (true)
                 {
-                    _points.Add(origin + direction * MaxSegmentDistance);
-                    return;
+                    var ray = new Ray(origin, direction);
+                    if (!Physics.Raycast(ray, out hit, Mathf.Infinity, wallLayerMask))
+                    {
+                        _points.Add(origin + direction * MaxSegmentDistance);
+                        return;
+                    }
+
+                    // 反射の剣は、壁までの間にあるワープホールを通って出口から同じ向きで進む(反射回数は消費しない)
+                    if (attackKind == PlayerAttackKinds.Reflect &&
+                        FloorGimmickManager.TryFindNext(origin, direction, hit.distance, _usedGimmicks, out var gimmick, out var gimmickDistance) &&
+                        gimmick is WarpHoleView warpHole)
+                    {
+                        _points.Add(origin + direction * gimmickDistance);
+                        _usedGimmicks.Add(warpHole);
+                        _usedGimmicks.Add(warpHole.Partner);
+
+                        // 入口までで線を閉じ、出口から同じ i 回目の線を描き始める
+                        CloseSegment();
+                        origin = warpHole.GetExitPosition(origin.y);
+                        _points.Add(origin);
+                        BeginSegment(i);
+                        continue;
+                    }
+
+                    break;
                 }
 
                 _points.Add(hit.point);

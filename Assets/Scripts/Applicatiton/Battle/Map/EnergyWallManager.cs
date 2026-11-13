@@ -54,11 +54,13 @@ namespace EchoEdge.App.Battle
 
         /// <summary>
         /// 指定マスにエナジーウォールのプレビューを表示する。表示中のプレビューがあれば、そのまま指定マスへ動かす。
-        /// マスが範囲外・使用中の場合はプレビューを片付けて false を返す。
+        /// マスが範囲外・使用中・床ギミックのマスの場合はプレビューを片付けて false を返す。
         /// </summary>
         public bool MovePreview(int h, int w, EnergyWallDirection direction)
         {
-            if (MapManager.Instance == null || !MapManager.Instance.IsFootprintFree(h, w, 1, null))
+            if (MapManager.Instance == null || !MapManager.Instance.IsFootprintFree(h, w, 1, null) ||
+                // 床ギミック（ワープホールなど）のマスには置けない
+                MapManager.Instance.HasFloorGimmickAt(h, w))
             {
                 CancelPreview();
                 return false;

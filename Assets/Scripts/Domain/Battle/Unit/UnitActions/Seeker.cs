@@ -202,7 +202,7 @@ namespace EchoEdge.Domain.Battle
             foreach (var (h, w) in cells)
             {
                 // 予約してから着地までの間にふさがったマスには出さない
-                if (MapManager.Instance.GetUnitAt(h, w) != null) continue;
+                if (MapManager.Instance.GetUnitAt(h, w) != null || MapManager.Instance.HasFloorGimmickAt(h, w)) continue;
 
                 var unit = UnitFactory.Create(EnemyKinds.Enar, h, w, size);
                 await unit.LoadStatus(EnemyKinds.Enar, CurrentSummonLevel);
@@ -254,7 +254,8 @@ namespace EchoEdge.Domain.Battle
             {
                 for (var w = 0; w < map.Width; w++)
                 {
-                    if (map.GetUnitAt(h, w) != null) continue;
+                    // 床ギミック（ワープホールなど）のマスには召喚しない
+                    if (map.GetUnitAt(h, w) != null || map.HasFloorGimmickAt(h, w)) continue;
 
                     var distance = Math.Abs(h - baseHeight) + Math.Abs(w - baseWidth);
                     candidates.Add((h, w, distance, UnityEngine.Random.value));
