@@ -2,7 +2,6 @@
 
 ステージ CSV に置いた床ギミックを、ウェーブの読み込み時に盤面へ置くようにしました。
 仕様は Notion の「1-3-1. ワープホール」を参照してください。
-**`FloorGimmickManager` をシーンに置けば、プレハブを用意しなくても仮の見た目（紫の円盤）で動きます。**
 
 ## 1. ステージ CSV の書き方
 
@@ -22,23 +21,24 @@ WarpHole, 縦, 横, ペア番号
    - 一閃の線がコライダーに入った瞬間にワープします。円形にしたいなら Capsule / Mesh コライダーなど、形は自由です。
    - 高さはプレイヤーと合っていなくても大丈夫です（コライダーの中心の高さで判定します）。
    - 実行時に自動で **Is Trigger: オン**、レイヤー **Ignore Raycast** になります（壁の判定やポインターのレイキャストに当たらないように）。
-   - コライダーが無い場合は、1マス分の箱を自動で付けます。
-3. MainGame シーンに空の GameObject を作り、`FloorGimmickManager` を付けて、**Warp Hole Prefab** にプレハブを割り当てる。
-   - **シーンに置かないと床ギミックは置かれません**（CSV に書いてあれば Console に警告が出ます）。
-   - プレハブ未設定の間は、仮の見た目で置かれます。
+3. `WarpHoleView` のインスペクターで以下を割り当てる。
+
+| フィールド | 割り当てるもの |
+|---|---|
+| Colliders | 2. のコライダー |
+| Material | エフェクトのマテリアル（**Surface Type: Transparent**、色は `_BaseColor`） |
+| Renderers | そのマテリアルを使う Renderer（パーティクルなら ParticleSystemRenderer） |
+| Used Alpha | 使用済みのときの不透明度（既定 0.3） |
+
+4. MainGame シーンに空の GameObject を作り、`FloorGimmickManager` を付けて、**Warp Hole Prefab** にプレハブを割り当てる。
+   - **シーンに置かないと床ギミックは置かれません**（CSV に書いてあれば Console に警告が出ます）。プレハブ未設定のときも警告が出ます。
    - **Height Offset**: 床と重なってチラつく場合は少し上げる。
 
 ## 3. 使用済みの半透明
 
 ワープホールは、ペアで1ターンに1回だけ使えます。使うと両方とも半透明になり、次のプレイヤーフェーズの開始で元に戻ります。
 
-`WarpHoleView` の **Used Alpha**（既定 0.3）で使用済みの不透明度を変えられます。プレハブの中身に合わせて、次のように α を下げます。
-
-| 中身 | 下げるもの | 注意 |
-|---|---|---|
-| Mesh / Particle System などの Renderer | マテリアルの `_BaseColor` / `_Color` の α（MaterialPropertyBlock） | マテリアルの Surface Type を **Transparent** にしておく（Opaque だと透けない） |
-| SpriteRenderer | `color` の α | |
-| VFX Graph | Exposed の float プロパティ（既定名 `Alpha`、**Vfx Alpha Property** で変更） | グラフ側で、このプロパティを色の α に掛けておく |
+半透明は、**Material** をワープホール1つごとに複製して **Renderers** に割り当て、その `_BaseColor` の α を **Used Alpha** 倍にして行います（Renderer にもともと付いているマテリアルは、複製で置き換わります）。複製はワープホールが消えるとき（ウェーブの切り替えなど）に破棄します。
 
 ## 4. 動きの確認
 

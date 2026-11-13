@@ -8,24 +8,19 @@ namespace EchoEdge.Presenter.Battle
 {
     /// <summary>
     /// 床ギミック（ワープホールなど）をステージ CSV の配置どおりに置き、一閃の経路上にあるものを探す。
-    /// MainGame シーンに1つ置いてプレハブを割り当てる（プレハブ未設定なら仮の見た目で置く）。
+    /// MainGame シーンに1つ置いてプレハブを割り当てる。
     /// </summary>
     public class FloorGimmickManager : MonoBehaviour
     {
         public static FloorGimmickManager Instance { get; private set; }
 
-        [Tooltip("ワープホールのプレハブ（ルートに WarpHoleView を付ける）。ピボットをマスの中心・床の高さに合わせる。" +
-                 "当たり判定のコライダーは子に付けてもよい（無ければ1マス分の箱を自動で付ける）。未設定なら仮の円盤を置く")]
+        [Tooltip("ワープホールのプレハブ（ルートに WarpHoleView を付ける）。ピボットをマスの中心・床の高さに合わせる")]
         [SerializeField]
         private WarpHoleView _warpHolePrefab;
 
         [Tooltip("床からの高さ。床と重なってチラつく場合は少し上げる")]
         [SerializeField]
         private float _heightOffset = 0.01f;
-
-        [Tooltip("プレハブ未設定のときの仮のワープホールの色")]
-        [SerializeField]
-        private Color _placeholderWarpHoleColor = new Color(0.6f, 0.3f, 1f, 1f);
 
         private readonly List<FloorGimmickView> _gimmicks = new();
 
@@ -59,7 +54,12 @@ namespace EchoEdge.Presenter.Battle
                 switch (placement.objectKind)
                 {
                     case StageObjectKind.WarpHole:
-                        var warpHole = CreateWarpHole();
+                        if (_warpHolePrefab == null)
+                        {
+                            Debug.LogWarning("FloorGimmickManager の Warp Hole Prefab が未設定のため、ワープホールを置けません");
+                            break;
+                        }
+                        var warpHole = Instantiate(_warpHolePrefab, transform);
                         warpHole.name = $"WarpHole_{placement.pairId}_({placement.height},{placement.width})";
                         warpHole.Setup(placement.height, placement.width, center);
                         warpHole.SetPair(placement.pairId, null);
@@ -145,29 +145,6 @@ namespace EchoEdge.Presenter.Battle
                 }
             }
             return gimmick != null;
-        }
-
-        private WarpHoleView CreateWarpHole()
-        {
-            if (_warpHolePrefab != null)
-            {
-                return Instantiate(_warpHolePrefab, transform);
-            }
-
-            // プレハブ未設定の間の仮の見た目（平たい円盤）
-            var root = new GameObject("WarpHole");
-            root.transform.SetParent(transform, false);
-            var disc = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            disc.name = "Placeholder";
-            DestroyImmediate(disc.GetComponent<Collider>());
-            disc.transform.SetParent(root.transform, false);
-            disc.transform.localScale = new Vector3(0.8f, 0.01f, 0.8f);
-            var renderer = disc.GetComponent<Renderer>();
-            var block = new MaterialPropertyBlock();
-            block.SetColor("_BaseColor", _placeholderWarpHoleColor);
-            block.SetColor("_Color", _placeholderWarpHoleColor);
-            renderer.SetPropertyBlock(block);
-            return root.AddComponent<WarpHoleView>();
         }
     }
 }
