@@ -5,6 +5,7 @@ using UnityEngine;
 
 using EchoEdge.App.Battle;
 using EchoEdge.Domain.Battle;
+using EchoEdge.Presenter.Battle;
 using EchoEdge.Presenter.UI;
 
 namespace EchoEdge.Presenter.Player
@@ -90,18 +91,46 @@ namespace EchoEdge.Presenter.Player
                 // 反射直後の当たり判定や移動中のダメージでステージクリアになっていたら、次の壁へ進まない
                 if (GameClearManager.IsGameClearSequenceRunning) break;
 
-                // 始点からdirection方向にrayを飛ばし、当たった位置を新たな_posとする。
-                if (!Physics.Raycast(ray, out RaycastHit hit, math.INFINITY, player.LayerMask))
+                // 始点からdirection方向にrayを飛ばし、当たった壁の手前まで進む。
+                // 途中に床ギミック(ワープホール)があれば、そこで処理してから続きを進む(反射回数は消費しない)。
+                RaycastHit hit;
+                while (true)
                 {
-                    throw new System.Exception("当たってない...だと");
+                    if (!Physics.Raycast(ray, out hit, math.INFINITY, player.LayerMask))
+                    {
+                        throw new System.Exception("当たってない...だと");
+                    }
+
+                    var distance = Vector3.Distance(ray.origin, hit.point);
+
+                    if (FloorGimmickManager.TryFindNext(_pos, _direction, distance, null, out var gimmick, out var gimmickDistance))
+                    {
+                        // 床ギミックに入る位置まで、同じ速さで進む
+                        Vector3 entry = _pos + _direction * gimmickDistance;
+                        await player.MoveByVelocityAsync(entry, gimmickDistance / Speed);
+                        if (GameClearManager.IsGameClearSequenceRunning) break;
+
+                        if (gimmick is WarpHoleView warpHole)
+                        {
+                            // 対のワープホールへ移り、同じ向きで進み続ける
+                            _pos = warpHole.Warp(player.PlayerTransform);
+                        }
+                        else
+                        {
+                            _pos = player.PlayerTransform.position;
+                        }
+
+                        ray = new Ray(_pos, _direction);
+                        player.SetDebugRay(_pos, _direction);
+                        continue;
+                    }
+
+                    // プレイヤーを移動する
+                    Vector3 endVec = new Vector3(hit.point.x, hit.point.y, hit.point.z);
+                    endVec = Vector3.Lerp(player.transform.position, endVec, 0.99f);
+                    await player.MoveByVelocityAsync(endVec, distance / Speed);
+                    break;
                 }
-
-                var distance = Vector3.Distance(ray.origin, hit.point);
-
-                // プレイヤーを移動する
-                Vector3 endVec = new Vector3(hit.point.x, hit.point.y, hit.point.z);
-                endVec = Vector3.Lerp(player.transform.position, endVec, 0.99f);
-                await player.MoveByVelocityAsync(endVec, distance / Speed);
 
                 // ステージクリア後は反射を続けず、その場で攻撃を終える
                 if (GameClearManager.IsGameClearSequenceRunning) break;

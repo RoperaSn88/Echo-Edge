@@ -177,6 +177,12 @@ namespace EchoEdge.App.Battle
                 return false;
             }
 
+            // 床ギミック（ワープホールなど）のマスには壁を作らない
+            if (MapManager.Instance.HasFloorGimmickAt(h, w))
+            {
+                return false;
+            }
+
             var wallUnit = new building();
             if (!MapManager.Instance.PlaceUnitAt(wallUnit, h, w))
             {

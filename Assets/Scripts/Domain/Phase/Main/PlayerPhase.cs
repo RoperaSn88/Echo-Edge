@@ -4,6 +4,7 @@ using UnityEngine;
 
 using EchoEdge.App.Battle;
 using EchoEdge.Presenter.Actions;
+using EchoEdge.Presenter.Battle;
 using EchoEdge.Presenter.UI;
 
 namespace EchoEdge.Domain.Phase
@@ -24,6 +25,9 @@ namespace EchoEdge.Domain.Phase
         public async UniTask<IPhase> WaitPhase()
         {
             OperateInfos.Instance.SetOperateInfo(PhaseKinds.Player).Forget();
+
+            // 床ギミック（ワープホールなど）を未使用に戻す（一閃は1ターンに1回なので、装備品の使用後に戻ってきても影響はない）
+            FloorGimmickManager.ResetUsedIfExists();
 
             // 前のターンに防御していた場合、このプレイヤーフェーズの反射回数を増やす
             BattleManager.ApplyPendingReflectBonus();

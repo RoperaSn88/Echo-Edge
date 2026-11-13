@@ -9,6 +9,22 @@ namespace EchoEdge.Domain.Map
         /// <summary>
         /// 斜面の壁（三角柱）。CSV では「SlopeWall, 縦, 横, 角度」で、角度は 45 / 135 / -135 / -45 のいずれか
         /// </summary>
-        SlopeWall
+        SlopeWall,
+
+        /// <summary>
+        /// 床ギミックのワープホール。CSV では「WarpHole, 縦, 横, ペア番号」で、同じペア番号の2つが対になる
+        /// </summary>
+        WarpHole,
+    }
+
+    public static class StageObjectKindExtensions
+    {
+        /// <summary>
+        /// 床ギミック（マスは占有せず、敵は通過できる）かどうか
+        /// </summary>
+        public static bool IsFloorGimmick(this StageObjectKind kind)
+        {
+            return kind == StageObjectKind.WarpHole;
+        }
     }
 }

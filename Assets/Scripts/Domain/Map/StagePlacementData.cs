@@ -39,6 +39,11 @@ namespace EchoEdge.Domain.Map
         public EnergyWallDirection slopeDirection;
 
         /// <summary>
+        /// ワープホールのペア番号（<see cref="StageObjectKind.WarpHole"/> のときだけ使う）。同じ番号の2つが対になる
+        /// </summary>
+        public int pairId;
+
+        /// <summary>
         /// エネミーフェーズに先頭から順に行う行動（ユニットのときだけ使う）。
         /// 空なら最初から、使い切った後は通常（ランダム）の行動をする。
         /// </summary>

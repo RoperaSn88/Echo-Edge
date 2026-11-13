@@ -9,6 +9,7 @@ using UnityEngine;
 
 using EchoEdge.App.Battle;
 using EchoEdge.Domain.Battle;
+using EchoEdge.Presenter.Battle;
 using EchoEdge.Presenter.UI;
 
 namespace EchoEdge.Presenter.Player
@@ -66,44 +67,75 @@ namespace EchoEdge.Presenter.Player
                 // 反射するたびに敵のリストをクリアする。
                 _damagedEnemies.Clear();
 
-                Ray ray = new Ray(pos, direction);
-                player.SetDebugDirection(direction);
-                if (!Physics.Raycast(ray, out RaycastHit wallHit, math.INFINITY, player.LayerMask))
+                // 壁までの光線上の敵を斬りながら壁へ移動する。
+                // 途中に床ギミック(ワープホール)があれば、そこまでの敵を斬ってから処理し、続きを進む(反射回数は消費しない)。
+                RaycastHit wallHit;
+                bool isCleared = false;
+                while (true)
                 {
-                    throw new System.Exception("当たってない...だと");
+                    Ray ray = new Ray(pos, direction);
+                    player.SetDebugDirection(direction);
+                    if (!Physics.Raycast(ray, out wallHit, math.INFINITY, player.LayerMask))
+                    {
+                        throw new System.Exception("当たってない...だと");
+                    }
+
+                    float wallDistance = Vector3.Distance(pos, wallHit.point);
+                    bool hasGimmick = FloorGimmickManager.TryFindNext(pos, direction, wallDistance, null, out var gimmick, out var gimmickDistance);
+                    float stopDistance = hasGimmick ? gimmickDistance : wallDistance;
+
+                    // 光線に触れた敵を、プレイヤーから近い順に並べる
+                    var enemyHits = Physics.RaycastAll(ray, stopDistance, ~0, QueryTriggerInteraction.Collide)
+                        .Where(hit => hit.collider.CompareTag("Enemy"))
+                        .OrderBy(hit => hit.distance)
+                        .ToArray();
+
+                    foreach (var enemyHit in enemyHits)
+                    {
+                        Vector3 enemyPos = enemyHit.collider.transform.position;
+                        Vector3 slashPos = new Vector3(enemyPos.x, player.PlayerTransform.position.y, enemyPos.z);
+
+                        // 敵の位置から光線の単位ベクトル分マイナスした位置へ瞬時に移動し、プラスした位置へ斬り抜ける
+                        // 疑似的にダメージ与える
+                        player.PlayerTransform.position = slashPos - direction * 0.5f;
+
+                        // 移動はするが、攻撃が終了したタイミングで次の敵の位置に移動するように
+                        CancellationTokenSource cts = new CancellationTokenSource();
+                        var tween = player.PlayerTransform.DOMove(slashPos, FlashAttackSlashDuration).ToUniTask(cancellationToken: cts.Token);
+                        PlayerView.Instance.Animator.SetTrigger("AttackT");
+                        await TryFlashDamageEnemy(enemyHit.collider);
+                        cts.Cancel();
+                    }
+
+                    // 敵の撃破でステージクリアになったら、壁まで進まず反射もせずに攻撃を終える
+                    if (GameClearManager.IsGameClearSequenceRunning)
+                    {
+                        isCleared = true;
+                        break;
+                    }
+
+                    if (hasGimmick)
+                    {
+                        // 床ギミックに入る位置まで瞬時に移動する
+                        Vector3 entry = pos + direction * gimmickDistance;
+                        entry.y = player.PlayerTransform.position.y;
+                        player.PlayerTransform.position = entry - direction * 0.5f;
+                        await player.PlayerTransform.DOMove(entry, FlashAttackSlashDuration);
+
+                        // 対のワープホールへ移り、同じ向きで進み続ける
+                        pos = gimmick is WarpHoleView warpHole
+                            ? warpHole.Warp(player.PlayerTransform)
+                            : player.PlayerTransform.position;
+                        continue;
+                    }
+
+                    // 壁の位置まで瞬時に移動する
+                    player.PlayerTransform.position = wallHit.point - direction * 0.5f;
+                    await player.PlayerTransform.DOMove(wallHit.point, FlashAttackSlashDuration);
+                    break;
                 }
 
-                float wallDistance = Vector3.Distance(pos, wallHit.point);
-
-                // 光線に触れた敵を、プレイヤーから近い順に並べる
-                var enemyHits = Physics.RaycastAll(ray, wallDistance, ~0, QueryTriggerInteraction.Collide)
-                    .Where(hit => hit.collider.CompareTag("Enemy"))
-                    .OrderBy(hit => hit.distance)
-                    .ToArray();
-
-                foreach (var enemyHit in enemyHits)
-                {
-                    Vector3 enemyPos = enemyHit.collider.transform.position;
-                    Vector3 slashPos = new Vector3(enemyPos.x, player.PlayerTransform.position.y, enemyPos.z);
-
-                    // 敵の位置から光線の単位ベクトル分マイナスした位置へ瞬時に移動し、プラスした位置へ斬り抜ける
-                    // 疑似的にダメージ与える
-                    player.PlayerTransform.position = slashPos - direction * 0.5f;
-
-                    // 移動はするが、攻撃が終了したタイミングで次の敵の位置に移動するように
-                    CancellationTokenSource cts = new CancellationTokenSource();
-                    var tween = player.PlayerTransform.DOMove(slashPos, FlashAttackSlashDuration).ToUniTask(cancellationToken: cts.Token);
-                    PlayerView.Instance.Animator.SetTrigger("AttackT");
-                    await TryFlashDamageEnemy(enemyHit.collider);
-                    cts.Cancel();
-                }
-
-                // 敵の撃破でステージクリアになったら、壁まで進まず反射もせずに攻撃を終える
-                if (GameClearManager.IsGameClearSequenceRunning) break;
-
-                // 壁の位置まで瞬時に移動する
-                player.PlayerTransform.position = wallHit.point - direction * 0.5f;
-                await player.PlayerTransform.DOMove(wallHit.point, FlashAttackSlashDuration);
+                if (isCleared) break;
 
                 // 【反射回数】分は QTE なしで反射し、それ以上は分度器QTEに成功したときだけ反射する
                 if (i >= reflectCount)

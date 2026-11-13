@@ -17,7 +17,7 @@ namespace EchoEdge.Infra.Map
 {
     /// <summary>
     /// ステージ（ウェーブ）構築用 CSV を割り当てて、盤面を byte の2次元配列として確認・編集するツール。
-    /// 上段は盤面（0: 空 / 1: 壁 / 2: 斜面の壁 / 3: 敵）、下段は選んだマスの詳細。
+    /// 上段は盤面（0: 空 / 1: 壁 / 2: 斜面の壁 / 3: 敵 / 4: ワープホール）、下段は選んだマスの詳細。
     /// 盤面の上の「←」「→」で、エネミーフェーズごとのユニットの移動をシミュレーションできる（バフは考慮しない）。
     /// </summary>
     public class StageEditorWindow : EditorWindow
@@ -31,6 +31,7 @@ namespace EchoEdge.Infra.Map
             Wall = 1,
             SlopeWall = 2,
             Enemy = 3,
+            WarpHole = 4,
         }
 
         /// <summary>
@@ -45,6 +46,7 @@ namespace EchoEdge.Infra.Map
             public EnemyKinds enemyKind;
             public int level;
             public int angle;
+            public int pairId;
             public List<EnemyActionKinds> actions = new();
         }
 
@@ -62,7 +64,7 @@ namespace EchoEdge.Infra.Map
         // StageClearConditionType の値の順
         private static readonly string[] ClearConditionLabels = { "0: 全滅", "1: 耐久", "2: 連続撃破", "3: ボス撃破" };
 
-        private static readonly string[] CellKindLabels = { "0: 空", "1: 通常の壁", "2: スロープの壁", "3: 敵" };
+        private static readonly string[] CellKindLabels = { "0: 空", "1: 通常の壁", "2: スロープの壁", "3: 敵", "4: ワープホール" };
 
         private static readonly string[] ActionLabels = { "攻撃 (Attack)", "スキル (Skill)" };
 
@@ -84,6 +86,7 @@ namespace EchoEdge.Infra.Map
         private static readonly Color WallColor = new(0.62f, 0.62f, 0.66f);
         private static readonly Color SlopeWallColor = new(0.24f, 0.55f, 0.62f);
         private static readonly Color EnemyColor = new(0.75f, 0.30f, 0.28f);
+        private static readonly Color WarpHoleColor = new(0.55f, 0.32f, 0.85f);
         private static readonly Color SelectedColor = new(1f, 0.85f, 0.2f);
         private static readonly Color MovedFromColor = new(0.75f, 0.30f, 0.28f, 0.35f);
 
@@ -203,6 +206,7 @@ namespace EchoEdge.Infra.Map
                     enemyKind = data.enemyKind,
                     level = data.level,
                     angle = StageLayoutLoader.GetSlopeAngle(data.slopeDirection),
+                    pairId = data.pairId,
                     actions = new List<EnemyActionKinds>(data.actions),
                 });
             }
@@ -235,6 +239,9 @@ namespace EchoEdge.Infra.Map
                         break;
                     case StageObjectKind.SlopeWall:
                         builder.Append($"SlopeWall, {placement.h}, {placement.w}, {placement.angle}");
+                        break;
+                    case StageObjectKind.WarpHole:
+                        builder.Append($"WarpHole, {placement.h}, {placement.w}, {placement.pairId}");
                         break;
                     case StageObjectKind.Unit:
                         builder.Append($"Unit, {placement.h}, {placement.w}, {placement.enemyKind}");
@@ -444,6 +451,9 @@ namespace EchoEdge.Infra.Map
                     case StageObjectKind.SlopeWall:
                         kind = CellKind.SlopeWall;
                         break;
+                    case StageObjectKind.WarpHole:
+                        kind = CellKind.WarpHole;
+                        break;
                     case StageObjectKind.Unit when !placement.enemyKind.IsOffBoard():
                         kind = CellKind.Enemy;
                         size = GetSize(placement.enemyKind);
@@ -551,6 +561,7 @@ namespace EchoEdge.Infra.Map
                 CellKind.Wall => WallColor,
                 CellKind.SlopeWall => SlopeWallColor,
                 CellKind.Enemy => EnemyColor,
+                CellKind.WarpHole => WarpHoleColor,
                 _ => EmptyColor,
             });
 
@@ -573,6 +584,7 @@ namespace EchoEdge.Infra.Map
             var detail = kind switch
             {
                 CellKind.SlopeWall when owner != null => $"{owner.angle}°",
+                CellKind.WarpHole when owner != null => $"ペア{owner.pairId}",
                 CellKind.Enemy when owner != null && GetPosition(owner) == (h, w) => GetShortEnemyLabel(owner),
                 _ => string.Empty,
             };
@@ -666,6 +678,9 @@ namespace EchoEdge.Infra.Map
                     case StageObjectKind.SlopeWall:
                         DrawSlopeWallFields(target);
                         break;
+                    case StageObjectKind.WarpHole:
+                        DrawWarpHoleFields(target);
+                        break;
                     case StageObjectKind.Unit:
                         DrawEnemyFields(target);
                         break;
@@ -701,6 +716,32 @@ namespace EchoEdge.Infra.Map
             {
                 placement.angle = StageLayoutLoader.SlopeAngles[newIndex];
                 MarkDirty();
+            }
+        }
+
+        private void DrawWarpHoleFields(Placement placement)
+        {
+            var newPairId = Mathf.Max(0, EditorGUILayout.IntField(
+                new GUIContent("ペア番号", "同じペア番号のワープホール2つが対になります。一閃が片方に入ると、もう片方から同じ向きで出ます"),
+                placement.pairId));
+            if (newPairId != placement.pairId)
+            {
+                placement.pairId = newPairId;
+                MarkDirty();
+            }
+
+            var partners = _placements.Where(p => p != placement && p.kind == StageObjectKind.WarpHole && p.pairId == placement.pairId).ToList();
+            if (partners.Count == 1)
+            {
+                EditorGUILayout.LabelField("対のワープホール", $"縦 {partners[0].h}, 横 {partners[0].w}");
+            }
+            else
+            {
+                EditorGUILayout.HelpBox(
+                    partners.Count == 0
+                        ? $"ペア番号 {placement.pairId} のワープホールがもう1つありません。対が無いワープホールは何も起きません。"
+                        : $"ペア番号 {placement.pairId} のワープホールが {partners.Count + 1} 個あります。同じ番号はちょうど2つにしてください（このペアは使えません）。",
+                    MessageType.Warning);
             }
         }
 
@@ -866,6 +907,7 @@ namespace EchoEdge.Infra.Map
             {
                 StageObjectKind.Wall => CellKind.Wall,
                 StageObjectKind.SlopeWall => CellKind.SlopeWall,
+                StageObjectKind.WarpHole => CellKind.WarpHole,
                 _ => CellKind.Enemy,
             };
         }
@@ -913,12 +955,31 @@ namespace EchoEdge.Infra.Map
                 CellKind.Wall => new Placement { kind = StageObjectKind.Wall, h = h, w = w, enemyKind = EnemyKinds.Invalid },
                 CellKind.SlopeWall => new Placement { kind = StageObjectKind.SlopeWall, h = h, w = w, enemyKind = EnemyKinds.Invalid, angle = StageLayoutLoader.SlopeAngles[0] },
                 CellKind.Enemy => new Placement { kind = StageObjectKind.Unit, h = h, w = w, enemyKind = EnemyKinds.Skya },
+                CellKind.WarpHole => new Placement { kind = StageObjectKind.WarpHole, h = h, w = w, enemyKind = EnemyKinds.Invalid, pairId = SuggestWarpHolePairId() },
                 _ => null,
             };
 
             if (created != null) _placements.Insert(insertIndex, created);
             _selectedPlacement = created;
             MarkDirty();
+        }
+
+        /// <summary>
+        /// 新しく置くワープホールのペア番号。対の片方しか無い番号があればそれ、無ければ未使用の最小の番号
+        /// </summary>
+        private int SuggestWarpHolePairId()
+        {
+            var counts = _placements.Where(p => p.kind == StageObjectKind.WarpHole)
+                .GroupBy(p => p.pairId)
+                .ToDictionary(g => g.Key, g => g.Count());
+            foreach (var pair in counts.OrderBy(p => p.Key))
+            {
+                if (pair.Value == 1) return pair.Key;
+            }
+
+            var id = 0;
+            while (counts.ContainsKey(id)) id++;
+            return id;
         }
 
         private void TryChangeEnemyKind(Placement placement, EnemyKinds enemyKind)
