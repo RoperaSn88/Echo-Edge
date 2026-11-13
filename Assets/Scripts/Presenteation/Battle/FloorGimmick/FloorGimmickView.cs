@@ -1,13 +1,12 @@
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.VFX;
 
 namespace EchoEdge.Presenter.Battle
 {
     /// <summary>
     /// 床ギミック（ワープホールなど）1マス分の見た目と当たり判定。
-    /// 一閃の経路上にあるかどうかは、子も含めたコライダーへのレイキャスト（<see cref="TryRaycast"/>）で判定する。
+    /// 一閃の経路上にあるかどうかは、<see cref="_colliders"/> へのレイキャスト（<see cref="TryRaycast"/>）で判定する。
     /// 使用済みになると半透明にし、次のプレイヤーフェーズの開始で元に戻す（<see cref="FloorGimmickManager.ResetUsed"/>）。
+    /// 半透明は、<see cref="_material"/> をこのギミック専用に複製して <see cref="_renderers"/> に割り当て、その色の α を変えて行う。
     /// </summary>
     public abstract class FloorGimmickView : MonoBehaviour
     {
@@ -17,17 +16,23 @@ namespace EchoEdge.Presenter.Battle
         private const int IgnoreRaycastLayer = 2;
 
         private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
-        private static readonly int ColorId = Shader.PropertyToID("_Color");
 
-        [Tooltip("使用済みのときの不透明度（0 で見えない、1 で変化なし）。" +
-                 "Renderer はマテリアルの _BaseColor / _Color の α、SpriteRenderer は color の α、VFX Graph は下のプロパティに入れる。" +
-                 "不透明（Opaque）のマテリアルは α を下げても透けないので、Surface Type を Transparent にしておく")]
+        [Tooltip("一閃が入ったかを判定するコライダー。実行時に Is Trigger をオン・レイヤーを Ignore Raycast にする")]
+        [SerializeField]
+        private Collider[] _colliders;
+
+        [Tooltip("見た目のマテリアル。ギミックごとに複製して下の Renderer に割り当て、使用済みのときにその _BaseColor の α を下げる。" +
+                 "Surface Type を Transparent にしておく（Opaque だと透けない）")]
+        [SerializeField]
+        private Material _material;
+
+        [Tooltip("複製したマテリアルを割り当てる Renderer（パーティクルなら ParticleSystemRenderer）")]
+        [SerializeField]
+        private Renderer[] _renderers;
+
+        [Tooltip("使用済みのときの不透明度（0 で見えない、1 で変化なし）")]
         [SerializeField, Range(0f, 1f)]
         private float _usedAlpha = 0.3f;
-
-        [Tooltip("VFX Graph で不透明度を受け取る Exposed プロパティ（float）の名前。無ければ何もしない")]
-        [SerializeField]
-        private string _vfxAlphaProperty = "Alpha";
 
         /// <summary>
         /// 配置したマス（縦）
@@ -49,15 +54,18 @@ namespace EchoEdge.Presenter.Battle
         /// </summary>
         public bool IsUsed { get; private set; }
 
-        private Collider[] _colliders;
-        private Renderer[] _renderers;
-        private VisualEffect[] _visualEffects;
-        private readonly Dictionary<SpriteRenderer, Color> _spriteColors = new();
-        private MaterialPropertyBlock _propertyBlock;
+        /// <summary>
+        /// このギミック専用に複製したマテリアル
+        /// </summary>
+        private Material _instanceMaterial;
 
         /// <summary>
-        /// 指定マスに置く。コライダーはトリガーにし、壁判定のレイキャストに当たらないよう Ignore Raycast レイヤーにする。
-        /// コライダーが1つも無ければ、1マス分の箱のコライダーを付ける。
+        /// 複製したマテリアルの元の色（未使用のときの色）
+        /// </summary>
+        private Color _baseColor;
+
+        /// <summary>
+        /// 指定マスに置く。マテリアルを複製して Renderer に割り当て、コライダーをトリガー・Ignore Raycast レイヤーにする。
         /// </summary>
         public void Setup(int h, int w, Vector3 cellCenter)
         {
@@ -66,31 +74,28 @@ namespace EchoEdge.Presenter.Battle
             CellCenter = cellCenter;
             transform.position = cellCenter;
 
-            _colliders = GetComponentsInChildren<Collider>(true);
-            if (_colliders.Length == 0)
-            {
-                var box = gameObject.AddComponent<BoxCollider>();
-                box.size = Vector3.one;
-                box.center = new Vector3(0f, 0.5f, 0f);
-                _colliders = new Collider[] { box };
-            }
-
             foreach (var col in _colliders)
             {
                 col.isTrigger = true;
                 col.gameObject.layer = IgnoreRaycastLayer;
             }
 
-            _renderers = GetComponentsInChildren<Renderer>(true);
-            _visualEffects = GetComponentsInChildren<VisualEffect>(true);
-            _spriteColors.Clear();
-            foreach (var renderer in _renderers)
+            if (_material != null)
             {
-                if (renderer is SpriteRenderer spriteRenderer) _spriteColors[spriteRenderer] = spriteRenderer.color;
+                _instanceMaterial = new Material(_material);
+                _baseColor = _instanceMaterial.GetColor(BaseColorId);
+                foreach (var target in _renderers)
+                {
+                    target.sharedMaterial = _instanceMaterial;
+                }
             }
-            CacheRendererColors();
 
             SetUsed(false);
+        }
+
+        private void OnDestroy()
+        {
+            if (_instanceMaterial != null) Destroy(_instanceMaterial);
         }
 
         /// <summary>
@@ -99,7 +104,11 @@ namespace EchoEdge.Presenter.Battle
         public void SetUsed(bool used)
         {
             IsUsed = used;
-            ApplyAlpha(used ? _usedAlpha : 1f);
+            if (_instanceMaterial == null) return;
+
+            var color = _baseColor;
+            color.a *= used ? _usedAlpha : 1f;
+            _instanceMaterial.SetColor(BaseColorId, color);
         }
 
         /// <summary>
@@ -109,12 +118,11 @@ namespace EchoEdge.Presenter.Battle
         public bool TryRaycast(Vector3 origin, Vector3 direction, float maxDistance, out float distance)
         {
             distance = float.MaxValue;
-            if (_colliders == null) return false;
 
             var found = false;
             foreach (var col in _colliders)
             {
-                if (col == null || !col.enabled || !col.gameObject.activeInHierarchy) continue;
+                if (!col.enabled || !col.gameObject.activeInHierarchy) continue;
 
                 var rayOrigin = origin;
                 rayOrigin.y = col.bounds.center.y;
@@ -125,86 +133,6 @@ namespace EchoEdge.Presenter.Battle
                 }
             }
             return found;
-        }
-
-        /// <summary>
-        /// Renderer ごとの元の色（未使用のときの色）。プロパティブロックで色を上書きしていればその色を使う
-        /// </summary>
-        private readonly Dictionary<Renderer, (bool hasBase, Color baseColor, bool hasColor, Color color)> _rendererColors = new();
-
-        private void CacheRendererColors()
-        {
-            _rendererColors.Clear();
-            _propertyBlock ??= new MaterialPropertyBlock();
-            foreach (var renderer in _renderers)
-            {
-                if (renderer == null || renderer is SpriteRenderer) continue;
-                var material = renderer.sharedMaterial;
-                if (material == null) continue;
-
-                renderer.GetPropertyBlock(_propertyBlock);
-                var hasBase = material.HasProperty(BaseColorId);
-                var hasColor = material.HasProperty(ColorId);
-                var baseColor = hasBase ? GetColor(material, BaseColorId) : default;
-                var color = hasColor ? GetColor(material, ColorId) : default;
-                _rendererColors[renderer] = (hasBase, baseColor, hasColor, color);
-            }
-
-            Color GetColor(Material material, int id)
-            {
-                var blockColor = _propertyBlock.GetColor(id);
-                return _propertyBlock.HasColor(id) ? blockColor : material.GetColor(id);
-            }
-        }
-
-        private void ApplyAlpha(float alpha)
-        {
-            if (_renderers != null)
-            {
-                _propertyBlock ??= new MaterialPropertyBlock();
-                foreach (var renderer in _renderers)
-                {
-                    if (renderer == null) continue;
-
-                    if (renderer is SpriteRenderer spriteRenderer)
-                    {
-                        if (_spriteColors.TryGetValue(spriteRenderer, out var spriteColor))
-                        {
-                            spriteColor.a *= alpha;
-                            spriteRenderer.color = spriteColor;
-                        }
-                        continue;
-                    }
-
-                    if (!_rendererColors.TryGetValue(renderer, out var original)) continue;
-
-                    renderer.GetPropertyBlock(_propertyBlock);
-                    if (original.hasBase)
-                    {
-                        var baseColor = original.baseColor;
-                        baseColor.a *= alpha;
-                        _propertyBlock.SetColor(BaseColorId, baseColor);
-                    }
-                    if (original.hasColor)
-                    {
-                        var color = original.color;
-                        color.a *= alpha;
-                        _propertyBlock.SetColor(ColorId, color);
-                    }
-                    renderer.SetPropertyBlock(_propertyBlock);
-                }
-            }
-
-            if (_visualEffects != null && !string.IsNullOrEmpty(_vfxAlphaProperty))
-            {
-                foreach (var visualEffect in _visualEffects)
-                {
-                    if (visualEffect != null && visualEffect.HasFloat(_vfxAlphaProperty))
-                    {
-                        visualEffect.SetFloat(_vfxAlphaProperty, alpha);
-                    }
-                }
-            }
         }
     }
 }

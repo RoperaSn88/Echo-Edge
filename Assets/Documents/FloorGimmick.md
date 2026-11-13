@@ -2,7 +2,6 @@
 
 ステージ CSV に置いた床ギミックを、ウェーブの読み込み時に盤面へ置くようにしました。
 仕様は Notion の「1-3-1. ワープホール」「1-3-2. リエイムパッド」を参照してください。
-**`FloorGimmickManager` をシーンに置けば、プレハブを用意しなくても、仮の見た目（ワープホールは紫の円盤、リエイムパッドは水色の四角い板）で動きます。**
 
 ## 1. ステージ CSV の書き方
 
@@ -23,23 +22,24 @@ ReAimPad, 縦, 横
    - 一閃の線がコライダーに入った瞬間にワープ・リエイムします。円形にしたいなら Capsule / Mesh コライダーなど、形は自由です。
    - 高さはプレイヤーと合っていなくても大丈夫です（コライダーの中心の高さで判定します）。
    - 実行時に自動で **Is Trigger: オン**、レイヤー **Ignore Raycast** になります（壁の判定やポインターのレイキャストに当たらないように）。
-   - コライダーが無い場合は、1マス分の箱を自動で付けます。
-3. MainGame シーンに空の GameObject を作り、`FloorGimmickManager` を付けて、**Warp Hole Prefab** / **Re Aim Pad Prefab** にプレハブを割り当てる。
-   - **シーンに置かないと床ギミックは置かれません**（CSV に書いてあれば Console に警告が出ます）。
-   - プレハブ未設定の間は、仮の見た目で置かれます。
+3. `WarpHoleView` / `ReAimPadView` のインスペクターで以下を割り当てる。
+
+| フィールド | 割り当てるもの |
+|---|---|
+| Colliders | 2. のコライダー |
+| Material | エフェクト・モデルのマテリアル（**Surface Type: Transparent**、色は `_BaseColor`） |
+| Renderers | そのマテリアルを使う Renderer（パーティクルなら ParticleSystemRenderer、モデルなら MeshRenderer） |
+| Used Alpha | 使用済みのときの不透明度（既定 0.3） |
+
+4. MainGame シーンに空の GameObject を作り、`FloorGimmickManager` を付けて、**Warp Hole Prefab** / **Re Aim Pad Prefab** にプレハブを割り当てる。
+   - **シーンに置かないと床ギミックは置かれません**（CSV に書いてあれば Console に警告が出ます）。プレハブ未設定のときも警告が出ます。
    - **Height Offset**: 床と重なってチラつく場合は少し上げる。
 
 ## 3. 使用済みの半透明
 
 ワープホールはペアで1ターンに1回、リエイムパッドは1回の一閃で1回だけ使えます。使うと半透明になり、次のプレイヤーフェーズの開始で元に戻ります。
 
-`WarpHoleView` / `ReAimPadView` の **Used Alpha**（既定 0.3）で使用済みの不透明度を変えられます。プレハブの中身に合わせて、次のように α を下げます。
-
-| 中身 | 下げるもの | 注意 |
-|---|---|---|
-| Mesh / Particle System などの Renderer | マテリアルの `_BaseColor` / `_Color` の α（MaterialPropertyBlock） | マテリアルの Surface Type を **Transparent** にしておく（Opaque だと透けない） |
-| SpriteRenderer | `color` の α | |
-| VFX Graph | Exposed の float プロパティ（既定名 `Alpha`、**Vfx Alpha Property** で変更） | グラフ側で、このプロパティを色の α に掛けておく |
+半透明は、**Material** をギミック1つごとに複製して **Renderers** に割り当て、その `_BaseColor` の α を **Used Alpha** 倍にして行います（Renderer にもともと付いているマテリアルは、複製で置き換わります）。複製はギミックが消えるとき（ウェーブの切り替えなど）に破棄します。
 
 ## 4. 動きの確認
 

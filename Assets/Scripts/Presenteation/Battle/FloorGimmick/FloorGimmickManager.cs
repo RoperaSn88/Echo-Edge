@@ -8,33 +8,23 @@ namespace EchoEdge.Presenter.Battle
 {
     /// <summary>
     /// 床ギミック（ワープホール・リエイムパッド）をステージ CSV の配置どおりに置き、一閃の経路上にあるものを探す。
-    /// MainGame シーンに1つ置いてプレハブを割り当てる（プレハブ未設定なら仮の見た目で置く）。
+    /// MainGame シーンに1つ置いてプレハブを割り当てる。
     /// </summary>
     public class FloorGimmickManager : MonoBehaviour
     {
         public static FloorGimmickManager Instance { get; private set; }
 
-        [Tooltip("ワープホールのプレハブ（ルートに WarpHoleView を付ける）。ピボットをマスの中心・床の高さに合わせる。" +
-                 "当たり判定のコライダーは子に付けてもよい（無ければ1マス分の箱を自動で付ける）。未設定なら仮の円盤を置く")]
+        [Tooltip("ワープホールのプレハブ（ルートに WarpHoleView を付ける）。ピボットをマスの中心・床の高さに合わせる")]
         [SerializeField]
         private WarpHoleView _warpHolePrefab;
 
-        [Tooltip("リエイムパッドのプレハブ（ルートに ReAimPadView を付ける）。ピボットをマスの中心・床の高さに合わせる。" +
-                 "当たり判定のコライダーは子に付けてもよい（無ければ1マス分の箱を自動で付ける）。未設定なら仮の四角い板を置く")]
+        [Tooltip("リエイムパッドのプレハブ（ルートに ReAimPadView を付ける）。ピボットをマスの中心・床の高さに合わせる")]
         [SerializeField]
         private ReAimPadView _reAimPadPrefab;
 
         [Tooltip("床からの高さ。床と重なってチラつく場合は少し上げる")]
         [SerializeField]
         private float _heightOffset = 0.01f;
-
-        [Tooltip("プレハブ未設定のときの仮のワープホールの色")]
-        [SerializeField]
-        private Color _placeholderWarpHoleColor = new Color(0.6f, 0.3f, 1f, 1f);
-
-        [Tooltip("プレハブ未設定のときの仮のリエイムパッドの色")]
-        [SerializeField]
-        private Color _placeholderReAimPadColor = new Color(0.2f, 0.9f, 0.8f, 1f);
 
         private readonly List<FloorGimmickView> _gimmicks = new();
 
@@ -68,14 +58,24 @@ namespace EchoEdge.Presenter.Battle
                 switch (placement.objectKind)
                 {
                     case StageObjectKind.WarpHole:
-                        var warpHole = CreateWarpHole();
+                        if (_warpHolePrefab == null)
+                        {
+                            Debug.LogWarning("FloorGimmickManager の Warp Hole Prefab が未設定のため、ワープホールを置けません");
+                            break;
+                        }
+                        var warpHole = Instantiate(_warpHolePrefab, transform);
                         warpHole.name = $"WarpHole_{placement.pairId}_({placement.height},{placement.width})";
                         warpHole.Setup(placement.height, placement.width, center);
                         warpHole.SetPair(placement.pairId, null);
                         _gimmicks.Add(warpHole);
                         break;
                     case StageObjectKind.ReAimPad:
-                        var reAimPad = CreateReAimPad();
+                        if (_reAimPadPrefab == null)
+                        {
+                            Debug.LogWarning("FloorGimmickManager の Re Aim Pad Prefab が未設定のため、リエイムパッドを置けません");
+                            break;
+                        }
+                        var reAimPad = Instantiate(_reAimPadPrefab, transform);
                         reAimPad.name = $"ReAimPad_({placement.height},{placement.width})";
                         reAimPad.Setup(placement.height, placement.width, center);
                         _gimmicks.Add(reAimPad);
@@ -160,49 +160,6 @@ namespace EchoEdge.Presenter.Battle
                 }
             }
             return gimmick != null;
-        }
-
-        private WarpHoleView CreateWarpHole()
-        {
-            if (_warpHolePrefab != null)
-            {
-                return Instantiate(_warpHolePrefab, transform);
-            }
-
-            // プレハブ未設定の間の仮の見た目（平たい円盤）
-            return CreatePlaceholder("WarpHole", PrimitiveType.Cylinder, new Vector3(0.8f, 0.01f, 0.8f), _placeholderWarpHoleColor)
-                .AddComponent<WarpHoleView>();
-        }
-
-        private ReAimPadView CreateReAimPad()
-        {
-            if (_reAimPadPrefab != null)
-            {
-                return Instantiate(_reAimPadPrefab, transform);
-            }
-
-            // プレハブ未設定の間の仮の見た目（平たい四角の板）
-            return CreatePlaceholder("ReAimPad", PrimitiveType.Cube, new Vector3(0.7f, 0.02f, 0.7f), _placeholderReAimPadColor)
-                .AddComponent<ReAimPadView>();
-        }
-
-        /// <summary>
-        /// プレハブ未設定の間の仮の見た目。当たり判定はビュー側で1マス分の箱を付ける
-        /// </summary>
-        private GameObject CreatePlaceholder(string name, PrimitiveType shape, Vector3 scale, Color color)
-        {
-            var root = new GameObject(name);
-            root.transform.SetParent(transform, false);
-            var model = GameObject.CreatePrimitive(shape);
-            model.name = "Placeholder";
-            DestroyImmediate(model.GetComponent<Collider>());
-            model.transform.SetParent(root.transform, false);
-            model.transform.localScale = scale;
-            var block = new MaterialPropertyBlock();
-            block.SetColor("_BaseColor", color);
-            block.SetColor("_Color", color);
-            model.GetComponent<Renderer>().SetPropertyBlock(block);
-            return root;
         }
     }
 }
