@@ -18,16 +18,8 @@ namespace EchoEdge.Presenter.Battle
 
         private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
         private static readonly int ColorId = Shader.PropertyToID("_Color");
-
-        [Tooltip("使用済みのときの不透明度（0 で見えない、1 で変化なし）。" +
-                 "Renderer はマテリアルの _BaseColor / _Color の α、SpriteRenderer は color の α、VFX Graph は下のプロパティに入れる。" +
-                 "不透明（Opaque）のマテリアルは α を下げても透けないので、Surface Type を Transparent にしておく")]
-        [SerializeField, Range(0f, 1f)]
-        private float _usedAlpha = 0.3f;
-
-        [Tooltip("VFX Graph で不透明度を受け取る Exposed プロパティ（float）の名前。無ければ何もしない")]
-        [SerializeField]
-        private string _vfxAlphaProperty = "Alpha";
+        
+        private const float UsedAlpha = 0.3f;
 
         /// <summary>
         /// 配置したマス（縦）
@@ -51,7 +43,6 @@ namespace EchoEdge.Presenter.Battle
 
         private Collider[] _colliders;
         private Renderer[] _renderers;
-        private VisualEffect[] _visualEffects;
         private readonly Dictionary<SpriteRenderer, Color> _spriteColors = new();
         private MaterialPropertyBlock _propertyBlock;
 
@@ -82,7 +73,6 @@ namespace EchoEdge.Presenter.Battle
             }
 
             _renderers = GetComponentsInChildren<Renderer>(true);
-            _visualEffects = GetComponentsInChildren<VisualEffect>(true);
             _spriteColors.Clear();
             foreach (var renderer in _renderers)
             {
@@ -99,7 +89,7 @@ namespace EchoEdge.Presenter.Battle
         public void SetUsed(bool used)
         {
             IsUsed = used;
-            ApplyAlpha(used ? _usedAlpha : 1f);
+            ApplyAlpha(used ? UsedAlpha : 1f);
         }
 
         /// <summary>
@@ -192,17 +182,6 @@ namespace EchoEdge.Presenter.Battle
                         _propertyBlock.SetColor(ColorId, color);
                     }
                     renderer.SetPropertyBlock(_propertyBlock);
-                }
-            }
-
-            if (_visualEffects != null && !string.IsNullOrEmpty(_vfxAlphaProperty))
-            {
-                foreach (var visualEffect in _visualEffects)
-                {
-                    if (visualEffect != null && visualEffect.HasFloat(_vfxAlphaProperty))
-                    {
-                        visualEffect.SetFloat(_vfxAlphaProperty, alpha);
-                    }
                 }
             }
         }
