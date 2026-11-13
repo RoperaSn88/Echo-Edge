@@ -92,7 +92,7 @@ namespace EchoEdge.Presenter.Player
                 if (GameClearManager.IsGameClearSequenceRunning) break;
 
                 // 始点からdirection方向にrayを飛ばし、当たった壁の手前まで進む。
-                // 途中に床ギミック(ワープホール)があれば、そこで処理してから続きを進む(反射回数は消費しない)。
+                // 途中に床ギミック(ワープホール・リエイムパッド)があれば、そこで処理してから続きを進む(反射回数は消費しない)。
                 RaycastHit hit;
                 while (true)
                 {
@@ -114,6 +114,18 @@ namespace EchoEdge.Presenter.Player
                         {
                             // 対のワープホールへ移り、同じ向きで進み続ける
                             _pos = warpHole.Warp(player.PlayerTransform);
+                        }
+                        else if (gimmick is ReAimPadView reAimPad)
+                        {
+                            // パッドの中心まで寄せてから、そこから向きを選び直させる(残りの反射回数はそのまま)
+                            reAimPad.SetUsed(true);
+                            Vector3 center = reAimPad.CellCenter;
+                            center.y = player.PlayerTransform.position.y;
+                            await player.MoveByVelocityAsync(center, Vector3.Distance(player.PlayerTransform.position, center) / Speed);
+                            if (GameClearManager.IsGameClearSequenceRunning) break;
+
+                            _direction = await ReAimDirectionSelector.SelectAsync(center, Mathf.Max(0, reflectCount - i));
+                            _pos = player.PlayerTransform.position;
                         }
                         else
                         {

@@ -41,7 +41,7 @@ namespace EchoEdge.App.Battle
         private readonly List<IUnit> _offBoardUnits = new();
 
         /// <summary>
-        /// 床ギミック（ワープホールなど）があるマス。床ギミックはマスを占有しない（敵は通過できる）が、
+        /// 床ギミック（ワープホール・リエイムパッド）があるマス。床ギミックはマスを占有しない（敵は通過できる）が、
         /// エナジーウォールの設置・ビルダーの壁・シーカーの召喚はできない。
         /// </summary>
         private readonly HashSet<(int h, int w)> _floorGimmickCells = new();
@@ -121,14 +121,14 @@ namespace EchoEdge.App.Battle
                 }
             }
 
-            // 床ギミック（ワープホールなど）の見た目と当たり判定を置く
+            // 床ギミック（ワープホール・リエイムパッド）の見た目と当たり判定を置く
             if (FloorGimmickManager.Instance != null)
             {
                 FloorGimmickManager.Instance.Build(placements.Where(p => p.objectKind.IsFloorGimmick()), GetBasePos());
             }
             else if (placements.Any(p => p.objectKind.IsFloorGimmick()))
             {
-                Debug.LogWarning("FloorGimmickManager がシーンに配置されていないため、床ギミック（ワープホールなど）を置けません");
+                Debug.LogWarning("FloorGimmickManager がシーンに配置されていないため、床ギミック（ワープホール・リエイムパッド）を置けません");
             }
 
             // 敵撃破数以外の値（耐久ターン数、連続撃破数、ボスの敵ID）を必要とする条件はCSVの値を使う
@@ -203,7 +203,7 @@ namespace EchoEdge.App.Battle
         }
 
         /// <summary>
-        /// 指定マスに床ギミック（ワープホールなど）があるかどうか。
+        /// 指定マスに床ギミック（ワープホール・リエイムパッド）があるかどうか。
         /// 床ギミックのマスには、エナジーウォール・ビルダーの壁・シーカーの召喚を置かない。
         /// </summary>
         public bool HasFloorGimmickAt(int h, int w)
