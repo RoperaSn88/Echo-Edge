@@ -24,7 +24,7 @@ namespace EchoEdge.Presenter.UI
         private const float TweenDuration = 0.5f;
 
         private Vector2 _shownPosition;
-        private Vector2 HiddenPosition => _shownPosition + Vector2.left * SlideDistance;
+        private Vector2 HiddenPosition => _shownPosition + Vector2.down * SlideDistance;
 
         private void Awake()
         {
