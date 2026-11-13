@@ -90,7 +90,7 @@ namespace EchoEdge.Infra.Map
 
                 if (!Enum.TryParse(cols[0].Trim(), true, out StageObjectKind objectKind))
                 {
-                    Debug.LogWarning($"StageLayout.csv の {i + 1} 行目の objectKind が不正です: {cols[0]}。有効値: Wall, Unit, SlopeWall, WarpHole");
+                    Debug.LogWarning($"StageLayout.csv の {i + 1} 行目の objectKind が不正です: {cols[0]}。有効値: Wall, Unit, SlopeWall, WarpHole, ReAimPad");
                     continue;
                 }
 

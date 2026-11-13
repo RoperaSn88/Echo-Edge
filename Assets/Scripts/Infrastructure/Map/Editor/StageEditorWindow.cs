@@ -17,7 +17,7 @@ namespace EchoEdge.Infra.Map
 {
     /// <summary>
     /// ステージ（ウェーブ）構築用 CSV を割り当てて、盤面を byte の2次元配列として確認・編集するツール。
-    /// 上段は盤面（0: 空 / 1: 壁 / 2: 斜面の壁 / 3: 敵 / 4: ワープホール）、下段は選んだマスの詳細。
+    /// 上段は盤面（0: 空 / 1: 壁 / 2: 斜面の壁 / 3: 敵 / 4: ワープホール / 5: リエイムパッド）、下段は選んだマスの詳細。
     /// 盤面の上の「←」「→」で、エネミーフェーズごとのユニットの移動をシミュレーションできる（バフは考慮しない）。
     /// </summary>
     public class StageEditorWindow : EditorWindow
@@ -32,6 +32,7 @@ namespace EchoEdge.Infra.Map
             SlopeWall = 2,
             Enemy = 3,
             WarpHole = 4,
+            ReAimPad = 5,
         }
 
         /// <summary>
@@ -64,7 +65,7 @@ namespace EchoEdge.Infra.Map
         // StageClearConditionType の値の順
         private static readonly string[] ClearConditionLabels = { "0: 全滅", "1: 耐久", "2: 連続撃破", "3: ボス撃破" };
 
-        private static readonly string[] CellKindLabels = { "0: 空", "1: 通常の壁", "2: スロープの壁", "3: 敵", "4: ワープホール" };
+        private static readonly string[] CellKindLabels = { "0: 空", "1: 通常の壁", "2: スロープの壁", "3: 敵", "4: ワープホール", "5: リエイムパッド" };
 
         private static readonly string[] ActionLabels = { "攻撃 (Attack)", "スキル (Skill)" };
 
@@ -87,6 +88,7 @@ namespace EchoEdge.Infra.Map
         private static readonly Color SlopeWallColor = new(0.24f, 0.55f, 0.62f);
         private static readonly Color EnemyColor = new(0.75f, 0.30f, 0.28f);
         private static readonly Color WarpHoleColor = new(0.55f, 0.32f, 0.85f);
+        private static readonly Color ReAimPadColor = new(0.18f, 0.62f, 0.55f);
         private static readonly Color SelectedColor = new(1f, 0.85f, 0.2f);
         private static readonly Color MovedFromColor = new(0.75f, 0.30f, 0.28f, 0.35f);
 
@@ -242,6 +244,9 @@ namespace EchoEdge.Infra.Map
                         break;
                     case StageObjectKind.WarpHole:
                         builder.Append($"WarpHole, {placement.h}, {placement.w}, {placement.pairId}");
+                        break;
+                    case StageObjectKind.ReAimPad:
+                        builder.Append($"ReAimPad, {placement.h}, {placement.w}");
                         break;
                     case StageObjectKind.Unit:
                         builder.Append($"Unit, {placement.h}, {placement.w}, {placement.enemyKind}");
@@ -454,6 +459,9 @@ namespace EchoEdge.Infra.Map
                     case StageObjectKind.WarpHole:
                         kind = CellKind.WarpHole;
                         break;
+                    case StageObjectKind.ReAimPad:
+                        kind = CellKind.ReAimPad;
+                        break;
                     case StageObjectKind.Unit when !placement.enemyKind.IsOffBoard():
                         kind = CellKind.Enemy;
                         size = GetSize(placement.enemyKind);
@@ -562,6 +570,7 @@ namespace EchoEdge.Infra.Map
                 CellKind.SlopeWall => SlopeWallColor,
                 CellKind.Enemy => EnemyColor,
                 CellKind.WarpHole => WarpHoleColor,
+                CellKind.ReAimPad => ReAimPadColor,
                 _ => EmptyColor,
             });
 
@@ -680,6 +689,9 @@ namespace EchoEdge.Infra.Map
                         break;
                     case StageObjectKind.WarpHole:
                         DrawWarpHoleFields(target);
+                        break;
+                    case StageObjectKind.ReAimPad:
+                        EditorGUILayout.HelpBox("一閃が触れるとパッドの中心で止まり、そこから向きを選び直せます（残りの反射回数はそのまま）。", MessageType.None);
                         break;
                     case StageObjectKind.Unit:
                         DrawEnemyFields(target);
@@ -908,6 +920,7 @@ namespace EchoEdge.Infra.Map
                 StageObjectKind.Wall => CellKind.Wall,
                 StageObjectKind.SlopeWall => CellKind.SlopeWall,
                 StageObjectKind.WarpHole => CellKind.WarpHole,
+                StageObjectKind.ReAimPad => CellKind.ReAimPad,
                 _ => CellKind.Enemy,
             };
         }
@@ -955,6 +968,7 @@ namespace EchoEdge.Infra.Map
                 CellKind.Wall => new Placement { kind = StageObjectKind.Wall, h = h, w = w, enemyKind = EnemyKinds.Invalid },
                 CellKind.SlopeWall => new Placement { kind = StageObjectKind.SlopeWall, h = h, w = w, enemyKind = EnemyKinds.Invalid, angle = StageLayoutLoader.SlopeAngles[0] },
                 CellKind.Enemy => new Placement { kind = StageObjectKind.Unit, h = h, w = w, enemyKind = EnemyKinds.Skya },
+                CellKind.ReAimPad => new Placement { kind = StageObjectKind.ReAimPad, h = h, w = w, enemyKind = EnemyKinds.Invalid },
                 CellKind.WarpHole => new Placement { kind = StageObjectKind.WarpHole, h = h, w = w, enemyKind = EnemyKinds.Invalid, pairId = SuggestWarpHolePairId() },
                 _ => null,
             };
