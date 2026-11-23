@@ -52,6 +52,16 @@ namespace EchoEdge.Infra.Map
         }
 
         private const int MaxTurn = 99;
+
+        /// <summary>
+        /// 逆算モードで目標にできる最大ターン（初期位置の候補を総当たりで探すため、重くならない範囲にする）
+        /// </summary>
+        private const int MaxReverseTurn = 10;
+
+        /// <summary>
+        /// 逆算で試す初期位置の組み合わせの上限
+        /// </summary>
+        private const int MaxSolveCombinations = 3000;
         private const float CellSize = 44f;
         private const float AxisLabelSize = 22f;
         private const string DefaultConditionLine = "0, 0";
@@ -67,7 +77,7 @@ namespace EchoEdge.Infra.Map
 
         private static readonly string[] CellKindLabels = { "0: 空", "1: 通常の壁", "2: スロープの壁", "3: 敵", "4: ワープホール", "5: リエイムパッド" };
 
-        private static readonly string[] ActionLabels = { "攻撃 (Attack)", "スキル (Skill)" };
+        private static readonly string[] ActionLabels = { "攻撃 (Attack)", "スキル (Skill)", "なにもしない (None)" };
 
         private static readonly Dictionary<EnemyKinds, string> EnemyNames = new()
         {
@@ -91,6 +101,7 @@ namespace EchoEdge.Infra.Map
         private static readonly Color ReAimPadColor = new(0.18f, 0.62f, 0.55f);
         private static readonly Color SelectedColor = new(1f, 0.85f, 0.2f);
         private static readonly Color MovedFromColor = new(0.75f, 0.30f, 0.28f, 0.35f);
+        private static readonly Color MismatchColor = new(1f, 0.5f, 0.1f);
 
         [SerializeField]
         private TextAsset _csv;
@@ -112,6 +123,13 @@ namespace EchoEdge.Infra.Map
 
         private (int h, int w)? _selectedCell;
         private Placement _selectedPlacement;
+
+        // 逆算モード：今のターンでいてほしい位置（目標）を置くと、そこへ来るように初期位置を求める
+        private bool _reverseMode;
+        private readonly Dictionary<Placement, (int h, int w)> _targets = new();
+        private bool _fixActionsOnSolve = true;
+        private string _solveMessage;
+        private MessageType _solveMessageType;
 
         private Vector2 _scrollPosition;
         private GUIStyle _cellValueStyle;
@@ -188,6 +206,7 @@ namespace EchoEdge.Infra.Map
             _turn = 0;
             _selectedCell = null;
             _selectedPlacement = null;
+            ExitReverseMode();
             InvalidateSimulation();
 
             if (csv == null) return;
@@ -396,6 +415,17 @@ namespace EchoEdge.Infra.Map
 
             if (_turnPositions.Count > turn) return;
 
+            var walls = BuildWalls();
+            var units = _simulatedUnits.Select(ToSimUnit).ToList();
+
+            while (_turnPositions.Count <= turn)
+            {
+                _turnPositions.Add(StageMoveSimulator.NextPhase(walls, units, _turnPositions[^1]));
+            }
+        }
+
+        private bool[,] BuildWalls()
+        {
             var walls = new bool[MapManager.MapHeight, MapManager.MapWidth];
             foreach (var placement in _placements)
             {
@@ -404,35 +434,294 @@ namespace EchoEdge.Infra.Map
                     walls[placement.h, placement.w] = true;
                 }
             }
+            return walls;
+        }
 
-            var units = _simulatedUnits
-                .Select(p =>
-                {
-                    var status = GetStatus(p.enemyKind, 0);
-                    return status == null
-                        ? new StageMoveSimulator.Unit(1, 0)
-                        : new StageMoveSimulator.Unit(status.Size.FootprintSpan(), status.Move);
-                })
-                .ToList();
-
-            while (_turnPositions.Count <= turn)
-            {
-                _turnPositions.Add(StageMoveSimulator.NextPhase(walls, units, _turnPositions[^1]));
-            }
+        private StageMoveSimulator.Unit ToSimUnit(Placement placement)
+        {
+            var status = GetStatus(placement.enemyKind, 0);
+            return status == null
+                ? new StageMoveSimulator.Unit(1, 0)
+                : new StageMoveSimulator.Unit(status.Size.FootprintSpan(), status.Move);
         }
 
         /// <summary>
-        /// 現在のターンにおける、配置の位置（ユニットはシミュレーション後の位置）
+        /// 現在のターンにおける、配置の位置（ユニットはシミュレーション後の位置。逆算モードでは目標の位置）
         /// </summary>
         private (int h, int w) GetPosition(Placement placement)
         {
-            if (_turn > 0 && placement.kind == StageObjectKind.Unit && _simulatedUnits != null)
+            if (_reverseMode && _targets.TryGetValue(placement, out var target)) return target;
+            return GetSimulatedPosition(placement);
+        }
+
+        /// <summary>
+        /// 現在のターンにおける、シミュレーション後の位置
+        /// </summary>
+        private (int h, int w) GetSimulatedPosition(Placement placement)
+        {
+            if (_turn > 0 && placement.kind == StageObjectKind.Unit)
             {
+                EnsureSimulated(_turn);
                 var index = _simulatedUnits.IndexOf(placement);
                 if (index >= 0) return _turnPositions[_turn][index];
             }
             return (placement.h, placement.w);
         }
+
+        #region 逆算
+
+        private void EnterReverseMode()
+        {
+            if (_turn <= 0) _turn = 2;
+            _turn = Mathf.Clamp(_turn, 1, MaxReverseTurn);
+            EnsureSimulated(_turn);
+
+            // 今のシミュレーション結果をそのまま目標にする（入った時点では配置は変わらない）
+            _targets.Clear();
+            for (var i = 0; i < _simulatedUnits.Count; i++)
+            {
+                _targets[_simulatedUnits[i]] = _turnPositions[_turn][i];
+            }
+
+            _reverseMode = true;
+            _solveMessage = null;
+        }
+
+        private void ExitReverseMode()
+        {
+            _reverseMode = false;
+            _targets.Clear();
+            _solveMessage = null;
+        }
+
+        /// <summary>
+        /// 目標が置かれたユニットが、ターン _turn に目標の位置へ来るように初期位置を求めて反映する。
+        /// ユニットごとに「単独で動かしたら目標に来る初期位置」を候補にし、候補の組み合わせを
+        /// 実際の盤面（ユニット同士のぶつかりを含む）でシミュレーションして、全員が目標に来るものを選ぶ。
+        /// </summary>
+        private void SolveReverse()
+        {
+            var turn = _turn;
+            var walls = BuildWalls();
+            var units = _placements
+                .Where(p => p.kind == StageObjectKind.Unit && !p.enemyKind.IsOffBoard())
+                .ToList();
+            var simUnits = units.Select(ToSimUnit).ToList();
+            var count = units.Count;
+
+            if (_fixActionsOnSolve)
+            {
+                foreach (var unit in units.Where(u => _targets.ContainsKey(u)))
+                {
+                    while (unit.actions.Count < turn) unit.actions.Add(EnemyActionKinds.Attack);
+                }
+            }
+
+            // ユニットごとの初期位置の候補
+            var candidates = new List<(int h, int w)>[count];
+            var hasTarget = new bool[count];
+            var unreachable = new List<Placement>();
+            for (var i = 0; i < count; i++)
+            {
+                if (!_targets.TryGetValue(units[i], out var target))
+                {
+                    // 目標の無いユニットは今の初期位置のまま
+                    candidates[i] = new List<(int h, int w)> { (units[i].h, units[i].w) };
+                    continue;
+                }
+
+                hasTarget[i] = true;
+                candidates[i] = FindStartCandidates(walls, simUnits[i], target, turn);
+                if (candidates[i].Count == 0)
+                {
+                    unreachable.Add(units[i]);
+                    candidates[i] = new List<(int h, int w)> { (units[i].h, units[i].w) };
+                }
+            }
+
+            // 候補の少ないユニットから決めていく
+            var order = Enumerable.Range(0, count).OrderBy(i => candidates[i].Count).ToArray();
+            var chosen = new (int h, int w)[count];
+            var occupied = new bool[MapManager.MapHeight, MapManager.MapWidth];
+            (int h, int w)[] best = null;
+            var bestKey = -1;
+            var bestHasTie = false;
+            var bestMatched = 0;
+            var targetCount = hasTarget.Count(t => t);
+            var tried = 0;
+            var finished = false;
+
+            void Evaluate()
+            {
+                tried++;
+                IReadOnlyList<(int h, int w)> positions = chosen;
+                var hasTie = false;
+                for (var t = 0; t < turn; t++)
+                {
+                    positions = StageMoveSimulator.NextPhase(walls, simUnits, positions, out var tie);
+                    hasTie |= tie;
+                }
+
+                var matched = 0;
+                for (var i = 0; i < count; i++)
+                {
+                    if (hasTarget[i] && positions[i] == _targets[units[i]]) matched++;
+                }
+
+                // 目標に来る数が多いほど、同じなら同点（ランダム）が無いほど良い
+                var key = matched * 2 + (hasTie ? 0 : 1);
+                if (key > bestKey)
+                {
+                    bestKey = key;
+                    best = chosen.ToArray();
+                    bestHasTie = hasTie;
+                    bestMatched = matched;
+                }
+                if (matched == targetCount && !hasTie) finished = true;
+            }
+
+            void Search(int depth)
+            {
+                if (finished || tried >= MaxSolveCombinations) return;
+                if (depth == count)
+                {
+                    Evaluate();
+                    return;
+                }
+
+                var i = order[depth];
+                var span = simUnits[i].Size;
+                foreach (var candidate in candidates[i])
+                {
+                    if (!IsFootprintFree(occupied, candidate, span)) continue;
+                    SetFootprint(occupied, candidate, span, true);
+                    chosen[i] = candidate;
+                    Search(depth + 1);
+                    SetFootprint(occupied, candidate, span, false);
+                    if (finished || tried >= MaxSolveCombinations) return;
+                }
+            }
+
+            Search(0);
+
+            if (best == null)
+            {
+                _solveMessage = "初期位置が重ならない組み合わせが見つかりませんでした。目標の置き方を変えてください。";
+                _solveMessageType = MessageType.Error;
+                return;
+            }
+
+            for (var i = 0; i < count; i++)
+            {
+                units[i].h = best[i].h;
+                units[i].w = best[i].w;
+            }
+            _isDirty = true;
+            InvalidateSimulation();
+
+            if (bestMatched == targetCount && unreachable.Count == 0)
+            {
+                _solveMessage = bestHasTie
+                    ? $"全員がターン:{turn} に目標の位置へ来ます。ただし途中で移動先が同点になる場面があり、実際のゲームではランダムでずれることがあります（オレンジ枠は無し）。"
+                    : $"全員がターン:{turn} に目標の位置へ来ます。";
+                _solveMessageType = bestHasTie ? MessageType.Warning : MessageType.Info;
+                return;
+            }
+
+            var builder = new StringBuilder($"ターン:{turn} に目標へ来ないユニットがあります（オレンジ枠）。");
+            foreach (var unit in unreachable)
+            {
+                var target = _targets[unit];
+                builder.Append($"\n・{GetEnemyName(unit.enemyKind)}（目標 縦 {target.h}, 横 {target.w}）：どこから出しても届きません。目標をもっと左にするか、ターンを減らしてください。");
+            }
+            if (unreachable.Count < targetCount - bestMatched)
+            {
+                builder.Append("\n・ユニット同士がぶつかって、全員をそろえられる初期位置が見つかりませんでした。");
+            }
+            _solveMessage = builder.ToString();
+            _solveMessageType = MessageType.Warning;
+        }
+
+        /// <summary>
+        /// そのユニットだけを盤面に置いて turn 回動かしたとき、target に来る初期位置の一覧。
+        /// 同点（ランダム）が無いもの → 右にあるもの（毎フェーズしっかり動いて見える）→ 目標と縦が近いものの順。
+        /// </summary>
+        private static List<(int h, int w)> FindStartCandidates(bool[,] walls, StageMoveSimulator.Unit unit, (int h, int w) target, int turn)
+        {
+            var found = new List<((int h, int w) start, bool hasTie)>();
+            var single = new[] { unit };
+            for (var h = 0; h < MapManager.MapHeight; h++)
+            {
+                for (var w = 0; w < MapManager.MapWidth; w++)
+                {
+                    if (!IsFootprintWithoutWall(walls, h, w, unit.Size)) continue;
+
+                    IReadOnlyList<(int h, int w)> positions = new[] { (h, w) };
+                    var hasTie = false;
+                    for (var t = 0; t < turn; t++)
+                    {
+                        positions = StageMoveSimulator.NextPhase(walls, single, positions, out var tie);
+                        hasTie |= tie;
+                    }
+
+                    if (positions[0] == target) found.Add(((h, w), hasTie));
+                }
+            }
+
+            return found
+                .OrderBy(c => c.hasTie)
+                .ThenByDescending(c => c.start.w)
+                .ThenBy(c => Math.Abs(c.start.h - target.h))
+                .Select(c => c.start)
+                .ToList();
+        }
+
+        private static bool IsFootprintWithoutWall(bool[,] walls, int h, int w, int span)
+        {
+            for (var dh = 0; dh < span; dh++)
+            {
+                for (var dw = 0; dw < span; dw++)
+                {
+                    if (!IsInBounds(h + dh, w + dw) || walls[h + dh, w + dw]) return false;
+                }
+            }
+            return true;
+        }
+
+        private static bool IsFootprintFree(bool[,] occupied, (int h, int w) anchor, int span)
+        {
+            for (var dh = 0; dh < span; dh++)
+            {
+                for (var dw = 0; dw < span; dw++)
+                {
+                    var h = anchor.h + dh;
+                    var w = anchor.w + dw;
+                    if (!IsInBounds(h, w) || occupied[h, w]) return false;
+                }
+            }
+            return true;
+        }
+
+        private static void SetFootprint(bool[,] occupied, (int h, int w) anchor, int span, bool value)
+        {
+            for (var dh = 0; dh < span; dh++)
+            {
+                for (var dw = 0; dw < span; dw++)
+                {
+                    if (IsInBounds(anchor.h + dh, anchor.w + dw)) occupied[anchor.h + dh, anchor.w + dw] = value;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 逆算モードで、目標の位置に来ていないユニットか
+        /// </summary>
+        private bool IsMismatched(Placement placement)
+        {
+            return _reverseMode && _targets.TryGetValue(placement, out var target) && GetSimulatedPosition(placement) != target;
+        }
+
+        #endregion
 
         /// <summary>
         /// 現在のターンの盤面（byte の2次元配列）と、各マスにいる配置を作る
@@ -494,23 +783,79 @@ namespace EchoEdge.Infra.Map
             using (new EditorGUILayout.HorizontalScope())
             {
                 GUILayout.FlexibleSpace();
-                using (new EditorGUI.DisabledScope(_turn <= 0))
+                var minTurn = _reverseMode ? 1 : 0;
+                var maxTurn = _reverseMode ? MaxReverseTurn : MaxTurn;
+                var newTurn = _turn;
+                using (new EditorGUI.DisabledScope(_turn <= minTurn))
                 {
-                    if (GUILayout.Button("←", GUILayout.Width(40))) _turn--;
+                    if (GUILayout.Button("←", GUILayout.Width(40))) newTurn--;
                 }
 
                 GUILayout.Label($"ターン:{_turn}", _turnStyle, GUILayout.Width(90));
 
-                using (new EditorGUI.DisabledScope(_turn >= MaxTurn))
+                using (new EditorGUI.DisabledScope(_turn >= maxTurn))
                 {
-                    if (GUILayout.Button("→", GUILayout.Width(40))) _turn++;
+                    if (GUILayout.Button("→", GUILayout.Width(40))) newTurn++;
                 }
                 GUILayout.FlexibleSpace();
+
+                if (newTurn != _turn)
+                {
+                    _turn = newTurn;
+                    // 逆算モードでは、目標はそのままで「このターンに来るように」初期位置を求め直す
+                    if (_reverseMode) SolveReverse();
+                }
             }
 
             EditorGUILayout.HelpBox(
-                "ターン N は、エネミーフェーズを N 回終えたあとの配置です。移動だけを再現し、バフ・ランダムな特殊行動（飛行、壁生成、召喚、吸収など）・撃破は考慮しません。編集はターン:0 で行えます。",
+                $"ターン N は、エネミーフェーズを N 回終えたあとの配置です（{_turn + 1} ターン目のプレイヤーフェーズ）。移動だけを再現し、バフ・ランダムな特殊行動（飛行、壁生成、召喚、吸収など）・撃破は考慮しません。編集はターン:0 か逆算モードで行えます。",
                 MessageType.None);
+
+            DrawReversePanel();
+        }
+
+        private void DrawReversePanel()
+        {
+            using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
+            {
+                var newMode = EditorGUILayout.ToggleLeft(
+                    new GUIContent("逆算モード（このターンの並びを置くと、初期位置を自動で求める）"), _reverseMode, EditorStyles.boldLabel);
+                if (newMode != _reverseMode)
+                {
+                    if (newMode) EnterReverseMode();
+                    else ExitReverseMode();
+                    GUI.FocusControl(null);
+                }
+
+                if (!_reverseMode) return;
+
+                _fixActionsOnSolve = EditorGUILayout.ToggleLeft(
+                    new GUIContent($"行動リストの先頭 {_turn} 回を攻撃にする",
+                        "スキル（飛行・壁生成など）で動きがずれないように、逆算するときに行動リストの足りない分を「攻撃」で埋めます。"),
+                    _fixActionsOnSolve);
+
+                EditorGUILayout.LabelField(
+                    "盤面には「このターンにいてほしい位置」を表示しています。マスの種類を「敵」にして置く・選んだ敵を右クリックで移動・←→で目標ターンを変えると、初期位置を求め直します。選んだ敵の初期位置は薄い赤で表示されます。",
+                    EditorStyles.wordWrappedMiniLabel);
+
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    if (GUILayout.Button("初期位置を求め直す", GUILayout.Width(140)))
+                    {
+                        SolveReverse();
+                    }
+                    if (GUILayout.Button("ターン:0 で確認する", GUILayout.Width(140)))
+                    {
+                        ExitReverseMode();
+                        _turn = 0;
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(_solveMessage))
+                {
+                    EditorGUILayout.HelpBox(_solveMessage, _solveMessageType);
+                }
+            }
         }
 
         private void DrawGrid()
@@ -545,7 +890,7 @@ namespace EchoEdge.Infra.Map
             }
 
             var e = Event.current;
-            if (e.type == EventType.MouseDown && e.button == 0)
+            if (e.type == EventType.MouseDown && e.button is 0 or 1)
             {
                 var local = e.mousePosition - new Vector2(area.x + AxisLabelSize, area.y + AxisLabelSize);
                 var w = Mathf.FloorToInt(local.x / CellSize);
@@ -553,10 +898,19 @@ namespace EchoEdge.Infra.Map
                 if (local.x >= 0 && local.y >= 0 && w < width && row < height)
                 {
                     var h = height - 1 - row;
-                    _selectedCell = (h, w);
-                    _selectedPlacement = owners[h, w];
-                    GUI.FocusControl(null);
-                    e.Use();
+                    if (e.button == 0)
+                    {
+                        _selectedCell = (h, w);
+                        _selectedPlacement = owners[h, w];
+                        GUI.FocusControl(null);
+                        e.Use();
+                    }
+                    else if (_reverseMode && _selectedPlacement != null && _targets.ContainsKey(_selectedPlacement))
+                    {
+                        // 逆算モード：選んでいる敵の目標を右クリックしたマスへ動かす
+                        TryMoveTarget(_selectedPlacement, h, w);
+                        e.Use();
+                    }
                 }
             }
         }
@@ -579,6 +933,11 @@ namespace EchoEdge.Infra.Map
                 _selectedPlacement.h == h && _selectedPlacement.w == w && owner != _selectedPlacement)
             {
                 EditorGUI.DrawRect(inner, MovedFromColor);
+            }
+
+            if (kind == CellKind.Enemy && owner != null && IsMismatched(owner))
+            {
+                DrawOutline(rect, MismatchColor, 3f);
             }
 
             var isSelected = _selectedPlacement != null ? owner == _selectedPlacement : _selectedCell == (h, w);
@@ -655,6 +1014,10 @@ namespace EchoEdge.Infra.Map
                 {
                     EditorGUILayout.LabelField("位置", $"盤面外（CSV の座標 縦 {_selectedPlacement.h}, 横 {_selectedPlacement.w}）");
                 }
+                else if (_reverseMode && _selectedPlacement != null && _targets.TryGetValue(_selectedPlacement, out var selectedTarget))
+                {
+                    DrawTargetFields(_selectedPlacement, selectedTarget);
+                }
                 else if (_selectedPlacement != null && _selectedPlacement.kind == StageObjectKind.Unit)
                 {
                     var (h, w) = GetPosition(_selectedPlacement);
@@ -667,8 +1030,8 @@ namespace EchoEdge.Infra.Map
                     EditorGUILayout.LabelField("位置", $"縦 {cell.h}, 横 {cell.w}");
                 }
 
-                // マスの種類はターン0の盤面に対して変える
-                if (!isOffBoard && _selectedCell != null && _turn == 0)
+                // マスの種類はターン0の盤面（逆算モードでは目標の盤面）に対して変える
+                if (!isOffBoard && _selectedCell != null && (_turn == 0 || _reverseMode))
                 {
                     DrawCellKindField();
                 }
@@ -704,6 +1067,33 @@ namespace EchoEdge.Infra.Map
                     _selectedPlacement = null;
                     MarkDirty();
                 }
+            }
+        }
+
+        /// <summary>
+        /// 逆算モードで選んだ敵の、目標の位置と求めた初期位置
+        /// </summary>
+        private void DrawTargetFields(Placement placement, (int h, int w) target)
+        {
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                EditorGUILayout.PrefixLabel($"ターン:{_turn} の目標");
+                EditorGUIUtility.labelWidth = 24;
+                var newH = EditorGUILayout.DelayedIntField("縦", target.h);
+                var newW = EditorGUILayout.DelayedIntField("横", target.w);
+                EditorGUIUtility.labelWidth = 0;
+                if ((newH, newW) != target)
+                {
+                    TryMoveTarget(placement, newH, newW);
+                }
+            }
+
+            EditorGUILayout.LabelField("初期位置（ターン:0）", $"縦 {placement.h}, 横 {placement.w}");
+
+            if (IsMismatched(placement))
+            {
+                var (h, w) = GetSimulatedPosition(placement);
+                EditorGUILayout.HelpBox($"この初期位置だと、ターン:{_turn} には 縦 {h}, 横 {w} に来ます（目標に届いていません）。", MessageType.Warning);
             }
         }
 
@@ -761,7 +1151,7 @@ namespace EchoEdge.Infra.Map
         {
             var labels = SelectableEnemyKinds.Select(k => $"{GetEnemyName(k)} ({k})").ToArray();
             var index = Array.IndexOf(SelectableEnemyKinds, placement.enemyKind);
-            using (new EditorGUI.DisabledScope(_turn != 0))
+            using (new EditorGUI.DisabledScope(_turn != 0 && !_reverseMode))
             {
                 var newIndex = EditorGUILayout.Popup("敵", Math.Max(0, index), labels);
                 if (newIndex != index)
@@ -866,6 +1256,11 @@ namespace EchoEdge.Infra.Map
                     placement.actions.Add(EnemyActionKinds.Skill);
                     MarkDirty();
                 }
+                if (GUILayout.Button("＋ なにもしない", GUILayout.Width(100)))
+                {
+                    placement.actions.Add(EnemyActionKinds.None);
+                    MarkDirty();
+                }
                 using (new EditorGUI.DisabledScope(placement.actions.Count == 0))
                 {
                     if (GUILayout.Button("すべて削除", GUILayout.Width(80)))
@@ -926,7 +1321,8 @@ namespace EchoEdge.Infra.Map
         }
 
         /// <summary>
-        /// ターン0の盤面で、指定マスを占有している配置を返す（盤面外のユニットは除く）
+        /// 編集対象の盤面で、指定マスを占有している配置を返す（盤面外のユニットは除く）。
+        /// 編集対象はターン0の盤面、逆算モードでは目標の盤面。
         /// </summary>
         private Placement FindInitialOwner(int h, int w, Placement ignore = null)
         {
@@ -935,13 +1331,41 @@ namespace EchoEdge.Infra.Map
                 if (placement == ignore) continue;
                 if (placement.kind == StageObjectKind.Unit && placement.enemyKind.IsOffBoard()) continue;
 
+                var (ph, pw) = GetEditPosition(placement);
                 var size = placement.kind == StageObjectKind.Unit ? GetSize(placement.enemyKind) : 1;
-                if (h >= placement.h && h < placement.h + size && w >= placement.w && w < placement.w + size)
+                if (h >= ph && h < ph + size && w >= pw && w < pw + size)
                 {
                     return placement;
                 }
             }
             return null;
+        }
+
+        /// <summary>
+        /// 編集対象の盤面での位置（ターン0の位置。逆算モードでは目標の位置）
+        /// </summary>
+        private (int h, int w) GetEditPosition(Placement placement)
+        {
+            return _reverseMode && _targets.TryGetValue(placement, out var target) ? target : (placement.h, placement.w);
+        }
+
+        /// <summary>
+        /// 逆算モードで、敵の目標を動かして初期位置を求め直す
+        /// </summary>
+        private void TryMoveTarget(Placement placement, int h, int w)
+        {
+            if (!CanPlace(h, w, GetSize(placement.enemyKind), placement))
+            {
+                ShowNotification(new GUIContent("そのマスには置けません"));
+                return;
+            }
+
+            _targets[placement] = (h, w);
+            _selectedCell = (h, w);
+            GUI.FocusControl(null);
+            MarkDirty();
+            SolveReverse();
+            Repaint();
         }
 
         private bool CanPlace(int h, int w, int size, Placement ignore)
@@ -961,7 +1385,11 @@ namespace EchoEdge.Infra.Map
         {
             var existing = FindInitialOwner(h, w);
             var insertIndex = existing != null ? _placements.IndexOf(existing) : _placements.Count;
-            if (existing != null) _placements.Remove(existing);
+            if (existing != null)
+            {
+                _placements.Remove(existing);
+                _targets.Remove(existing);
+            }
 
             Placement created = kind switch
             {
@@ -976,6 +1404,13 @@ namespace EchoEdge.Infra.Map
             if (created != null) _placements.Insert(insertIndex, created);
             _selectedPlacement = created;
             MarkDirty();
+
+            if (_reverseMode)
+            {
+                // 置いたマスはこのターンの目標。初期位置は逆算で決める
+                if (created is { kind: StageObjectKind.Unit }) _targets[created] = (h, w);
+                SolveReverse();
+            }
         }
 
         /// <summary>
@@ -998,7 +1433,8 @@ namespace EchoEdge.Infra.Map
 
         private void TryChangeEnemyKind(Placement placement, EnemyKinds enemyKind)
         {
-            if (!enemyKind.IsOffBoard() && !CanPlace(placement.h, placement.w, GetSize(enemyKind), placement))
+            var (editH, editW) = GetEditPosition(placement);
+            if (!enemyKind.IsOffBoard() && !CanPlace(editH, editW, GetSize(enemyKind), placement))
             {
                 ShowNotification(new GUIContent($"{GetEnemyName(enemyKind)} を置くマスが空いていません"));
                 return;
@@ -1014,10 +1450,18 @@ namespace EchoEdge.Infra.Map
             }
             else if (!enemyKind.IsOffBoard() && wasOffBoard)
             {
-                _selectedCell = (placement.h, placement.w);
+                _selectedCell = (editH, editW);
             }
 
             MarkDirty();
+
+            if (_reverseMode)
+            {
+                // 盤面外の敵は動かないので目標を持たない。盤面に戻したら今の位置を目標にする
+                if (enemyKind.IsOffBoard()) _targets.Remove(placement);
+                else if (wasOffBoard) _targets[placement] = (editH, editW);
+                SolveReverse();
+            }
         }
 
         #endregion

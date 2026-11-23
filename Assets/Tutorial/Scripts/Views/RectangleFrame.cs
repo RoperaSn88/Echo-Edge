@@ -85,6 +85,7 @@ namespace CommonUI.Tutorial.Views
             _animatedSizeMotionHandle = LMotion.Create(size, size * AnimatedMultiplier, AnimatedTime)
                 .WithEase(Ease.OutQuad)
                 .WithLoops(-1, LoopType.Restart)
+                .WithScheduler(MotionScheduler.UpdateIgnoreTimeScale)
                 .Bind(value =>
                 {
                     _animatedRectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, value.x);
@@ -100,6 +101,7 @@ namespace CommonUI.Tutorial.Views
             _animatedAlphaMotionHandle = LMotion.Create(1f, 0f, AnimatedTime)
                 .WithEase(Ease.OutQuad)
                 .WithLoops(-1, LoopType.Restart)
+                .WithScheduler(MotionScheduler.UpdateIgnoreTimeScale)
                 .BindToColorA(_animatedImage);
         }
 

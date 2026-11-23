@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: player
   m_EditorClassIdentifier: Assembly-CSharp::Domain.Scenario.CharacterData
   _characterId: 100
-  _displayName: "\uFF1F\uFF1F\uFF1F"
+  _displayName: 
   _normalSprite: {fileID: 21300000, guid: 508e2072ce9275a40bde1ee06570d6c6, type: 3}
   _delightSprite: {fileID: 21300000, guid: 508e2072ce9275a40bde1ee06570d6c6, type: 3}
   _sadSprite: {fileID: 21300000, guid: 508e2072ce9275a40bde1ee06570d6c6, type: 3}

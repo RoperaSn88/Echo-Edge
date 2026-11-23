@@ -6,15 +6,21 @@ using UnityEngine;
 
 using EchoEdge.App.Battle;
 using EchoEdge.Infra.Camera;
+using EchoEdge.Presenter.Battle;
 using EchoEdge.Presenter.Player;
 using EchoEdge.Presenter.UI;
 
 namespace EchoEdge.Domain.Battle
 {
-    public class Builder: IUnitAction
+    public class Builder: IUnitAction, IUnitViewAware, IScriptedSkillAction
     {
         private const float PlayerDamageRate = 1.0f;
         private const float SpecificRate = 0.8f;
+
+        /// <summary>
+        /// 自分の View。壁を建てたときに、自分と壁を同時にカメラで映すために使う
+        /// </summary>
+        private IUnitView _view;
         
         public async UniTask BeforeAttack()
         {
@@ -44,12 +50,34 @@ namespace EchoEdge.Domain.Battle
                 return UniTask.FromResult(EnemyMoveKinds.Attack);
             }
             
-            if (UnityEngine.Random.value < SpecificRate)
+            // 自分以外に壁を建てる対象のユニットがいなければ、スキルは使わない
+            if (TryPrepareSkill(selfHeight, selfWidth) && UnityEngine.Random.value < SpecificRate)
             {
                 return UniTask.FromResult(EnemyMoveKinds.Specific);
             }
-            
+
             return UniTask.FromResult(EnemyMoveKinds.None);
+        }
+
+        /// <inheritdoc/>
+        public bool TryPrepareSkill(int selfHeight, int selfWidth)
+        {
+            if (MapManager.Instance == null || BuildingManager.Instance == null)
+            {
+                return false;
+            }
+            return GetTargetUnits(selfHeight, selfWidth).Count > 0;
+        }
+
+        /// <summary>
+        /// 壁を建てる対象になる、自分以外の動けるユニットを返す
+        /// </summary>
+        private static List<(IUnit unit, int h, int w)> GetTargetUnits(int selfHeight, int selfWidth)
+        {
+            return MapManager.Instance.GetUnitPositionsSnapshot()
+                .Where(unitInfo => unitInfo.unit.CanMove())
+                .Where(unitInfo => unitInfo.h != selfHeight || unitInfo.w != selfWidth)
+                .ToList();
         }
 
         /// <inheritdoc/>
@@ -71,10 +99,7 @@ namespace EchoEdge.Domain.Battle
                 return;
             }
 
-            List<(IUnit unit, int h, int w)> targetUnits = MapManager.Instance.GetUnitPositionsSnapshot()
-                .Where(unitInfo => unitInfo.unit.CanMove())
-                .Where(unitInfo => unitInfo.h != selfHeight || unitInfo.w != selfWidth)
-                .ToList();
+            var targetUnits = GetTargetUnits(selfHeight, selfWidth);
 
             if (targetUnits.Count == 0)
             {
@@ -84,6 +109,7 @@ namespace EchoEdge.Domain.Battle
             var target = targetUnits[UnityEngine.Random.Range(0, targetUnits.Count)];
             int wallWidth = target.w - 1;
 
+            var builtWalls = new List<Transform>();
             for (int hOffset = -1; hOffset <= 1; hOffset++)
             {
                 int wallHeight = target.h + hOffset;
@@ -91,11 +117,32 @@ namespace EchoEdge.Domain.Battle
                 {
                     continue;
                 }
-                BuildingManager.Instance.TrySetBuilderWall(wallHeight, wallWidth);
+                if (BuildingManager.Instance.TrySetBuilderWall(wallHeight, wallWidth, out var wallTransform))
+                {
+                    builtWalls.Add(wallTransform);
+                }
             }
-            
-            await UniTask.Delay(TimeSpan.FromSeconds(1f));
-            await CameraManager.Instance.ActResetCameraTarget();
+
+            try
+            {
+                // 壁が画面外に建つこともあるので、ビルダーと建てた壁が同時に映るようカメラを動かす
+                if (_view != null && builtWalls.Count > 0)
+                {
+                    await _view.WaitToCameraZoomWith(builtWalls);
+                }
+
+                await UniTask.Delay(TimeSpan.FromSeconds(1f));
+            }
+            finally
+            {
+                await CameraManager.Instance.ActResetCameraTarget();
+            }
+        }
+
+        /// <inheritdoc/>
+        public void SetView(IUnitView view)
+        {
+            _view = view;
         }
 
         /// <inheritdoc/>
