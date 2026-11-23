@@ -39,9 +39,13 @@ namespace EchoEdge.Presenter.Battle
         public async UniTask WaitAnimAfterFlying()
         {
             // スカイア用のアニメーター
+            // 前回の攻撃で立ったフラグが残っていると、ビームを撃つ前に待ちが抜けてしまうため下ろしておく
+            ResetAnimationFlag();
             Animator.SetTrigger("BeamT");
             await UniTask.WaitUntil(() => AnimationFlag);
-            await transform.DOLocalMoveY(_groundY, FlyTime).SetEase(Ease.InQuad);
+
+            // 攻撃の瞬間（StartAttackBlink の Strike）で戻り、すぐにダメージ処理へ進めるよう、着地は待たずに走らせる
+            transform.DOLocalMoveY(_groundY, FlyTime).SetEase(Ease.InQuad).SetLink(gameObject);
         }
 
         /// <inheritdoc/>

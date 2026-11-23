@@ -90,7 +90,7 @@ namespace EchoEdge.Infra.Map
 
                 if (!Enum.TryParse(cols[0].Trim(), true, out StageObjectKind objectKind))
                 {
-                    Debug.LogWarning($"StageLayout.csv の {i + 1} 行目の objectKind が不正です: {cols[0]}。有効値: Wall, Unit, SlopeWall, WarpHole");
+                    Debug.LogWarning($"StageLayout.csv の {i + 1} 行目の objectKind が不正です: {cols[0]}。有効値: Wall, Unit, SlopeWall, WarpHole, ReAimPad");
                     continue;
                 }
 
@@ -221,7 +221,7 @@ namespace EchoEdge.Infra.Map
                 if (!Enum.TryParse(trimmed, true, out EnemyActionKinds action) ||
                     !Enum.IsDefined(typeof(EnemyActionKinds), action) || char.IsDigit(trimmed[0]) || trimmed[0] == '-')
                 {
-                    Debug.LogWarning($"StageLayout.csv の {lineNumber} 行目の行動リストに不正な行動があります: {trimmed}。有効値: Attack, Skill");
+                    Debug.LogWarning($"StageLayout.csv の {lineNumber} 行目の行動リストに不正な行動があります: {trimmed}。有効値: Attack, Skill, None");
                     continue;
                 }
 

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
@@ -103,6 +104,14 @@ namespace EchoEdge.Presenter.Battle
         private bool _animationFlag;
 
         public bool AnimationFlag => _animationFlag;
+
+        /// <summary>
+        /// アニメーションイベント（攻撃の瞬間）を待ち始める前に、前回の攻撃で立ったフラグを下ろす
+        /// </summary>
+        protected void ResetAnimationFlag()
+        {
+            _animationFlag = false;
+        }
 
         /// <summary>
         /// 死んだか
@@ -385,6 +394,24 @@ namespace EchoEdge.Presenter.Battle
             _cameraTargets[0] = transform;
             _cameraTargets[1] = player.PlayerTransform;
             await CameraManager.Instance.ActSetCameraTargets(_cameraTargets);
+        }
+
+        /// <inheritdoc/>
+        public async UniTask WaitToCameraZoomWith(IReadOnlyList<Transform> others)
+        {
+            if (others == null || others.Count == 0)
+            {
+                await WaitToCameraZoom();
+                return;
+            }
+
+            var targets = new Transform[others.Count + 1];
+            targets[0] = transform;
+            for (int i = 0; i < others.Count; i++)
+            {
+                targets[i + 1] = others[i];
+            }
+            await CameraManager.Instance.ActSetCameraTargets(targets);
         }
 
         /// <summary>

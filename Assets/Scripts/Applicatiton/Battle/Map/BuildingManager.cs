@@ -170,8 +170,14 @@ namespace EchoEdge.App.Battle
             _activeSlopeWalls.Clear();
         }
 
-        public bool TrySetBuilderWall(int h, int w)
+        /// <summary>
+        /// ビルダーの壁を指定マスに建てる。
+        /// </summary>
+        /// <param name="wallTransform">建てた壁の Transform（カメラで映すときに使う）。建てられなかった場合は null</param>
+        /// <returns>建てられた場合は true</returns>
+        public bool TrySetBuilderWall(int h, int w, out Transform wallTransform)
         {
+            wallTransform = null;
             if (builderWallStack == null || MapManager.Instance == null)
             {
                 return false;
@@ -199,6 +205,7 @@ namespace EchoEdge.App.Battle
             wallView.Set(h, w);
             wallView.PlayAppear();
             _activeBuilderWalls.Add((wallView, h, w));
+            wallTransform = wallView.transform;
             return true;
         }
 

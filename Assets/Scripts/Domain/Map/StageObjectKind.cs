@@ -15,6 +15,11 @@ namespace EchoEdge.Domain.Map
         /// 床ギミックのワープホール。CSV では「WarpHole, 縦, 横, ペア番号」で、同じペア番号の2つが対になる
         /// </summary>
         WarpHole,
+
+        /// <summary>
+        /// 床ギミックのリエイムパッド。CSV では「ReAimPad, 縦, 横」。一閃が触れると、そこから向きを選び直せる
+        /// </summary>
+        ReAimPad,
     }
 
     public static class StageObjectKindExtensions
@@ -24,7 +29,7 @@ namespace EchoEdge.Domain.Map
         /// </summary>
         public static bool IsFloorGimmick(this StageObjectKind kind)
         {
-            return kind == StageObjectKind.WarpHole;
+            return kind is StageObjectKind.WarpHole or StageObjectKind.ReAimPad;
         }
     }
 }

@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using UnityEngine;
 
 namespace EchoEdge.Presenter.Battle
 {
@@ -17,6 +19,11 @@ namespace EchoEdge.Presenter.Battle
         /// 攻撃アニメーション前に、自分とプレイヤーが同時に映るようカメラを動かす
         /// </summary>
         UniTask WaitToCameraZoomWithPlayer();
+
+        /// <summary>
+        /// 自分と指定した対象（例: ビルダーが建てた壁）が同時に映るようカメラを動かす
+        /// </summary>
+        UniTask WaitToCameraZoomWith(IReadOnlyList<Transform> others);
 
         /// <summary>
         /// 攻撃アニメーションを実行する

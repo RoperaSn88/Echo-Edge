@@ -6,6 +6,7 @@ using UnityEngine;
 using EchoEdge.App.Battle;
 using EchoEdge.Infra.Audio;
 using EchoEdge.Infra.Battle;
+using EchoEdge.Infra.Tutorial;
 using EchoEdge.Presenter.Battle;
 using EchoEdge.Presenter.UI;
 
@@ -176,6 +177,12 @@ namespace EchoEdge.Domain.Battle
                     _unitAction.BeforeAttack()
                 );
 
+                // 初めての敵の攻撃なら、攻撃アニメーションの前にチュートリアルを再生する
+                if (await TutorialActivator.TryStartTutorialOnce(TutorialKinds.EnemyAttack))
+                {
+                    await UniTask.WaitForSeconds(1.0f);
+                }
+
                 // 攻撃アニメーションが始まってから終わるまで、プレイヤーは防御できる
                 EnemyAttackGuard.BeginAccept();
                 try
@@ -230,6 +237,9 @@ namespace EchoEdge.Domain.Battle
                 {
                     if (flyingUnit.IsFlying)
                     {
+                        // ビームが最初の敵の攻撃になる場合も、チュートリアルを再生する
+                        await TutorialActivator.TryStartTutorialOnce(TutorialKinds.EnemyAttack);
+
                         // ビームも敵の攻撃なので、アニメーションが始まってからダメージ処理が終わるまで防御できる
                         EnemyAttackGuard.BeginAccept();
                         try
@@ -261,6 +271,10 @@ namespace EchoEdge.Domain.Battle
                 await _view.WaitSpecificAnim();
             }
 
+            if (_unitAction is IUnitViewAware viewAware)
+            {
+                viewAware.SetView(_view);
+            }
             await _unitAction.Specific(Height, Width);
 
             UpdateInvincibleAfterSpecific();
@@ -322,6 +336,9 @@ namespace EchoEdge.Domain.Battle
                         return EnemyMoveKinds.None;
                     }
                     return EnemyMoveKinds.Specific;
+                case EnemyActionKinds.None:
+                    // なにもしない（移動は MoveTurn 側でいつもどおり行う）
+                    return EnemyMoveKinds.None;
                 default:
                     return await _unitAction.Act(Height, Width);
             }

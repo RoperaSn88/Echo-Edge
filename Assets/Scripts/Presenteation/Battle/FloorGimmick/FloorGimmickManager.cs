@@ -7,7 +7,7 @@ using EchoEdge.Domain.Map;
 namespace EchoEdge.Presenter.Battle
 {
     /// <summary>
-    /// 床ギミック（ワープホールなど）をステージ CSV の配置どおりに置き、一閃の経路上にあるものを探す。
+    /// 床ギミック（ワープホール・リエイムパッド）をステージ CSV の配置どおりに置き、一閃の経路上にあるものを探す。
     /// MainGame シーンに1つ置いてプレハブを割り当てる。
     /// </summary>
     public class FloorGimmickManager : MonoBehaviour
@@ -17,6 +17,10 @@ namespace EchoEdge.Presenter.Battle
         [Tooltip("ワープホールのプレハブ（ルートに WarpHoleView を付ける）。ピボットをマスの中心・床の高さに合わせる")]
         [SerializeField]
         private WarpHoleView _warpHolePrefab;
+
+        [Tooltip("リエイムパッドのプレハブ（ルートに ReAimPadView を付ける）。ピボットをマスの中心・床の高さに合わせる")]
+        [SerializeField]
+        private ReAimPadView _reAimPadPrefab;
 
         [Tooltip("床からの高さ。床と重なってチラつく場合は少し上げる")]
         [SerializeField]
@@ -64,6 +68,17 @@ namespace EchoEdge.Presenter.Battle
                         warpHole.Setup(placement.height, placement.width, center);
                         warpHole.SetPair(placement.pairId, null);
                         _gimmicks.Add(warpHole);
+                        break;
+                    case StageObjectKind.ReAimPad:
+                        if (_reAimPadPrefab == null)
+                        {
+                            Debug.LogWarning("FloorGimmickManager の Re Aim Pad Prefab が未設定のため、リエイムパッドを置けません");
+                            break;
+                        }
+                        var reAimPad = Instantiate(_reAimPadPrefab, transform);
+                        reAimPad.name = $"ReAimPad_({placement.height},{placement.width})";
+                        reAimPad.Setup(placement.height, placement.width, center);
+                        _gimmicks.Add(reAimPad);
                         break;
                 }
             }

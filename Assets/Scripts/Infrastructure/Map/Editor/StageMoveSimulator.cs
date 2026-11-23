@@ -42,6 +42,20 @@ namespace EchoEdge.Infra.Map
         /// <param name="positions">フェーズ開始時の各ユニットの位置（units と同じ並び）</param>
         public static (int h, int w)[] NextPhase(bool[,] walls, IReadOnlyList<Unit> units, IReadOnlyList<(int h, int w)> positions)
         {
+            return NextPhase(walls, units, positions, out _);
+        }
+
+        /// <summary>
+        /// 1 エネミーフェーズ分の移動を行い、移動後の各ユニットの位置（左下のマス）を返す。
+        /// </summary>
+        /// <param name="hasTie">
+        /// 移動先の候補が同じ近さで複数あったユニットがいたら true。
+        /// プレビューでは最初の候補にするが、実際のゲームではランダムに選ぶため、結果がずれることがある。
+        /// </param>
+        public static (int h, int w)[] NextPhase(bool[,] walls, IReadOnlyList<Unit> units, IReadOnlyList<(int h, int w)> positions,
+            out bool hasTie)
+        {
+            hasTie = false;
             var height = walls.GetLength(0);
             var width = walls.GetLength(1);
             var result = positions.ToArray();
@@ -68,7 +82,7 @@ namespace EchoEdge.Infra.Map
             foreach (var i in order)
             {
                 var src = result[i];
-                var dst = FindDestination(grid, i, units[i], src.h, src.w);
+                var dst = FindDestination(grid, i, units[i], src.h, src.w, ref hasTie);
                 if (dst == src) continue;
 
                 SetFootprint(grid, src.h, src.w, units[i].Size, Empty);
@@ -83,9 +97,13 @@ namespace EchoEdge.Infra.Map
         /// 実際のゲーム（BaseUnit.TryMoveByScoreMap）と同じ EnemyMovePlanner で、そのフェーズの移動先を求める。
         /// 同じ近さの候補が複数あるときは、ゲームではランダムに選ぶが、プレビューでは最初に見つかった候補にする。
         /// </summary>
-        private static (int h, int w) FindDestination(int[,] grid, int self, Unit unit, int srcH, int srcW)
+        private static (int h, int w) FindDestination(int[,] grid, int self, Unit unit, int srcH, int srcW, ref bool hasTie)
         {
-            var path = EnemyMovePlanner.PlanPath(new GridMoveBoard(grid, self), unit.Size, srcH, srcW, unit.Move);
+            // 同点のときだけ呼ばれる。1 を返して最初の候補のままにしつつ、同点があったことを記録する
+            var tie = false;
+            var path = EnemyMovePlanner.PlanPath(new GridMoveBoard(grid, self), unit.Size, srcH, srcW, unit.Move,
+                _ => { tie = true; return 1; });
+            hasTie |= tie;
             return path.Count > 0 ? path[path.Count - 1] : (srcH, srcW);
         }
 

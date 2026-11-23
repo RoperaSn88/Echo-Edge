@@ -26,5 +26,10 @@ namespace EchoEdge.Infra.Tutorial
         /// プレイヤーフェーズの行動選択ボタン (一閃/装備品/防御/回復) が初めて表示されたとき
         /// </summary>
         Player,
+
+        /// <summary>
+        /// 敵が初めて攻撃を始めるとき (攻撃アニメーションの直前)
+        /// </summary>
+        EnemyAttack,
     }
 }

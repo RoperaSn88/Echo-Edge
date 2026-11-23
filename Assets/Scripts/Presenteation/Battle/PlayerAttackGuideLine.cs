@@ -165,11 +165,22 @@ namespace EchoEdge.Presenter.Battle
                         return;
                     }
 
-                    // 反射の剣は、壁までの間にあるワープホールを通って出口から同じ向きで進む(反射回数は消費しない)
+                    // 反射の剣は、壁までの間にあるワープホールを通って出口から同じ向きで進む(反射回数は消費しない)。
+                    // リエイムパッドでは向きを選び直すので、パッドの中心で線を止める。
                     if (attackKind == PlayerAttackKinds.Reflect &&
-                        FloorGimmickManager.TryFindNext(origin, direction, hit.distance, _usedGimmicks, out var gimmick, out var gimmickDistance) &&
-                        gimmick is WarpHoleView warpHole)
+                        FloorGimmickManager.TryFindNext(origin, direction, hit.distance, _usedGimmicks, out var gimmick, out var gimmickDistance))
                     {
+                        if (gimmick is ReAimPadView reAimPad)
+                        {
+                            _points.Add(origin + direction * gimmickDistance);
+                            Vector3 center = reAimPad.CellCenter;
+                            center.y = origin.y;
+                            _points.Add(center);
+                            return;
+                        }
+
+                        if (gimmick is not WarpHoleView warpHole) break;
+
                         _points.Add(origin + direction * gimmickDistance);
                         _usedGimmicks.Add(warpHole);
                         _usedGimmicks.Add(warpHole.Partner);

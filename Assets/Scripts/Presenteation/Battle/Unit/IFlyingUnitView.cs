@@ -14,7 +14,8 @@ namespace EchoEdge.Presenter.Battle
         public UniTask WaitFlyAnim();
 
         /// <summary>
-        /// ビームエフェクトを表示し地上に戻るアニメーションを実行する
+        /// ビームアニメーションを再生し、攻撃の瞬間（StartAttackBlink の Strike）まで待つ。
+        /// 地上へ戻る移動はその瞬間に開始し、完了は待たない。
         /// </summary>
         public UniTask WaitAnimAfterFlying();
 

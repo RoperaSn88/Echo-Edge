@@ -68,7 +68,7 @@ namespace EchoEdge.Presenter.Player
                 _damagedEnemies.Clear();
 
                 // 壁までの光線上の敵を斬りながら壁へ移動する。
-                // 途中に床ギミック(ワープホール)があれば、そこまでの敵を斬ってから処理し、続きを進む(反射回数は消費しない)。
+                // 途中に床ギミック(ワープホール・リエイムパッド)があれば、そこまでの敵を斬ってから処理し、続きを進む(反射回数は消費しない)。
                 RaycastHit wallHit;
                 bool isCleared = false;
                 while (true)
@@ -122,10 +122,26 @@ namespace EchoEdge.Presenter.Player
                         player.PlayerTransform.position = entry - direction * 0.5f;
                         await player.PlayerTransform.DOMove(entry, FlashAttackSlashDuration);
 
-                        // 対のワープホールへ移り、同じ向きで進み続ける
-                        pos = gimmick is WarpHoleView warpHole
-                            ? warpHole.Warp(player.PlayerTransform)
-                            : player.PlayerTransform.position;
+                        if (gimmick is WarpHoleView warpHole)
+                        {
+                            // 対のワープホールへ移り、同じ向きで進み続ける
+                            pos = warpHole.Warp(player.PlayerTransform);
+                        }
+                        else if (gimmick is ReAimPadView reAimPad)
+                        {
+                            // パッドの中心へ寄せてから、そこから向きを選び直させる(残りの反射回数はそのまま)
+                            reAimPad.SetUsed(true);
+                            Vector3 center = reAimPad.CellCenter;
+                            center.y = player.PlayerTransform.position.y;
+                            await player.PlayerTransform.DOMove(center, FlashAttackSlashDuration);
+
+                            direction = await ReAimDirectionSelector.SelectAsync(center, Mathf.Max(0, reflectCount - i));
+                            pos = player.PlayerTransform.position;
+                        }
+                        else
+                        {
+                            pos = player.PlayerTransform.position;
+                        }
                         continue;
                     }
 
