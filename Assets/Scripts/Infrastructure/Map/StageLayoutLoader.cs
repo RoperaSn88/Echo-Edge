@@ -209,7 +209,7 @@ namespace EchoEdge.Infra.Map
                 if (!Enum.TryParse(trimmed, true, out EnemyActionKinds action) ||
                     !Enum.IsDefined(typeof(EnemyActionKinds), action) || char.IsDigit(trimmed[0]) || trimmed[0] == '-')
                 {
-                    Debug.LogWarning($"StageLayout.csv の {lineNumber} 行目の行動リストに不正な行動があります: {trimmed}。有効値: Attack, Skill");
+                    Debug.LogWarning($"StageLayout.csv の {lineNumber} 行目の行動リストに不正な行動があります: {trimmed}。有効値: Attack, Skill, None");
                     continue;
                 }
 

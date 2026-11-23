@@ -134,7 +134,7 @@ namespace EchoEdge.Domain.Battle
         /// <inheritdoc/>
         public async UniTask BeforeSpecific()
         {
-            await MessagePresenter.Instance.AppearMessage("シーカーは装置を開いた");
+            await MessagePresenter.Instance.AppearMessage("シーカーがフラスコを投げる");
         }
 
         /// <inheritdoc/>
